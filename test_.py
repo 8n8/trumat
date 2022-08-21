@@ -51,4 +51,6 @@ main =
 
 
 def test_simple():
-    assert main.lint(minimal_with_extra_variable) == minimal_without_extra_variable
+    expected = minimal_without_extra_variable
+    got = main.lint(minimal_with_extra_variable)
+    assert expected == got
