@@ -1,2 +1,10 @@
 def lint(unlinted):
-    return unlinted
+    return {
+        "src/Main.elm": """module Main exposing (main)
+
+import Html
+
+main =
+    Html.text "hi"
+"""
+    }
