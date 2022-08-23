@@ -3,7 +3,4 @@ module Main exposing (main)
 import Html
 
 main =
-    Html.text "hi"
-
-
-a = 0
+    Html.text (String.fromInt 42)
