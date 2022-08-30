@@ -2,5 +2,11 @@ module Main exposing (main)
 
 import Html
 
+
+type _x
+    = A
+    | B
+
+
 main =
-    Html.text (String.fromInt 42)
+    Html.text "hi"
