@@ -205,17 +205,37 @@ def parse_variable_name(tokens, raw, i):
 
 
 keywords = [
-    ("module", MODULE_KEYWORD),
-    ("import", IMPORT_KEYWORD),
-    ("exposing", EXPOSING_KEYWORD),
-    ("=", EQUALS_KEYWORD),
-    (":", COLON_KEYWORD),
-    ("->", ARROW_KEYWORD),
-    ("if", IF_KEYWORD),
-    ("else", ELSE_KEYWORD),
-    ("as", AS_KEYWORD),
-    ("case", CASE_KEYWORD),
-    ("of", OF_KEYWORD)
+    ("module", MODULE),
+    ("import", IMPORT),
+    ("exposing", EXPOSING),
+    ("=", EQUALS),
+    (":", COLON),
+    ("->", ARROW),
+    ("if", IF),
+    ("else", ELSE),
+    ("as", AS),
+    ("case", CASE),
+    ("of", OF),
+    (",", COMMA),
+    ("[", OPEN_SQUARE_BRACKET),
+    ("]", CLOSE_SQUARE_BRACKET),
+    ("(", OPEN_PARENTHESIS),
+    (")", CLOSE_PARENTHESIS),
+    ("<=", LESS_OR_EQUAL),
+    (">=", MORE_OR_EQUAL),
+    ("<", LESS_THAN),
+    (">", MORE_THAN),
+    ("/=", NOT_EQUAL),
+    ("==", EQUAL),
+    ("%", MODULUS),
+    ("&&", AND),
+    ("||", OR),
+    ("not", NOT),
+    ("*", MULTIPLY),
+    ("+", PLUS),
+    ("-", MINUS),
+    ("//", DIVIDE_INT),
+    ("/", DIVIDE_FLOAT)
 ]
 
 
@@ -231,7 +251,60 @@ def parse_keyword(tokens, raw, i):
     return i
 
 
+def parse_line_comment(tokens, raw, i):
+    j = parse_exact(raw, i, "--")
+    if j == i:
+        return i
+    i = j
+
+    tokens['type'].append(LINE_COMMENT)
+    tokens['quote_id'].append(len(tokens['type']) - 1)
+    tokens['quote_start'].append(i)
+
+    while i < len(raw):
+        if src[i] == ord('\n'):
+            break
+
+        i += 1
+
+    tokens['quote_end'].append(i)
+    return i
+
+
+def parse_block_comment(tokens, raw, i):
+    return parse_block_comment_help(tokens, raw, i, "{-")
+
+def parse_doc_comment(tokens, raw, i):
+    return parse_block_comment_help(tokens, raw, i, "{-|")
+
+
+def parse_block_comment_help(tokens, raw, i, start):
+    j = parse_exact(raw, i, start)
+    if j == i:
+        return i
+    i = j
+    
+    tokens['type'].append(BLOCK_COMMENT)
+    tokens['quote_id'].append(len(tokens['type']) - 1)
+    tokens['quote_start'].append(i)
+
+    while True:
+        if parse_exact(raw, i, "-}") == i:
+            i += 1
+            continue
+
+        break 
+
+    tokens['quote_end'].append(i)
+    return i+2
+
+
 token_parsers = [
+    parse_meaningful_whitespace,
+    parse_meaningless_whitespace,
+    parse_line_comment,
+    parse_doc_comment,
+    parse_block_comment,
     parse_keyword,
     parse_capitalised_name,
     parse_variable_name,
