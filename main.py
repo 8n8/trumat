@@ -299,12 +299,10 @@ def parse_block_comment_help(tokens, raw, i, start):
     return i+2
 
 
+def parse_whitespace(tokens, raw, i):
+
 token_parsers = [
-    parse_meaningful_whitespace,
-    parse_meaningless_whitespace,
-    parse_line_comment,
-    parse_doc_comment,
-    parse_block_comment,
+    parse_whitespace,
     parse_keyword,
     parse_capitalised_name,
     parse_variable_name,
