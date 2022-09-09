@@ -30,12 +30,10 @@
     u24: ID
     u24: ID of thing that has the type signature
 10. Case branch
-    u24: ID of switched on value
     u32: value reference of switched on value
     u32: value reference of pattern value
     u32: value reference of result
 11. if else
-    u24: ID of switched on value
     u32: value reference of switched on value
     u32: value reference of if result
     u32: value reference of else result

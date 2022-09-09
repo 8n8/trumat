@@ -5,43 +5,66 @@ import array
 MODULE_SEPARATOR = 255
 
 
-class TOKEN:
-    ORDINARY_STRING_LITERAL = 0
-    TRIPLE_QUOTED_STRING_LITERAL = 1
-    FLOAT = 2
-    INT = 3
-    MODULE = 4
-    EXPOSING = 5
-    EQUALS = 6
-    COLON = 7
-    ARROW = 8
-    IF = 9
-    ELSE = 10
-    AS = 11
-    CASE = 12
-    OF = 13
-    COMMA = 14
-    OPEN_SQUARE_BRACKET = 15
-    CLOSE_SQUARE_BRACKET = 16
-    OPEN_PARENTHESIS = 17
-    CLOSE_PARENTHESIS = 18
-    LESS_OR_EQUAL = 19
-    MORE_OR_EQUAL = 20
-    LESS_THAN = 21
-    MORE_THAN = 22
-    NOT_EQUAL = 23
-    EQUAL = 24
-    MODULUS = 25
-    AND = 26
-    OR = 27
-    NOT = 28
-    MULTIPLY = 29
-    PLUS = 30
-    MINUS = 31
-    DIVIDE_INT = 32
-    DIVIDE_FLOAT = 33
-    IMPORT = 34
-    MODULE_SEPARATOR = 35
+ORDINARY_STRING_LITERAL_TOKEN = 0
+TRIPLE_QUOTED_STRING_LITERAL_TOKEN = 1
+FLOAT_TOKEN = 2
+INT_TOKEN = 3
+MODULE_TOKEN = 4
+EXPOSING_TOKEN = 5
+EQUALS_TOKEN = 6
+COLON_TOKEN = 7
+ARROW_TOKEN = 8
+IF_TOKEN = 9
+ELSE_TOKEN = 10
+AS_TOKEN = 11
+CASE_TOKEN = 12
+OF_TOKEN = 13
+COMMA_TOKEN = 14
+OPEN_SQUARE_BRACKET_TOKEN = 15
+CLOSE_SQUARE_BRACKET_TOKEN = 16
+OPEN_PARENTHESIS_TOKEN = 17
+CLOSE_PARENTHESIS_TOKEN = 18
+LESS_OR_EQUAL_TOKEN = 19
+MORE_OR_EQUAL_TOKEN = 20
+LESS_THAN_TOKEN = 21
+MORE_THAN_TOKEN = 22
+NOT_EQUAL_TOKEN = 23
+EQUAL_TOKEN = 24
+MODULUS_TOKEN = 25
+AND_TOKEN = 26
+OR_TOKEN = 27
+NOT_TOKEN = 28
+MULTIPLY_TOKEN = 29
+PLUS_TOKEN = 30
+MINUS_TOKEN = 31
+DIVIDE_INT_TOKEN = 32
+DIVIDE_FLOAT_TOKEN = 33
+IMPORT_TOKEN = 34
+MODULE_SEPARATOR_TOKEN = 35
+NEWLINES_TOKEN = 36
+SPACES_TOKEN = 37
+BLOCK_COMMENT_TOKEN = 38
+LINE_COMMENT_TOKEN = 39
+VARIABLE_NAME_TOKEN = 40
+CAPITALISED_NAME_TOKEN = 41
+
+
+def parse_exact(src, i, token):
+    j = 0
+
+    try:
+        while j < len(token):
+            if src[i + j] != token[j]:
+                # a source character doesn't match a token character
+                return i
+
+            j += 1
+    except IndexError:
+        # source is too short
+        return i
+
+    # happy path: all the tokens matched and the source was long enough
+    return i + j
 
 
 def get_elm_paths(raw):
@@ -61,7 +84,7 @@ def parse_module_separator(tokens, src, i):
     except IndexError:
         return i
 
-    tokens["type"].append(TOKEN.MODULE_SEPARATOR)
+    tokens["type"].append(MODULE_SEPARATOR_TOKEN)
     tokens["start"].append(i)
     i += 1
     tokens["end"].append(i)
@@ -76,7 +99,7 @@ def parse_ordinary_string(tokens, src, i):
         return i
 
     i += 1
-    tokens["type"].append(TOKEN.ORDINARY_STRING_LITERAL)
+    tokens["type"].append(ORDINARY_STRING_LITERAL_TOKEN)
     tokens["start"].append(i)
 
     while True:
@@ -98,7 +121,7 @@ def parse_triple_quoted_string(tokens, src, i):
         return i
 
     i += 3
-    tokens["type"].append(TOKEN.TRIPLE_QUOTED_STRING_LITERAL)
+    tokens["type"].append(TRIPLE_QUOTED_STRING_LITERAL_TOKEN)
     tokens["start"].append(i)
 
     while True:
@@ -168,10 +191,10 @@ def parse_positive_number(tokens, raw, i):
 
     tokens["end"].append(i)
     if is_float:
-        tokens["type"].append(TOKEN.FLOAT)
+        tokens["type"].append(FLOAT_TOKEN)
         return i
 
-    tokens["type"].append(TOKEN.INT)
+    tokens["type"].append(INT_TOKEN)
     return i
 
 
@@ -198,7 +221,7 @@ def parse_capitalised_name(tokens, src, i):
         i += 1
 
     tokens["end"].append(i)
-    tokens["type"].append(TOKEN.CAPITALISED_NAME)
+    tokens["type"].append(CAPITALISED_NAME_TOKEN)
     return i
 
 
@@ -217,42 +240,42 @@ def parse_variable_name(tokens, src, i):
         i += 1
 
     tokens["end"].append(i)
-    tokens["type"].append(TOKEN.VARIABLE_NAME)
+    tokens["type"].append(VARIABLE_NAME_TOKEN)
     return i
 
 
 keywords = [
-    ("module", TOKEN.MODULE),
-    ("import", TOKEN.IMPORT),
-    ("exposing", TOKEN.EXPOSING),
-    ("=", TOKEN.EQUALS),
-    (":", TOKEN.COLON),
-    ("->", TOKEN.ARROW),
-    ("if", TOKEN.IF),
-    ("else", TOKEN.ELSE),
-    ("as", TOKEN.AS),
-    ("case", TOKEN.CASE),
-    ("of", TOKEN.OF),
-    (",", TOKEN.COMMA),
-    ("[", TOKEN.OPEN_SQUARE_BRACKET),
-    ("]", TOKEN.CLOSE_SQUARE_BRACKET),
-    ("(", TOKEN.OPEN_PARENTHESIS),
-    (")", TOKEN.CLOSE_PARENTHESIS),
-    ("<=", TOKEN.LESS_OR_EQUAL),
-    (">=", TOKEN.MORE_OR_EQUAL),
-    ("<", TOKEN.LESS_THAN),
-    (">", TOKEN.MORE_THAN),
-    ("/=", TOKEN.NOT_EQUAL),
-    ("==", TOKEN.EQUAL),
-    ("%", TOKEN.MODULUS),
-    ("&&", TOKEN.AND),
-    ("||", TOKEN.OR),
-    ("not", TOKEN.NOT),
-    ("*", TOKEN.MULTIPLY),
-    ("+", TOKEN.PLUS),
-    ("-", TOKEN.MINUS),
-    ("//", TOKEN.DIVIDE_INT),
-    ("/", TOKEN.DIVIDE_FLOAT),
+    ("module", MODULE_TOKEN),
+    ("import", IMPORT_TOKEN),
+    ("exposing", EXPOSING_TOKEN),
+    ("=", EQUALS_TOKEN),
+    (":", COLON_TOKEN),
+    ("->", ARROW_TOKEN),
+    ("if", IF_TOKEN),
+    ("else", ELSE_TOKEN),
+    ("as", AS_TOKEN),
+    ("case", CASE_TOKEN),
+    ("of", OF_TOKEN),
+    (",", COMMA_TOKEN),
+    ("[", OPEN_SQUARE_BRACKET_TOKEN),
+    ("]", CLOSE_SQUARE_BRACKET_TOKEN),
+    ("(", OPEN_PARENTHESIS_TOKEN),
+    (")", CLOSE_PARENTHESIS_TOKEN),
+    ("<=", LESS_OR_EQUAL_TOKEN),
+    (">=", MORE_OR_EQUAL_TOKEN),
+    ("<", LESS_THAN_TOKEN),
+    (">", MORE_THAN_TOKEN),
+    ("/=", NOT_EQUAL_TOKEN),
+    ("==", EQUAL_TOKEN),
+    ("%", MODULUS_TOKEN),
+    ("&&", AND_TOKEN),
+    ("||", OR_TOKEN),
+    ("not", NOT_TOKEN),
+    ("*", MULTIPLY_TOKEN),
+    ("+", PLUS_TOKEN),
+    ("-", MINUS_TOKEN),
+    ("//", DIVIDE_INT_TOKEN),
+    ("/", DIVIDE_FLOAT_TOKEN),
 ]
 
 
@@ -276,7 +299,7 @@ def parse_line_comment(tokens, src, i):
         return i
     i = j
 
-    tokens["type"].append(TOKEN.LINE_COMMENT)
+    tokens["type"].append(LINE_COMMENT_TOKEN)
     tokens["start"].append(i)
 
     while i < len(src):
@@ -303,7 +326,7 @@ def parse_block_comment_help(tokens, raw, i, start):
         return i
     i = j
 
-    tokens["type"].append(TOKEN.BLOCK_COMMENT)
+    tokens["type"].append(BLOCK_COMMENT_TOKEN)
     tokens["start"].append(i)
 
     while True:
@@ -318,11 +341,11 @@ def parse_block_comment_help(tokens, raw, i, start):
 
 
 def parse_spaces(tokens, src, i):
-    return parse_spaces_help(tokens, src, i, " ", TOKEN.SPACES)
+    return parse_spaces_help(tokens, src, i, " ", SPACES_TOKEN)
 
 
 def parse_newlines(tokens, src, i):
-    return parse_spaces_help(tokens, src, i, "\n", TOKEN.NEWLINES)
+    return parse_spaces_help(tokens, src, i, "\n", NEWLINES_TOKEN)
 
 
 def parse_spaces_help(tokens, raw, i, char, type_):
@@ -349,7 +372,7 @@ def parse_spaces_help(tokens, raw, i, char, type_):
     return i
 
 
-def parse_many(tokens, raw, i, parsers):
+def choice(tokens, raw, i, parsers):
     for parser in parsers:
         j = parser(tokens, raw, i)
         if j > i:
@@ -360,7 +383,7 @@ def parse_many(tokens, raw, i, parsers):
     return i
 
 
-def tokenize(raw):
+def tokenize(src):
     tokens = {
         "type": array.array("B"),
         "start": array.array("L"),
@@ -368,10 +391,10 @@ def tokenize(raw):
     }
 
     i = 0
-    while i < len(raw):
-        i = parse_many(
+    while i < len(src):
+        i = choice(
             tokens,
-            raw,
+            src,
             i,
             [
                 parse_spaces,
@@ -391,12 +414,103 @@ def tokenize(raw):
     return tokens
 
 
+def init_ast():
+    return {
+        # name
+        "name_start": array.array("L"),
+        "name_end": array.array("L"),
+
+        # block comment
+        "block_comment_start": array.array("L"),
+        "block_comment_end": array.array("L"),
+
+        # line comment
+        "line_comment_start": array.array("L"),
+        "line_comment_end": array.array("L"),
+
+        # argument
+        "argumented": array.array("L"),
+        "argument": array.array("L"),
+
+        # parameter
+        "parametered": array.array("L"),
+
+        # module member
+        "module_id": array.array("H"),
+        "member": array.array("L"),
+
+        # custom type branch
+        "parent_type_id": array.array("L"),
+        
+        # type signature member
+        "type_signature_member": array.array("L"),
+
+        # switch branch
+        "switched_on_value": array.array("L"),
+        "pattern_value": array.array("L"),
+        "result": array.array("L"),
+
+        # switch IDs that are if - else
+        "if_else_id": array.array("L"),
+
+        # module export
+        "exported": array.array("L"),
+
+        # export whole type
+        "export_whole_type": array.array("L"),
+
+        # export all of a module
+        "export_all_module": array.array("L"),
+
+        # module import single
+        "import_single_into": array.array("L"),
+        "imported_item": array.array("L"),
+
+        # import all of a module
+        "import_all_into": array.array("L"),
+        "imported_module": array.array("L"),
+
+        # return value of a let in expression
+        "let-in_id": array.array("L"),
+        "in_id": array.array("L"),
+
+        # list literal
+        "id_of_first_list_item": array.array("L"),
+        "list_length": array.array("L"),
+
+        # wrapper
+        "wrapped": array.array("L")
+
+        # record type declaration member
+        "record_id": array.array("L")
+    }
+
+
+def parse(tokens):
+    ast = init_ast()
+
+    i = 0
+    while i < len(tokens):
+        i = ast_choice(
+            tokens,
+            i,
+            [
+                parse_module_declaration,
+                parse_import,
+                parse_line_comment_ast,
+                parse_block_comment_ast,
+                parse_top_level_function,
+                parse_adt
+            
+
+
+
 def read_sources(source_directories):
     src = b""
     for source_directory in source_directories:
         for path in get_elm_paths(os.walk(source_directory)):
             with open(path, "rb") as elm:
-                src += bytes([MODULE_SEPARATOR]) + elm.read()
+                src += elm.read() + bytes([MODULE_SEPARATOR])
 
     return src
 
@@ -407,25 +521,7 @@ def main():
 
     src = read_sources(elm_dot_json["source-directories"])
 
-    ast = parse(tokenize(src))
+    parse(tokenize(src))
 
 
 main()
-
-
-def parse_exact(src, i, token):
-    j = 0
-
-    try:
-        while j < len(token):
-            if src[i + j] != token[j]:
-                # a source character doesn't match a token character
-                return i
-
-            j += 1
-    except IndexError:
-        # source is too short
-        return i
-
-    # happy path: all the tokens matched and the source was long enough
-    return i + j
