@@ -417,6 +417,7 @@ def tokenize(src):
 def init_ast():
     return {
         # name
+        "named_id": array.array("L"),
         "name_start": array.array("L"),
         "name_end": array.array("L"),
 
@@ -486,7 +487,101 @@ def init_ast():
     }
 
 
-def parse(tokens):
+def ast_choice(ast, tokens, i, parsers):
+    for parser in parsers:
+        j = parser(ast, tokens, i)
+        if j > i:
+            return j
+
+        i = j
+
+    return i
+
+
+def parse_value_ref(value_ref):
+    """
+    A value ref is 4 bytes. The least significant byte is the
+    type and the most significant three bytes are the ID.
+    """
+    id_ = value_ref >> 8
+    type_ = value_ref & 0xFF
+    return id_, type_
+
+
+def get_max_id(ast):
+    max_id = 0
+    found = False
+
+    for old_value_ref in ast["named_id"]:
+        old_id, old_type = parse_value_ref(old_value_ref)
+        if old_type == MODULE_TYPE:
+            if old_id > max_id:
+                max_id = old_id
+                found = True
+
+    return max_id, found
+
+
+def get_new_module_id(ast):
+    max_id, found = get_max_id(ast)
+    if found:
+        return max_id + 1
+
+    return 0
+
+
+def eat_up_any_whitespace(tokens, i):
+    while True:
+        if tokens[i] == NEWLINES_TOKEN or tokens[i] == SPACES_TOKEN:
+            i += 1
+            continue
+
+        break
+
+    return i
+
+
+def parse_module_declaration(ast, tokens, i):
+    """
+    module X exposing (a)
+
+    module X exposing (a, b)
+
+    module X exposing (..)
+    """
+    try:
+        if tokens[i] != MODULE_TOKEN:
+            return i
+    except IndexError:
+        return i
+
+    i += 1
+
+    i = eat_up_any_whitespace(tokens, i)
+
+    ast["named_id"].append(get_new_module_id(ast))
+    ast["name_start"].append(tokens[i]["start"])
+    ast["name_end"].append(tokens[i]["end"])
+
+    i = eat_up_any_whitespace(tokens, i)
+
+    # assume the next token is "exposing"
+    i += 1
+
+    i = eat_up_any_whitespace(tokens, i)
+
+    # assume the next token is "("
+    i += 1
+
+    i = eat_up_any_whitespace(tokens, i)
+
+
+    
+    
+    
+
+
+def parse(tokens, src):
     ast = init_ast()
 
     i = 0
@@ -500,9 +595,12 @@ def parse(tokens):
                 parse_line_comment_ast,
                 parse_block_comment_ast,
                 parse_top_level_function,
-                parse_adt
-            
+                parse_adt_declaration,
+                parse_type_alias_declaration,
+            ],
+        )
 
+    return ast
 
 
 def read_sources(source_directories):
@@ -521,7 +619,7 @@ def main():
 
     src = read_sources(elm_dot_json["source-directories"])
 
-    parse(tokenize(src))
+    parse(tokenize(src), src)
 
 
 main()
