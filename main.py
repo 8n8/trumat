@@ -42,11 +42,12 @@ DIVIDE_FLOAT_TOKEN = 33
 IMPORT_TOKEN = 34
 MODULE_SEPARATOR_TOKEN = 35
 NEWLINES_TOKEN = 36
-SPACES_TOKEN = 37
 BLOCK_COMMENT_TOKEN = 38
 LINE_COMMENT_TOKEN = 39
 VARIABLE_NAME_TOKEN = 40
 CAPITALISED_NAME_TOKEN = 41
+EXPOSE_ALL_TOKEN = 42
+DOT_TOKEN = 43
 
 
 def parse_exact(src, i, token):
@@ -276,6 +277,8 @@ keywords = [
     ("-", MINUS_TOKEN),
     ("//", DIVIDE_INT_TOKEN),
     ("/", DIVIDE_FLOAT_TOKEN),
+    ("..", EXPOSE_ALL_TOKEN),
+    (".", DOT_TOKEN),
 ]
 
 
@@ -340,19 +343,16 @@ def parse_block_comment_help(tokens, raw, i, start):
     return i + 2
 
 
-def parse_spaces(tokens, src, i):
-    return parse_spaces_help(tokens, src, i, " ", SPACES_TOKEN)
+def parse_spaces(_, src, i):
+    while True:
+        if src[i] != ord(" "):
+            return i
+
+        i += 1
 
 
 def parse_newlines(tokens, src, i):
-    return parse_spaces_help(tokens, src, i, "\n", NEWLINES_TOKEN)
-
-
-def parse_spaces_help(tokens, raw, i, char, type_):
-    try:
-        if raw[i] != char:
-            return i
-    except IndexError:
+    if raw[i] != ord("\n"):
         return i
 
     tokens["start"].append(i)
@@ -360,10 +360,7 @@ def parse_spaces_help(tokens, raw, i, char, type_):
 
     tokens["type"].append(type_)
     while True:
-        try:
-            if raw[i] != char:
-                break
-        except IndexError:
+        if raw[i] != ord("\n"):
             break
 
         i += 1
@@ -532,13 +529,31 @@ def get_new_module_id(ast):
 
 def eat_up_any_whitespace(tokens, i):
     while True:
-        if tokens[i] == NEWLINES_TOKEN or tokens[i] == SPACES_TOKEN:
+        if tokens[i] == NEWLINES_TOKEN:
             i += 1
             continue
 
         break
 
     return i
+
+
+def get_new_type_id(ast):
+
+
+def parse_type_export(ast, tokens, i):
+    if tokens[i] != CAPITALISED_NAME_TOKEN:
+        return i
+
+    i += 1
+
+    i = eat_up_any_whitespace(tokens, i, ast)
+
+    if tokens[i] !=
+    type_id = get_new_type_id(ast)
+    ast['named_id'].append(get_new
+        
+    
 
 
 def parse_module_declaration(ast, tokens, i):
@@ -559,7 +574,8 @@ def parse_module_declaration(ast, tokens, i):
 
     i = eat_up_any_whitespace(tokens, i)
 
-    ast["named_id"].append(get_new_module_id(ast))
+    module_id = get_new_module_id(ast)
+    ast["named_id"].append(module_id)
     ast["name_start"].append(tokens[i]["start"])
     ast["name_end"].append(tokens[i]["end"])
 
@@ -575,10 +591,22 @@ def parse_module_declaration(ast, tokens, i):
 
     i = eat_up_any_whitespace(tokens, i)
 
+    if tokens[i] == EXPOSE_ALL_TOKEN:
+        ast["export_all_module"].append(module_id)
 
-    
-    
-    
+    else:
+        while True:
+            j = ast_choice(
+                tokens,
+                i,
+                [parse_type_export, parse_variable_export],
+            )
+
+            if j == i:
+                break
+
+            i = j
+        
 
 
 def parse(tokens, src):
@@ -619,6 +647,7 @@ def main():
 
     src = read_sources(elm_dot_json["source-directories"])
 
+    ast = init_ast()
     parse(tokenize(src), src)
 
 
