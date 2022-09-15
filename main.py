@@ -42,12 +42,12 @@ DIVIDE_FLOAT_TOKEN = 33
 IMPORT_TOKEN = 34
 MODULE_SEPARATOR_TOKEN = 35
 NEWLINES_TOKEN = 36
-BLOCK_COMMENT_TOKEN = 38
-LINE_COMMENT_TOKEN = 39
-VARIABLE_NAME_TOKEN = 40
-CAPITALISED_NAME_TOKEN = 41
-EXPOSE_ALL_TOKEN = 42
-DOT_TOKEN = 43
+BLOCK_COMMENT_TOKEN = 37
+LINE_COMMENT_TOKEN = 38
+VARIABLE_NAME_TOKEN = 39
+CAPITALISED_NAME_TOKEN = 40
+EXPOSE_ALL_TOKEN = 41
+DOT_TOKEN = 42
 
 
 def parse_exact(src, i, token):
@@ -411,76 +411,179 @@ def tokenize(src):
     return tokens
 
 
+
 def init_ast():
     return {
+        # the order things appear in the source file
+        # this will contain 4 bytes for every AST item
+        # say that there are 3 AST items per line of code,
+        # and there are around 10^6 lines of code
+        #
+        # that comes to 4 * 3 * 10 **6 = 12_000_000
+        "ordering": array.array("L", b"\x00" * 12_000_000),
+        "num_orderings": 0,
+
         # name
-        "named_id": array.array("L"),
-        "name_start": array.array("L"),
-        "name_end": array.array("L"),
+        # say there are around 10^6 lines of code, and a new
+        # name every couple of lines
+        #
+        # that comes to 4 * 10^6 / 2 = 2_000_000 B
+        "named_id": array.array("L", b"\x00" * 2_000_000),
+        "name_start": array.array("L", b"\x00" * 2_000_000),
+        "name_end": array.array("L", b"\x00" * 2_000_000),
+        "num_names": 0,
 
         # block comment
-        "block_comment_start": array.array("L"),
-        "block_comment_end": array.array("L"),
+        # say there is a block comment every 10 lines of code
+        # on average, and 10^6 lines of code, that comes to
+        #
+        # 4 * 10^6 / 10 = 400_000
+        "block_comment_start": array.array("L", b"\x00" * 400_000),
+        "block_comment_end": array.array("L", b"\x00" * 400_000),
+        "num_block_comments": 0,
 
         # line comment
-        "line_comment_start": array.array("L"),
-        "line_comment_end": array.array("L"),
+        # say there are twice as many line comments as block
+        # comments, that is 200_000
+        "line_comment_start": array.array("L", b"\x00" * 200_000),
+        "line_comment_end": array.array("L", b"\x00" * 200_000),
+        "num_line_comments": 0,
 
         # argument
-        "argumented": array.array("L"),
-        "argument": array.array("L"),
+        # say there is an argument given twice on each line
+        # of code, for 10^6 lines of code, that is
+        #
+        # 4 * 2 * 10^6 = 8_000_000
+        "argumented": array.array("L", b"\x00" * 8_000_000),
+        "argument": array.array("L", b"\x00" * 8_000_000),
+        "num_arguments": 0,
 
         # parameter
-        "parametered": array.array("L"),
+        # say there is a parameter every 3 lines of code, for
+        # 10^6 lines of code, that is
+        #
+        # 4 * 10^6 / 3 ~= 2_000_000
+        "parametered": array.array("L", b"\x00" * 2_000_000),
+        "num_parameters": 0,
 
         # module member
-        "module_id": array.array("H"),
-        "member": array.array("L"),
+        # say there is a top-level declaration every 10 lines
+        # of code on average, for 10^6 lines of code, that is
+        # 2 * 10^6 / 10 = 200_000
+        "module_id": array.array("H", b"\x00" * 200_000),
+        # 4 * 10^6 / 10 = 400_000
+        "member": array.array("L", b"\x00" * 400_000),
+        "num_module_members": 0,
 
         # custom type branch
-        "parent_type_id": array.array("L"),
+        # say there is a new custom type every 30 lines of
+        # code on average, with 5 branches, for 10^6 lines of
+        # code, that comes to
+        #
+        # 4 * 10^6 / 30 ~= 200_000
+        "parent_type_id": array.array("L", b"\x00" * 200_000),
+        "num_parent_type_id": 0,
         
         # type signature member
-        "type_signature_member": array.array("L"),
+        # say there is a type signature every 5 lines of
+        # code on average for 10^6 lines of code, and that
+        # each type signature averages 4 items, that comes to
+        #
+        # 4 * 4 * 10^6 / 5 = 3_200_000
+        "type_signature_member": array.array("L", b"\x00" * 3_200_000),
+        "num_type_signature_members": 0,
 
         # switch branch
-        "switched_on_value": array.array("L"),
-        "pattern_value": array.array("L"),
-        "result": array.array("L"),
+        # say there is a switch (case-of or if-else) every
+        # 20 lines of code in 10^6 lines of code, and that
+        # the average switch has 4 branches
+        #
+        # that comes to 4 * 4 * 10^6 / 20 = 800_000
+        "switched_on_value": array.array("L", b"\x00" * 800_000),
+        "pattern_value": array.array("L", b"\x00" * 800_000),
+        "result": array.array("L", b"\x00" * 800_000),
+        "num_switch_branches": 0,
 
         # switch IDs that are if - else
-        "if_else_id": array.array("L"),
+        #
+        # say that 1/2 of the switch branches are if-else
+        # that comes to 400_000
+        "if_else_id": array.array("L", b"\x00" * 400_000),
+        "num_if_else": 0,
 
         # module export
-        "exported": array.array("L"),
+        # say that the average module contains 500 lines of
+        # code in 10^6 lines of code, and that the average
+        # module exports 5 items, that comes to
+        #
+        # 4 * 5 * 10^6 / 500 = 40_000
+        "exported": array.array("L", b"\x00" * 40_000),
+        "num_exported": 0,
 
         # export whole type
-        "export_whole_type": array.array("L"),
+        # say that each module exports 2 whole types, that 
+        # comes to
+        #
+        # 4 * 2 * 10^6 / 500 = 16_000
+        "export_whole_type": array.array("L", b"\x00" * 16_000),
+        "num_export_whole_type": 0,
 
         # export all of a module
-        "export_all_module": array.array("L"),
+        # say that one in five modules exports everything
+        # that comes to
+        #
+        # 4 * 10^6 / (500 * 5) = 1600
+        "export_all_module": array.array("L", b"\x00" * 1600),
+        "num_export_all_module": 0,
 
         # module import single
-        "import_single_into": array.array("L"),
-        "imported_item": array.array("L"),
+        # say the average module has 10 import rows, and each
+        # row pulls in 10 names, that comes to
+        #
+        # 4 * 10 * 10 * 10^6 / 500 = 800_000
+        "import_single_into": array.array("L", b"\x00" * 800_000),
+        "imported_item": array.array("L", b"\x00" * 800_000),
+        "num_import_single": 0,
 
         # import all of a module
-        "import_all_into": array.array("L"),
-        "imported_module": array.array("L"),
+        # say there is 1 import all statement in each module
+        #
+        # that comes to 4 * 10^6 / 500 = 8000
+        "import_all_into": array.array("L", b"\x00" * 8000),
+        "imported_module": array.array("L", b"\x00" * 8000),
+        "num_import_all": 0,
 
         # return value of a let in expression
-        "let-in_id": array.array("L"),
-        "in_id": array.array("L"),
+        # say there is a let-in statement every 20 lines,
+        # that comes to
+        #
+        # 4 * 10^6 / 20 = 200_000
+        "let-in_id": array.array("L", b"\x00" * 200_000),
+        "in_id": array.array("L", b"\x00" * 200_000),
+        "num_let_in": 0,
 
         # list literal
-        "id_of_first_list_item": array.array("L"),
-        "list_length": array.array("L"),
+        # say there is a list literal every 20 lines of code
+        # that comes to
+        #
+        # 4 * 10^6 / 20 = 200_000
+        "id_of_first_list_item": array.array("L", b"\x00" * 200_000),
+        "list_length": array.array("L", b"\x00" * 200_000),
+        "num_lists": 0,
 
         # wrapper
-        "wrapped": array.array("L")
+        # say there is a wrapper every 3 lines of code, that
+        # comes to
+        # 4 * 10^6 / 3 = 1_400_000
+        "wrapped": array.array("L", b"\x00" * 1_400_000)
+        "num_wrappers": 0,
 
         # record type declaration member
-        "record_id": array.array("L")
+        # say there is a record declaration every 20 lines of
+        # code, and each record has 10 items, that comes to
+        # 4 * 10 * 10^6 / 20 = 2_000_000
+        "record_id": array.array("L", b"\x00" * 2_000_000),
+        "num_record_members": 0,
     }
 
 
@@ -592,7 +695,8 @@ def parse_module_declaration(ast, tokens, i):
     i = eat_up_any_whitespace(tokens, i)
 
     if tokens[i] == EXPOSE_ALL_TOKEN:
-        ast["export_all_module"].append(module_id)
+        ast["export_all_module"][ast["num_export_all_module"]] = module_id
+        ast["num_export_all_module"] += 1
 
     else:
         while True:
@@ -606,6 +710,8 @@ def parse_module_declaration(ast, tokens, i):
                 break
 
             i = j
+
+    return i
         
 
 
