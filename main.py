@@ -482,7 +482,7 @@ def init_ast():
         #
         # 4 * 10^6 / 30 ~= 200_000
         "parent_type_id": array.array("L", b"\x00" * 200_000),
-        "num_parent_type_id": 0,
+        "num_custom_type_branch": 0,
         
         # type signature member
         # say there is a type signature every 5 lines of
@@ -612,7 +612,8 @@ def get_max_id(ast):
     max_id = 0
     found = False
 
-    for old_value_ref in ast["named_id"]:
+    for i in range(ast["num_names"]):
+        old_value_ref = ast["named_id"][i]
         old_id, old_type = parse_value_ref(old_value_ref)
         if old_type == MODULE_TYPE:
             if old_id > max_id:
@@ -641,7 +642,20 @@ def eat_up_any_whitespace(tokens, i):
     return i
 
 
-def get_new_type_id(ast):
+def get_new_parent_type_id(ast):
+    new_id = 0
+    for id in ast["parent_type_id"]:
+        if id > new_id:
+            new_id = id
+
+    return new_id
+
+
+def insert_name(x):
+    x["ast"]["named_id"][x["ast"]["num_names"]] = x["id"]
+    x["ast"]["name_start"][x["ast"]["num_names"]] = x["tokens"][x["i"]]["start"]
+    x["ast"]["name_end"][x["ast"]["num_names"]] = x["tokens"][x["i"]]["end"]
+    x["ast"]["num_names"] += 1
 
 
 def parse_type_export(ast, tokens, i):
@@ -652,11 +666,27 @@ def parse_type_export(ast, tokens, i):
 
     i = eat_up_any_whitespace(tokens, i, ast)
 
-    if tokens[i] !=
-    type_id = get_new_type_id(ast)
-    ast['named_id'].append(get_new
-        
-    
+    if tokens[i] != OPEN_PARENTHESIS_TOKEN:
+        wrapper_id = get_new_wrapper_id(ast)
+        insert_name({"ast": ast, "id": wrapper_id, "tokens": tokens, "i": i})
+            
+        return i
+
+    i += 1
+
+    i = eat_up_any_whitespace(tokens, i, ast)
+
+    parent_type_id = get_new_parent_type_id(ast)
+
+    while True:
+        if tokens[i] == CLOSE_PARENTHESIS_TOKEN:
+            return i+1
+
+        ast["parent_type_id"][ast["num_parent_type_id"]] = parent_type_id
+        insert_name({"ast": ast, "id": ast["num_custom_type_branch"], "tokens": tokens, "i": i})
+        ast["num_custom_type_branch"] += 1
+
+        i += 1
 
 
 def parse_module_declaration(ast, tokens, i):
@@ -678,9 +708,7 @@ def parse_module_declaration(ast, tokens, i):
     i = eat_up_any_whitespace(tokens, i)
 
     module_id = get_new_module_id(ast)
-    ast["named_id"].append(module_id)
-    ast["name_start"].append(tokens[i]["start"])
-    ast["name_end"].append(tokens[i]["end"])
+    insert_name({"ast": ast, "id": module_id, "tokens": tokens, "i": i})
 
     i = eat_up_any_whitespace(tokens, i)
 
