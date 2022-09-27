@@ -1,0 +1,4 @@
+resolver: lts-17.0
+extra-deps:
+- ivory-0.1.0.9@sha256:9fc1abaccafbd09ef23d1616ba185208b6017d48cf160f4e78144c15da89186a,4779
+- monadLib-3.10.1@sha256:f965920379fee5e69dba089ac41bfc885598db2659fccfd3fd484a0c2b90282a,644
