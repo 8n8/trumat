@@ -131,96 +131,105 @@ void identity_pass() {
 }
 
 int format_file(char path[MAX_PATH]) {
-    printf("%s\n", path);
+	printf("%s\n", path);
 
-    FILE* handle_in = fopen(path, "rb");
-    if (handle_in == NULL) {
-        printf("failed to open the file: %s", path);
-        return -1;
-    }
+	FILE* handle_in = fopen(path, "rb");
+	if (handle_in == NULL) {
+		printf("failed to open the file: %s", path);
+		return -1;
+	}
 
-    size_t n = fread(code_buffers.one, 1, CODE_BUF_SIZE, handle_in);
-    if (!feof(handle_in)) {
-        printf("file too large: %s, max size is %d", path, CODE_BUF_SIZE);
-        fclose(handle_in);
-        return -1;
-    }
-    if (ferror(handle_in)) {
-        printf("couldn't open input file: %s", path);
-        fclose(handle_in);
-        return -1;
-    }
+	size_t n = fread(code_buffers.one, 1, CODE_BUF_SIZE, handle_in);
+	if (!feof(handle_in)) {
+		printf("file too large: %s, max size is %d", path, CODE_BUF_SIZE);
+		fclose(handle_in);
+		return -1;
+	}
+	if (ferror(handle_in)) {
+		printf("couldn't open input file: %s", path);
+		fclose(handle_in);
+		return -1;
+	}
 
-    code_buffers.one_size = n;
+	code_buffers.one_size = n;
 
-    no_trailing_space();
+	no_trailing_space();
 
-    FILE* handle_out = fopen(path, "w");
-    if (handle_out == NULL) {
-        printf("couldn't open output file: %s", path);
-        return -1;
-    }
+	FILE* handle_out = fopen(path, "w");
+	if (handle_out == NULL) {
+		printf("couldn't open output file: %s", path);
+		return -1;
+	}
 
-    n = fwrite(code_buffers.two, 1, code_buffers.two_size, handle_out);
-    if (n != code_buffers.two_size) {
-        printf("failed writing output to %s", path);
-        fclose(handle_out);
-        return -1;
-    }
-    fclose(handle_out);
+	n = fwrite(code_buffers.two, 1, code_buffers.two_size, handle_out);
+	if (n != code_buffers.two_size) {
+		printf("failed writing output to %s", path);
+		fclose(handle_out);
+		return -1;
+	}
+	fclose(handle_out);
 
-    return 0;
+	return 0;
 }
 
-int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
+int get_paths_from_dir(DIR*, char[MAX_PATH]);
 
-	errno = 0;
+int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 	struct dirent* dir;
-	while (1) {
-		dir = readdir(d);
-		if (dir == NULL && errno != 0) {
-            printf("couldn't read directory: %s", directory_path);
-			return -1;
-		}
-		if (dir == NULL && errno == 0) {
-			return 0;
-		}
+	dir = readdir(d);
+	if (dir == NULL && errno != 0) {
+		printf("couldn't read directory: %s", directory_path);
+		return -1;
+	}
+	if (dir == NULL && errno == 0) {
+		return 1;
+	}
+	if (dir->d_type == DT_REG && !is_elm_file(dir->d_name)) {
+		return 0;
+	}
+	if (dir->d_type == DT_REG) {
+		char file_path[MAX_PATH];
+		make_file_path(file_path, directory_path, dir->d_name);
 
-        if (dir->d_type == DT_REG && !is_elm_file(dir->d_name)) {
-            continue;
-        }
-
-		if (dir->d_type == DT_REG) {
-            char file_path[MAX_PATH];
-			make_file_path(file_path, directory_path, dir->d_name);
-
-            int format_error = format_file(file_path);
-            if (format_error != 0) {
-                return format_error;
-            }
-		}
-
-        if (dir->d_type == DT_DIR && !is_relevant_dir(dir->d_name)) {
-            continue;
-        }
-
-		if (dir->d_type == DT_DIR) {
-			char sub_dir_path[MAX_PATH];
-			make_sub_dir_path(sub_dir_path, directory_path, dir->d_name);
-
-			DIR* subd = opendir(sub_dir_path);
-			if (subd == NULL) {
-                printf("directory doesn't exist: \"%s\"\n", sub_dir_path);
-                return -1;
-			}
-			int result = get_paths_from_dir(subd, sub_dir_path);
-			closedir(subd);
-			if (result != 0) {
-				return result;
-			}
+		int format_error = format_file(file_path);
+		if (format_error != 0) {
+		    return format_error;
 		}
 	}
+	if (dir->d_type == DT_DIR && !is_relevant_dir(dir->d_name)) {
+		return 0;
+	}
+	if (dir->d_type != DT_DIR) {
+		return 0;
+	}
+	char sub_dir_path[MAX_PATH];
+	make_sub_dir_path(sub_dir_path, directory_path, dir->d_name);
+
+	DIR* subd = opendir(sub_dir_path);
+	if (subd == NULL) {
+		printf("directory doesn't exist: \"%s\"\n", sub_dir_path);
+		return -1;
+	}
+	int result = get_paths_from_dir(subd, sub_dir_path);
+	closedir(subd);
+	if (result != 0) {
+		return result;
+	}
 	return 0;
+}
+
+
+int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
+	errno = 0;
+	int result = 0;
+	while (result == 0) {
+		result = get_paths_from_fs_entry(d, directory_path);
+	}
+	if (result > 0) {
+		return 0;
+	}
+
+	return result;
 }
 
 int main(int argc, char* argv[]) {
@@ -235,5 +244,5 @@ int main(int argc, char* argv[]) {
 	}
 	int result = get_paths_from_dir(d, top_path);
 	closedir(d);
-    return result;
+	return result;
 }
