@@ -98,7 +98,7 @@ struct CodeBuffers {
 
 struct CodeBuffers code_buffers;
 
-void no_trailing_whitespace() {
+void no_trailing_space() {
     int num_consecutive_space = 0;
 
     int two_i = 0;
@@ -153,7 +153,7 @@ int format_file(char path[MAX_PATH]) {
 
     code_buffers.one_size = n;
 
-    no_trailing_whitespace();
+    no_trailing_space();
 
     FILE* handle_out = fopen(path, "w");
     if (handle_out == NULL) {
