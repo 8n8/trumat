@@ -94,14 +94,19 @@ struct CodeBuffers {
     char two[CODE_BUF_SIZE];
     uint32_t two_size;
     uint32_t one_size;
-    uint8_t input;
 };
 
 struct CodeBuffers code_buffers;
 
+void identity_pass() {
+    for (int i = 0; i < code_buffers.one_size; ++i) {
+        code_buffers.two[i] = code_buffers.one[i];
+    }
+    code_buffers.two_size = code_buffers.one_size;
+}
+
 int format_file(char path[MAX_PATH]) {
     printf("%s\n", path);
-    code_buffers.input = 1;
 
     FILE* handle_in = fopen(path, "rb");
     if (handle_in == NULL) {
@@ -123,10 +128,7 @@ int format_file(char path[MAX_PATH]) {
 
     code_buffers.one_size = n;
 
-    for (int i = 0; i < code_buffers.one_size; ++i) {
-        code_buffers.two[i] = code_buffers.one[i];
-    }
-    code_buffers.two_size = code_buffers.one_size;
+    identity_pass();
 
     FILE* handle_out = fopen(path, "w");
     if (handle_out == NULL) {
