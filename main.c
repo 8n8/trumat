@@ -117,7 +117,6 @@ void no_trailing_whitespace() {
         }
 
         code_buffers.two[two_i] = code_buffers.one[one_i];
-        printf("%c", code_buffers.two[two_i]);
         two_i++;
     }
 
