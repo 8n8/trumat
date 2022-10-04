@@ -98,6 +98,25 @@ struct CodeBuffers {
 
 struct CodeBuffers code_buffers;
 
+void no_trailing_whitespace() {
+    int num_trailing = 0;
+
+    int two_i = 0;
+    for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
+        if (code_buffers.one[one_i] == ' ') {
+            num_trailing++;
+        }
+
+        if (code_buffers.one[one_i] == '\n' && num_trailing > 0) {
+            two_i = two_i - num_trailing;
+            num_trailing = 0;
+        }
+
+        code_buffers.two[two_i] = code_buffers.one[one_i];
+        two_i++;
+    }
+}
+
 void identity_pass() {
     for (int i = 0; i < code_buffers.one_size; ++i) {
         code_buffers.two[i] = code_buffers.one[i];
@@ -128,7 +147,7 @@ int format_file(char path[MAX_PATH]) {
 
     code_buffers.one_size = n;
 
-    identity_pass();
+    no_trailing_whitespace();
 
     FILE* handle_out = fopen(path, "w");
     if (handle_out == NULL) {
