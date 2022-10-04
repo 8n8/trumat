@@ -105,6 +105,8 @@ void no_trailing_whitespace() {
     for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
         if (code_buffers.one[one_i] == ' ') {
             num_trailing++;
+        } else {
+            num_trailing = 0;
         }
 
         if (code_buffers.one[one_i] == '\n' && num_trailing > 0) {
