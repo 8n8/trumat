@@ -120,6 +120,8 @@ void no_trailing_whitespace() {
         printf("%c", code_buffers.two[two_i]);
         two_i++;
     }
+
+    code_buffers.two_size = two_i;
 }
 
 void identity_pass() {
