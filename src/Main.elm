@@ -4,7 +4,11 @@ import Html
 
 
 main =
-    Html.text "hi"
+    let
+        a =
+            "hi"
+    in
+    Html.text a
 
 
 a =
