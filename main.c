@@ -32,6 +32,7 @@ void make_file_path(
 
 		file_path[i + j] = file_name[j];
 	}
+    printf("SHOULDNT HAPPEN");
 }
 
 void make_sub_dir_path(
@@ -89,10 +90,7 @@ int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 		if (dir->d_type == DT_REG) {
             char file_path[MAX_PATH];
 			make_file_path(file_path, directory_path, dir->d_name);
-            for (int i = 0; i < MAX_PATH; ++i) {
-                printf("%c", file_path[i]);
-            }
-            printf("\n");
+            printf("%s\n", file_path);
 		}
 
         if (dir->d_type == DT_DIR && !is_relevant_dir(dir->d_name)) {
