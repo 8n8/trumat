@@ -14,7 +14,7 @@ void make_file_path(
 	// copy the directory path
 	int i = 0;
 	for (; i < MAX_PATH; ++i) {
-		if (directory_path[i] == '\n') {
+		if (directory_path[i] == '\0') {
 			break;
 		}
 		file_path[i] = directory_path[i];
@@ -52,7 +52,8 @@ void make_sub_dir_path(
 	++i;
 
 	for (int j = 0; j < 256; ++j) {
-		if (sub_dir_name == NULL) {
+		if (sub_dir_name[j] == '\0') {
+            sub_dir_path[i+j] = '\0';
 			return;
 		}
 		sub_dir_path[i + j] = sub_dir_name[j];
