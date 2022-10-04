@@ -107,6 +107,10 @@ void no_trailing_whitespace() {
             num_consecutive_space++;
         }
 
+        if (code_buffers.one[one_i] != ' ' && code_buffers.one[one_i] != '\n') {
+            num_consecutive_space = 0;
+        }
+
         if (code_buffers.one[one_i] == '\n' && num_consecutive_space > 0) {
             two_i = two_i - num_consecutive_space;
             num_consecutive_space = 0;
