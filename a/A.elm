@@ -1,3 +1,3 @@
-module A exposing (a) 
+module A exposing (a)
 
 a = 0
