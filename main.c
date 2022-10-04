@@ -99,19 +99,17 @@ struct CodeBuffers {
 struct CodeBuffers code_buffers;
 
 void no_trailing_whitespace() {
-    int num_trailing = 0;
+    int num_consecutive_space = 0;
 
     int two_i = 0;
     for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
         if (code_buffers.one[one_i] == ' ') {
-            num_trailing++;
-        } else {
-            num_trailing = 0;
+            num_consecutive_space++;
         }
 
-        if (code_buffers.one[one_i] == '\n' && num_trailing > 0) {
-            two_i = two_i - num_trailing;
-            num_trailing = 0;
+        if (code_buffers.one[one_i] == '\n' && num_consecutive_space > 0) {
+            two_i = two_i - num_consecutive_space;
+            num_consecutive_space = 0;
         }
 
         code_buffers.two[two_i] = code_buffers.one[one_i];
