@@ -3,7 +3,6 @@
 #include <dirent.h>
 #include <errno.h>
 
-#define MAX_PATHS 200
 #define MAX_PATH 4096
 
 void make_file_path(
@@ -73,6 +72,76 @@ int is_relevant_dir(char dir_name[256]) {
     return 1;
 }
 
+int is_elm_file(char file_name[256]) {
+    int size = 0;
+    for (; size < 256; ++size) {
+        if (file_name[size] == '\0') {
+            break;
+        }
+    }
+
+    // smallest Elm file name
+    // 12345 size
+    // 01234 index
+    // X.elm
+    return size > 4 && file_name[size - 1] == 'm' && file_name[size - 2] == 'l' && file_name[size - 3] == 'e' && file_name[size - 4] == '.';
+}
+
+#define CODE_BUF_SIZE 5000000
+
+struct CodeBuffers {
+    char one[CODE_BUF_SIZE];
+    char two[CODE_BUF_SIZE];
+    uint32_t two_size;
+    uint32_t one_size;
+    uint8_t input;
+};
+
+struct CodeBuffers code_buffers;
+
+int format_file(char path[MAX_PATH]) {
+    code_buffers.input = 1;
+
+    FILE* handle_in = fopen(path, "rb");
+    if (handle_in == NULL) {
+        printf("failed to open the file: %s", path);
+        return -1;
+    }
+
+    size_t n = fread(code_buffers.one, 1, CODE_BUF_SIZE, handle_in);
+    if (!feof(handle_in)) {
+        printf("file too large: %s, max size is %d", path, CODE_BUF_SIZE);
+        fclose(handle_in);
+        return -1;
+    }
+    if (!ferror(handle_in)) {
+        printf("error reading the file: %s", path);
+        fclose(handle_in);
+        return -1;
+    }
+
+    code_buffers.one_size = n;
+
+    for (int i = 0; i < code_buffers.one_size; ++i) {
+        code_buffers.two[i] = code_buffers.one[i];
+    }
+    code_buffers.two_size = code_buffers.one_size;
+
+    handle_out = fopen(path, "w");
+    if (handle == NULL) {
+        printf("failed to open the file: %s", path);
+        return -1;
+    }
+
+    n = fwrite(code_buffers.two, 1, code_buffers.two_size, handle_out);
+    if (n != code_buffers.two_size) {
+        printf("failed writing output to %s", path);
+        return -1;
+    }
+
+    return 0;
+}
+
 int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 
 	errno = 0;
@@ -87,10 +156,18 @@ int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 			return 0;
 		}
 
+        if (dir->d_type == DT_REG && !is_elm_file(dir->d_name)) {
+            continue;
+        }
+
 		if (dir->d_type == DT_REG) {
             char file_path[MAX_PATH];
 			make_file_path(file_path, directory_path, dir->d_name);
-            printf("%s\n", file_path);
+
+            int format_error = format_file(file_path);
+            if (format_error != 0) {
+                return format_error;
+            }
 		}
 
         if (dir->d_type == DT_DIR && !is_relevant_dir(dir->d_name)) {
