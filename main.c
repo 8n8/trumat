@@ -100,6 +100,7 @@ struct CodeBuffers {
 struct CodeBuffers code_buffers;
 
 int format_file(char path[MAX_PATH]) {
+    printf("%s\n", path);
     code_buffers.input = 1;
 
     FILE* handle_in = fopen(path, "rb");
@@ -114,8 +115,8 @@ int format_file(char path[MAX_PATH]) {
         fclose(handle_in);
         return -1;
     }
-    if (!ferror(handle_in)) {
-        printf("error reading the file: %s", path);
+    if (ferror(handle_in)) {
+        printf("couldn't open input file: %s", path);
         fclose(handle_in);
         return -1;
     }
@@ -127,17 +128,19 @@ int format_file(char path[MAX_PATH]) {
     }
     code_buffers.two_size = code_buffers.one_size;
 
-    handle_out = fopen(path, "w");
-    if (handle == NULL) {
-        printf("failed to open the file: %s", path);
+    FILE* handle_out = fopen(path, "w");
+    if (handle_out == NULL) {
+        printf("couldn't open output file: %s", path);
         return -1;
     }
 
     n = fwrite(code_buffers.two, 1, code_buffers.two_size, handle_out);
     if (n != code_buffers.two_size) {
         printf("failed writing output to %s", path);
+        fclose(handle_out);
         return -1;
     }
+    fclose(handle_out);
 
     return 0;
 }
