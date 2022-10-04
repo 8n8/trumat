@@ -1,117 +1,139 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <errno.h>
 
-enum ErrorCode {
-	NoElmDotJson,
+enum Result {
+	Ok,
+	DirectoryDoesntExist,
+	CouldntReadDirectory,
+	TooManyFiles,
 };
 
-struct Src {
-	// Assume that a module has no more than 100,000 lines,
-	// and that the average line length is 50 chars. So
-	// that is 5,000,000 bytes maximum for a source file.
-	uint8_t src[5000000];
-	uint32_t num_src;
+#define MAX_PATHS 200
+#define MAX_PATH 4096
+
+void save_file_path(
+	char paths[MAX_PATH][MAX_PATHS],
+	int* num,
+	char directory_path[MAX_PATH],
+	char file_name[256]) {
+
+	// copy the directory path
+	int i = 0;
+	for (; i < MAX_PATH; ++i) {
+		if (directory_path[i] == '\n') {
+			break;
+		}
+		paths[(*num) + 1][i] = directory_path[i];
+	}
+
+	paths[(*num) + 1][i] = '/';
+	++i;
+	
+	// copy the file name
+	for (int j = 0; j < 256; ++j) {
+		if (file_name[j] == '\0') {
+			(*num)++;
+			return;
+		}
+
+		paths[(*num) + 1][i + j] = file_name[j];
+	}
 }
 
-struct Db {
-	struct Src src;
-	struct Tokens tokens;
-	struct Ast ast;
+void make_sub_dir_path(
+	char sub_dir_path[MAX_PATH],
+	char directory_path[MAX_PATH],
+	char sub_dir_name[256]) {
+
+	int i = 0;
+	for (; i < MAX_PATH; ++i) {
+		if (sub_dir_path[i] == '\0') {
+			break;
+		}
+
+		sub_dir_path[i] = directory_path[i];
+	}
+
+	sub_dir_path[i] = '/';
+	++i;
+
+	for (int j = 0; j < 256; ++j) {
+		if (sub_dir_name == NULL) {
+			return;
+		}
+		sub_dir_path[i + j] = sub_dir_name[j];
+	}
 }
 
-struct Tokens {
-	// Assume that there are on average 3 characters per
-	// token, that is 5,000,000 / 3 = 1,666,666
-	uint8_t type[1666666];
-	uint32_t start[1666666];
-	uint32_t end[1666666];
-	uint32_t num;
-}
+int get_paths_from_dir(
+	char paths[MAX_PATH][MAX_PATHS],
+	int* num,
+	DIR* d,
+	char directory_path[MAX_PATH]) {
 
-struct BlockComment {
-	// Say there is a block comment every 10 lines of code, and
-	// 100,000 lines in total, that is 10,000 block comments.
-	uint32_t start[10000];
-	uint32_t end[10000];
-	uint16_t num;
-}
+	if ((*num) == MAX_PATH) {
+		return TooManyFiles;
+	}
 
-struct LineComment {
-	// Say there are twice as many line comments as block comments,
-	// that is 20,000.
-	uint32_t start[20000];
-	uint32_t end[20000];
-	uint16_t num;
-}
+	errno = 0;
+	struct dirent* dir;
+	while (1) {
+		dir = readdir(d);
+		if (dir == NULL && errno != 0) {
+			return CouldntReadDirectory;
+		}
+		if (dir == NULL && errno == 0) {
+			return Ok;
+		}
 
-struct Ordering {
-	// The order things appear in the source file. This is needed so
-	// that order is preserved when the output is written. Assume that
-	// there are three AST items per line of code, and there are
-	// 100,000 lines of code. That is 300,000 items maximum.
-	uint32_t id[300000];
-	uint32_t num;
-}
+		if (dir->d_type == DT_REG) {
+			save_file_path(
+				paths,
+				num,
+				directory_path,
+				dir->d_name);
+		}
 
-struct Name {
-	// So with 100,000 lines of code and a three names per line, that
-	// is 300,000 names.
-	uint32_t id[300000];
-	uint32_t start[300000];
-	uint32_t end[300000];
-	uint32_t num;
-}
+		if (dir->d_type == DT_DIR) {
+			char sub_dir_path[MAX_PATH];
+			make_sub_dir_path(
+				sub_dir_path,
+				directory_path,
+				dir->d_name);
 
-struct Argument {
-	// Say there is an argument given twice on each line of code,
-	// for 100,000 lines of code, that is 200,000 arguments in a module.
-	uint32_t parent[200000];
-	uint32_t child[200000];
-	uint32_t num;
-}
-
-struct SwitchBranch {
-	// Say there is a switch (case-of or if-else) every 20 lines of code
-	// in 100,000 lines of code, and that the average switch has 4
-	// branches, that is 20,000 branches.
-	uint32_t on[20000];
-	uint32_t pattern[20000];
-	uint32_t result[20000];
-	uint16_t num;
-}
-
-struct ListLiteral {
-	// Say there is a list literal every 20 lines of code, that is
-	// 5000 list literals in the module.
-	uint32_t first_item[5000];
-	uint32_t length[5000];
-	uint16_t num;
-}
-
-struct Bind {
-	// Say there is a wrapper every 3 lines of code, that comes to
-	// 33,333.
-	uint32_t bound[33333];
-	uint16_t num;
-}
-
-struct Ast {
-	struct Ordering ordering
-	struct Name name;
-	struct BlockComment block_comment;
-	struct LineComment line_comment;
-	struct Argument argument;
-	struct SwitchBranch switch_branch;
-	uint8_t export_all; // boolean
-	struct ListLiteral list_literal;
-	struct Bind bind;
+			DIR* subd = opendir(sub_dir_path);
+			if (d == NULL) {
+				return DirectoryDoesntExist;
+			}
+			int result = get_paths_from_dir(
+				paths,
+				num,
+				subd,
+				sub_dir_path);
+			closedir(subd);
+			if (result != Ok) {
+				return result;
+			}
+		}
+	}
+	return Ok;
 }
 
 int main(int argc, char* argv[]) {
-	FILE* elm_dot_json = fopen("elm.json", "rb");
-	if (elm_dot_json == NULL) {
-		perror("could not find elm.json file\n");
-		return -1;
+	DIR* d;
+	char top_path[MAX_PATH];
+	top_path[0] = '.';
+	top_path[1] = '\0';
+	d = opendir(top_path);
+	if (d == NULL) {
+		return DirectoryDoesntExist;
 	}
+	char paths[MAX_PATH][MAX_PATHS];
+	int num = 0;
+	int result = get_paths_from_dir(paths, &num, d, top_path);
+	closedir(d);
 
+	return result;
 }
