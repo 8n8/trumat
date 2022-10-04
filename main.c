@@ -175,8 +175,7 @@ int format_file(char path[MAX_PATH]) {
 int get_paths_from_dir(DIR*, char[MAX_PATH]);
 
 int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
-	struct dirent* dir;
-	dir = readdir(d);
+	struct dirent* dir = readdir(d);
 	if (dir == NULL && errno != 0) {
 		printf("couldn't read directory: %s", directory_path);
 		return -1;
