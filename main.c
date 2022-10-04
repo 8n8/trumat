@@ -3,19 +3,11 @@
 #include <dirent.h>
 #include <errno.h>
 
-enum Result {
-	Ok,
-	DirectoryDoesntExist,
-	CouldntReadDirectory,
-	TooManyFiles,
-};
-
 #define MAX_PATHS 200
 #define MAX_PATH 4096
 
-void save_file_path(
-	char paths[MAX_PATH][MAX_PATHS],
-	int* num,
+void make_file_path(
+    char file_path[MAX_PATH],
 	char directory_path[MAX_PATH],
 	char file_name[256]) {
 
@@ -25,20 +17,20 @@ void save_file_path(
 		if (directory_path[i] == '\n') {
 			break;
 		}
-		paths[(*num) + 1][i] = directory_path[i];
+		file_path[i] = directory_path[i];
 	}
 
-	paths[(*num) + 1][i] = '/';
+	file_path[i] = '/';
 	++i;
 	
 	// copy the file name
 	for (int j = 0; j < 256; ++j) {
 		if (file_name[j] == '\0') {
-			(*num)++;
+            file_path[i+j] = '\0';
 			return;
 		}
 
-		paths[(*num) + 1][i + j] = file_name[j];
+		file_path[i + j] = file_name[j];
 	}
 }
 
@@ -49,7 +41,7 @@ void make_sub_dir_path(
 
 	int i = 0;
 	for (; i < MAX_PATH; ++i) {
-		if (sub_dir_path[i] == '\0') {
+		if (directory_path[i] == '\0') {
 			break;
 		}
 
@@ -67,58 +59,62 @@ void make_sub_dir_path(
 	}
 }
 
-int get_paths_from_dir(
-	char paths[MAX_PATH][MAX_PATHS],
-	int* num,
-	DIR* d,
-	char directory_path[MAX_PATH]) {
+int is_relevant_dir(char dir_name[256]) {
+    if (dir_name[0] == '.' && dir_name[1] == '\0') {
+        return 0;
+    }
 
-	if ((*num) == MAX_PATH) {
-		return TooManyFiles;
-	}
+    if (dir_name[0] == '.' && dir_name[1] == '.' && dir_name[2] == '\0') {
+        return 0;
+    }
+
+    return 1;
+}
+
+int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 
 	errno = 0;
 	struct dirent* dir;
 	while (1) {
 		dir = readdir(d);
 		if (dir == NULL && errno != 0) {
-			return CouldntReadDirectory;
+            printf("couldn't read directory: %s", directory_path);
+			return -1;
 		}
 		if (dir == NULL && errno == 0) {
-			return Ok;
+			return 0;
 		}
 
 		if (dir->d_type == DT_REG) {
-			save_file_path(
-				paths,
-				num,
-				directory_path,
-				dir->d_name);
+            char file_path[MAX_PATH];
+			make_file_path(file_path, directory_path, dir->d_name);
+            for (int i = 0; i < MAX_PATH; ++i) {
+                printf("%c", file_path[i]);
+            }
+            printf("\n");
 		}
+
+        if (dir->d_type == DT_DIR && !is_relevant_dir(dir->d_name)) {
+            continue;
+        }
 
 		if (dir->d_type == DT_DIR) {
 			char sub_dir_path[MAX_PATH];
-			make_sub_dir_path(
-				sub_dir_path,
-				directory_path,
-				dir->d_name);
+			make_sub_dir_path(sub_dir_path, directory_path, dir->d_name);
 
 			DIR* subd = opendir(sub_dir_path);
-			if (d == NULL) {
-				return DirectoryDoesntExist;
+			if (subd == NULL) {
+                printf("directory doesn't exist: \"%s\"\n", sub_dir_path);
+                return -1;
 			}
-			int result = get_paths_from_dir(
-				paths,
-				num,
-				subd,
-				sub_dir_path);
+			int result = get_paths_from_dir(subd, sub_dir_path);
 			closedir(subd);
-			if (result != Ok) {
+			if (result != 0) {
 				return result;
 			}
 		}
 	}
-	return Ok;
+	return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -128,12 +124,10 @@ int main(int argc, char* argv[]) {
 	top_path[1] = '\0';
 	d = opendir(top_path);
 	if (d == NULL) {
-		return DirectoryDoesntExist;
+        printf("directory doesn't exist: %s", top_path);
+		return -1;
 	}
-	char paths[MAX_PATH][MAX_PATHS];
-	int num = 0;
-	int result = get_paths_from_dir(paths, &num, d, top_path);
+	int result = get_paths_from_dir(d, top_path);
 	closedir(d);
-
-	return result;
+    return result;
 }
