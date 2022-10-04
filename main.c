@@ -107,7 +107,10 @@ void no_trailing_space() {
             num_consecutive_space++;
         }
 
-        if (code_buffers.one[one_i] != ' ' && code_buffers.one[one_i] != '\n') {
+        if (
+		code_buffers.one[one_i] != ' ' &&
+		code_buffers.one[one_i] != '\n') {
+
             num_consecutive_space = 0;
         }
 
@@ -141,7 +144,10 @@ int format_file(char path[MAX_PATH]) {
 
 	size_t n = fread(code_buffers.one, 1, CODE_BUF_SIZE, handle_in);
 	if (!feof(handle_in)) {
-		printf("file too large: %s, max size is %d", path, CODE_BUF_SIZE);
+		printf(
+			"file too large: %s, max size is %d",
+			path,
+			CODE_BUF_SIZE);
 		fclose(handle_in);
 		return -1;
 	}
