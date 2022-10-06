@@ -107,38 +107,13 @@ struct CodeBuffers {
 
 struct CodeBuffers code_buffers;
 
-void no_trailing_space() {
-	int num_consecutive_space = 0;
-
-	int two_i = 0;
-	for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
-		if (code_buffers.one[one_i] == ' ') {
-			num_consecutive_space++;
-		}
-
-		if (
-			code_buffers.one[one_i] != ' ' &&
-			code_buffers.one[one_i] != '\n') {
-
-			num_consecutive_space = 0;
-		}
-
-		if (
-			code_buffers.one[one_i] == '\n' &&
-			num_consecutive_space > 0) {
-
-			two_i = two_i - num_consecutive_space;
-			num_consecutive_space = 0;
-		}
-
-		code_buffers.two[two_i] = code_buffers.one[one_i];
-		two_i++;
+// A minimal formatter that doesn't do anything except copy one buffer
+// to the other.
+void identity_pass() {
+	for (int i = 0; i < code_buffers.one_size; ++i) {
+		code_buffers.two[i] = code_buffers.one[i];
 	}
-
-	code_buffers.two_size = two_i;
-}
-
-void newline_after_bind() {
+	code_buffers.two_size = code_buffers.one_size;
 }
 
 int format_file(char path[MAX_PATH]) {
@@ -167,8 +142,8 @@ int format_file(char path[MAX_PATH]) {
 
 	code_buffers.one_size = n;
 
-	no_trailing_space();
-	newline_after_bind();
+    // Add formatters in here.
+    identity_pass();
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
