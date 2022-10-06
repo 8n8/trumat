@@ -19,3 +19,7 @@ gcc main.c -o ded -O2
 ```
 
 This generates a binary called `ded`.
+
+## Run
+
+Run the binary generated above in the directory that you want to analyse. There are no arguments.
