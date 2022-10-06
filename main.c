@@ -142,8 +142,8 @@ int format_file(char path[MAX_PATH]) {
 
 	code_buffers.one_size = n;
 
-    // Add formatters in here.
-    identity_pass();
+	// Add formatters in here.
+	identity_pass();
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
