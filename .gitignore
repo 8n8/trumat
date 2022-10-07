@@ -6,3 +6,5 @@ zig-cache/
 a.out
 main
 ded
+elm.json
+src/
