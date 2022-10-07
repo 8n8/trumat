@@ -1,12 +1,12 @@
 # ded
 
-A little helper for creating tooling for Elm code.
+A work in progress towards making better Elm tooling.
 
-All it does is recursively read all the Elm files in the current directory and write them back again without changing them.
+All it does at the moment is to remove trailing spaces from all the lines in all the Elm files in the current directory and below.
 
-It's no use in itself, but is handy as a basis for creating tools for changing Elm code.
+Be aware that it overwrites all the Elm files.
 
-See the function `identity_pass` for an example transformation function.
+It works OK in Ubuntu Linux. It currently assumes that lines end with `\n` and that paths are separated with `/`.
 
 ## Build
 
