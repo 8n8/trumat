@@ -101,11 +101,149 @@ int is_elm_file(char file_name[256]) {
 struct CodeBuffers {
 	char one[CODE_BUF_SIZE];
 	char two[CODE_BUF_SIZE];
-	uint32_t two_size;
-	uint32_t one_size;
+	int two_size;
+	int one_size;
 };
 
 struct CodeBuffers code_buffers;
+
+int is_beginning_comma_separated(int i, char buf[CODE_BUF_SIZE], int size) {
+	return buf[i] == '[' || buf[i] == '(' || buf[i] == '{';
+}
+
+int is_ending_special(int i, char buf[CODE_BUF_SIZE], int size) {
+	return buf[i] == ']' || buf[i] == ')' || buf[i] == '}';
+}
+
+int is_beginning_verbatim_string(
+	int i,
+	char buf[CODE_BUF_SIZE],
+	int size) {
+
+	return
+		size - i > 3 &&
+		buf[i] == '"' &&
+		buf[i+1] == '"' &&
+		buf[i+2] == '"';
+}
+
+int is_ending_verbatim_string(
+	int i,
+	char buf[CODE_BUF_SIZE],
+	int size) {
+
+	return
+		i > 3 &&
+		buf[i-1] == '"' &&
+		buf[i-2] == '"' &&
+		buf[i-3] == '"';
+}
+
+int calculate_indent(
+	int this_line_spaces,
+	int previous_spaces,
+	int previous_indent,
+	int expression_spaces,
+	int inside_special) {
+
+	// x =
+	//     [ "a"
+	//     , [ "b"
+	//       , "c"
+	//       ]
+	//     ]
+	if (inside_special) {
+		return
+			expression_spaces +
+			this_line_spaces -
+			previous_spaces;
+	}
+}
+
+
+void top_level_indent() {
+
+	// the column
+	int column = 0;
+
+	// the number of spaces at the start of the current line
+	int this_line_spaces = 0;
+
+	// the number of spaces at the start of the previous line
+	int last_line_spaces = 0;
+
+	// the column of the start of the thing we are currently in, -1 if
+	// not in one
+	int sub_start_indent = 0;
+
+	// whether or not we are parsing an indentation
+	int parsing_indent = 1;
+
+	int two_i = 0;
+	for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
+		if (
+			sub_start_indent < 0 &&
+			is_beginning_sub(
+				one_i,
+				code_buffers.one,
+				code_buffers.one_size)) {
+
+			sub_start_indent = column;
+		}
+
+		if (
+			sub_start_indent >= 0 &&
+			is_ending_sub(
+				one_i,
+				code_buffers.one,
+				code_buffers.one_size)) {
+
+			sub_start_indent = -1;
+		}
+
+		if (code_buffers.one[one_i] == ' ' && parsing_indent) {
+			++this_line_spaces;
+		}
+
+		if (code_buffers.one[one_i] == '\n') {
+			column = 0;
+			last_line_spaces = this_line_spaces;
+			parsing_indent = 1;
+		}
+
+		if (code_buffers.one[one_i] != ' ' && parsing_indent) {
+			parsing_indent = 0;
+
+			int indent = calculate_indent(
+				this_line_spaces,
+				last_lines_spaces,
+
+				this_line_indent_spaces,
+				last_line_indent_spaces,
+				last_line_indent,
+				expression_indent,
+				inside_special);
+
+			for (int i = 0; i < indent; ++i) {
+				code_buffers.two[two_i + i] = ' ';
+			}
+
+			two_i += indent;
+			if (!inside_expression) {
+				last_line_indent = indent;
+			}
+		}
+
+		if (!parsing_indent) {
+			code_buffers.two[two_i] = code_buffers.one[one_i];
+			two_i++;
+		}
+
+		if (code_buffers.one[one_i] != '\n') {
+			++column;
+		}
+	}
+}
 
 void no_trailing_space() {
 	int num_consecutive_space = 0;
