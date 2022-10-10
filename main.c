@@ -101,8 +101,8 @@ int is_elm_file(char file_name[256]) {
 struct CodeBuffers {
 	char one[CODE_BUF_SIZE];
 	char two[CODE_BUF_SIZE];
-	int two_size;
-	int one_size;
+	uint32_t two_size;
+	uint32_t one_size;
 };
 
 struct CodeBuffers code_buffers;
