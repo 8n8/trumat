@@ -160,12 +160,36 @@ int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		!is_name_char(buf[i-2]);
 }
 
-int end_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
-	return
-		is_ending_verbatim_string(i, buf, size) ||
-		is_ending_block_comment(i, buf, size) ||
-		is_ending_collection(i, buf, size) ||
-		is_ending_let(i, buf, size);
+enum SubRegion {
+	Let,
+	NotInSubRegion,
+	CurlyBracketCollection,
+	BracketCollection,
+	ParenthesisCollection,
+	BlockComment,
+	VerbatimString,
+};
+
+int end_of_sub_region(
+	int i,
+	enum SubRegion sub_region,
+	int size,
+	char buf[CODE_BUF_SIZE]) {
+
+	switch (sub_region) {
+	case VerbatimString:
+		return is_ending_verbatim_string(i, buf, size);
+	case BlockComment:
+		return is_ending_block_comment(i, buf, size);
+	case ParenthesisCollection:
+		return buf[i] == ')';
+	case BracketCollection:
+		return buf[i] == ']';
+	case CurlyBracketCollection:
+		return buf[i] == '}';
+	case Let:
+		return is_ending_let(i, buf, size);
+	}
 }
 
 int is_start_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
@@ -185,41 +209,60 @@ int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		(buf[i+4] == ' ' || buf[i+4] == '\n');
 }
 
-int start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
-	return
-		is_start_verbatim_string(i, buf, size) ||
-		is_start_block_comment(i, buf, size) ||
-		is_start_collection(i, buf, size) ||
-		is_start_let(i, buf, size);
+enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
+	if (is_start_verbatim_string(i, buf, size)) {
+		return VerbatimString;
+	}
+
+	if (is_start_block_comment(i, buf, size)) {
+		return BlockComment;
+	}
+
+	if (buf[i] == '[') {
+		return BracketCollection;
+	}
+
+	if (buf[i] == '{') {
+		return CurlyBracketCollection;
+	}
+
+	if (buf[i] == '(') {
+		return ParenthesisCollection;
+	}
+
+	if (is_start_let(i, buf, size)) {
+		return Let;
+	}
+
+	return NotInSubRegion;
 }
 
 void newline_after_toplevel_bind() {
-
-	int inside_sub_region = 0;
+	enum SubRegion sub_region_status = NotInSubRegion;
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
-		if (
-			!inside_sub_region &&
-			start_of_sub_region(
-				one_i,
-				code_buffers.one_size,
-				code_buffers.one)) {
+		if (sub_region_status == NotInSubRegion) {
+			sub_region_status =
+				start_of_sub_region(
+					one_i,
+					code_buffers.one_size,
+					code_buffers.one);
+		}
 
-			inside_sub_region = 1;
+		if (sub_region_status != NotInSubRegion) {
+			sub_region_status =
+				end_of_sub_region(
+					one_i,
+					sub_region_status,
+					code_buffers.one_size,
+					code_buffers.one);
 		}
 
 		if (
-			inside_sub_region &&
-			end_of_sub_region(
-				one_i,
-				code_buffers.one_size,
-				code_buffers.one)) {
+			sub_region_status == NotInSubRegion &&
+			code_buffers.one[one_i] == '=') {
 
-			inside_sub_region = 0;
-		}
-
-		if (!inside_sub_region && code_buffers.one[one_i] == '=') {
 			code_buffers.two[two_i] = '=';
 			++two_i;
 			code_buffers.two[two_i] = '\n';
@@ -296,6 +339,7 @@ int format_file(char path[MAX_PATH]) {
 
 	// Add formatters in here.
 	no_trailing_space();
+	newline_after_toplevel_bind();
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
