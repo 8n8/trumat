@@ -127,6 +127,17 @@ int is_start_verbatim_string(
 		buf[i+2] == '"';
 }
 
+int is_start_of_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
+	return
+		size - i > 6 &&
+		buf[i] == ' ' &&
+		buf[i-1] == 'e' &&
+		buf[i-2] == 'p' &&
+		buf[i-3] == 'y' &&
+		buf[i-4] == 't' &&
+		buf[i-5] == '\n';
+}
+
 int is_ending_verbatim_string(
 	int i,
 	char buf[CODE_BUF_SIZE],
@@ -160,6 +171,10 @@ int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		!is_name_char(buf[i-2]);
 }
 
+int is_ending_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
+	return i > 1 && buf[i] != ' ' && buf[i-1] == '\n';
+}
+
 enum SubRegion {
 	Let,
 	NotInSubRegion,
@@ -168,6 +183,7 @@ enum SubRegion {
 	ParenthesisCollection,
 	BlockComment,
 	VerbatimString,
+	TypeDeclaration,
 };
 
 int end_of_sub_region(
@@ -177,6 +193,8 @@ int end_of_sub_region(
 	char buf[CODE_BUF_SIZE]) {
 
 	switch (sub_region) {
+	case TypeDeclaration:
+		return is_ending_type_declaration(i, buf, size);
 	case VerbatimString:
 		return is_ending_verbatim_string(i, buf, size);
 	case BlockComment:
@@ -210,6 +228,10 @@ int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 }
 
 enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
+	if (is_start_of_type_declaration(i, buf, size)) {
+		return TypeDeclaration;
+	}
+
 	if (is_start_verbatim_string(i, buf, size)) {
 		return VerbatimString;
 	}
