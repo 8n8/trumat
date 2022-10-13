@@ -101,11 +101,11 @@ int is_elm_file(char file_name[256]) {
 struct CodeBuffers {
 	char one[CODE_BUF_SIZE];
 	char two[CODE_BUF_SIZE];
-	uint32_t two_size;
-	uint32_t one_size;
+	int two_size;
+	int one_size;
 };
 
-struct CodeBuffers code_buffers;
+struct CodeBuffers CODE_BUFFERS;
 
 int is_start_collection(int i, char buf[CODE_BUF_SIZE], int size) {
 	return buf[i] == '[' || buf[i] == '(' || buf[i] == '{';
@@ -237,17 +237,19 @@ enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	return NotInSubRegion;
 }
 
-void newline_after_toplevel_bind() {
+void newline_after_toplevel_bind(
+	char one[CODE_BUF_SIZE],
+	char two[CODE_BUF_SIZE],
+	int* one_size,
+	int* two_size) {
+
 	enum SubRegion sub_region_status = NotInSubRegion;
 
 	int two_i = 0;
-	for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
+	for (int one_i = 0; one_i < *one_size; ++one_i) {
 		if (sub_region_status == NotInSubRegion) {
 			sub_region_status =
-				start_of_sub_region(
-					one_i,
-					code_buffers.one_size,
-					code_buffers.one);
+				start_of_sub_region(one_i, *one_size, one);
 		}
 
 		if (sub_region_status != NotInSubRegion) {
@@ -255,63 +257,65 @@ void newline_after_toplevel_bind() {
 				end_of_sub_region(
 					one_i,
 					sub_region_status,
-					code_buffers.one_size,
-					code_buffers.one);
+					*one_size,
+					one);
 		}
 
 		if (
 			sub_region_status == NotInSubRegion &&
-			code_buffers.one[one_i] == '=') {
+			one[one_i] == '=') {
 
-			code_buffers.two[two_i] = '=';
+			two[two_i] = '=';
 			++two_i;
-			code_buffers.two[two_i] = '\n';
+			two[two_i] = '\n';
 			++two_i;
 
 			for (int i = 0; i < 4; ++i) {
-				code_buffers.two[two_i] = ' ';
+				two[two_i] = ' ';
 				++two_i;
 			}
 			++one_i;
 		}
 
-		code_buffers.two[two_i] = code_buffers.one[one_i];
+		two[two_i] = one[one_i];
 		++two_i;
 	}
+	*two_size = two_i;
 }
 
-void no_trailing_space() {
+void no_trailing_space(
+	char one[CODE_BUF_SIZE],
+	char two[CODE_BUF_SIZE],
+	int* one_size,
+	int* two_size) {
+
 	int num_consecutive_space = 0;
 
 	int two_i = 0;
-	for (int one_i = 0; one_i < code_buffers.one_size; ++one_i) {
-		if (code_buffers.one[one_i] == ' ') {
+	for (int one_i = 0; one_i < *one_size; ++one_i) {
+		if (one[one_i] == ' ') {
 			num_consecutive_space++;
 		}
 
-		if (
-			code_buffers.one[one_i] != ' ' &&
-			code_buffers.one[one_i] != '\n') {
+		if (one[one_i] != ' ' && one[one_i] != '\n') {
 
 			num_consecutive_space = 0;
 		}
 
-		if (
-			code_buffers.one[one_i] == '\n' &&
-			num_consecutive_space > 0) {
+		if (one[one_i] == '\n' && num_consecutive_space > 0) {
 
 			two_i = two_i - num_consecutive_space;
 			num_consecutive_space = 0;
 		}
 
-		code_buffers.two[two_i] = code_buffers.one[one_i];
+		two[two_i] = one[one_i];
 		two_i++;
 	}
 
-	code_buffers.two_size = two_i;
+	*two_size = two_i;
 }
 
-int format_file(char path[MAX_PATH]) {
+int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
 	printf("%s\n", path);
 
 	FILE* handle_in = fopen(path, "rb");
@@ -338,8 +342,16 @@ int format_file(char path[MAX_PATH]) {
 	code_buffers.one_size = n;
 
 	// Add formatters in here.
-	no_trailing_space();
-	newline_after_toplevel_bind();
+	no_trailing_space(
+		code_buffers.one,
+		code_buffers.two,
+		&code_buffers.one_size,
+		&code_buffers.two_size);
+	newline_after_toplevel_bind(
+		code_buffers.two,
+		code_buffers.one,
+		&code_buffers.two_size,
+		&code_buffers.one_size);
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
@@ -358,9 +370,12 @@ int format_file(char path[MAX_PATH]) {
 	return 0;
 }
 
-int get_paths_from_dir(DIR*, char[MAX_PATH]);
+int get_paths_from_dir(struct CodeBuffers, DIR*, char[MAX_PATH]);
 
-int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
+int get_paths_from_fs_entry(
+    struct CodeBuffers code_buffers,
+    DIR* d, char directory_path[MAX_PATH]) {
+
 	struct dirent* dir = readdir(d);
 	if (dir == NULL && errno != 0) {
 		printf("couldn't read directory: %s", directory_path);
@@ -376,7 +391,7 @@ int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 		char file_path[MAX_PATH];
 		make_file_path(file_path, directory_path, dir->d_name);
 
-		int format_error = format_file(file_path);
+		int format_error = format_file(code_buffers, file_path);
 		if (format_error != 0) {
 			return format_error;
 		}
@@ -395,7 +410,7 @@ int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 		printf("directory doesn't exist: \"%s\"\n", sub_dir_path);
 		return -1;
 	}
-	int result = get_paths_from_dir(subd, sub_dir_path);
+	int result = get_paths_from_dir(code_buffers, subd, sub_dir_path);
 	closedir(subd);
 	if (result != 0) {
 		return result;
@@ -404,11 +419,14 @@ int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 }
 
 
-int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
+int get_paths_from_dir(
+    struct CodeBuffers code_buffers,
+    DIR* d, char directory_path[MAX_PATH]) {
+
 	errno = 0;
 	int result = 0;
 	while (result == 0) {
-		result = get_paths_from_fs_entry(d, directory_path);
+		result = get_paths_from_fs_entry(code_buffers, d, directory_path);
 	}
 	if (result > 0) {
 		return 0;
@@ -427,7 +445,7 @@ int main(int argc, char* argv[]) {
 	printf("directory doesn't exist: %s", top_path);
 		return -1;
 	}
-	int result = get_paths_from_dir(d, top_path);
+	int result = get_paths_from_dir(CODE_BUFFERS, d, top_path);
 	closedir(d);
 	return result;
 }
