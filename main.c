@@ -315,7 +315,7 @@ void no_trailing_space(
 	*two_size = two_i;
 }
 
-int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
+int format_file(char path[MAX_PATH]) {
 	printf("%s\n", path);
 
 	FILE* handle_in = fopen(path, "rb");
@@ -324,7 +324,7 @@ int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
 		return -1;
 	}
 
-	size_t n = fread(code_buffers.one, 1, CODE_BUF_SIZE, handle_in);
+	size_t n = fread(CODE_BUFFERS.one, 1, CODE_BUF_SIZE, handle_in);
 	if (!feof(handle_in)) {
 		printf(
 			"file too large: %s, max size is %d",
@@ -339,19 +339,19 @@ int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
 		return -1;
 	}
 
-	code_buffers.one_size = n;
+	CODE_BUFFERS.one_size = n;
 
 	// Add formatters in here.
 	no_trailing_space(
-		code_buffers.one,
-		code_buffers.two,
-		&code_buffers.one_size,
-		&code_buffers.two_size);
+		CODE_BUFFERS.one,
+		CODE_BUFFERS.two,
+		&CODE_BUFFERS.one_size,
+		&CODE_BUFFERS.two_size);
 	newline_after_toplevel_bind(
-		code_buffers.two,
-		code_buffers.one,
-		&code_buffers.two_size,
-		&code_buffers.one_size);
+		CODE_BUFFERS.two,
+		CODE_BUFFERS.one,
+		&CODE_BUFFERS.two_size,
+		&CODE_BUFFERS.one_size);
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
@@ -359,8 +359,8 @@ int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
 		return -1;
 	}
 
-	n = fwrite(code_buffers.two, 1, code_buffers.two_size, handle_out);
-	if (n != code_buffers.two_size) {
+	n = fwrite(CODE_BUFFERS.two, 1, CODE_BUFFERS.two_size, handle_out);
+	if (n != CODE_BUFFERS.two_size) {
 		printf("failed writing output to %s", path);
 		fclose(handle_out);
 		return -1;
@@ -370,11 +370,9 @@ int format_file(struct CodeBuffers code_buffers, char path[MAX_PATH]) {
 	return 0;
 }
 
-int get_paths_from_dir(struct CodeBuffers, DIR*, char[MAX_PATH]);
+int get_paths_from_dir(DIR*, char[MAX_PATH]);
 
-int get_paths_from_fs_entry(
-    struct CodeBuffers code_buffers,
-    DIR* d, char directory_path[MAX_PATH]) {
+int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 
 	struct dirent* dir = readdir(d);
 	if (dir == NULL && errno != 0) {
@@ -391,7 +389,7 @@ int get_paths_from_fs_entry(
 		char file_path[MAX_PATH];
 		make_file_path(file_path, directory_path, dir->d_name);
 
-		int format_error = format_file(code_buffers, file_path);
+		int format_error = format_file(file_path);
 		if (format_error != 0) {
 			return format_error;
 		}
@@ -410,7 +408,7 @@ int get_paths_from_fs_entry(
 		printf("directory doesn't exist: \"%s\"\n", sub_dir_path);
 		return -1;
 	}
-	int result = get_paths_from_dir(code_buffers, subd, sub_dir_path);
+	int result = get_paths_from_dir(subd, sub_dir_path);
 	closedir(subd);
 	if (result != 0) {
 		return result;
@@ -419,14 +417,12 @@ int get_paths_from_fs_entry(
 }
 
 
-int get_paths_from_dir(
-    struct CodeBuffers code_buffers,
-    DIR* d, char directory_path[MAX_PATH]) {
+int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 
 	errno = 0;
 	int result = 0;
 	while (result == 0) {
-		result = get_paths_from_fs_entry(code_buffers, d, directory_path);
+		result = get_paths_from_fs_entry(d, directory_path);
 	}
 	if (result > 0) {
 		return 0;
@@ -445,7 +441,7 @@ int main(int argc, char* argv[]) {
 	printf("directory doesn't exist: %s", top_path);
 		return -1;
 	}
-	int result = get_paths_from_dir(CODE_BUFFERS, d, top_path);
+	int result = get_paths_from_dir(d, top_path);
 	closedir(d);
 	return result;
 }
