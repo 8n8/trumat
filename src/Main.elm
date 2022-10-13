@@ -4,12 +4,10 @@ import Html
 
 
 main =
-     case 1 of
-   1 ->
-       Html.text "one"
+    Html.text "a"
 
-   _ ->
-{-asd-}Html.text "something else"
+a =
+  1
 
-
-a = 3
+b =
+    2

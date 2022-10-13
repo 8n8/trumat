@@ -237,6 +237,17 @@ enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	return NotInSubRegion;
 }
 
+int consume_spaces(char buf[CODE_BUF_SIZE], int i, int size) {
+	for (; i < size && buf[i] == ' '; ++i) {}
+	return i;
+}
+
+int equals_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
+	return
+		buf[i] == '=' &&
+		buf[consume_spaces(buf, i+1, size)] != '\n';
+}
+
 void newline_after_toplevel_bind(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
@@ -252,29 +263,34 @@ void newline_after_toplevel_bind(
 				start_of_sub_region(one_i, *one_size, one);
 		}
 
-		if (sub_region_status != NotInSubRegion) {
-			sub_region_status =
-				end_of_sub_region(
-					one_i,
-					sub_region_status,
-					*one_size,
-					one);
+		if (
+			sub_region_status != NotInSubRegion &&
+			end_of_sub_region(
+				one_i,
+				sub_region_status,
+				*one_size,
+				one)) {
+
+			sub_region_status = NotInSubRegion;
 		}
 
 		if (
 			sub_region_status == NotInSubRegion &&
-			one[one_i] == '=') {
+			equals_not_at_end_of_line(one, one_i, *one_size)) {
+
+			++one_i;
 
 			two[two_i] = '=';
 			++two_i;
 			two[two_i] = '\n';
 			++two_i;
 
+			one_i = consume_spaces(one, one_i, *one_size);
+
 			for (int i = 0; i < 4; ++i) {
 				two[two_i] = ' ';
 				++two_i;
 			}
-			++one_i;
 		}
 
 		two[two_i] = one[one_i];
@@ -359,8 +375,8 @@ int format_file(char path[MAX_PATH]) {
 		return -1;
 	}
 
-	n = fwrite(CODE_BUFFERS.two, 1, CODE_BUFFERS.two_size, handle_out);
-	if (n != CODE_BUFFERS.two_size) {
+	n = fwrite(CODE_BUFFERS.one, 1, CODE_BUFFERS.one_size, handle_out);
+	if (n != CODE_BUFFERS.one_size) {
 		printf("failed writing output to %s", path);
 		fclose(handle_out);
 		return -1;
