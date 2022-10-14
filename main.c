@@ -277,23 +277,36 @@ void newline_after_toplevel_bind(
 	int* two_size) {
 
 	enum SubRegion sub_region_status = NotInSubRegion;
+	int sub_region_nesting = 0;
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
-		if (sub_region_status == NotInSubRegion) {
-			sub_region_status =
-				start_of_sub_region(one_i, *one_size, one);
-		}
+		enum SubRegion new_sub_region_status =
+			start_of_sub_region(one_i, *one_size, one);
 
 		if (
-			sub_region_status != NotInSubRegion &&
-			end_of_sub_region(
+			sub_region_status != NotInSubRegion
+			&& new_sub_region_status == sub_region_status) {
+
+			++sub_region_nesting;
+		}
+
+		if (sub_region_status == NotInSubRegion) {
+			sub_region_status = new_sub_region_status;
+		}
+
+
+		if (end_of_sub_region(
 				one_i,
 				sub_region_status,
 				*one_size,
 				one)) {
 
-			sub_region_status = NotInSubRegion;
+			if (sub_region_nesting == 0) {
+				sub_region_status = NotInSubRegion;
+			} else {
+				--sub_region_nesting;
+			}
 		}
 
 		if (
