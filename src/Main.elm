@@ -7,8 +7,7 @@ type A = B | C
 
 {-|
     {- -}
-   x=
-    0
+   x= 0
    -}
 main =
     Html.text "a"
