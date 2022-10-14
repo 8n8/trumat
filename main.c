@@ -264,8 +264,14 @@ int consume_spaces(char buf[CODE_BUF_SIZE], int i, int size) {
 	return i;
 }
 
-int equals_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
+int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 	return
+        i > 0 &&
+        buf[i+1] != '=' &&
+        buf[i-1] != '=' &&
+        buf[i-1] != '!' &&
+        buf[i-1] != '<' &&
+        buf[i-1] != '>' &&
 		buf[i] == '=' &&
 		buf[consume_spaces(buf, i+1, size)] != '\n';
 }
@@ -311,7 +317,7 @@ void newline_after_toplevel_bind(
 
 		if (
 			sub_region_status == NotInSubRegion &&
-			equals_not_at_end_of_line(one, one_i, *one_size)) {
+			equals_but_not_at_end_of_line(one, one_i, *one_size)) {
 
 			++one_i;
 

@@ -2,7 +2,8 @@ module Main exposing (main)
 
 import Html
 
-type A = B | C
+type A
+    = B | C
 
 
 {-|
@@ -13,7 +14,7 @@ main =
     Html.text "a"
 
 a =
-    1
+    1 == 2
 
 b =
     2
