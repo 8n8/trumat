@@ -1,14 +1,19 @@
 # ded
 
-A work in progress towards making better Elm tooling.
+A work in progress towards making a faster Elm formatter. It's not ready yet.
 
-All it does at the moment is to remove trailing spaces from all the lines in all the Elm files in the current directory and below.
+The goal is to behave the same as `elm-format . --yes` but faster. So far, it:
+
+- removes trailing spaces
+- adds a newline after top-level binds
 
 Be aware that it overwrites all the Elm files.
 
 It works OK in Ubuntu Linux. It currently assumes that lines end with `\n` and that paths are separated with `/`.
 
 ## Build
+
+You need a C compiler.
 
 This is tested in Ubuntu 22.04.1LTS, using GCC 11.2.0.
 
