@@ -5,6 +5,7 @@ import Html
 type A = B | C
 
 
+{-| =0 -}
 main =
     Html.text "a"
 
