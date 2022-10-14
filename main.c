@@ -266,12 +266,12 @@ int consume_spaces(char buf[CODE_BUF_SIZE], int i, int size) {
 
 int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 	return
-        i > 0 &&
-        buf[i+1] != '=' &&
-        buf[i-1] != '=' &&
-        buf[i-1] != '!' &&
-        buf[i-1] != '<' &&
-        buf[i-1] != '>' &&
+		i > 0 &&
+		buf[i+1] != '=' &&
+		buf[i-1] != '=' &&
+		buf[i-1] != '!' &&
+		buf[i-1] != '<' &&
+		buf[i-1] != '>' &&
 		buf[i] == '=' &&
 		buf[consume_spaces(buf, i+1, size)] != '\n';
 }
