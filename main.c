@@ -321,17 +321,18 @@ void toplevel_body_indent(
 			one[one_i] == '=') {
 
 			two[two_i] = '=';
-			++one_i;
+			one_i += 2;
 			++two_i;
 			two[two_i] = '\n';
+			++two_i;
 
 			for (int i = 0; i < 4; ++i) {
 				if (one[one_i] == ' ') {
 					++one_i;
 				}
 
-				++two_i;
 				two[two_i] = ' ';
+				++two_i;
 			}
 		}
 
