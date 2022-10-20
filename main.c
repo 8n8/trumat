@@ -107,14 +107,6 @@ struct CodeBuffers {
 
 struct CodeBuffers CODE_BUFFERS;
 
-int is_start_collection(int i, char buf[CODE_BUF_SIZE], int size) {
-	return buf[i] == '[' || buf[i] == '(' || buf[i] == '{';
-}
-
-int is_ending_collection(int i, char buf[CODE_BUF_SIZE], int size) {
-	return buf[i] == ']' || buf[i] == ')' || buf[i] == '}';
-}
-
 int is_start_verbatim_string(
 	int i,
 	char buf[CODE_BUF_SIZE],
@@ -168,7 +160,9 @@ int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		i > 3 &&
 		buf[i] == 'n' &&
 		buf[i-1] == 'i' &&
-		!is_name_char(buf[i-2]);
+		!is_name_char(buf[i-2]) &&
+		i+1 < size &&
+		(buf[i+1] == ' ' || buf[i+1] == '\n');
 }
 
 int is_ending_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
@@ -221,12 +215,13 @@ int is_start_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 
 int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
-		size - i > 5 &&
-		!is_name_char(buf[i]) &&
-		buf[i+1] == 'l' &&
-		buf[i+2] == 'e' &&
-		buf[i+3] == 't' &&
-		(buf[i+4] == ' ' || buf[i+4] == '\n');
+		i > 0 &&
+		size - i > 4 &&
+		!is_name_char(buf[i-1]) &&
+		buf[i] == 'l' &&
+		buf[i+1] == 'e' &&
+		buf[i+2] == 't' &&
+		(buf[i+3] == ' ' || buf[i+3] == '\n');
 }
 
 enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
@@ -308,7 +303,7 @@ void toplevel_body_indent(
 			sub_region_status,
 			*one_size,
 			one)) {
-			
+
 			if (sub_region_nesting == 0) {
 				sub_region_status = NotInSubRegion;
 			} else {
@@ -318,16 +313,21 @@ void toplevel_body_indent(
 
 		if (
 			sub_region_status == NotInSubRegion &&
-			one[one_i] == '=') {
+			one[one_i] == '=' &&
+			one_i < *one_size &&
+			one[one_i + 1] != '=' &&
+			one_i > 0 &&
+			one[one_i - 1] != '=') {
 
 			two[two_i] = '=';
-			one_i += 2;
 			++two_i;
 			two[two_i] = '\n';
 			++two_i;
 
-			one_i = consume_spaces(one, one_i, *one_size);
-			for (int i = 0; i < 4; ++i) {
+			one_i += 2;
+
+			one_i = consume_spaces(one, one_i, *one_size) - 1;
+			for (int i = 0; i < 3; ++i) {
 				two[two_i] = ' ';
 				++two_i;
 			}
