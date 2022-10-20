@@ -217,7 +217,7 @@ int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		i > 0 &&
 		size - i > 4 &&
-		!is_name_char(buf[i-1]) &&
+        (buf[i-1] == ' ' || buf[i-1] == '\n') &&
 		buf[i] == 'l' &&
 		buf[i+1] == 'e' &&
 		buf[i+2] == 't' &&
@@ -326,7 +326,12 @@ void toplevel_body_indent(
 
 			one_i += 2;
 
-			one_i = consume_spaces(one, one_i, *one_size) - 1;
+			for (
+				;
+				one[one_i + 1] == ' ' ||
+					one[one_i + 1] == '\n';
+				++one_i) {
+			}
 			for (int i = 0; i < 3; ++i) {
 				two[two_i] = ' ';
 				++two_i;
@@ -389,7 +394,12 @@ void newline_after_toplevel_bind(
 			two[two_i] = '\n';
 			++two_i;
 
-			one_i = consume_spaces(one, one_i, *one_size);
+			for (
+				;
+				one[one_i + 1] == ' ' ||
+					one[one_i + 1] == '\n';
+				++one_i) {
+			}
 
 			for (int i = 0; i < 4; ++i) {
 				two[two_i] = ' ';

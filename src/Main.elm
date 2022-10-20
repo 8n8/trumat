@@ -1,15 +1,15 @@
 module Main exposing (main)
 
+import Html
+
 main =
-    Html.text "a"
+    Html.text x
 
-b =
-    let
-        integer =
-    3
-    in
-    a
+{- b = let x = 3 in x -}
+
+x =
+    let q = 3 in q + r
 
 
-a =
-    2
+r =
+    4
