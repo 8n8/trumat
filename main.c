@@ -5,7 +5,7 @@
 
 #define MAX_PATH 4096
 
-void make_file_path(
+static void make_file_path(
 	char file_path[MAX_PATH],
 	char directory_path[MAX_PATH],
 	char file_name[256]) {
@@ -34,7 +34,7 @@ void make_file_path(
 	printf("SHOULDNT HAPPEN");
 }
 
-void make_sub_dir_path(
+static void make_sub_dir_path(
 	char sub_dir_path[MAX_PATH],
 	char directory_path[MAX_PATH],
 	char sub_dir_name[256]) {
@@ -60,7 +60,7 @@ void make_sub_dir_path(
 	}
 }
 
-int is_relevant_dir(char dir_name[256]) {
+static int is_relevant_dir(char dir_name[256]) {
 	if (dir_name[0] == '.' && dir_name[1] == '\0') {
 		return 0;
 	}
@@ -76,7 +76,7 @@ int is_relevant_dir(char dir_name[256]) {
 	return 1;
 }
 
-int is_elm_file(char file_name[256]) {
+static int is_elm_file(char file_name[256]) {
 	int size = 0;
 	for (; size < 256; ++size) {
 		if (file_name[size] == '\0') {
@@ -107,7 +107,7 @@ struct CodeBuffers {
 
 struct CodeBuffers CODE_BUFFERS;
 
-int is_start_verbatim_string(
+static int is_start_verbatim_string(
 	int i,
 	char buf[CODE_BUF_SIZE],
 	int size) {
@@ -119,7 +119,7 @@ int is_start_verbatim_string(
 		buf[i+2] == '"';
 }
 
-int is_start_of_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_start_of_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		size - i > 6 &&
 		buf[i] == ' ' &&
@@ -130,7 +130,7 @@ int is_start_of_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
 		buf[i-5] == '\n';
 }
 
-int is_ending_verbatim_string(
+static int is_ending_verbatim_string(
 	int i,
 	char buf[CODE_BUF_SIZE],
 	int size) {
@@ -143,11 +143,11 @@ int is_ending_verbatim_string(
 		buf[i-3] != '\\';
 }
 
-int is_ending_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_ending_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 	return i > 0 && buf[i] == '}' && buf[i-1] == '-';
 }
 
-int is_name_char(char ch) {
+static int is_name_char(char ch) {
 	return
 		(ch >= 'a' && ch <= 'z') ||
 		(ch >= 'A' && ch <= 'Z') ||
@@ -155,7 +155,7 @@ int is_name_char(char ch) {
 		ch == '_';
 }
 
-int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		i > 3 &&
 		buf[i] == 'n' &&
@@ -165,7 +165,7 @@ int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		(buf[i+1] == ' ' || buf[i+1] == '\n');
 }
 
-int is_ending_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_ending_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
 	return i > 1 && buf[i] != ' ' && buf[i-1] == '\n';
 }
 
@@ -178,7 +178,7 @@ enum SubRegion {
 	TypeDeclaration,
 };
 
-int end_of_sub_region(
+static inline int end_of_sub_region(
 	int i,
 	enum SubRegion sub_region,
 	int size,
@@ -200,14 +200,14 @@ int end_of_sub_region(
 	}
 }
 
-int is_start_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_start_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		size - i > 2 &&
 		buf[i] == '{' &&
 		buf[i+1] == '-';
 }
 
-int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		i > 0 &&
 		size - i > 4 &&
@@ -218,11 +218,11 @@ int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		(buf[i+3] == ' ' || buf[i+3] == '\n');
 }
 
-int is_start_line_comment(int i, char buf[CODE_BUF_SIZE], int size) {
+static int is_start_line_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 	return buf[i] == '-' && i+1 < size && buf[i+1] == '-';
 }
 
-enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
+static inline enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	if (is_start_of_type_declaration(i, buf, size)) {
 		return TypeDeclaration;
 	}
@@ -246,12 +246,12 @@ enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	return NotInSubRegion;
 }
 
-int consume_spaces(char buf[CODE_BUF_SIZE], int i, int size) {
+static int consume_spaces(char buf[CODE_BUF_SIZE], int i, int size) {
 	for (; i < size && buf[i] == ' '; ++i) {}
 	return i;
 }
 
-int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
+static int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 	return
 		i > 0 &&
 		buf[i+1] != '=' &&
@@ -263,7 +263,7 @@ int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 		buf[consume_spaces(buf, i+1, size)] != '\n';
 }
 
-int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+static int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	if (buf[i] != '-' || i+2 >= buf_size || buf[i+1] != '-') {
 		return 0;
 	}
@@ -275,7 +275,7 @@ int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	return size;
 }
 
-int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+static int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	if (!is_start_verbatim_string(i, buf, buf_size)) {
 		return 0;
 	}
@@ -287,7 +287,7 @@ int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	return size;
 }
 
-int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+static inline int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	if (!is_start_block_comment(i, buf, buf_size)) {
 		return 0;
 	}
@@ -313,7 +313,7 @@ int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	}
 }
 
-int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
+static inline int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
 	int verbatim_size = consume_verbatim_string(buf, i, size);
 	if (verbatim_size > 0) {
 		return verbatim_size;
@@ -327,7 +327,7 @@ int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
 	return consume_line_comment(buf, i, size);
 }
 
-void toplevel_body_indent(
+static void toplevel_body_indent(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
 	int* one_size,
@@ -404,7 +404,7 @@ void toplevel_body_indent(
 	*two_size = two_i;
 }
 
-void newline_after_toplevel_bind(
+static void newline_after_toplevel_bind(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
 	int* one_size,
@@ -484,7 +484,7 @@ void newline_after_toplevel_bind(
 	*two_size = two_i;
 }
 
-void no_trailing_space(
+static void no_trailing_space(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
 	int* one_size,
@@ -516,7 +516,7 @@ void no_trailing_space(
 	*two_size = two_i;
 }
 
-int format_file(char path[MAX_PATH]) {
+static int format_file(char path[MAX_PATH]) {
 	printf("%s\n", path);
 
 	FILE* handle_in = fopen(path, "rb");
@@ -576,9 +576,9 @@ int format_file(char path[MAX_PATH]) {
 	return 0;
 }
 
-int get_paths_from_dir(DIR*, char[MAX_PATH]);
+static int get_paths_from_dir(DIR*, char[MAX_PATH]);
 
-int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
+static int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 
 	struct dirent* dir = readdir(d);
 	if (dir == NULL && errno != 0) {
@@ -623,7 +623,7 @@ int get_paths_from_fs_entry(DIR* d, char directory_path[MAX_PATH]) {
 }
 
 
-int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
+static int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 
 	errno = 0;
 	int result = 0;
