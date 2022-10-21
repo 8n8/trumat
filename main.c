@@ -107,14 +107,6 @@ struct CodeBuffers {
 
 struct CodeBuffers CODE_BUFFERS;
 
-int is_start_collection(int i, char buf[CODE_BUF_SIZE], int size) {
-	return buf[i] == '[' || buf[i] == '(' || buf[i] == '{';
-}
-
-int is_ending_collection(int i, char buf[CODE_BUF_SIZE], int size) {
-	return buf[i] == ']' || buf[i] == ')' || buf[i] == '}';
-}
-
 int is_start_verbatim_string(
 	int i,
 	char buf[CODE_BUF_SIZE],
@@ -168,7 +160,9 @@ int is_ending_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		i > 3 &&
 		buf[i] == 'n' &&
 		buf[i-1] == 'i' &&
-		!is_name_char(buf[i-2]);
+		!is_name_char(buf[i-2]) &&
+		i+1 < size &&
+		(buf[i+1] == ' ' || buf[i+1] == '\n');
 }
 
 int is_ending_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
@@ -181,8 +175,6 @@ enum SubRegion {
 	CurlyBracketCollection,
 	BracketCollection,
 	ParenthesisCollection,
-	BlockComment,
-	VerbatimString,
 	TypeDeclaration,
 };
 
@@ -195,10 +187,6 @@ int end_of_sub_region(
 	switch (sub_region) {
 	case TypeDeclaration:
 		return is_ending_type_declaration(i, buf, size);
-	case VerbatimString:
-		return is_ending_verbatim_string(i, buf, size);
-	case BlockComment:
-		return is_ending_block_comment(i, buf, size);
 	case ParenthesisCollection:
 		return buf[i] == ')';
 	case BracketCollection:
@@ -207,6 +195,8 @@ int end_of_sub_region(
 		return buf[i] == '}';
 	case Let:
 		return is_ending_let(i, buf, size);
+	case NotInSubRegion:
+		return 0;
 	}
 }
 
@@ -219,25 +209,22 @@ int is_start_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 
 int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
-		size - i > 5 &&
-		!is_name_char(buf[i]) &&
-		buf[i+1] == 'l' &&
-		buf[i+2] == 'e' &&
-		buf[i+3] == 't' &&
-		(buf[i+4] == ' ' || buf[i+4] == '\n');
+		i > 0 &&
+		size - i > 4 &&
+        (buf[i-1] == ' ' || buf[i-1] == '\n') &&
+		buf[i] == 'l' &&
+		buf[i+1] == 'e' &&
+		buf[i+2] == 't' &&
+		(buf[i+3] == ' ' || buf[i+3] == '\n');
+}
+
+int is_start_line_comment(int i, char buf[CODE_BUF_SIZE], int size) {
+	return buf[i] == '-' && i+1 < size && buf[i+1] == '-';
 }
 
 enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	if (is_start_of_type_declaration(i, buf, size)) {
 		return TypeDeclaration;
-	}
-
-	if (is_start_verbatim_string(i, buf, size)) {
-		return VerbatimString;
-	}
-
-	if (is_start_block_comment(i, buf, size)) {
-		return BlockComment;
 	}
 
 	if (buf[i] == '[') {
@@ -276,6 +263,147 @@ int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 		buf[consume_spaces(buf, i+1, size)] != '\n';
 }
 
+int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (buf[i] != '-' || i+2 >= buf_size || buf[i+1] != '-') {
+		return 0;
+	}
+
+	int size = 0;
+	for (; buf[i+size] != '\n'; ++size) {
+	}
+
+	return size;
+}
+
+int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_verbatim_string(i, buf, buf_size)) {
+		return 0;
+	}
+
+	int size = 3;
+	for (; !is_ending_verbatim_string(i+size, buf, buf_size); ++size) {
+	}
+
+	return size;
+}
+
+int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_block_comment(i, buf, buf_size)) {
+		return 0;
+	}
+
+	i += 2;
+
+	int size = 0;
+	int nesting = 0;
+
+	for (; size <= buf_size; ++size) {
+		if (is_start_block_comment(i+size, buf, buf_size)) {
+			++nesting;
+			continue;
+		}
+
+		if (is_ending_block_comment(i+size, buf, buf_size)) {
+			if (nesting == 0) {
+				return size;
+			}
+
+			--nesting;
+		}
+	}
+}
+
+int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
+	int verbatim_size = consume_verbatim_string(buf, i, size);
+	if (verbatim_size > 0) {
+		return verbatim_size;
+	}
+
+	int block_comment_size = consume_block_comment(buf, i, size);
+	if (block_comment_size > 0) {
+		return block_comment_size;
+	}
+
+	return consume_line_comment(buf, i, size);
+}
+
+void toplevel_body_indent(
+	char one[CODE_BUF_SIZE],
+	char two[CODE_BUF_SIZE],
+	int* one_size,
+	int* two_size) {
+
+	enum SubRegion sub_region_status = NotInSubRegion;
+	int sub_region_nesting = 0;
+
+	int two_i = 0;
+	for (int one_i = 0; one_i < *one_size; ++one_i) {
+		int comment_size = consume_comments(one, one_i, *one_size);
+		for (int i = 0; i < comment_size; ++i) {
+			two[two_i] = one[one_i];
+			++one_i;
+			++two_i;
+		}
+		enum SubRegion new_sub_region_status =
+			start_of_sub_region(one_i, *one_size, one);
+
+		if (
+			sub_region_status != NotInSubRegion &&
+			new_sub_region_status == sub_region_status) {
+
+			++sub_region_nesting;
+		}
+
+		if (sub_region_status == NotInSubRegion) {
+			sub_region_status = new_sub_region_status;
+		}
+
+		if (end_of_sub_region(
+			one_i,
+			sub_region_status,
+			*one_size,
+			one)) {
+
+			if (sub_region_nesting == 0) {
+				sub_region_status = NotInSubRegion;
+			} else {
+				--sub_region_nesting;
+			}
+		}
+
+		if (
+			sub_region_status == NotInSubRegion &&
+			one[one_i] == '=' &&
+			one_i < *one_size &&
+			one[one_i + 1] != '=' &&
+			one_i > 0 &&
+			one[one_i - 1] != '=') {
+
+			two[two_i] = '=';
+			++two_i;
+			two[two_i] = '\n';
+			++two_i;
+
+			one_i += 2;
+
+			for (
+				;
+				one[one_i + 1] == ' ' ||
+					one[one_i + 1] == '\n';
+				++one_i) {
+			}
+			for (int i = 0; i < 3; ++i) {
+				two[two_i] = ' ';
+				++two_i;
+			}
+		}
+
+		two[two_i] = one[one_i];
+		++two_i;
+	}
+	*two_size = two_i;
+}
+
 void newline_after_toplevel_bind(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
@@ -287,12 +415,23 @@ void newline_after_toplevel_bind(
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
+		int comment_size =
+			consume_comments(
+				one,
+				one_i,
+				*one_size);
+		for (int i = 0; i < comment_size; ++i) {
+			two[two_i] = one[one_i];
+			++one_i;
+			++two_i;
+		}
+
 		enum SubRegion new_sub_region_status =
 			start_of_sub_region(one_i, *one_size, one);
 
 		if (
-			sub_region_status != NotInSubRegion
-			&& new_sub_region_status == sub_region_status) {
+			sub_region_status != NotInSubRegion &&
+			new_sub_region_status == sub_region_status) {
 
 			++sub_region_nesting;
 		}
@@ -303,10 +442,10 @@ void newline_after_toplevel_bind(
 
 
 		if (end_of_sub_region(
-				one_i,
-				sub_region_status,
-				*one_size,
-				one)) {
+			one_i,
+			sub_region_status,
+			*one_size,
+			one)) {
 
 			if (sub_region_nesting == 0) {
 				sub_region_status = NotInSubRegion;
@@ -326,7 +465,12 @@ void newline_after_toplevel_bind(
 			two[two_i] = '\n';
 			++two_i;
 
-			one_i = consume_spaces(one, one_i, *one_size);
+			for (
+				;
+				one[one_i + 1] == ' ' ||
+					one[one_i + 1] == '\n';
+				++one_i) {
+			}
 
 			for (int i = 0; i < 4; ++i) {
 				two[two_i] = ' ';
@@ -409,6 +553,11 @@ int format_file(char path[MAX_PATH]) {
 		CODE_BUFFERS.one,
 		&CODE_BUFFERS.two_size,
 		&CODE_BUFFERS.one_size);
+	toplevel_body_indent(
+		CODE_BUFFERS.one,
+		CODE_BUFFERS.two,
+		&CODE_BUFFERS.one_size,
+		&CODE_BUFFERS.two_size);
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
@@ -416,8 +565,8 @@ int format_file(char path[MAX_PATH]) {
 		return -1;
 	}
 
-	n = fwrite(CODE_BUFFERS.one, 1, CODE_BUFFERS.one_size, handle_out);
-	if (n != CODE_BUFFERS.one_size) {
+	n = fwrite(CODE_BUFFERS.two, 1, CODE_BUFFERS.two_size, handle_out);
+	if (n != CODE_BUFFERS.two_size) {
 		printf("failed writing output to %s", path);
 		fclose(handle_out);
 		return -1;
