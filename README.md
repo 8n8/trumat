@@ -6,6 +6,7 @@ The goal is to behave the same as `elm-format . --yes` but faster. So far, it:
 
 - removes trailing spaces
 - adds a newline after top-level binds
+- indents the body of top-level binds by 4 spaces
 
 Be aware that it overwrites all the Elm files.
 
