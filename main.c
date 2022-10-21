@@ -175,7 +175,6 @@ enum SubRegion {
 	CurlyBracketCollection,
 	BracketCollection,
 	ParenthesisCollection,
-	BlockComment,
 	TypeDeclaration,
 };
 
@@ -188,8 +187,6 @@ int end_of_sub_region(
 	switch (sub_region) {
 	case TypeDeclaration:
 		return is_ending_type_declaration(i, buf, size);
-	case BlockComment:
-		return is_ending_block_comment(i, buf, size);
 	case ParenthesisCollection:
 		return buf[i] == ')';
 	case BracketCollection:
@@ -228,10 +225,6 @@ int is_start_line_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	if (is_start_of_type_declaration(i, buf, size)) {
 		return TypeDeclaration;
-	}
-
-	if (is_start_block_comment(i, buf, size)) {
-		return BlockComment;
 	}
 
 	if (buf[i] == '[') {
@@ -282,18 +275,6 @@ int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	return size;
 }
 
-int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
-	if (!is_start_block_comment(i, buf, buf_size)) {
-		return 0;
-	}
-
-	int size = 0;
-	for (; !is_ending_block_comment(i + size, buf, buf_size); ++size) {
-	}
-
-	return size;
-}
-
 int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	if (!is_start_verbatim_string(i, buf, buf_size)) {
 		return 0;
@@ -306,10 +287,41 @@ int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	return size;
 }
 
+int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_block_comment(i, buf, buf_size)) {
+		return 0;
+	}
+
+	i += 2;
+
+	int size = 0;
+	int nesting = 0;
+
+	for (; size <= buf_size; ++size) {
+		if (is_start_block_comment(i+size, buf, buf_size)) {
+			++nesting;
+			continue;
+		}
+
+		if (is_ending_block_comment(i+size, buf, buf_size)) {
+			if (nesting == 0) {
+				return size;
+			}
+
+			--nesting;
+		}
+	}
+}
+
 int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
 	int verbatim_size = consume_verbatim_string(buf, i, size);
 	if (verbatim_size > 0) {
 		return verbatim_size;
+	}
+
+	int block_comment_size = consume_block_comment(buf, i, size);
+	if (block_comment_size > 0) {
+		return block_comment_size;
 	}
 
 	return consume_line_comment(buf, i, size);
