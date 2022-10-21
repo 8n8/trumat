@@ -176,7 +176,6 @@ enum SubRegion {
 	BracketCollection,
 	ParenthesisCollection,
 	BlockComment,
-	VerbatimString,
 	TypeDeclaration,
 };
 
@@ -189,8 +188,6 @@ int end_of_sub_region(
 	switch (sub_region) {
 	case TypeDeclaration:
 		return is_ending_type_declaration(i, buf, size);
-	case VerbatimString:
-		return is_ending_verbatim_string(i, buf, size);
 	case BlockComment:
 		return is_ending_block_comment(i, buf, size);
 	case ParenthesisCollection:
@@ -224,13 +221,13 @@ int is_start_let(int i, char buf[CODE_BUF_SIZE], int size) {
 		(buf[i+3] == ' ' || buf[i+3] == '\n');
 }
 
+int is_start_line_comment(int i, char buf[CODE_BUF_SIZE], int size) {
+	return buf[i] == '-' && i+1 < size && buf[i+1] == '-';
+}
+
 enum SubRegion start_of_sub_region(int i, int size, char buf[CODE_BUF_SIZE]) {
 	if (is_start_of_type_declaration(i, buf, size)) {
 		return TypeDeclaration;
-	}
-
-	if (is_start_verbatim_string(i, buf, size)) {
-		return VerbatimString;
 	}
 
 	if (is_start_block_comment(i, buf, size)) {
@@ -273,6 +270,51 @@ int equals_but_not_at_end_of_line(char buf[CODE_BUF_SIZE], int i, int size) {
 		buf[consume_spaces(buf, i+1, size)] != '\n';
 }
 
+int consume_line_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (buf[i] != '-' || i+2 >= buf_size || buf[i+1] != '-') {
+		return 0;
+	}
+
+	int size = 0;
+	for (; buf[i+size] != '\n'; ++size) {
+	}
+
+	return size;
+}
+
+int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_block_comment(i, buf, buf_size)) {
+		return 0;
+	}
+
+	int size = 0;
+	for (; !is_ending_block_comment(i + size, buf, buf_size); ++size) {
+	}
+
+	return size;
+}
+
+int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_verbatim_string(i, buf, buf_size)) {
+		return 0;
+	}
+
+	int size = 3;
+	for (; !is_ending_verbatim_string(i+size, buf, buf_size); ++size) {
+	}
+
+	return size;
+}
+
+int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
+	int verbatim_size = consume_verbatim_string(buf, i, size);
+	if (verbatim_size > 0) {
+		return verbatim_size;
+	}
+
+	return consume_line_comment(buf, i, size);
+}
+
 void toplevel_body_indent(
 	char one[CODE_BUF_SIZE],
 	char two[CODE_BUF_SIZE],
@@ -284,6 +326,12 @@ void toplevel_body_indent(
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
+		int comment_size = consume_comments(one, one_i, *one_size);
+		for (int i = 0; i < comment_size; ++i) {
+			two[two_i] = one[one_i];
+			++one_i;
+			++two_i;
+		}
 		enum SubRegion new_sub_region_status =
 			start_of_sub_region(one_i, *one_size, one);
 
@@ -355,6 +403,17 @@ void newline_after_toplevel_bind(
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
+		int comment_size =
+			consume_comments(
+				one,
+				one_i,
+				*one_size);
+		for (int i = 0; i < comment_size; ++i) {
+			two[two_i] = one[one_i];
+			++one_i;
+			++two_i;
+		}
+
 		enum SubRegion new_sub_region_status =
 			start_of_sub_region(one_i, *one_size, one);
 
