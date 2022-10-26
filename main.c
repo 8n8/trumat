@@ -119,6 +119,14 @@ static int is_start_verbatim_string(
 		buf[i+2] == '"';
 }
 
+static int is_start_normal_string(
+	int i,
+	char buf[CODE_BUF_SIZE],
+	int size) {
+
+	return size - i > 1 && buf[i] == '"';
+}
+
 static int is_start_of_type_declaration(int i, char buf[CODE_BUF_SIZE], int size) {
 	return
 		size - i > 6 &&
@@ -142,6 +150,18 @@ static int is_ending_verbatim_string(
 		buf[i-2] == '"' &&
 		buf[i-3] != '\\';
 }
+
+static int is_ending_normal_string(
+	int i,
+	char buf[CODE_BUF_SIZE],
+	int size) {
+
+	return
+		i > 0 &&
+		buf[i] == '"' &&
+		buf[i-1] != '\\';
+}
+
 
 static int is_ending_block_comment(int i, char buf[CODE_BUF_SIZE], int size) {
 	return i > 0 && buf[i] == '}' && buf[i-1] == '-';
@@ -287,6 +307,18 @@ static int consume_verbatim_string(char buf[CODE_BUF_SIZE], int i, int buf_size)
 	return size;
 }
 
+static int consume_normal_string(char buf[CODE_BUF_SIZE], int i, int buf_size) {
+	if (!is_start_normal_string(i, buf, buf_size)) {
+		return 0;
+	}
+
+	int size = 1;
+	for (; !is_ending_normal_string(i+size, buf, buf_size); ++size) {
+	}
+
+	return size;
+}
+
 static inline int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_size) {
 	if (!is_start_block_comment(i, buf, buf_size)) {
 		return 0;
@@ -313,10 +345,15 @@ static inline int consume_block_comment(char buf[CODE_BUF_SIZE], int i, int buf_
 	}
 }
 
-static inline int consume_comments(char buf[CODE_BUF_SIZE], int i, int size) {
+static inline int consume_ignore(char buf[CODE_BUF_SIZE], int i, int size) {
 	int verbatim_size = consume_verbatim_string(buf, i, size);
 	if (verbatim_size > 0) {
 		return verbatim_size;
+	}
+
+	int normal_string_size = consume_normal_string(buf, i, size);
+	if (normal_string_size > 0) {
+		return normal_string_size;
 	}
 
 	int block_comment_size = consume_block_comment(buf, i, size);
@@ -338,7 +375,7 @@ static void toplevel_body_indent(
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
-		int comment_size = consume_comments(one, one_i, *one_size);
+		int comment_size = consume_ignore(one, one_i, *one_size);
 		for (int i = 0; i < comment_size; ++i) {
 			two[two_i] = one[one_i];
 			++one_i;
@@ -415,11 +452,7 @@ static void newline_after_toplevel_bind(
 
 	int two_i = 0;
 	for (int one_i = 0; one_i < *one_size; ++one_i) {
-		int comment_size =
-			consume_comments(
-				one,
-				one_i,
-				*one_size);
+		int comment_size = consume_ignore(one, one_i, *one_size);
 		for (int i = 0; i < comment_size; ++i) {
 			two[two_i] = one[one_i];
 			++one_i;
