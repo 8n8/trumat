@@ -7,3 +7,4 @@ a.out
 main
 ded
 elm.json
+*.o
