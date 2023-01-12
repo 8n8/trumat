@@ -41,7 +41,8 @@ struct Test tests[NUM_TESTS] = {
 	}
 };
 
-uint8_t buf[BUF_SIZE];
+struct Buf buf;
+struct Ast ast;
 
 int main(int argc, char** argv) {
 	size_t num_items = sizeof(struct Test) * NUM_TESTS;
@@ -49,26 +50,26 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < NUM_TESTS; ++i) {
 		struct Test test = tests[i];
 
-		size = 0;
 		for (int j = 0; test.input[j] != '\0'; ++j) {
-			buf[j] = test.input[j];
-			++size;
+			buf.chars[j] = test.input[j];
+			++buf.size;
 		}
 
 		printf("description: %s\n", test.description);
-		int result = format(buf, size);
+		init_ast(&ast);
+		int result = format(&buf, &ast);
 		printf("result: %d\n", result);
-		if (result < 0) {
+		if (result != 0) {
 			fputs("outcome: invalid Elm\n", stdout);
 			continue;
 		}
 
 		int index = 0;
-		for (; index < result; ++index) {
-			if (buf[index] != test.expected[index]) {
+		for (; index < buf.size; ++index) {
+			if (buf.chars[index] != test.expected[index]) {
 				fputs("outcome: fail\n", stdout);
 				printf("expected: %s\n", test.expected);
-				printf("     got: %s\n", buf);
+				printf("     got: %s\n", buf.chars);
 				return 0;
 			}
 		}
