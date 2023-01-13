@@ -11,3 +11,7 @@ void init_verbatim(struct Verbatim* verbatim) {
 void init_ast(struct Ast* ast) {
 	init_verbatim(&ast->verbatim);
 }
+
+void init_buf(struct Buf* buf) {
+	buf->size = 0;
+}
