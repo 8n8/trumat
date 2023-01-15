@@ -3,7 +3,47 @@
 #include <dirent.h>
 #include <errno.h>
 
+#define BUF_MAX 10*1000*1000
+#define VERBATIM_ITEMS 100*1000
+#define VERBATIM_MEAN 20
+#define VERBATIM_CHARS (VERBATIM_ITEMS * VERBATIM_MEAN)
+
 #define MAX_PATH 4096
+
+struct Verbatim {
+	uint8_t chars[VERBATIM_CHARS];
+	uint32_t ends[VERBATIM_ITEMS];
+	int size;
+};
+
+#define MAX_EXPOSING 1000
+struct Exposing {
+	uint32_t items[MAX_EXPOSING];
+	int size;
+};
+
+#define MAX_BIND 100000
+struct Bind {
+	uint32_t left[MAX_BIND];
+	uint32_t right[MAX_BIND];
+	int size;
+};
+
+struct Ast {
+	struct Verbatim verbatim;
+	struct Exposing exposing;
+	uint32_t moduleName;
+	struct Bind bind;
+};
+
+struct Ast AST;
+
+struct Buf {
+	uint8_t chars[BUF_MAX];
+	int size;
+};
+
+struct Buf BUF;
 
 static void make_file_path(
 	char file_path[MAX_PATH],
@@ -546,6 +586,50 @@ static void no_trailing_space(
 	*two_size = two_i;
 }
 
+static void print(struct Buf* buf, struct Ast* ast) {
+}
+
+static int parse_module_declaration(struct Buf* buf, struct Ast* ast, int i) {
+	
+}
+
+static int parse_item(struct Buf* buf, struct Ast* ast, int i) {
+	int result = parse_module_declaration(buf, ast, i);
+	if (result > i) {
+		return result;
+	}
+	i = result;
+
+	return i;
+}
+
+static int parse(struct Buf* buf, struct Ast* ast) {
+	int i = 0;
+	while (1) {
+		int result = parse_item(buf, ast, i);
+		if (result == i && result == buf->size) {
+			return 0;
+		}
+		if (result == i && result != buf->size) {
+			return -1;
+		}
+		if (result < 0) {
+			return result;
+		}
+		i = result;
+	}
+}
+
+static int format_buf(struct Buf* buf, struct Ast* ast) {
+	int result = parse(buf, ast);
+	if (result != 0) {
+		return result;
+	}
+
+	print(buf, ast);
+	return 0;
+}
+
 static int format_file(char path[MAX_PATH]) {
 	printf("%s\n", path);
 
@@ -555,12 +639,12 @@ static int format_file(char path[MAX_PATH]) {
 		return -1;
 	}
 
-	size_t n = fread(CODE_BUFFERS.one, 1, CODE_BUF_SIZE, handle_in);
+	size_t n = fread(BUF.chars, 1, BUF_MAX, handle_in);
 	if (!feof(handle_in)) {
 		printf(
 			"file too large: %s, max size is %d",
 			path,
-			CODE_BUF_SIZE);
+			BUF_MAX);
 		fclose(handle_in);
 		return -1;
 	}
@@ -570,24 +654,12 @@ static int format_file(char path[MAX_PATH]) {
 		return -1;
 	}
 
-	CODE_BUFFERS.one_size = n;
+	BUF.size = n;
 
-	// Add formatters in here.
-	no_trailing_space(
-		CODE_BUFFERS.one,
-		CODE_BUFFERS.two,
-		&CODE_BUFFERS.one_size,
-		&CODE_BUFFERS.two_size);
-	newline_after_toplevel_bind(
-		CODE_BUFFERS.two,
-		CODE_BUFFERS.one,
-		&CODE_BUFFERS.two_size,
-		&CODE_BUFFERS.one_size);
-	toplevel_body_indent(
-		CODE_BUFFERS.one,
-		CODE_BUFFERS.two,
-		&CODE_BUFFERS.one_size,
-		&CODE_BUFFERS.two_size);
+	int result = format_buf(&BUF, &AST);
+	if (result != 0) {
+		return result;
+	}
 
 	FILE* handle_out = fopen(path, "w");
 	if (handle_out == NULL) {
@@ -595,8 +667,8 @@ static int format_file(char path[MAX_PATH]) {
 		return -1;
 	}
 
-	n = fwrite(CODE_BUFFERS.two, 1, CODE_BUFFERS.two_size, handle_out);
-	if (n != CODE_BUFFERS.two_size) {
+	n = fwrite(BUF.chars, 1, BUF.size, handle_out);
+	if (n != BUF.size) {
 		printf("failed writing output to %s", path);
 		fclose(handle_out);
 		return -1;
@@ -668,6 +740,9 @@ static int get_paths_from_dir(DIR* d, char directory_path[MAX_PATH]) {
 }
 
 int main(int argc, char* argv[]) {
+	BUF.size = 0;
+	AST.verbatim.size = 0;
+
 	DIR* d;
 	char top_path[MAX_PATH];
 	top_path[0] = '.';
