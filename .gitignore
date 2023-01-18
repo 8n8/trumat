@@ -1,10 +1,2 @@
-index.html
-elm-stuff/
 venv/
 __pycache__/
-zig-cache/
-a.out
-main
-ded
-elm.json
-*.o
