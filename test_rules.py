@@ -20,5 +20,19 @@ x =
 x =
     0
 """,
-    }
+    },
+    {
+        "input": """module X exposing (x)
+
+
+x = 
+    0
+""",
+        "expected": """module X exposing (x)
+
+
+x =
+    0
+""",
+    },
 ]
