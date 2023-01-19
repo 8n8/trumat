@@ -251,6 +251,22 @@ def debug(old):
     return old
 
 
+def remove_space_after_L(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == " ":
+            try:
+                if old[i - 1] == "L":
+                    continue
+            except IndexError:
+                pass
+
+        new += c
+
+    return new
+
+
 rules = [
     remove_verbatims,
     mark_newline_lists,
@@ -261,6 +277,8 @@ rules = [
     remove_newline_after_equals,
     remove_space_after_equals,
     remove_space_before_open_bracket,
+    remove_space_after_L,
+    debug,
     insert_space_before_equals,
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
