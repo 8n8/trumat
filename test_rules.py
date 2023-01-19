@@ -35,4 +35,18 @@ x =
     0
 """,
     },
+    {
+        "input": """module X exposing (x)
+
+
+x =
+    []
+""",
+        "expected": """module X exposing (x)
+
+
+x =
+    []
+"""
+    }
 ]
