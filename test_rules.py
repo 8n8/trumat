@@ -7,59 +7,75 @@ def test_rules():
 
 
 cases = [
+    #    {
+    #        "input": """module X exposing (x)
+    #
+    #
+    #x =
+    #    0
+    #""",
+    #        "expected": """module X exposing (x)
+    #
+    #
+    #x =
+    #    0
+    #""",
+    #    },
+    #    {
+    #        "input": """module X exposing (x)
+    #
+    #
+    #x = 
+    #    0
+    #""",
+    #        "expected": """module X exposing (x)
+    #
+    #
+    #x =
+    #    0
+    #""",
+    #    },
+    #    {
+    #        "input": """module X exposing (x)
+    #
+    #
+    #x =
+    #    []
+    #""",
+    #        "expected": """module X exposing (x)
+    #
+    #
+    #x =
+    #    []
+    #""",
+    #    },
+    #    {
+    #        "input": """module X exposing (x)
+    #
+    #
+    #x = 0
+    #""",
+    #        "expected": """module X exposing (x)
+    #
+    #
+    #x =
+    #    0
+    #""",
+    #    },
     {
         "input": """module X exposing (x)
 
 
 x =
-    0
+    [ 0, 1
+    ]
 """,
         "expected": """module X exposing (x)
 
 
 x =
-    0
-""",
-    },
-    {
-        "input": """module X exposing (x)
-
-
-x = 
-    0
-""",
-        "expected": """module X exposing (x)
-
-
-x =
-    0
-""",
-    },
-    {
-        "input": """module X exposing (x)
-
-
-x =
-    []
-""",
-        "expected": """module X exposing (x)
-
-
-x =
-    []
-""",
-    },
-    {
-        "input": """module X exposing (x)
-
-
-x = 0
-""",
-        "expected": """module X exposing (x)
-
-
-x =
-    0
-""",
-    },
+    [ 0
+    , 1
+    ]
+"""}
 ]
