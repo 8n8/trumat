@@ -267,6 +267,57 @@ def remove_space_after_L(old):
     return new
 
 
+def remove_newline_before_space(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == "\n":
+            try:
+                if old[i + 1] == " ":
+                    continue
+
+            except IndexError:
+                pass
+
+        new += c
+
+    return new
+
+
+def remove_space_after_comma(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == " ":
+            try:
+                if old[i - 1] == ",":
+                    continue
+
+            except IndexError:
+                pass
+
+        new += c
+
+    return new
+
+
+def remove_space_before_close_bracket(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == " ":
+            try:
+                if old[i + 1] == "]":
+                    continue
+
+            except IndexError:
+                pass
+
+        new += c
+
+    return new
+
+
 rules = [
     remove_verbatims,
     mark_newline_lists,
@@ -278,6 +329,9 @@ rules = [
     remove_space_after_equals,
     remove_space_before_open_bracket,
     remove_space_after_L,
+    remove_newline_before_space,
+    remove_space_after_comma,
+    remove_space_before_close_bracket,
     debug,
     insert_space_before_equals,
     insert_whitespace_after_top_level_equals,
