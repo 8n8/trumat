@@ -191,7 +191,6 @@ def remove_verbatims(old):
 
 
 def insert_verbatims(old):
-    print("old", old)
     new = ""
     index = 0
     for c in old:
@@ -205,8 +204,56 @@ def insert_verbatims(old):
     return new
 
 
+def list_has_newlines(old, i):
+    level = 1
+
+    while level != 0:
+        if old[i] == "\n":
+            return True
+
+        if old[i] == "[":
+            level += 1
+
+        if old[i] == "]":
+            level -= 1
+
+        i += 1
+
+    return False
+
+
+def mark_newline_lists(old):
+    new = ""
+    for i, c in enumerate(old):
+        if c == "[" and list_has_newlines(old, i + 1):
+            new += "L"
+            continue
+
+        new += c
+
+    return new
+
+
+def unmark_newline_lists(old):
+    new = ""
+    for c in old:
+        if c == "L":
+            new += "["
+            continue
+
+        new += c
+
+    return new
+
+
+def debug(old):
+    print(old)
+    return old
+
+
 rules = [
     remove_verbatims,
+    mark_newline_lists,
     remove_multi_space,
     remove_multi_newline,
     remove_space_before_equals,
@@ -218,6 +265,7 @@ rules = [
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
     insert_space_before_open_bracket,
+    unmark_newline_lists,
     insert_verbatims,
 ]
 
