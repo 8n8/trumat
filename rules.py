@@ -138,7 +138,75 @@ def insert_space_before_open_bracket(old):
     return new
 
 
+VERBATIMS = []
+
+
+keywords = {"module", "exposing"}
+
+
+def remove_verbatim(i, old):
+    if not is_verbatim_char(old[i]):
+        return i
+
+    try:
+        if is_verbatim_char(old[i - 1]):
+            return i
+
+    except IndexError:
+        pass
+
+    j = i + 0
+    verbatim = ""
+    while is_verbatim_char(old[j]):
+        verbatim += old[j]
+        j += 1
+
+    if verbatim in keywords:
+        return i
+
+    VERBATIMS.append(verbatim)
+
+    return j
+
+
+def is_verbatim_char(ch):
+    return ch not in {"\n", "(", ")", "[", "]", "=", " ", ","}
+
+
+def remove_verbatims(old):
+    new = ""
+
+    i = 0
+    while i < len(old):
+        j = remove_verbatim(i, old)
+        if j > i:
+            new += "X"
+            i = j
+            continue
+
+        new += old[i]
+        i += 1
+
+    return new
+
+
+def insert_verbatims(old):
+    print("old", old)
+    new = ""
+    index = 0
+    for c in old:
+        if c == "X":
+            new += VERBATIMS[index]
+            index += 1
+            continue
+
+        new += c
+
+    return new
+
+
 rules = [
+    remove_verbatims,
     remove_multi_space,
     remove_multi_newline,
     remove_space_before_equals,
@@ -150,10 +218,13 @@ rules = [
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
     insert_space_before_open_bracket,
+    insert_verbatims,
 ]
 
 
 def format(code):
+    global VERBATIMS
+    VERBATIMS = []
     for rule in rules:
         code = rule(code)
 
