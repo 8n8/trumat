@@ -13,7 +13,7 @@ def remove_multi_space(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_multi_newline(old):
@@ -31,7 +31,7 @@ def remove_multi_newline(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_space_before_equals(old):
@@ -43,7 +43,7 @@ def remove_space_before_equals(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_newline_after_equals(old):
@@ -55,7 +55,7 @@ def remove_newline_after_equals(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_space_after_equals(old):
@@ -67,7 +67,7 @@ def remove_space_after_equals(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_space_before_open_bracket(old):
@@ -79,7 +79,7 @@ def remove_space_before_open_bracket(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def insert_space_before_equals(old):
@@ -90,7 +90,31 @@ def insert_space_before_equals(old):
 
         new += c
 
-    return new
+    return new, None
+
+
+def insert_space_after_comma(old):
+    new = ""
+    for c in old:
+        if c == ",":
+            new += ", "
+            continue
+
+        new += c
+
+    return new, None
+
+
+def insert_space_after_start_list(old):
+    new = ""
+    for c in old:
+        if c == "[":
+            new += "[ "
+            continue
+
+        new += c
+
+    return new, None
 
 
 def is_toplevel_bind(old, i):
@@ -108,7 +132,7 @@ def insert_whitespace_after_top_level_equals(old):
             if is_toplevel_bind(old, i):
                 new += "\n    "
 
-    return new
+    return new, None
 
 
 def insert_newlines_before_top_level_bind(old):
@@ -124,7 +148,7 @@ def insert_newlines_before_top_level_bind(old):
             except IndexError:
                 continue
 
-    return new
+    return new, None
 
 
 def insert_space_before_open_bracket(old):
@@ -135,7 +159,7 @@ def insert_space_before_open_bracket(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 VERBATIMS = []
@@ -187,7 +211,7 @@ def remove_verbatims(old):
         new += old[i]
         i += 1
 
-    return new
+    return new, None
 
 
 def insert_verbatims(old):
@@ -201,7 +225,7 @@ def insert_verbatims(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def list_has_newlines(old, i):
@@ -231,7 +255,7 @@ def mark_newline_lists(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def unmark_newline_lists(old):
@@ -243,7 +267,7 @@ def unmark_newline_lists(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def debug(old):
@@ -264,7 +288,7 @@ def remove_space_after_L(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_newline_before_space(old):
@@ -281,16 +305,16 @@ def remove_newline_before_space(old):
 
         new += c
 
-    return new
+    return new, None
 
 
-def remove_space_after_comma(old):
+def remove_space_after_newline_comma(old):
     new = ""
 
     for i, c in enumerate(old):
         if c == " ":
             try:
-                if old[i - 1] == ",":
+                if old[i - 1] == "C":
                     continue
 
             except IndexError:
@@ -298,7 +322,7 @@ def remove_space_after_comma(old):
 
         new += c
 
-    return new
+    return new, None
 
 
 def remove_space_before_close_bracket(old):
@@ -315,12 +339,109 @@ def remove_space_before_close_bracket(old):
 
         new += c
 
-    return new
+    return new, None
+
+
+def mark_newline_commas(old):
+    new = ""
+    level = 0
+
+    for i, c in enumerate(old):
+        if c == "L":
+            level += 1
+
+        if c == "," and level > 0:
+            new += "C"
+            continue
+
+        if c == "]":
+            level -= 1
+
+        new += c
+
+    return new, None
+
+
+def unmark_newline_commas(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == "C":
+            new += ","
+            continue
+
+        new += c
+
+    return new, None
+
+
+def format_newline_list(old, i, indent):
+    formatted = ""
+
+    if old[i] != "L":
+        return "", i, None
+
+    formatted = "L"
+    i += 1
+
+    while old[i] != "]":
+        formatted_sub, i, err = format_expression(old, i, indent + 2)
+        if err is not None:
+            return "", i, err
+
+        formatted += formatted_sub
+
+        if old[i] == "C":
+            formatted += "\n" + indent * " " + "C"
+            i += 1
+            continue
+
+        if old[i] != "C" and old[i] != "]":
+            return "", i, f"expecting a comma or ] but got {old[i]}"
+
+    formatted += "\n" + indent * " " + "]"
+
+    return formatted, i + 1, None
+
+
+def format_verbatim(old, i, indent):
+    if old[i] != "X":
+        return "", i
+
+    return "X", i + 1
+
+
+def format_expression(old, i, indent):
+    formatted, j = format_verbatim(old, i, indent)
+    if j > i:
+        return formatted, j, None
+
+    return format_newline_list(old, i, indent)
+
+
+def format_top_level_expressions(old):
+    new = ""
+
+    i = 0
+    while i < len(old):
+        new += old[i]
+        if old[i] == "=":
+            formatted, i, err = format_expression(old, i + 1, 4)
+            if err is not None:
+                return "", (i, err)
+
+            new += formatted
+            continue
+
+        i += 1
+
+    return new, None
 
 
 rules = [
     remove_verbatims,
     mark_newline_lists,
+    mark_newline_commas,
     remove_multi_space,
     remove_multi_newline,
     remove_space_before_equals,
@@ -330,14 +451,17 @@ rules = [
     remove_space_before_open_bracket,
     remove_space_after_L,
     remove_newline_before_space,
-    remove_space_after_comma,
+    remove_space_after_newline_comma,
     remove_space_before_close_bracket,
-    debug,
+    format_top_level_expressions,
     insert_space_before_equals,
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
     insert_space_before_open_bracket,
+    unmark_newline_commas,
     unmark_newline_lists,
+    insert_space_after_comma,
+    insert_space_after_start_list,
     insert_verbatims,
 ]
 
@@ -346,6 +470,8 @@ def format(code):
     global VERBATIMS
     VERBATIMS = []
     for rule in rules:
-        code = rule(code)
+        code, err = rule(code)
+        if err is not None:
+            return "", err
 
-    return code
+    return code, None

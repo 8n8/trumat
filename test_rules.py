@@ -3,7 +3,9 @@ import rules
 
 def test_rules():
     for case in cases:
-        assert rules.format(case["input"]) == case["expected"]
+        got, err = rules.format(case["input"])
+        assert err is None
+        assert got == case["expected"]
 
 
 cases = [
