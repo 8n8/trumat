@@ -505,6 +505,23 @@ def format_top_level_expressions(old):
     return new, None
 
 
+def remove_space_before_comma(old):
+    new = ""
+
+    for i, c in enumerate(old):
+        if c == " ":
+            try:
+                if old[i + 1] == "C":
+                    continue
+
+            except IndexError:
+                pass
+
+        new += c
+
+    return new, None
+
+
 rules = [
     remove_verbatims,
     mark_start_newline_lists,
@@ -520,6 +537,7 @@ rules = [
     remove_space_after_open_list,
     remove_newline_before_space,
     remove_space_after_comma,
+    remove_space_before_comma,
     remove_space_before_close_bracket,
     format_top_level_expressions,
     insert_space_before_equals,

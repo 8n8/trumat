@@ -1,78 +1,72 @@
 import rules
 
 
-def test_rules():
-    for case in cases:
-        got, err = rules.format(case["input"])
-        assert err is None
-        assert got == case["expected"]
+def t(input, expected):
+    got, err = rules.format(input)
+    assert err is None
+    assert got == expected
 
 
-cases = [
-    {
-        "input": """module X exposing (x)
-
-
-x =
-    0
-""",
-        "expected": """module X exposing (x)
+def test_hello_world_formatted():
+    t(
+        """module X exposing (x)
 
 
 x =
     0
 """,
-    },
-    {
-        "input": """module X exposing (x)
+        """module X exposing (x)
 
 
 x =
     0
 """,
-        "expected": """module X exposing (x)
+    )
 
 
-x =
-    0
-""",
-    },
-    {
-        "input": """module X exposing (x)
+def test_empty_list_formatted():
+    t(
+        """module X exposing (x)
 
 
 x =
     []
 """,
-        "expected": """module X exposing (x)
+        """module X exposing (x)
 
 
 x =
     []
 """,
-    },
-    {
-        "input": """module X exposing (x)
+    )
+
+
+def test_newline_after_top_level_bind():
+    t(
+        """module X exposing (x)
 
 
 x = 0
 """,
-        "expected": """module X exposing (x)
+        """module X exposing (x)
 
 
 x =
     0
 """,
-    },
-    {
-        "input": """module X exposing (x)
+    )
+
+
+def test_flat_newline_list():
+    t(
+        """module X exposing (x)
 
 
 x =
     [ 0, 1
     ]
 """,
-        "expected": """module X exposing (x)
+        """module X exposing (x)
 
 
 x =
@@ -80,19 +74,44 @@ x =
     , 1
     ]
 """,
-    },
-    {
-        "input": """module X exposing (x)
+    )
+
+
+def test_nested_flat_list():
+    t(
+        """module X exposing (x)
 
 
 x =
     [ 0, [2] ]
 """,
-        "expected": """module X exposing (x)
+        """module X exposing (x)
 
 
 x =
     [ 0, [ 2 ] ]
 """,
-    },
-]
+    )
+
+
+def test_nested_newline_lists():
+    t(
+        """module X exposing (x)
+
+
+x =
+    [a, [ 1
+    , 2]
+    ]
+""",
+        """module X exposing (x)
+
+
+x =
+    [ a
+    , [ 1
+      , 2
+      ]
+    ]
+""",
+    )
