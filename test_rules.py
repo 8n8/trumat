@@ -81,4 +81,18 @@ x =
     ]
 """,
     },
+    {
+        "input": """module X exposing (x)
+
+
+x =
+    [ 0, [2] ]
+""",
+        "expected": """module X exposing (x)
+
+
+x =
+    [ 0, [ 2 ] ]
+""",
+    },
 ]
