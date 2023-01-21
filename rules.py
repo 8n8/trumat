@@ -107,10 +107,15 @@ def insert_space_after_comma(old):
 
 def insert_space_after_start_list(old):
     new = ""
-    for c in old:
+    for i, c in enumerate(old):
         if c == "[":
-            new += "[ "
-            continue
+            try:
+                if old[i + 1] != "]":
+                    new += "[ "
+                    continue
+
+            except IndexError:
+                pass
 
         new += c
 
