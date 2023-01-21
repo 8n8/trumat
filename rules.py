@@ -122,6 +122,23 @@ def insert_space_after_start_list(old):
     return new, None
 
 
+def insert_space_before_close_ordinary_list(old):
+    new = ""
+    for i, c in enumerate(old):
+        if c == "]":
+            try:
+                if old[i - 1] != "[":
+                    new += " ]"
+                    continue
+
+            except IndexError:
+                pass
+
+        new += c
+
+    return new, None
+
+
 def is_toplevel_bind(old, i):
     for j in range(i):
         if old[i - j] == "\n":
@@ -233,7 +250,7 @@ def insert_verbatims(old):
     return new, None
 
 
-def list_has_newlines(old, i):
+def list_has_newlines_forward(old, i):
     level = 1
 
     while level != 0:
@@ -251,10 +268,31 @@ def list_has_newlines(old, i):
     return False
 
 
-def mark_newline_lists(old):
+def list_has_newlines_backward(old, i):
+    level = 1
+
+    while level != 0:
+        if old[i] == "L":
+            return True
+
+        if old[i] == "]":
+            level += 1
+
+        if old[i] == "M":
+            level += 1
+
+        if old[i] == "[":
+            level -= 1
+
+        i -= 1
+
+    return False
+
+
+def mark_start_newline_lists(old):
     new = ""
     for i, c in enumerate(old):
-        if c == "[" and list_has_newlines(old, i + 1):
+        if c == "[" and list_has_newlines_forward(old, i + 1):
             new += "L"
             continue
 
@@ -263,7 +301,19 @@ def mark_newline_lists(old):
     return new, None
 
 
-def unmark_newline_lists(old):
+def mark_end_newline_lists(old):
+    new = ""
+    for i, c in enumerate(old):
+        if c == "]" and list_has_newlines_backward(old, i - 1):
+            new += "M"
+            continue
+
+        new += c
+
+    return new, None
+
+
+def unmark_start_newline_lists(old):
     new = ""
     for c in old:
         if c == "L":
@@ -275,18 +325,30 @@ def unmark_newline_lists(old):
     return new, None
 
 
+def unmark_end_newline_lists(old):
+    new = ""
+    for c in old:
+        if c == "M":
+            new += "]"
+            continue
+
+        new += c
+
+    return new, None
+
+
 def debug(old):
     print(old)
-    return old
+    return old, None
 
 
-def remove_space_after_L(old):
+def remove_space_after_open_list(old):
     new = ""
 
     for i, c in enumerate(old):
         if c == " ":
             try:
-                if old[i - 1] == "L":
+                if old[i - 1] == "L" or old[i - 1] == "[":
                     continue
             except IndexError:
                 pass
@@ -313,13 +375,13 @@ def remove_newline_before_space(old):
     return new, None
 
 
-def remove_space_after_newline_comma(old):
+def remove_space_after_comma(old):
     new = ""
 
     for i, c in enumerate(old):
         if c == " ":
             try:
-                if old[i - 1] == "C":
+                if old[i - 1] == "C" or old[i - 1] == ",":
                     continue
 
             except IndexError:
@@ -336,7 +398,7 @@ def remove_space_before_close_bracket(old):
     for i, c in enumerate(old):
         if c == " ":
             try:
-                if old[i + 1] == "]":
+                if old[i + 1] == "]" or old[i + 1] == "M":
                     continue
 
             except IndexError:
@@ -389,7 +451,7 @@ def format_newline_list(old, i, indent):
     formatted = "L"
     i += 1
 
-    while old[i] != "]":
+    while old[i] != "M":
         formatted_sub, i, err = format_expression(old, i, indent + 2)
         if err is not None:
             return "", i, err
@@ -401,10 +463,10 @@ def format_newline_list(old, i, indent):
             i += 1
             continue
 
-        if old[i] != "C" and old[i] != "]":
-            return "", i, f"expecting a comma or ] but got {old[i]}"
+        if old[i] != "C" and old[i] != "M":
+            return "", i, f"expecting a comma or M but got {old[i]}"
 
-    formatted += "\n" + indent * " " + "]"
+    formatted += "\n" + indent * " " + "M"
 
     return formatted, i + 1, None
 
@@ -445,7 +507,8 @@ def format_top_level_expressions(old):
 
 rules = [
     remove_verbatims,
-    mark_newline_lists,
+    mark_start_newline_lists,
+    mark_end_newline_lists,
     mark_newline_commas,
     remove_multi_space,
     remove_multi_newline,
@@ -454,17 +517,19 @@ rules = [
     remove_newline_after_equals,
     remove_space_after_equals,
     remove_space_before_open_bracket,
-    remove_space_after_L,
+    remove_space_after_open_list,
     remove_newline_before_space,
-    remove_space_after_newline_comma,
+    remove_space_after_comma,
     remove_space_before_close_bracket,
     format_top_level_expressions,
     insert_space_before_equals,
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
     insert_space_before_open_bracket,
+    insert_space_before_close_ordinary_list,
     unmark_newline_commas,
-    unmark_newline_lists,
+    unmark_start_newline_lists,
+    unmark_end_newline_lists,
     insert_space_after_comma,
     insert_space_after_start_list,
     insert_verbatims,
