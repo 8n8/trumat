@@ -34,63 +34,6 @@ def remove_multi_newline(old):
     return new, None
 
 
-def insert_space_before_equals(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "=":
-            new += " "
-
-        new += c
-
-    return new, None
-
-
-def insert_space_after_comma(old):
-    new = ""
-    for c in old:
-        if c == ",":
-            new += ", "
-            continue
-
-        new += c
-
-    return new, None
-
-
-def insert_space_after_start_list(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "[":
-            try:
-                if old[i + 1] != "]":
-                    new += "[ "
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
-def insert_space_before_close_ordinary_list(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "]":
-            try:
-                if old[i - 1] != "[":
-                    new += " ]"
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
 def is_toplevel_bind(old, i):
     for j in range(i):
         if old[i - j] == "\n":
@@ -121,17 +64,6 @@ def insert_newlines_before_top_level_bind(old):
 
             except IndexError:
                 continue
-
-    return new, None
-
-
-def insert_space_before_open_bracket(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "(":
-            new += " "
-
-        new += c
 
     return new, None
 
@@ -277,30 +209,6 @@ def mark_end_newline_lists(old):
     return new, None
 
 
-def unmark_start_newline_lists(old):
-    new = ""
-    for c in old:
-        if c == "L":
-            new += "["
-            continue
-
-        new += c
-
-    return new, None
-
-
-def unmark_end_newline_lists(old):
-    new = ""
-    for c in old:
-        if c == "M":
-            new += "]"
-            continue
-
-        new += c
-
-    return new, None
-
-
 def debug(old):
     print(old)
     return old, None
@@ -320,19 +228,6 @@ def mark_newline_commas(old):
 
         if c == "]":
             level -= 1
-
-        new += c
-
-    return new, None
-
-
-def unmark_newline_commas(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == "C":
-            new += ","
-            continue
 
         new += c
 
@@ -428,19 +323,6 @@ def mark_empty_lists(old):
     return new, None
 
 
-def unmark_empty_lists(old):
-    new = ""
-
-    for c in old:
-        if c == "E":
-            new += "[]"
-            continue
-
-        new += c
-
-    return new, None
-
-
 def remove_first_char(chars):
     def helper(old):
         new = ""
@@ -481,6 +363,22 @@ def remove_second_char(chars):
     return helper
 
 
+def replace_with(a, b):
+    def helper(old):
+        new = ""
+
+        for c in old:
+            if c == a:
+                new += b
+                continue
+
+            new += c
+
+        return new, None
+
+    return helper
+
+
 rules = [
     remove_verbatims,
     mark_start_newline_lists,
@@ -503,17 +401,18 @@ rules = [
     remove_first_char(" ]"),
     remove_first_char(" M"),
     format_top_level_expressions,
-    insert_space_before_equals,
+    replace_with("=", " ="),
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
-    insert_space_before_open_bracket,
-    insert_space_before_close_ordinary_list,
-    unmark_newline_commas,
-    unmark_start_newline_lists,
-    unmark_end_newline_lists,
-    unmark_empty_lists,
-    insert_space_after_comma,
-    insert_space_after_start_list,
+    replace_with("(", " ("),
+    replace_with("]", " ]"),
+    replace_with("C", ","),
+    replace_with("[", "[ "),
+    replace_with("L", "L "),
+    replace_with("L", "["),
+    replace_with("M", "]"),
+    replace_with("E", "[]"),
+    replace_with(",", ", "),
     insert_verbatims,
 ]
 
