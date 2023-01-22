@@ -34,54 +34,6 @@ def remove_multi_newline(old):
     return new, None
 
 
-def remove_space_before_equals(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "=":
-            if old[i - 1] == " ":
-                new = new[:-1]
-
-        new += c
-
-    return new, None
-
-
-def remove_newline_after_equals(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "\n":
-            if old[i - 1] == "=":
-                continue
-
-        new += c
-
-    return new, None
-
-
-def remove_space_after_equals(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == " ":
-            if old[i - 1] == "=":
-                continue
-
-        new += c
-
-    return new, None
-
-
-def remove_space_before_open_bracket(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "(":
-            if old[i - 1] == " ":
-                new = new[:-1]
-
-        new += c
-
-    return new, None
-
-
 def insert_space_before_equals(old):
     new = ""
     for i, c in enumerate(old):
@@ -354,73 +306,6 @@ def debug(old):
     return old, None
 
 
-def remove_space_after_open_list(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == " ":
-            try:
-                if old[i - 1] == "L" or old[i - 1] == "[":
-                    continue
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
-def remove_newline_before_space(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == "\n":
-            try:
-                if old[i + 1] == " ":
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
-def remove_space_after_comma(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == " ":
-            try:
-                if old[i - 1] == "C" or old[i - 1] == ",":
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
-def remove_space_before_close_bracket(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == " ":
-            try:
-                if old[i + 1] == "]" or old[i + 1] == "M":
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
 def mark_newline_commas(old):
     new = ""
     level = 0
@@ -517,39 +402,6 @@ def format_top_level_expressions(old):
     return new, None
 
 
-def remove_space_before_comma(old):
-    new = ""
-
-    for i, c in enumerate(old):
-        if c == " ":
-            try:
-                if old[i + 1] == "C":
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
-def remove_newline_before_close_bracket(old):
-    new = ""
-    for i, c in enumerate(old):
-        if c == "\n":
-            try:
-                if old[i + 1] == "M":
-                    continue
-
-            except IndexError:
-                pass
-
-        new += c
-
-    return new, None
-
-
 def mark_empty_lists(old):
     new = ""
 
@@ -589,6 +441,46 @@ def unmark_empty_lists(old):
     return new, None
 
 
+def remove_first_char(chars):
+    def helper(old):
+        new = ""
+
+        for i, c in enumerate(old):
+            if c == chars[0]:
+                try:
+                    if old[i + 1] == chars[1]:
+                        continue
+
+                except IndexError:
+                    pass
+
+            new += c
+
+        return new, None
+
+    return helper
+
+
+def remove_second_char(chars):
+    def helper(old):
+        new = ""
+
+        for i, c in enumerate(old):
+            if c == chars[1]:
+                try:
+                    if old[i - 1] == chars[0]:
+                        continue
+
+                except IndexError:
+                    pass
+
+            new += c
+
+        return new, None
+
+    return helper
+
+
 rules = [
     remove_verbatims,
     mark_start_newline_lists,
@@ -597,17 +489,19 @@ rules = [
     mark_newline_commas,
     remove_multi_space,
     remove_multi_newline,
-    remove_space_before_equals,
-    remove_space_after_equals,
-    remove_newline_after_equals,
-    remove_space_after_equals,
-    remove_space_before_open_bracket,
-    remove_space_after_open_list,
-    remove_newline_before_space,
-    remove_newline_before_close_bracket,
-    remove_space_after_comma,
-    remove_space_before_comma,
-    remove_space_before_close_bracket,
+    remove_first_char(" ="),
+    remove_second_char("=\n"),
+    remove_second_char("= "),
+    remove_first_char(" ("),
+    remove_second_char("L "),
+    remove_second_char("[ "),
+    remove_first_char("\n "),
+    remove_first_char("\nM"),
+    remove_second_char("C "),
+    remove_second_char(", "),
+    remove_first_char(" C"),
+    remove_first_char(" ]"),
+    remove_first_char(" M"),
     format_top_level_expressions,
     insert_space_before_equals,
     insert_whitespace_after_top_level_equals,
