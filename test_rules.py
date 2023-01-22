@@ -138,7 +138,7 @@ x =
     )
 
 
-def test_if_else():
+def test_if_then_else_single_line_formatted():
     t(
         """module X exposing (x)
 
@@ -151,5 +151,30 @@ x =
 
 x =
     if a then b else c
+""",
+    )
+
+
+def test_if_then_else_multi_line_formatted():
+    t(
+        """module X exposing (x)
+
+
+x =
+    if a then
+        b
+
+    else
+        c
+""",
+        """module X exposing (x)
+
+
+x =
+    if a then
+        b
+
+    else
+        c
 """,
     )
