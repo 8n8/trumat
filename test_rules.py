@@ -115,3 +115,24 @@ x =
     ]
 """,
     )
+
+
+def test_many_nested_list():
+    t(
+        """module X exposing (x)
+
+
+x=[[[[[
+]]]]]
+""",
+        """module X exposing (x)
+
+
+x =
+    [ [ [ [ []
+          ]
+        ]
+      ]
+    ]
+""",
+    )
