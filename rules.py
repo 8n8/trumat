@@ -264,7 +264,7 @@ def format_newline_list(old, i, indent):
 
 
 def format_verbatim(old, i, indent):
-    if old[i] != "X" and old[i] != "E":
+    if old[i] != "X" and old[i] != "S":
         return "", i
 
     return old[i], i + 1
@@ -309,7 +309,7 @@ def mark_empty_lists(old):
                     j += 1
 
                 if old[j] == "]":
-                    new += "E"
+                    new += "S"
                     j += 1
                     i = j
                     continue
@@ -363,7 +363,7 @@ def remove_second_char(chars):
     return helper
 
 
-def replace_with(a, b):
+def replace_char_with(a, b):
     def helper(old):
         new = ""
 
@@ -401,18 +401,18 @@ rules = [
     remove_first_char(" ]"),
     remove_first_char(" M"),
     format_top_level_expressions,
-    replace_with("=", " ="),
+    replace_char_with("=", " ="),
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
-    replace_with("(", " ("),
-    replace_with("]", " ]"),
-    replace_with("C", ","),
-    replace_with("[", "[ "),
-    replace_with("L", "L "),
-    replace_with("L", "["),
-    replace_with("M", "]"),
-    replace_with("E", "[]"),
-    replace_with(",", ", "),
+    replace_char_with("(", " ("),
+    replace_char_with("]", " ]"),
+    replace_char_with("C", ","),
+    replace_char_with("[", "[ "),
+    replace_char_with("L", "L "),
+    replace_char_with("L", "["),
+    replace_char_with("M", "]"),
+    replace_char_with("S", "[]"),
+    replace_char_with(",", ", "),
     insert_verbatims,
 ]
 
