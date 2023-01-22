@@ -136,3 +136,20 @@ x =
     ]
 """,
     )
+
+
+def test_if_else():
+    t(
+        """module X exposing (x)
+
+
+x =
+    if a then b else c
+""",
+        """module X exposing (x)
+
+
+x =
+    if a then b else c
+""",
+    )
