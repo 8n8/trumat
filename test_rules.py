@@ -182,3 +182,30 @@ x =
         c
 """,
     )
+
+
+def test_case_of_single_line_formatted():
+    t(
+        """module X exposing (x)
+
+
+x =
+    case a of
+        A ->
+            b
+
+        C ->
+            d
+""",
+        """module X exposing (x)
+
+
+x =
+    case a of
+        A ->
+            b
+
+        C ->
+            d
+""",
+    )
