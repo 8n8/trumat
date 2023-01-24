@@ -59,7 +59,7 @@ def insert_newlines_before_top_level_bind(old):
 
         if c == "\n":
             try:
-                if old[i + 1] != " ":
+                if old[i + 1] != " " and old[i + 1] != "\n":
                     new += "\n\n"
 
             except IndexError:
@@ -71,7 +71,7 @@ def insert_newlines_before_top_level_bind(old):
 VERBATIMS = []
 
 
-keywords = {"module", "exposing"}
+keywords = {"module", "exposing", "if", "then", "else"}
 
 
 def remove_verbatim(i, old):
@@ -270,10 +270,53 @@ def format_verbatim(old, i, indent):
     return old[i], i + 1
 
 
+def format_if_then_else(old, i, indent):
+    new = ""
+    if old[i] != "I":
+        return "", i, None
+
+    i += 1
+    new += "I"
+
+    if_, i, err = format_expression(old, i, indent)
+    if err is not None:
+        return "", i, err
+    new += if_
+
+    if old[i] != "T":
+        return "", i, f"expecting T but got {old[i]}"
+
+    i += 1
+    indent += 4
+    new += "T\n" + indent * " "
+
+    then_, i, err = format_expression(old, i, indent)
+    if err is not None:
+        return "", i, err
+    new += then_
+
+    if old[i] != "E":
+        return "", i, f"expecting E but got {old[i]}"
+
+    i += 1
+    new += "\n\n" + (indent - 4) * " " + "E\n" + indent * " "
+
+    else_, i, err = format_expression(old, i, indent)
+    if err is not None:
+        return "", i, err
+    new += else_
+
+    return new, i, None
+
+
 def format_expression(old, i, indent):
     formatted, j = format_verbatim(old, i, indent)
     if j > i:
         return formatted, j, None
+
+    formatted, j, err = format_if_then_else(old, i, indent)
+    if j > i:
+        return formatted, j, err
 
     return format_newline_list(old, i, indent)
 
@@ -379,12 +422,47 @@ def replace_char_with(a, b):
     return helper
 
 
+def is_language_character(char):
+    return char in " \n"
+
+
+def replace_keyword(keyword, replacement):
+    def helper(old):
+        new = ""
+
+        i = 0
+        while i < len(old):
+            try:
+                if (
+                    is_language_character(old[i - 1])
+                    and old[i : i + len(keyword)] == keyword
+                    and is_language_character(old[i + len(keyword)])
+                ):
+
+                    new += replacement
+                    i += len(keyword)
+                    continue
+
+            except IndexError:
+                pass
+
+            new += old[i]
+            i += 1
+
+        return new, None
+
+    return helper
+
+
 rules = [
     remove_verbatims,
     mark_start_newline_lists,
     mark_end_newline_lists,
     mark_empty_lists,
     mark_newline_commas,
+    replace_keyword("if", "I"),
+    replace_keyword("then", "T"),
+    replace_keyword("else", "E"),
     remove_multi_space,
     remove_multi_newline,
     remove_first_char(" ="),
@@ -400,10 +478,17 @@ rules = [
     remove_first_char(" C"),
     remove_first_char(" ]"),
     remove_first_char(" M"),
+    remove_second_char("I "),
+    remove_first_char(" T"),
+    remove_second_char("T "),
+    remove_first_char(" E"),
+    remove_second_char("E "),
     format_top_level_expressions,
     replace_char_with("=", " ="),
     insert_whitespace_after_top_level_equals,
     insert_newlines_before_top_level_bind,
+    replace_char_with("I", "I "),
+    replace_char_with("T", " T"),
     replace_char_with("(", " ("),
     replace_char_with("]", " ]"),
     replace_char_with("C", ","),
@@ -413,6 +498,9 @@ rules = [
     replace_char_with("M", "]"),
     replace_char_with("S", "[]"),
     replace_char_with(",", ", "),
+    replace_char_with("I", "if"),
+    replace_char_with("T", "then"),
+    replace_char_with("E", "else"),
     insert_verbatims,
 ]
 

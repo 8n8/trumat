@@ -2,7 +2,7 @@ module X exposing (x)
 
 
 x =
-    if a then
+    if a b then
         b
 
     else
