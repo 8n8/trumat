@@ -28,5 +28,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "hello world formatted 2",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]
