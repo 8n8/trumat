@@ -71,7 +71,7 @@ def insert_newlines_before_top_level_bind(old):
 VERBATIMS = []
 
 
-keywords = {"module", "exposing", "if", "then", "else"}
+keywords = {"module", "exposing", "if", "then", "else", "case", "of", "->"}
 
 
 def remove_verbatim(i, old):
@@ -463,6 +463,9 @@ rules = [
     replace_keyword("if", "I"),
     replace_keyword("then", "T"),
     replace_keyword("else", "E"),
+    replace_keyword("case", "A"),
+    replace_keyword("of", "O"),
+    replace_keyword("->", "Z"),
     remove_multi_space,
     remove_multi_newline,
     remove_first_char(" ="),
@@ -501,6 +504,9 @@ rules = [
     replace_char_with("I", "if"),
     replace_char_with("T", "then"),
     replace_char_with("E", "else"),
+    replace_keyword("A", "case"),
+    replace_keyword("O", "of"),
+    replace_keyword("Z", "->"),
     insert_verbatims,
 ]
 
