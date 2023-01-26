@@ -5,4 +5,10 @@ import Data.ByteString (ByteString)
 
 parse :: Attoparsec.Parser ByteString
 parse =
-  return ""
+  return
+    "module X exposing (x)\n\
+    \\n\
+    \\n\
+    \x =\n\
+    \    0\n\
+    \"
