@@ -4,10 +4,12 @@ module Machine.Expression (Machine (..), ListMachine (..), run) where
 
 import Action
 import Char (Char (..))
+import Prelude (Show)
 
 data Machine
   = List ListMachine
   | Verbatim
+  deriving (Show)
 
 data ListMachine
   = Start
@@ -19,6 +21,7 @@ data ListMachine
   | AfterCloseBracket
   | DeletingInitialSpaces
   | InsertedInitialSpace
+  deriving (Show)
 
 runList :: ListMachine -> Char -> (ListMachine, Action)
 runList machine char =
@@ -30,7 +33,7 @@ runList machine char =
         CloseBracket ->
           (machine, Fail "close bracket in list after inserting initial space")
         OpenBracket ->
-          (machine, Fail "open bracket in list")
+          (Expression (List Start), MoveRight)
         Space ->
           (machine, Fail "space in list after inserting initial space")
         Newline ->
@@ -128,7 +131,7 @@ runList machine char =
         CloseBracket ->
           (AfterCloseBracket, MoveRight)
         OpenBracket ->
-          (machine, Fail "unexpected open bracket in list")
+          (InsertedInitialSpace, InsertSpace)
         Newline ->
           (machine, Fail "unexpected newline in list")
         Other ->
@@ -159,9 +162,9 @@ runList machine char =
             MoveRight ->
               (Expression newMachine, MoveRight)
             Delete ->
-              (Expression newMachine, MoveRight)
+              (Expression newMachine, Delete)
             InsertSpace ->
-              (Expression newMachine, MoveRight)
+              (Expression newMachine, InsertSpace)
             Fail message ->
               (machine, Fail message)
     AfterExpression ->

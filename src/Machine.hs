@@ -5,12 +5,14 @@ module Machine (Machine.Machine (..), Machine.run) where
 import Action
 import Char
 import qualified Machine.Expression
+import Prelude (Show)
 
 data Machine
   = BeforeEquals
   | WhitespaceAfterEquals
   | Expression Machine.Expression.Machine
   | AfterFinalNewline
+  deriving (Show)
 
 run :: Machine -> Char -> (Machine, Action)
 run machine char =

@@ -129,16 +129,12 @@ new =
     return $ GapBuffer buffer left right
 
 delete :: GapBuffer s -> ST s ()
-delete (GapBuffer _ leftRef rightRef) =
+delete (GapBuffer _ _ rightRef) =
   do
-    left <- readSTRef leftRef
     right <- readSTRef rightRef
     if right /= 0
       then writeSTRef rightRef (right - 1)
-      else
-        if left /= 0
-          then writeSTRef leftRef (left - 1)
-          else return ()
+      else return ()
 
 moveRight :: GapBuffer s -> ST s ()
 moveRight (GapBuffer buffer leftRef rightRef) =
