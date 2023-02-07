@@ -1,32 +1,33 @@
-name:                ded
+name:                trumat
 version:             0.1.0.0
 
 dependencies:
 - base >= 4.7 && < 5
 
-ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
-- -Werror
-
 default-extensions:
 - OverloadedStrings
+
+ghc-options:
+- -Weverything
+- -Wno-safe
+- -Wno-monomorphism-restriction
+- -Wno-prepositive-qualified-module
+- -Wno-implicit-prelude
+- -Wno-missing-safe-haskell-mode
+- -Wno-unsafe
+- -Wno-missing-import-lists
+- -Wno-missing-kind-signatures
+- -Wno-missing-deriving-strategies
+- -Werror
 
 library:
   source-dirs: src
   dependencies:
   - bytestring
-  - attoparsec
+  - vector
 
 executables:
-  ded-exe:
+  trumat-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -34,10 +35,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - ded
+    - trumat
 
 tests:
-  ded-test:
+  trumat-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -45,8 +46,10 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - ded
-    - bytestring
+    - trumat
     - tasty
     - tasty-hunit
-    - attoparsec
+    - bytestring
+    - tasty-hedgehog
+    - hedgehog
+    - text

@@ -1,3 +1,4 @@
-ormolu -i src/*
-ormolu -i app/*
-ormolu -i test/*
+ormolu -i src/*.hs
+ormolu -i src/Machine/*.hs
+ormolu -i test/*.hs
+ormolu -i app/*.hs
