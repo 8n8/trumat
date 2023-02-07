@@ -54,58 +54,38 @@ generateModule =
 
 generateExpression :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
 generateExpression =
-  Hedgehog.Gen.choice
-    [ do
-        int <- generateIntLiteral
-        return (int, int),
-      do
-        list <- generateSingleLineFormattedList
-        return (list, list),
-      generateSingleLineUnformattedList
-    ]
+  Hedgehog.Gen.choice [generateIntLiteral, generateSingleLineList]
 
-generateSingleLineUnformattedList :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
-generateSingleLineUnformattedList =
+generateSingleLineList :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
+generateSingleLineList =
   do
     items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) generateIntLiteral
+    let unformatted = map snd items
+    let formatted = map fst items
     if null items
       then return ("[ ]", "[]")
       else
         return $
           ( mconcat
               [ "[",
-                Data.ByteString.intercalate "," items,
+                Data.ByteString.intercalate "," unformatted,
                 "]"
               ],
             mconcat
               [ "[ ",
-                Data.ByteString.intercalate ", " items,
+                Data.ByteString.intercalate ", " formatted,
                 " ]"
               ]
           )
 
-generateSingleLineFormattedList :: Hedgehog.Gen Data.ByteString.ByteString
-generateSingleLineFormattedList =
-  do
-    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) generateIntLiteral
-    if null items
-      then return "[]"
-      else
-        return $
-          mconcat
-            [ "[ ",
-              Data.ByteString.intercalate ", " items,
-              " ]"
-            ]
-
-generateIntLiteral :: Hedgehog.Gen Data.ByteString.ByteString
+generateIntLiteral :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
 generateIntLiteral =
   do
     int <- Hedgehog.Gen.integral (Hedgehog.Range.constant 0 100)
     let str = show (int :: Int)
     let txt = Data.Text.pack str
     let bytes = Data.Text.Encoding.encodeUtf8 txt
-    return bytes
+    return (bytes, bytes)
 
 unitTests :: Test.Tasty.TestTree
 unitTests =
