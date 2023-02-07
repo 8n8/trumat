@@ -59,9 +59,9 @@ generateExpression =
 generateSingleLineList :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
 generateSingleLineList =
   do
-    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) generateIntLiteral
-    let unformatted = map snd items
-    let formatted = map fst items
+    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) generateExpression
+    let unformatted = map fst items
+    let formatted = map snd items
     if null items
       then return ("[ ]", "[]")
       else
