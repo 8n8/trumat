@@ -75,7 +75,7 @@ runList machine char =
         CloseBracket ->
           (machine, Fail "comma at end of list")
         OpenBracket ->
-          (machine, Fail "open bracket inside list")
+          (Expression (List Start), MoveRight)
         Space ->
           (machine, Fail "too many spaces in list")
         Comma ->
@@ -115,7 +115,7 @@ runList machine char =
         CloseBracket ->
           (machine, Fail "unexpected comma at end of list")
         OpenBracket ->
-          (machine, Fail "unexpected open bracket in list")
+          (AfterSpaceAfterComma, InsertSpace)
         Other ->
           (AfterSpaceAfterComma, InsertSpace)
     Start ->

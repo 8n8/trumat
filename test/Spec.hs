@@ -95,8 +95,8 @@ unitTests =
 
 unformattedTest :: (String, Data.ByteString.ByteString, Data.ByteString.ByteString) -> Test.Tasty.TestTree
 unformattedTest (name, input, expected) =
-    Test.Tasty.HUnit.testCase name $
-      Trumat.trumat input Test.Tasty.HUnit.@?= Right expected
+  Test.Tasty.HUnit.testCase name $
+    Trumat.trumat input Test.Tasty.HUnit.@?= Right expected
 
 unchangedTest :: (String, Data.ByteString.ByteString) -> Test.Tasty.TestTree
 unchangedTest (name, input) =
