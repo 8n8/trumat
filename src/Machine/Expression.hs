@@ -4,10 +4,10 @@ module Machine.Expression (Machine (..), ListMachine (..), run) where
 
 import Action
 import Char (Char (..))
-import Prelude (Show)
+import Prelude (Int, Show)
 
 data Machine
-  = List ListMachine
+  = List ListMachine Int
   | Verbatim
   deriving (Show)
 
@@ -23,8 +23,8 @@ data ListMachine
   | InsertedInitialSpace
   deriving (Show)
 
-runList :: ListMachine -> Char -> (ListMachine, Action)
-runList machine char =
+runList :: ListMachine -> Char -> Int -> (ListMachine, Action)
+runList machine char indent =
   case machine of
     InsertedInitialSpace ->
       case char of
@@ -33,7 +33,7 @@ runList machine char =
         CloseBracket ->
           (machine, Fail "close bracket in list after inserting initial space")
         OpenBracket ->
-          (Expression (List Start), MoveRight)
+          (Expression (List Start indent), MoveRight)
         Space ->
           (machine, Fail "space in list after inserting initial space")
         Newline ->
@@ -75,7 +75,7 @@ runList machine char =
         CloseBracket ->
           (machine, Fail "comma at end of list")
         OpenBracket ->
-          (Expression (List Start), MoveRight)
+          (Expression (List Start indent), MoveRight)
         Space ->
           (machine, Fail "too many spaces in list")
         Comma ->
@@ -207,6 +207,6 @@ run machine char =
           (machine, Finish)
         Other ->
           (Verbatim, MoveRight)
-    List listMachine ->
-      let (newMachine, action) = runList listMachine char
-       in (List newMachine, action)
+    List listMachine indent ->
+      let (newMachine, action) = runList listMachine char indent
+       in (List newMachine indent, action)
