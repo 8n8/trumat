@@ -63,7 +63,11 @@ generateSingleLineList =
     let unformatted = map fst items
     let formatted = map snd items
     if null items
-      then return ("[ ]", "[]")
+      then
+        Hedgehog.Gen.choice
+          [ return ("[ ]", "[]"),
+            return ("[\n ]", "[]")
+          ]
       else
         return $
           ( mconcat
