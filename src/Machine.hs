@@ -77,7 +77,7 @@ run machine char =
         CloseBracket ->
           (machine, Fail "close bracket after equals")
         OpenBracket ->
-          ( Expression (Machine.Expression.List (Machine.Expression.SingleLine Machine.Expression.Start) 4),
+          ( Expression (Machine.Expression.List (Machine.Expression.Inline Machine.Expression.Start) 4),
             MoveRight
           )
         Other ->

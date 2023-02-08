@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Machine.Expression (Machine (..), ListMachine (..), SingleLineListMachine (..), run) where
+module Machine.Expression (Machine (..), ListMachine (..), InlineListMachine (..), run) where
 
 import Action
 import Char (Char (..))
@@ -12,10 +12,10 @@ data Machine
   deriving (Show)
 
 data ListMachine
-  = SingleLine SingleLineListMachine
+  = Inline InlineListMachine
   deriving (Show)
 
-data SingleLineListMachine
+data InlineListMachine
   = Start
   | AfterExpression
   | AfterComma
@@ -28,16 +28,16 @@ data SingleLineListMachine
   deriving (Show)
 
 runList :: ListMachine -> Char -> Int -> (ListMachine, Action)
-runList machine@(SingleLine singleLine) char indent =
+runList machine@(Inline singleLine) char indent =
   case singleLine of
     InsertedInitialSpace ->
       case char of
         Other ->
-          (SingleLine (Expression Verbatim), MoveRight)
+          (Inline (Expression Verbatim), MoveRight)
         CloseBracket ->
           (machine, Fail "close bracket in list after inserting initial space")
         OpenBracket ->
-          (SingleLine (Expression (List (SingleLine Start) indent)), MoveRight)
+          (Inline (Expression (List (Inline Start) indent)), MoveRight)
         Space ->
           (machine, Fail "space in list after inserting initial space")
         Newline ->
@@ -53,9 +53,9 @@ runList machine@(SingleLine singleLine) char indent =
         Equals ->
           (machine, Fail "'=' in list")
         CloseBracket ->
-          (SingleLine AfterCloseBracket, MoveRight)
+          (Inline AfterCloseBracket, MoveRight)
         Space ->
-          (SingleLine DeletingInitialSpaces, Delete)
+          (Inline DeletingInitialSpaces, Delete)
         Newline ->
           (machine, Fail "newline in list")
         OpenBracket ->
@@ -65,7 +65,7 @@ runList machine@(SingleLine singleLine) char indent =
         AfterEnd ->
           (machine, Fail "EOF in list")
         Other ->
-          (SingleLine (Expression Verbatim), InsertSpace)
+          (Inline (Expression Verbatim), InsertSpace)
     AfterCloseBracket ->
       (machine, Finish)
     AfterSpaceAfterComma ->
@@ -79,13 +79,13 @@ runList machine@(SingleLine singleLine) char indent =
         CloseBracket ->
           (machine, Fail "comma at end of list")
         OpenBracket ->
-          (SingleLine (Expression (List (SingleLine Start) indent)), MoveRight)
+          (Inline (Expression (List (Inline Start) indent)), MoveRight)
         Space ->
           (machine, Fail "too many spaces in list")
         Comma ->
           (machine, Fail "double comma in list")
         Other ->
-          (SingleLine (Expression Verbatim), MoveRight)
+          (Inline (Expression Verbatim), MoveRight)
     InsertedFinalSpace ->
       case char of
         AfterEnd ->
@@ -95,7 +95,7 @@ runList machine@(SingleLine singleLine) char indent =
         Newline ->
           (machine, Fail "newline at end of list")
         CloseBracket ->
-          (SingleLine AfterCloseBracket, MoveRight)
+          (Inline AfterCloseBracket, MoveRight)
         OpenBracket ->
           (machine, Fail "open bracket at end of list")
         Space ->
@@ -113,15 +113,15 @@ runList machine@(SingleLine singleLine) char indent =
         Newline ->
           (machine, Fail "unexpected newline after comma in list")
         Space ->
-          (SingleLine AfterSpaceAfterComma, MoveRight)
+          (Inline AfterSpaceAfterComma, MoveRight)
         Comma ->
           (machine, Fail "unexpected double comma in list")
         CloseBracket ->
           (machine, Fail "unexpected comma at end of list")
         OpenBracket ->
-          (SingleLine AfterSpaceAfterComma, InsertSpace)
+          (Inline AfterSpaceAfterComma, InsertSpace)
         Other ->
-          (SingleLine AfterSpaceAfterComma, InsertSpace)
+          (Inline AfterSpaceAfterComma, InsertSpace)
     Start ->
       case char of
         Equals ->
@@ -131,44 +131,44 @@ runList machine@(SingleLine singleLine) char indent =
         Comma ->
           (machine, Fail "unexpected comma at start of list")
         Space ->
-          (SingleLine DeletingInitialSpaces, Delete)
+          (Inline DeletingInitialSpaces, Delete)
         CloseBracket ->
-          (SingleLine AfterCloseBracket, MoveRight)
+          (Inline AfterCloseBracket, MoveRight)
         OpenBracket ->
-          (SingleLine InsertedInitialSpace, InsertSpace)
+          (Inline InsertedInitialSpace, InsertSpace)
         Newline ->
           (machine, Fail "unexpected newline in list")
         Other ->
-          (SingleLine InsertedInitialSpace, InsertSpace)
+          (Inline InsertedInitialSpace, InsertSpace)
     Expression expression ->
       let (newMachine, action) = run expression char
        in case action of
             InsertNewline ->
-              (SingleLine (Expression newMachine), InsertNewline)
+              (Inline (Expression newMachine), InsertNewline)
             Finish ->
               case char of
                 Equals ->
                   (machine, Fail "'=' after expression in list")
                 CloseBracket ->
-                  (SingleLine InsertedFinalSpace, InsertSpace)
+                  (Inline InsertedFinalSpace, InsertSpace)
                 OpenBracket ->
                   (machine, Fail "'[' inside list")
                 Space ->
-                  (SingleLine AfterExpression, Delete)
+                  (Inline AfterExpression, Delete)
                 Newline ->
                   (machine, Fail "newline inside list")
                 Comma ->
-                  (SingleLine AfterComma, MoveRight)
+                  (Inline AfterComma, MoveRight)
                 AfterEnd ->
                   (machine, Fail "EOF inside list")
                 Other ->
                   (machine, Fail "other character after expression in list")
             MoveRight ->
-              (SingleLine (Expression newMachine), MoveRight)
+              (Inline (Expression newMachine), MoveRight)
             Delete ->
-              (SingleLine (Expression newMachine), Delete)
+              (Inline (Expression newMachine), Delete)
             InsertSpace ->
-              (SingleLine (Expression newMachine), InsertSpace)
+              (Inline (Expression newMachine), InsertSpace)
             Fail message ->
               (machine, Fail message)
     AfterExpression ->
@@ -178,15 +178,15 @@ runList machine@(SingleLine singleLine) char indent =
         AfterEnd ->
           (machine, Fail "EOF in list")
         Space ->
-          (SingleLine AfterExpression, Delete)
+          (Inline AfterExpression, Delete)
         CloseBracket ->
-          (SingleLine InsertedFinalSpace, InsertSpace)
+          (Inline InsertedFinalSpace, InsertSpace)
         OpenBracket ->
           (machine, Fail "open bracket after expression in list")
         Newline ->
           (machine, Fail "newline after expression in list")
         Comma ->
-          (SingleLine AfterComma, MoveRight)
+          (Inline AfterComma, MoveRight)
         Other ->
           (machine, Fail "other character after expression in list")
 
