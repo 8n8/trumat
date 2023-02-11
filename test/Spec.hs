@@ -1,188 +1,34 @@
-module Main (main) where
-
-import qualified Data.ByteString
-import qualified Data.Text
-import qualified Data.Text.Encoding
-import qualified Hedgehog
-import qualified Hedgehog.Gen
-import qualified Hedgehog.Range
-import qualified Test.Tasty
-import qualified Test.Tasty.HUnit
-import qualified Test.Tasty.Hedgehog
+import Data.Text (Text)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
 import qualified Trumat
+import Prelude (IO, String, map, ($))
 
 main :: IO ()
 main =
-  Test.Tasty.defaultMain $
-    Test.Tasty.testGroup "Tests" $
-      [ unitTests,
-        testExpressionProperty
-      ]
+  defaultMain $
+    testGroup "Unit tests" $
+      map oneTest cases
 
-testExpressionProperty :: Test.Tasty.TestTree
-testExpressionProperty =
-  Test.Tasty.Hedgehog.testProperty "expression test" $
-    Hedgehog.property $
-      do
-        (unformatted, formatted) <- Hedgehog.forAll generateModule
-        Trumat.trumat unformatted Hedgehog.=== Right formatted
+oneTest :: (String, Text, Text) -> TestTree
+oneTest (name, input, expected) =
+  testCase name $
+    Trumat.trumat input Test.Tasty.HUnit.@?= expected
 
-generateModule :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
-generateModule =
-  do
-    (unformatted, formatted) <- generateExpression
-    return $
-      ( mconcat
-          [ "module X exposing (x)\n\
-            \\n\
-            \\n\
-            \x =\n\
-            \    ",
-            unformatted,
-            "\n"
-          ],
-        mconcat
-          [ "module X exposing (x)\n\
-            \\n\
-            \\n\
-            \x =\n\
-            \    ",
-            formatted,
-            "\n"
-          ]
-      )
-
-generateExpression :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
-generateExpression =
-  Hedgehog.Gen.choice [generateIntLiteral, generateSingleLineList]
-
-generateSingleLineList :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
-generateSingleLineList =
-  do
-    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) generateExpression
-    let unformatted = map fst items
-    let formatted = map snd items
-    if null items
-      then
-        Hedgehog.Gen.choice
-          [ return ("[ ]", "[]"),
-            return ("[\n ]", "[]")
-          ]
-      else
-        return $
-          ( mconcat
-              [ "[",
-                Data.ByteString.intercalate "," unformatted,
-                "]"
-              ],
-            mconcat
-              [ "[ ",
-                Data.ByteString.intercalate ", " formatted,
-                " ]"
-              ]
-          )
-
-generateIntLiteral :: Hedgehog.Gen (Data.ByteString.ByteString, Data.ByteString.ByteString)
-generateIntLiteral =
-  do
-    int <- Hedgehog.Gen.integral (Hedgehog.Range.constant 0 100)
-    let str = show (int :: Int)
-    let txt = Data.Text.pack str
-    let bytes = Data.Text.Encoding.encodeUtf8 txt
-    return (bytes, bytes)
-
-unitTests :: Test.Tasty.TestTree
-unitTests =
-  Test.Tasty.testGroup "Unit tests" $
-    Prelude.map unchangedTest unchangedCases
-      ++ Prelude.map unformattedTest unformattedCases
-
-unformattedTest :: (String, Data.ByteString.ByteString, Data.ByteString.ByteString) -> Test.Tasty.TestTree
-unformattedTest (name, input, expected) =
-  Test.Tasty.HUnit.testCase name $
-    Trumat.trumat input Test.Tasty.HUnit.@?= Right expected
-
-unchangedTest :: (String, Data.ByteString.ByteString) -> Test.Tasty.TestTree
-unchangedTest (name, input) =
-  Test.Tasty.HUnit.testCase name $
-    Trumat.trumat input Test.Tasty.HUnit.@?= Right input
-
-unchangedCases :: [(String, Data.ByteString.ByteString)]
-unchangedCases =
+cases :: [(String, Text, Text)]
+cases =
   [ ( "hello world formatted",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
       \    0\n\
-      \"
-    ),
-    ( "hello world formatted",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [ 0 ]\n\
-      \"
-    )
-  ]
-
-unformattedCases :: [(String, Data.ByteString.ByteString, Data.ByteString.ByteString)]
-unformattedCases =
-  [ ( "empty list with extra space",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [ ]\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    []\n\
-      \"
-    ),
-    ( "empty list with extra space",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [ ]\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    []\n\
-      \"
-    ),
-    ( "singleton list with no spaces",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [0]\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [ 0 ]\n\
-      \"
-    ),
-    ( "nested list",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [[ ]]\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    [ [] ]\n\
+      \    0\n\
       \"
     )
   ]

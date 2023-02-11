@@ -1,6 +1,7 @@
 module Main (main) where
 
 import qualified Lib
+import qualified Prelude
 
-main :: IO ()
+main :: Prelude.IO ()
 main = Lib.someFunc

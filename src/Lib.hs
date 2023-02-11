@@ -3,5 +3,7 @@ module Lib
   )
 where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import qualified Prelude
+
+someFunc :: Prelude.IO ()
+someFunc = Prelude.putStrLn "someFunc"
