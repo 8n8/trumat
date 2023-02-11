@@ -2,7 +2,7 @@ import Data.Text (Text)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import qualified Trumat
-import Prelude (IO, String, map, ($))
+import Prelude (Either (..), IO, String, map, ($))
 
 main :: IO ()
 main =
@@ -13,7 +13,7 @@ main =
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =
   testCase name $
-    Trumat.trumat input Test.Tasty.HUnit.@?= expected
+    Trumat.trumat input Test.Tasty.HUnit.@?= Right expected
 
 cases :: [(String, Text, Text)]
 cases =

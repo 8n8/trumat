@@ -16,6 +16,7 @@ ghc-options:
 - -Wno-missing-safe-haskell-mode
 - -Wno-unsafe
 - -Wno-monomorphism-restriction
+- -Wno-missing-import-lists
 
 library:
   source-dirs: src
