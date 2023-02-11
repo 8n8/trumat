@@ -13,6 +13,15 @@ data Machine
 
 data ListMachine
   = Inline InlineListMachine
+  | Broken BrokenListMachine
+  deriving (Show)
+
+data BrokenListMachine
+  = DeletingInitialWhitespace
+  | ExpressionB Machine
+  | AfterCloseBracketB
+  | DeletingInitialSpacesB
+  | InsertedFinalSpaceB
   deriving (Show)
 
 data InlineListMachine
@@ -28,7 +37,59 @@ data InlineListMachine
   deriving (Show)
 
 runList :: ListMachine -> Char -> Int -> (ListMachine, Action)
-runList machine@(Inline singleLine) char indent =
+runList machine char indent =
+    case machine of
+    Broken brokenMachine ->
+        runBrokenList brokenMachine char indent
+
+    Inline inlineMachine ->
+        runInlineList inlineMachine char indent
+
+runBrokenList :: BrokenListMachine -> Char -> Int -> (ListMachine, Action)
+runBrokenList broken char indent=
+  let
+    machine = Broken broken
+  in
+  case broken of
+    ExpressionB expression ->
+      let (newMachine, action) = run expression char
+      in case action of
+            InsertNewline ->
+                (Broken (Expression newMachine), InsertNewline)
+            Finish ->
+              case char of
+                Equals ->
+                    (machine, Fail "'=' after expression in newline list")
+                CloseBracket ->
+                  ( InsertedFinalSpaceB, InsertNewline)
+                
+    DeletingInitialWhitespace ->
+      case char of
+        Comma ->
+          (machine, Fail "comma at start of newline list")
+        Equals ->
+          (machine, Fail "equals at start of newline list")
+        AfterEnd ->
+          (machine, Fail "EOF at start of newline list")
+        Other ->
+          (Broken (ExpressionB Verbatim), InsertSpace)
+
+        CloseBracket ->
+          (Broken AfterCloseBracketB, MoveRight)
+
+        OpenBracket ->
+          (Broken (ExpressionB (List (Inline Start) indent)), MoveRight)
+        Space ->
+          (Broken DeletingInitialSpacesB, Delete)
+        Newline ->
+          (Broken DeletingInitialSpacesB, Delete)
+          
+
+runInlineList :: InlineListMachine -> Char -> Int -> (ListMachine, Action)
+runInlineList singleLine char indent =
+  let
+    machine = Inline singleLine
+  in
   case singleLine of
     InsertedInitialSpace ->
       case char of
@@ -137,7 +198,7 @@ runList machine@(Inline singleLine) char indent =
         OpenBracket ->
           (Inline InsertedInitialSpace, InsertSpace)
         Newline ->
-          (machine, Fail "unexpected newline in list")
+          (Broken DeletingInitialWhitespace, Delete)
         Other ->
           (Inline InsertedInitialSpace, InsertSpace)
     Expression expression ->
