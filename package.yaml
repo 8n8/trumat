@@ -17,11 +17,13 @@ ghc-options:
 - -Wno-unsafe
 - -Wno-monomorphism-restriction
 - -Wno-missing-import-lists
+- -Wno-missing-kind-signatures
 
 library:
   source-dirs: src
   dependencies:
   - text
+  - megaparsec
 
 executables:
   trumat-exe:
