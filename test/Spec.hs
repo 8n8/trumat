@@ -1,4 +1,4 @@
-import Data.Text (Text, intercalate)
+import Data.Text (Text, intercalate, pack)
 import qualified Hedgehog
 import qualified Hedgehog.Gen
 import qualified Hedgehog.Range
@@ -9,14 +9,18 @@ import qualified Trumat
 import Prelude
   ( Either (..),
     IO,
+    Int,
     String,
     fst,
     map,
     mconcat,
     null,
+    repeat,
     return,
     snd,
+    take,
     ($),
+    (+),
     (<>),
   )
 
@@ -42,7 +46,7 @@ formatExpressionProperty =
 generateModule :: Hedgehog.Gen (Text, Text)
 generateModule =
   do
-    (unformatted, formatted) <- generateExpression
+    (unformatted, formatted) <- generateExpression 4
     let preamble =
           "module X exposing (x)\n\
           \\n\
@@ -51,8 +55,8 @@ generateModule =
           \    "
     return (preamble <> unformatted <> "\n", preamble <> formatted <> "\n")
 
-generateExpression :: Hedgehog.Gen (Text, Text)
-generateExpression =
+generateExpression :: Int -> Hedgehog.Gen (Text, Text)
+generateExpression indent =
   Hedgehog.Gen.choice
     [ do
         text <-
@@ -60,17 +64,31 @@ generateExpression =
             (Hedgehog.Range.constant 1 10)
             Hedgehog.Gen.digit
         return (text, text),
-      generateList
+      generateList indent
     ]
 
-generateList :: Hedgehog.Gen (Text, Text)
-generateList =
+generateList :: Int -> Hedgehog.Gen (Text, Text)
+generateList indent =
   do
-    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 4) generateExpression
+    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 4) (generateExpression (indent + 2))
+    Hedgehog.Gen.choice [generateNewlineList indent items, generateSingleLineList items]
+
+generateNewlineList :: Int -> [(Text, Text)] -> Hedgehog.Gen (Text, Text)
+generateNewlineList indent items =
+  do
+    spaces <- Hedgehog.Gen.choice $ map return ["\n ", "\n\n", "  \n ", "\n    \n "]
+    return
+      ( unformattedList spaces (map fst items),
+        formattedMultiLineList indent (map snd items)
+      )
+
+generateSingleLineList :: [(Text, Text)] -> Hedgehog.Gen (Text, Text)
+generateSingleLineList items =
+  do
     spaces <- genSpaces
     return
       ( unformattedList spaces (map fst items),
-        formattedList (map snd items)
+        formattedSingleLineList (map snd items)
       )
 
 genSpaces :: Hedgehog.Gen Text
@@ -95,8 +113,8 @@ unformattedList spaces items =
           "]"
         ]
 
-formattedList :: [Text] -> Text
-formattedList items =
+formattedSingleLineList :: [Text] -> Text
+formattedSingleLineList items =
   if null items
     then "[]"
     else
@@ -105,6 +123,18 @@ formattedList items =
           intercalate ", " items,
           " ]"
         ]
+
+formattedMultiLineList :: Int -> [Text] -> Text
+formattedMultiLineList indent items =
+  if null items
+    then "[]"
+    else
+      let spaces = "\n" <> (pack $ take indent $ repeat ' ')
+       in mconcat
+            [ "[ ",
+              intercalate ("," <> spaces) items,
+              "\n" <> spaces <> "]"
+            ]
 
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =
