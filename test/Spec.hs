@@ -228,5 +228,26 @@ cases =
       \        B ->\n\
       \            b\n\
       \"
+    ),
+    ( "case of few spaces",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case x of\n\
+      \ A->a\n\
+      \ B->b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case x of\n\
+      \        A ->\n\
+      \            a\n\
+      \\n\
+      \        B ->\n\
+      \            b\n\
+      \"
     )
   ]
