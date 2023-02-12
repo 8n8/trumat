@@ -1,6 +1,6 @@
 module Trumat (trumat) where
 
-import Data.Text (Text, intercalate)
+import Data.Text (Text, intercalate, pack)
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -11,19 +11,28 @@ import Text.Megaparsec
     many,
     parse,
     takeWhile1P,
+    takeWhileP,
     try,
   )
 import Text.Megaparsec.Char (char, space)
 import Prelude
   ( Either (..),
+    Int,
     Maybe (..),
     String,
     elem,
     mconcat,
     null,
+    repeat,
     return,
+    take,
     ($),
+    (&&),
+    (+),
+    (-),
+    (/=),
     (<>),
+    (==),
   )
 
 preamble :: Text
@@ -48,12 +57,12 @@ parser :: Parser Text
 parser =
   do
     _ <- chunk preamble
-    expression <- parseExpression
+    expression <- parseExpression 4
     return $ preamble <> expression <> "\n"
 
-parseExpression :: Parser Text
-parseExpression =
-  choice [parseVerbatim, parseList]
+parseExpression :: Int -> Parser Text
+parseExpression indent =
+  choice [parseVerbatim, parseList indent]
 
 parseVerbatim :: Parser Text
 parseVerbatim =
@@ -61,21 +70,82 @@ parseVerbatim =
     (Just "verbatim character")
     (\ch -> ch `elem` ("0123456789" :: String))
 
-parseListItem :: Parser Text
-parseListItem =
+parseListItem :: Int -> Parser () -> Parser Text
+parseListItem indent spaceParser =
   do
-    expression <- parseExpression
-    _ <- space
+    expression <- parseExpression indent
+    _ <- spaceParser
     _ <- choice [char ',', lookAhead (try (char ']'))]
-    _ <- space
+    _ <- spaceParser
     return expression
 
-parseList :: Parser Text
-parseList =
+data ListType
+  = SingleLine
+  | MultiLine
+
+parseListType :: Parser ListType
+parseListType =
+  do
+    _ <- char '['
+    parseListTypeHelp 1
+
+parseListTypeHelp :: Int -> Parser ListType
+parseListTypeHelp nesting =
+  if nesting == 0
+    then return SingleLine
+    else do
+      _ <- takeWhileP Nothing (\ch -> ch /= '\n' && ch /= '[' && ch /= ']')
+      choice
+        [ do
+            _ <- char '\n'
+            return MultiLine,
+          do
+            _ <- char '['
+            parseListTypeHelp (nesting + 1),
+          do
+            _ <- char ']'
+            parseListTypeHelp (nesting - 1)
+        ]
+
+parseList :: Int -> Parser Text
+parseList indent =
+  do
+    listType <- lookAhead parseListType
+    case listType of
+      SingleLine ->
+        parseSingleLineList indent
+      MultiLine ->
+        parseMultiLineList indent
+
+parseMultiLineList :: Int -> Parser Text
+parseMultiLineList indent =
   do
     _ <- char '['
     _ <- space
-    items <- many parseListItem
+    items <- many (parseListItem (indent + 2) space)
+    _ <- char ']'
+    if null items
+      then return "[]"
+      else
+        return $
+          mconcat
+            [ "[ ",
+              intercalate (",\n" <> (pack $ take indent $ repeat ' ')) items,
+              "\n" <> (pack $ take indent $ repeat ' ') <> "]"
+            ]
+
+parseSpaces :: Parser ()
+parseSpaces =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    return ()
+
+parseSingleLineList :: Int -> Parser Text
+parseSingleLineList indent =
+  do
+    _ <- char '['
+    _ <- parseSpaces
+    items <- many (parseListItem indent parseSpaces)
     _ <- char ']'
     if null items
       then return "[]"

@@ -11,13 +11,12 @@ import Prelude
     IO,
     Int,
     String,
-    fst,
+    fmap,
     map,
+    mapM,
     mconcat,
-    null,
     repeat,
     return,
-    snd,
     take,
     ($),
     (+),
@@ -46,7 +45,8 @@ formatExpressionProperty =
 generateModule :: Hedgehog.Gen (Text, Text)
 generateModule =
   do
-    (unformatted, formatted) <- generateExpression 4
+    listType <- Hedgehog.Gen.element [SingleLineList, MultiLineList]
+    (unformatted, formatted) <- generateExpression 4 listType
     let preamble =
           "module X exposing (x)\n\
           \\n\
@@ -55,86 +55,107 @@ generateModule =
           \    "
     return (preamble <> unformatted <> "\n", preamble <> formatted <> "\n")
 
-generateExpression :: Int -> Hedgehog.Gen (Text, Text)
-generateExpression indent =
+generateExpression :: Int -> ([Expression] -> Expression) -> Hedgehog.Gen (Text, Text)
+generateExpression indent listType =
+  do
+    ast <- generateAst listType
+    unformatted <- printUnformatted indent ast
+    return (unformatted, printFormatted indent ast)
+
+generateAst :: ([Expression] -> Expression) -> Hedgehog.Gen Expression
+generateAst listType =
   Hedgehog.Gen.choice
-    [ do
-        text <-
-          Hedgehog.Gen.text
-            (Hedgehog.Range.constant 1 10)
-            Hedgehog.Gen.digit
-        return (text, text),
-      generateList indent
+    [ fmap Verbatim generateVerbatimAst,
+      generateListAst listType
     ]
 
-generateList :: Int -> Hedgehog.Gen (Text, Text)
-generateList indent =
-  do
-    items <- Hedgehog.Gen.list (Hedgehog.Range.constant 0 4) (generateExpression (indent + 2))
-    Hedgehog.Gen.choice [generateNewlineList indent items, generateSingleLineList items]
+generateVerbatimAst :: Hedgehog.Gen Text
+generateVerbatimAst =
+  Hedgehog.Gen.text
+    (Hedgehog.Range.constant 1 10)
+    Hedgehog.Gen.digit
 
-generateNewlineList :: Int -> [(Text, Text)] -> Hedgehog.Gen (Text, Text)
-generateNewlineList indent items =
-  do
-    spaces <- Hedgehog.Gen.choice $ map return ["\n ", "\n\n", "  \n ", "\n    \n "]
-    return
-      ( unformattedList spaces (map fst items),
-        formattedMultiLineList indent (map snd items)
-      )
+generateListAst :: ([Expression] -> Expression) -> Hedgehog.Gen Expression
+generateListAst listType =
+  -- Having the upper limit higher than 3 causes the tests to hang. I
+  -- guess it has to generate too much stuff.
+  fmap listType $
+    Hedgehog.Gen.list (Hedgehog.Range.constant 0 3) (generateAst listType)
 
-generateSingleLineList :: [(Text, Text)] -> Hedgehog.Gen (Text, Text)
-generateSingleLineList items =
-  do
-    spaces <- genSpaces
-    return
-      ( unformattedList spaces (map fst items),
-        formattedSingleLineList (map snd items)
-      )
+generateNewlineSpaces :: Hedgehog.Gen Text
+generateNewlineSpaces =
+  Hedgehog.Gen.element ["\n ", "\n\n ", "    \n ", "\n\n \n ", " \n \n "]
+
+printUnformatted :: Int -> Expression -> Hedgehog.Gen Text
+printUnformatted indent expression =
+  case expression of
+    Verbatim text ->
+      return text
+    SingleLineList [] ->
+      do
+        spaces <- genSpaces
+        return $ "[" <> spaces <> "]"
+    SingleLineList oneOrMore ->
+      do
+        spaces <- genSpaces
+        printed <- mapM (printUnformatted (indent + 2)) oneOrMore
+        return $
+          mconcat
+            [ "[",
+              spaces,
+              intercalate ("," <> spaces) printed,
+              spaces,
+              "]"
+            ]
+    MultiLineList [] ->
+      do
+        spaces <- generateNewlineSpaces
+        return $ "[" <> spaces <> "]"
+    MultiLineList oneOrMore ->
+      do
+        spaces <- generateNewlineSpaces
+        printed <- mapM (printUnformatted (indent + 2)) oneOrMore
+        return $
+          mconcat
+            [ "[",
+              intercalate ("," <> spaces) printed,
+              spaces,
+              "]"
+            ]
+
+printFormatted :: Int -> Expression -> Text
+printFormatted indent expression =
+  case expression of
+    Verbatim text ->
+      text
+    SingleLineList [] ->
+      "[]"
+    SingleLineList oneOrMore ->
+      mconcat
+        [ "[ ",
+          intercalate ", " (map (printFormatted (indent + 2)) oneOrMore),
+          " ]"
+        ]
+    MultiLineList [] ->
+      "[]"
+    MultiLineList oneOrMore ->
+      let spaces = "\n" <> pack (take indent (repeat ' '))
+       in mconcat
+            [ "[ ",
+              intercalate
+                ("," <> spaces)
+                (map (printFormatted (indent + 2)) oneOrMore),
+              spaces <> "]"
+            ]
+
+data Expression
+  = Verbatim Text
+  | SingleLineList [Expression]
+  | MultiLineList [Expression]
 
 genSpaces :: Hedgehog.Gen Text
 genSpaces =
   Hedgehog.Gen.choice $ map return ["", " ", "  ", "   ", "    "]
-
-unformattedList :: Text -> [Text] -> Text
-unformattedList spaces items =
-  if null items
-    then
-      mconcat
-        [ "[",
-          spaces,
-          "]"
-        ]
-    else
-      mconcat
-        [ "[",
-          spaces,
-          intercalate (spaces <> "," <> spaces) items,
-          spaces,
-          "]"
-        ]
-
-formattedSingleLineList :: [Text] -> Text
-formattedSingleLineList items =
-  if null items
-    then "[]"
-    else
-      mconcat
-        [ "[ ",
-          intercalate ", " items,
-          " ]"
-        ]
-
-formattedMultiLineList :: Int -> [Text] -> Text
-formattedMultiLineList indent items =
-  if null items
-    then "[]"
-    else
-      let spaces = "\n" <> (pack $ take indent $ repeat ' ')
-       in mconcat
-            [ "[ ",
-              intercalate ("," <> spaces) items,
-              "\n" <> spaces <> "]"
-            ]
 
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =
@@ -156,5 +177,29 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "nested lists",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ [ [ []\n\
+      \        ]\n\
+      \      ]\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ [ [ []\n\
+      \        ]\n\
+      \      ]\n\
+      \    ]\n\
+      \"
+    ),
+    ( "multi-line list",
+      "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n",
+      "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n"
     )
   ]
