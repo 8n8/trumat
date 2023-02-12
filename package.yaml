@@ -18,6 +18,7 @@ ghc-options:
 - -Wno-monomorphism-restriction
 - -Wno-missing-import-lists
 - -Wno-missing-kind-signatures
+- -Wno-missing-deriving-strategies
 
 library:
   source-dirs: src

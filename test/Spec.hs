@@ -249,5 +249,30 @@ cases =
       \        B ->\n\
       \            b\n\
       \"
+    ),
+    ( "case of multiline",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case [x\n\
+      \ ] of\n\
+      \ A->a\n\
+      \ B->b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case\n\
+      \        [ x\n\
+      \        ]\n\
+      \    of\n\
+      \        A ->\n\
+      \            a\n\
+      \\n\
+      \        B ->\n\
+      \            b\n\
+      \"
     )
   ]

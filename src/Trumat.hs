@@ -21,6 +21,7 @@ import Prelude
   ( Either (..),
     Int,
     Maybe (..),
+    Show,
     String,
     elem,
     fail,
@@ -36,6 +37,7 @@ import Prelude
     (/=),
     (<>),
     (==),
+    (>>),
     (||),
   )
 
@@ -69,9 +71,37 @@ parseExpression :: Int -> Parser Text
 parseExpression indent =
   choice [parseList indent, parseCaseOf indent, parseVerbatim]
 
+parseCaseOfType :: Parser ContainerType
+parseCaseOfType =
+  do
+    _ <- choice [chunk "case ", chunk "case\n"]
+    parseCaseOfTypeHelp
+
+parseOf :: Parser ()
+parseOf =
+  do
+    _ <- choice [chunk " of", chunk "\nof"]
+    _ <- lookAhead $ choice [char ' ', char '\n']
+    return ()
+
+parseCaseOfTypeHelp :: Parser ContainerType
+parseCaseOfTypeHelp =
+  choice
+    [ parseOf >> return SingleLine,
+      do
+        _ <- takeWhileP Nothing (\ch -> ch /= 'o' && ch /= '\n' && ch /= ' ')
+        choice
+          [ do
+              _ <- char '\n'
+              return MultiLine,
+            parseCaseOfTypeHelp
+          ]
+    ]
+
 parseCaseOf :: Int -> Parser Text
 parseCaseOf indent =
   do
+    caseOfType <- lookAhead parseCaseOfType
     _ <- chunk "case"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     caseOf <- parseExpression (indent + 4)
@@ -81,9 +111,18 @@ parseCaseOf indent =
     branches <- some (parseCaseOfBranch (indent + 4))
     return $
       mconcat
-        [ "case ",
+        [ "case",
+          case caseOfType of
+            MultiLine ->
+              "\n" <> pack (take (indent + 4) (repeat ' '))
+            SingleLine ->
+              " ",
           caseOf,
-          " of\n",
+          case caseOfType of
+            MultiLine ->
+              "\n" <> pack (take indent (repeat ' ') <> "of\n")
+            SingleLine ->
+              " of\n",
           intercalate "\n\n" branches
         ]
 
@@ -129,17 +168,18 @@ parseListItem indent spaceParser =
     _ <- spaceParser
     return expression
 
-data ListType
+data ContainerType
   = SingleLine
   | MultiLine
+  deriving (Show)
 
-parseListType :: Parser ListType
+parseListType :: Parser ContainerType
 parseListType =
   do
     _ <- char '['
     parseListTypeHelp 1
 
-parseListTypeHelp :: Int -> Parser ListType
+parseListTypeHelp :: Int -> Parser ContainerType
 parseListTypeHelp nesting =
   if nesting == 0
     then return SingleLine
