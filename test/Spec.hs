@@ -206,19 +206,27 @@ cases =
       "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n"
     ),
     ( "case of formatted",
-      "case x of\n\
-      \    A ->\n\
-      \        a\n\
+      "module X exposing (x)\n\
       \\n\
-      \    B ->\n\
-      \        b\n\
+      \\n\
+      \x =\n\
+      \    case x of\n\
+      \        A ->\n\
+      \            a\n\
+      \\n\
+      \        B ->\n\
+      \            b\n\
       \",
-      "case x of\n\
-      \    A ->\n\
-      \        a\n\
+      "module X exposing (x)\n\
       \\n\
-      \    B ->\n\
-      \        b\n\
+      \\n\
+      \x =\n\
+      \    case x of\n\
+      \        A ->\n\
+      \            a\n\
+      \\n\
+      \        B ->\n\
+      \            b\n\
       \"
     )
   ]

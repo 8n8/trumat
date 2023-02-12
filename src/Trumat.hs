@@ -1,6 +1,7 @@
 module Trumat (trumat) where
 
-import Data.Text (Text, intercalate, pack)
+import Data.Set (Set, fromList, member)
+import Data.Text (Text, intercalate, pack, unpack)
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -22,6 +23,7 @@ import Prelude
     Maybe (..),
     String,
     elem,
+    fail,
     mconcat,
     null,
     repeat,
@@ -65,7 +67,7 @@ parser =
 
 parseExpression :: Int -> Parser Text
 parseExpression indent =
-  choice [parseVerbatim, parseList indent, parseCaseOf indent]
+  choice [parseList indent, parseCaseOf indent, parseVerbatim]
 
 parseCaseOf :: Int -> Parser Text
 parseCaseOf indent =
@@ -103,11 +105,20 @@ parseCaseOfBranch indent =
           right
         ]
 
+keywords :: Set Text
+keywords =
+  fromList ["case", "of"]
+
 parseVerbatim :: Parser Text
 parseVerbatim =
-  takeWhile1P
-    (Just "verbatim character")
-    (\ch -> ch `elem` ("0123456789" :: String))
+  do
+    word <-
+      takeWhile1P
+        (Just "verbatim character")
+        (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" :: String))
+    if member word keywords
+      then fail $ "expecting a verbatim, but got: " <> unpack word
+      else return word
 
 parseListItem :: Int -> Parser () -> Parser Text
 parseListItem indent spaceParser =
