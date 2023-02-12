@@ -204,5 +204,21 @@ cases =
     ( "multi-line list",
       "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n",
       "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n"
+    ),
+    ( "case of formatted",
+      "case x of\n\
+      \    A ->\n\
+      \        a\n\
+      \\n\
+      \    B ->\n\
+      \        b\n\
+      \",
+      "case x of\n\
+      \    A ->\n\
+      \        a\n\
+      \\n\
+      \    B ->\n\
+      \        b\n\
+      \"
     )
   ]

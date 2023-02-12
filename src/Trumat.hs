@@ -10,6 +10,7 @@ import Text.Megaparsec
     lookAhead,
     many,
     parse,
+    some,
     takeWhile1P,
     takeWhileP,
     try,
@@ -33,6 +34,7 @@ import Prelude
     (/=),
     (<>),
     (==),
+    (||),
   )
 
 preamble :: Text
@@ -43,7 +45,8 @@ preamble =
   \x =\n\
   \    "
 
-type Parser = Parsec Void Text
+type Parser =
+  Parsec Void Text
 
 trumat :: Text -> Either String Text
 trumat unformatted =
@@ -62,7 +65,43 @@ parser =
 
 parseExpression :: Int -> Parser Text
 parseExpression indent =
-  choice [parseVerbatim, parseList indent]
+  choice [parseVerbatim, parseList indent, parseCaseOf indent]
+
+parseCaseOf :: Int -> Parser Text
+parseCaseOf indent =
+  do
+    _ <- chunk "case"
+    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    caseOf <- parseExpression (indent + 4)
+    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    _ <- chunk "of"
+    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    branches <- some (parseCaseOfBranch (indent + 4))
+    return $
+      mconcat
+        [ "case ",
+          caseOf,
+          " of\n",
+          intercalate "\n\n" branches
+        ]
+
+parseCaseOfBranch :: Int -> Parser Text
+parseCaseOfBranch indent =
+  do
+    left <- parseExpression indent
+    _ <- space
+    _ <- chunk "->"
+    _ <- space
+    right <- parseExpression (indent + 4)
+    _ <- space
+    return $
+      mconcat
+        [ pack $ take indent $ repeat ' ',
+          left,
+          " ->\n",
+          pack $ take (indent + 4) $ repeat ' ',
+          right
+        ]
 
 parseVerbatim :: Parser Text
 parseVerbatim =
