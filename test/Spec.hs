@@ -55,7 +55,10 @@ generateModule =
           \    "
     return (preamble <> unformatted <> "\n", preamble <> formatted <> "\n")
 
-generateExpression :: Int -> ([Expression] -> Expression) -> Hedgehog.Gen (Text, Text)
+generateExpression
+    :: Int
+    -> ([Expression] -> Expression)
+    -> Hedgehog.Gen (Text, Text)
 generateExpression indent listType =
   do
     ast <- generateAst listType
@@ -66,8 +69,22 @@ generateAst :: ([Expression] -> Expression) -> Hedgehog.Gen Expression
 generateAst listType =
   Hedgehog.Gen.choice
     [ fmap Verbatim generateVerbatimAst,
-      generateListAst listType
+      generateListAst listType,
+      generateCaseOfAst
     ]
+
+generateCaseOfAst :: Hedgehog.Gen Expression
+generateCaseOfAst =
+    do
+    caseOf <- generateAst SingleLineList
+    branches <-
+        Hedgehog.Gen.list
+            (Hedgehog.Range.constant 1 2)
+            (do
+                left <- generateAst SingleLineList
+                right <- generateAst SingleLineList
+                return (left, right))
+    return $ CaseOf caseOf branches
 
 generateVerbatimAst :: Hedgehog.Gen Text
 generateVerbatimAst =
@@ -122,6 +139,36 @@ printUnformatted indent expression =
               spaces,
               "]"
             ]
+    CaseOf caseOf branches ->
+        do
+        let leftIndent = pack (take (indent + 4) (repeat ' '))
+        let rightIndent = pack (take (indent + 8) (repeat ' '))
+        spaces <- generateNewlineSpaces
+        printedBranches <-
+                mapM
+                    (\(left, right) -> 
+                        do
+                        printedLeft <- printUnformatted (indent + 4) left
+                        printedRight <- printUnformatted (indent + 8) right
+                        return $
+                            mconcat
+                            [ leftIndent
+                            , printedLeft
+                            , " ->"
+                            , spaces
+                            , rightIndent
+                            , printedRight
+                            ])
+                    branches
+        printedCaseOf <- printUnformatted indent caseOf
+        return $
+            mconcat
+            [ "case "
+            , printedCaseOf
+            , " of"
+            , spaces
+            , intercalate spaces printedBranches
+            ]
 
 printFormatted :: Int -> Expression -> Text
 printFormatted indent expression =
@@ -147,11 +194,35 @@ printFormatted indent expression =
                 (map (printFormatted (indent + 2)) oneOrMore),
               spaces <> "]"
             ]
+    CaseOf caseOf branches ->
+        let
+            leftIndent = pack (take (indent + 4) (repeat ' '))
+            rightIndent = pack (take (indent + 8) (repeat ' '))
+            printedBranches =
+                map
+                    (\(left, right) -> 
+                        mconcat
+                        [ leftIndent
+                        , printFormatted (indent + 4) left
+                        , " ->\n"
+                        , rightIndent
+                        , printFormatted (indent + 8) right
+                        ])
+                    branches
+        in
+        mconcat
+        [ "case "
+        , printFormatted indent caseOf
+        , " of\n"
+        , intercalate "\n" printedBranches
+        ]
+
 
 data Expression
   = Verbatim Text
   | SingleLineList [Expression]
   | MultiLineList [Expression]
+  | CaseOf Expression [(Expression, Expression)]
 
 genSpaces :: Hedgehog.Gen Text
 genSpaces =
