@@ -337,5 +337,26 @@ cases =
       \    else\n\
       \        c\n\
       \"
-    )
+    ),
+    ( "if-then-else multi-line list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if [a\n\
+      \ ] then b else c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if\n\
+      \        [ a\n\
+      \        ]\n\
+      \    then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        c\n\
+      \")
   ]
