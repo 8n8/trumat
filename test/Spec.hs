@@ -319,5 +319,23 @@ cases =
       \    else\n\
       \        1\n\
       \"
+    ),
+    ( "if-then-else single-line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then b else c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        c\n\
+      \"
     )
   ]
