@@ -275,7 +275,7 @@ cases =
       \            b\n\
       \"
     ),
-    ( "if-then-else formatted",
+    ( "if-then-else ordinary formatted",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -291,6 +291,31 @@ cases =
       \x =\n\
       \    if a then\n\
       \        0\n\
+      \\n\
+      \    else\n\
+      \        1\n\
+      \"
+    ),
+    ( "if-then-else unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if\n\
+      \        a\n\
+      \    then\n\
+      \        0\n\
+      \\n\
+      \    else\n\
+      \        1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        0\n\
+      \\n\
       \    else\n\
       \        1\n\
       \"

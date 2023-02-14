@@ -89,31 +89,43 @@ parseIfThenElseType :: Parser ContainerType
 parseIfThenElseType =
   do
     _ <- chunk "if"
-    choice
-      [ do
-          _ <- char '\n'
-          return MultiLine,
-        do
-          _ <- char ' '
-          consumeTillThen
-      ]
+    _ <- space
+    expressionLininess
 
-consumeTillThen :: Parser ContainerType
-consumeTillThen =
+expressionLininess :: Parser ContainerType
+expressionLininess =
+  choice
+    [ listLininess,
+      verbatimLininess
+    ]
+
+verbatimLininess :: Parser ContainerType
+verbatimLininess =
+  return SingleLine
+
+listLininess :: Parser ContainerType
+listLininess =
   do
-    _ <- takeWhile1P Nothing (\ch -> ch /= 't' && ch /= '\n')
-    choice
-      [ do
-          _ <- char '\n'
-          return MultiLine,
-        do
-          _ <-
-            do
-              _ <- chunk "then"
-              choice [char ' ', char '\n']
-          return SingleLine,
-        consumeTillThen
-      ]
+    _ <- char '['
+    listLinynessHelp 1
+
+listLinynessHelp :: Int -> Parser ContainerType
+listLinynessHelp nesting =
+  if nesting == 0
+    then return SingleLine
+    else do
+      _ <- takeWhileP Nothing (\ch -> ch /= '[' && ch /= ']' && ch /= '\n')
+      choice
+        [ do
+            _ <- char '['
+            listLinynessHelp (nesting + 1),
+          do
+            _ <- char '\n'
+            return MultiLine,
+          do
+            _ <- char ']'
+            listLinynessHelp (nesting - 1)
+        ]
 
 parseIfThenElse :: Int -> Parser Text
 parseIfThenElse indent =
@@ -146,7 +158,7 @@ parseIfThenElse indent =
               "\n" <> pack (take indent (repeat ' ')),
           "then\n" <> pack (take (indent + 4) (repeat ' ')),
           then_,
-          "\n" <> pack (take indent (repeat ' ')),
+          "\n\n" <> pack (take indent (repeat ' ')),
           "else\n" <> pack (take (indent + 4) (repeat ' ')),
           else_
         ]
