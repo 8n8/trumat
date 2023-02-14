@@ -274,5 +274,25 @@ cases =
       \        B ->\n\
       \            b\n\
       \"
+    ),
+    ( "if-then-else formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        0\n\
+      \    else\n\
+      \        1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        0\n\
+      \    else\n\
+      \        1\n\
+      \"
     )
   ]

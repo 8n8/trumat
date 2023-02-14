@@ -7,6 +7,7 @@ import Text.Megaparsec
   ( Parsec,
     choice,
     chunk,
+    eof,
     errorBundlePretty,
     lookAhead,
     many,
@@ -65,11 +66,90 @@ parser =
   do
     _ <- chunk preamble
     expression <- parseExpression 4
+    _ <- space
+    _ <- eof
     return $ preamble <> expression <> "\n"
 
 parseExpression :: Int -> Parser Text
 parseExpression indent =
-  choice [parseList indent, parseCaseOf indent, parseVerbatim]
+  choice
+    [ parseList indent,
+      parseCaseOf indent,
+      parseIfThenElse indent,
+      parseVerbatim
+    ]
+
+space1 :: Parser ()
+space1 =
+  do
+    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    return ()
+
+parseIfThenElseType :: Parser ContainerType
+parseIfThenElseType =
+  do
+    _ <- chunk "if"
+    choice
+      [ do
+          _ <- char '\n'
+          return MultiLine,
+        do
+          _ <- char ' '
+          consumeTillThen
+      ]
+
+consumeTillThen :: Parser ContainerType
+consumeTillThen =
+  do
+    _ <- takeWhile1P Nothing (\ch -> ch /= 't' && ch /= '\n')
+    choice
+      [ do
+          _ <- char '\n'
+          return MultiLine,
+        do
+          _ <-
+            do
+              _ <- chunk "then"
+              choice [char ' ', char '\n']
+          return SingleLine,
+        consumeTillThen
+      ]
+
+parseIfThenElse :: Int -> Parser Text
+parseIfThenElse indent =
+  do
+    ifThenElseType <- lookAhead parseIfThenElseType
+    _ <- chunk "if"
+    _ <- space1
+    if_ <- parseExpression (indent + 4)
+    _ <- space1
+    _ <- chunk "then"
+    _ <- space1
+    then_ <- parseExpression (indent + 4)
+    _ <- space1
+    _ <- chunk "else"
+    _ <- space1
+    else_ <- parseExpression (indent + 4)
+    return $
+      mconcat
+        [ "if",
+          case ifThenElseType of
+            SingleLine ->
+              " "
+            MultiLine ->
+              "\n" <> pack (take (indent + 4) (repeat ' ')),
+          if_,
+          case ifThenElseType of
+            SingleLine ->
+              " "
+            MultiLine ->
+              "\n" <> pack (take indent (repeat ' ')),
+          "then\n" <> pack (take (indent + 4) (repeat ' ')),
+          then_,
+          "\n" <> pack (take indent (repeat ' ')),
+          "else\n" <> pack (take (indent + 4) (repeat ' ')),
+          else_
+        ]
 
 parseCaseOfType :: Parser ContainerType
 parseCaseOfType =
