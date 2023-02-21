@@ -373,5 +373,19 @@ cases =
       \x =\n\
       \    ( 1, 2 )\n\
       \"
+    ),
+    ( "tuple no spaces, single line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (1,2)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1, 2 )\n\
+      \"
     )
   ]
