@@ -422,5 +422,19 @@ cases =
       \    , 2\n\
       \    )\n\
       \"
+    ),
+    ( "list inside tuple, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( [] )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( [] )\n\
+      \"
     )
   ]
