@@ -428,13 +428,27 @@ cases =
       \\n\
       \\n\
       \x =\n\
-      \    ( [] )\n\
+      \    ( [], 1 )\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    ( [] )\n\
+      \    ( [], 1 )\n\
+      \"
+    ),
+    ( "no singleton tuple",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1 )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1\n\
       \"
     )
   ]
