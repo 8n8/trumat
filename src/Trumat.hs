@@ -1,7 +1,7 @@
 module Trumat (trumat) where
 
 import Data.Set (Set, fromList, member)
-import Data.Text (Text, intercalate, pack, unpack)
+import Data.Text (Text, intercalate, pack, singleton, unpack)
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -19,7 +19,8 @@ import Text.Megaparsec
   )
 import Text.Megaparsec.Char (char, space)
 import Prelude
-  ( Either (..),
+  ( Char,
+    Either (..),
     Int,
     Maybe (..),
     Show,
@@ -73,7 +74,8 @@ parser =
 parseExpression :: Int -> Parser Text
 parseExpression indent =
   choice
-    [ parseList indent,
+    [ parseList indent '(' ')',
+      parseList indent '[' ']',
       parseCaseOf indent,
       parseIfThenElse indent,
       parseVerbatim
@@ -95,7 +97,8 @@ parseIfThenElseType =
 expressionLininess :: Parser ContainerType
 expressionLininess =
   choice
-    [ listLininess,
+    [ listLininess '[' ']',
+      listLininess '(' ')',
       verbatimLininess
     ]
 
@@ -103,28 +106,28 @@ verbatimLininess :: Parser ContainerType
 verbatimLininess =
   return SingleLine
 
-listLininess :: Parser ContainerType
-listLininess =
+listLininess :: Char -> Char -> Parser ContainerType
+listLininess start end =
   do
-    _ <- char '['
-    listLinynessHelp 1
+    _ <- char start
+    listLinynessHelp 1 start end
 
-listLinynessHelp :: Int -> Parser ContainerType
-listLinynessHelp nesting =
+listLinynessHelp :: Int -> Char -> Char -> Parser ContainerType
+listLinynessHelp nesting start end =
   if nesting == 0
     then return SingleLine
     else do
-      _ <- takeWhileP Nothing (\ch -> ch /= '[' && ch /= ']' && ch /= '\n')
+      _ <- takeWhileP Nothing (\ch -> ch /= start && ch /= end && ch /= '\n')
       choice
         [ do
-            _ <- char '['
-            listLinynessHelp (nesting + 1),
+            _ <- char start
+            listLinynessHelp (nesting + 1) start end,
           do
             _ <- char '\n'
             return MultiLine,
           do
-            _ <- char ']'
-            listLinynessHelp (nesting - 1)
+            _ <- char end
+            listLinynessHelp (nesting - 1) start end
         ]
 
 parseIfThenElse :: Int -> Parser Text
@@ -251,12 +254,12 @@ parseVerbatim =
       then fail $ "expecting a verbatim, but got: " <> unpack word
       else return word
 
-parseListItem :: Int -> Parser () -> Parser Text
-parseListItem indent spaceParser =
+parseListItem :: Int -> Parser () -> Char -> Parser Text
+parseListItem indent spaceParser end =
   do
     expression <- parseExpression indent
     _ <- spaceParser
-    _ <- choice [char ',', lookAhead (try (char ']'))]
+    _ <- choice [char ',', lookAhead (try (char end))]
     _ <- spaceParser
     return expression
 
@@ -265,55 +268,55 @@ data ContainerType
   | MultiLine
   deriving (Show)
 
-parseListType :: Parser ContainerType
-parseListType =
+parseListType :: Char -> Char -> Parser ContainerType
+parseListType start end =
   do
-    _ <- char '['
-    parseListTypeHelp 1
+    _ <- char start
+    parseListTypeHelp 1 start end
 
-parseListTypeHelp :: Int -> Parser ContainerType
-parseListTypeHelp nesting =
+parseListTypeHelp :: Int -> Char -> Char -> Parser ContainerType
+parseListTypeHelp nesting start end =
   if nesting == 0
     then return SingleLine
     else do
-      _ <- takeWhileP Nothing (\ch -> ch /= '\n' && ch /= '[' && ch /= ']')
+      _ <- takeWhileP Nothing (\ch -> ch /= '\n' && ch /= start && ch /= end)
       choice
         [ do
             _ <- char '\n'
             return MultiLine,
           do
-            _ <- char '['
-            parseListTypeHelp (nesting + 1),
+            _ <- char start
+            parseListTypeHelp (nesting + 1) start end,
           do
-            _ <- char ']'
-            parseListTypeHelp (nesting - 1)
+            _ <- char end
+            parseListTypeHelp (nesting - 1) start end
         ]
 
-parseList :: Int -> Parser Text
-parseList indent =
+parseList :: Int -> Char -> Char -> Parser Text
+parseList indent start end =
   do
-    listType <- lookAhead parseListType
+    listType <- lookAhead (parseListType start end)
     case listType of
       SingleLine ->
-        parseSingleLineList indent
+        parseSingleLineList indent start end
       MultiLine ->
-        parseMultiLineList indent
+        parseMultiLineList indent start end
 
-parseMultiLineList :: Int -> Parser Text
-parseMultiLineList indent =
+parseMultiLineList :: Int -> Char -> Char -> Parser Text
+parseMultiLineList indent start end =
   do
-    _ <- char '['
+    _ <- char start
     _ <- space
-    items <- many (parseListItem (indent + 2) space)
-    _ <- char ']'
+    items <- many (parseListItem (indent + 2) space end)
+    _ <- char end
     if null items
-      then return "[]"
+      then return $ pack [start, end]
       else
         return $
           mconcat
-            [ "[ ",
+            [ pack [start, ' '],
               intercalate (",\n" <> (pack $ take indent $ repeat ' ')) items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> "]"
+              "\n" <> (pack $ take indent $ repeat ' ') <> singleton end
             ]
 
 parseSpaces :: Parser ()
@@ -322,19 +325,19 @@ parseSpaces =
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return ()
 
-parseSingleLineList :: Int -> Parser Text
-parseSingleLineList indent =
+parseSingleLineList :: Int -> Char -> Char -> Parser Text
+parseSingleLineList indent start end =
   do
-    _ <- char '['
+    _ <- char start
     _ <- parseSpaces
-    items <- many (parseListItem indent parseSpaces)
-    _ <- char ']'
+    items <- many (parseListItem indent parseSpaces end)
+    _ <- char end
     if null items
-      then return "[]"
+      then return $ pack [start, end]
       else
         return $
           mconcat
-            [ "[ ",
+            [ pack [start, ' '],
               intercalate ", " items,
-              " ]"
+              pack [' ', end]
             ]

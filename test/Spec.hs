@@ -359,5 +359,19 @@ cases =
       \    else\n\
       \        c\n\
       \"
+    ),
+    ( "tuple formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1, 2 )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1, 2 )\n\
+      \"
     )
   ]
