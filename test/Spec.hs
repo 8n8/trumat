@@ -405,5 +405,22 @@ cases =
       \    , 2\n\
       \    )\n\
       \"
+    ),
+    ( "multi-line tuple, unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (1,2\n\
+      \ )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1\n\
+      \    , 2\n\
+      \    )\n\
+      \"
     )
   ]
