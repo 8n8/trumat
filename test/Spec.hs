@@ -146,7 +146,7 @@ printFormatted indent expression =
        in mconcat
             [ "[ ",
               intercalate
-                ("," <> spaces)
+                (spaces <> ", ")
                 (map (printFormatted (indent + 2)) oneOrMore),
               spaces <> "]"
             ]
@@ -386,6 +386,24 @@ cases =
       \\n\
       \x =\n\
       \    ( 1, 2 )\n\
+      \"
+    ),
+    ( "multi-line tuple, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1\n\
+      \    , 2\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( 1\n\
+      \    , 2\n\
+      \    )\n\
       \"
     )
   ]

@@ -315,7 +315,7 @@ parseMultiLineList indent start end =
         return $
           mconcat
             [ pack [start, ' '],
-              intercalate (",\n" <> (pack $ take indent $ repeat ' ')) items,
+              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
               "\n" <> (pack $ take indent $ repeat ' ') <> singleton end
             ]
 
