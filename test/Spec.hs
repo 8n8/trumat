@@ -450,5 +450,27 @@ cases =
       \x =\n\
       \    1\n\
       \"
+    ),
+    ( "let in formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            1\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            1\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
