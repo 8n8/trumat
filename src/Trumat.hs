@@ -80,6 +80,7 @@ parseExpression indent =
       parseList indent '[' ']',
       parseCaseOf indent,
       parseIfThenElse indent,
+      parseLetIn indent,
       parseVerbatim
     ]
 
@@ -130,6 +131,51 @@ listLinynessHelp nesting start end =
           do
             _ <- char end
             listLinynessHelp (nesting - 1) start end
+        ]
+
+parseLetIn :: Int -> Parser Text
+parseLetIn indent =
+  do
+    _ <- chunk "let"
+    _ <- space1
+    let_ <- some $
+      try $
+        do
+          items <- parseLetBind (indent + 4)
+          _ <- space1
+          return items
+    _ <- chunk "in"
+    _ <- space1
+    in_ <- parseExpression indent
+    let letSpaces = "\n" <> (pack $ take (indent + 4) $ repeat ' ')
+    let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
+    return $
+      mconcat
+        [ "let\n",
+          intercalate letSpaces let_,
+          inSpaces,
+          "in",
+          inSpaces,
+          in_
+        ]
+
+parseLetBind :: Int -> Parser Text
+parseLetBind indent =
+  do
+    left <- parseExpression indent
+    _ <- space
+    _ <- char '='
+    _ <- space
+    right <- parseExpression indent
+    let leftSpaces = pack $ take indent $ repeat ' '
+    let rightSpaces = pack $ take (indent + 4) $ repeat ' '
+    return $
+      mconcat
+        [ leftSpaces,
+          left,
+          " =\n",
+          rightSpaces,
+          right
         ]
 
 parseIfThenElse :: Int -> Parser Text
@@ -243,7 +289,7 @@ parseCaseOfBranch indent =
 
 keywords :: Set Text
 keywords =
-  fromList ["case", "of"]
+  fromList ["case", "of", "let", "in", "if", "then", "else"]
 
 parseVerbatim :: Parser Text
 parseVerbatim =
