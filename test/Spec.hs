@@ -499,5 +499,23 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "let in, single-line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let a = 0 in a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            0\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
