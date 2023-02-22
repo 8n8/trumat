@@ -517,5 +517,19 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "single-line function call, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \"
     )
   ]
