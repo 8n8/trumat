@@ -147,12 +147,11 @@ parseLetIn indent =
     _ <- chunk "in"
     _ <- space1
     in_ <- parseExpression indent
-    let letSpaces = "\n" <> (pack $ take (indent + 4) $ repeat ' ')
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $
       mconcat
         [ "let\n",
-          intercalate letSpaces let_,
+          intercalate "\n" let_,
           inSpaces,
           "in",
           inSpaces,
