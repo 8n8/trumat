@@ -472,5 +472,31 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "let in multiple items, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            0\n\
+      \        b =\n\
+      \            1\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            0\n\
+      \        b =\n\
+      \            1\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
