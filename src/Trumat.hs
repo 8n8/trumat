@@ -151,7 +151,7 @@ parseLetIn indent =
     return $
       mconcat
         [ "let\n",
-          intercalate "\n" let_,
+          intercalate "\n\n" let_,
           inSpaces,
           "in",
           inSpaces,

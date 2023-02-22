@@ -493,6 +493,7 @@ cases =
       \    let\n\
       \        a =\n\
       \            0\n\
+      \\n\
       \        b =\n\
       \            1\n\
       \    in\n\
