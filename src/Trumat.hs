@@ -27,6 +27,8 @@ import Prelude
     String,
     elem,
     fail,
+    head,
+    length,
     mconcat,
     null,
     repeat,
@@ -335,9 +337,12 @@ parseSingleLineList indent start end =
     if null items
       then return $ pack [start, end]
       else
-        return $
-          mconcat
-            [ pack [start, ' '],
-              intercalate ", " items,
-              pack [' ', end]
-            ]
+        if length items == 1 && start == '('
+          then return $ head items
+          else
+            return $
+              mconcat
+                [ pack [start, ' '],
+                  intercalate ", " items,
+                  pack [' ', end]
+                ]
