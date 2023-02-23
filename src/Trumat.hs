@@ -1,7 +1,7 @@
 module Trumat (trumat) where
 
 import Data.Set (Set, fromList, member)
-import Data.Text (Text, intercalate, pack, singleton, unpack)
+import Data.Text (Text, intercalate, isInfixOf, pack, singleton, unpack)
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -18,6 +18,7 @@ import Text.Megaparsec
     try,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Char,
     Either (..),
@@ -88,12 +89,20 @@ parseExpression indent =
 parseFunctionCall :: Int -> Parser Text
 parseFunctionCall indent =
   do
+    lininess <- lookAhead functionCallLininess
     f <- parseName
     items <- some $
-      do
-        _ <- takeWhile1P Nothing (\ch -> ch == ' ')
-        parseExpression indent
-    return $ intercalate " " (f : items)
+      try $
+        do
+          _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+          parseExpression indent
+    let spaces =
+          case lininess of
+            MultiLine ->
+              pack $ '\n' : (take (indent + 4) $ repeat ' ')
+            SingleLine ->
+              " "
+    return $ intercalate spaces (f : items)
 
 space1 :: Parser ()
 space1 =
@@ -113,8 +122,25 @@ expressionLininess =
   choice
     [ listLininess '[' ']',
       listLininess '(' ')',
-      verbatimLininess
+      verbatimLininess,
+      functionCallLininess
     ]
+
+functionCallLininess :: Parser ContainerType
+functionCallLininess =
+  do
+    _ <- dbg "parseName" parseName
+    items <- dbg "items" $
+      some $
+        try $
+          do
+            spaces <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+            _ <- parseExpression 8
+            return spaces
+    let combined = mconcat items
+    if isInfixOf "\n" combined
+      then return MultiLine
+      else return SingleLine
 
 verbatimLininess :: Parser ContainerType
 verbatimLininess =
