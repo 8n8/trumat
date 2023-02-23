@@ -18,7 +18,6 @@ import Text.Megaparsec
     try,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Char,
     Either (..),
@@ -129,8 +128,8 @@ expressionLininess =
 functionCallLininess :: Parser ContainerType
 functionCallLininess =
   do
-    _ <- dbg "parseName" parseName
-    items <- dbg "items" $
+    _ <- parseName
+    items <-
       some $
         try $
           do
