@@ -81,8 +81,19 @@ parseExpression indent =
       parseCaseOf indent,
       parseIfThenElse indent,
       parseLetIn indent,
+      try $ parseFunctionCall indent,
       parseVerbatim
     ]
+
+parseFunctionCall :: Int -> Parser Text
+parseFunctionCall indent =
+  do
+    f <- parseName
+    items <- some $
+      do
+        _ <- takeWhile1P Nothing (\ch -> ch == ' ')
+        parseExpression indent
+    return $ intercalate " " (f : items)
 
 space1 :: Parser ()
 space1 =
@@ -289,6 +300,17 @@ parseCaseOfBranch indent =
 keywords :: Set Text
 keywords =
   fromList ["case", "of", "let", "in", "if", "then", "else"]
+
+parseName :: Parser Text
+parseName =
+  do
+    word <-
+      takeWhile1P
+        (Just "name character")
+        (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz." :: String))
+    if member word keywords
+      then fail $ "expecting a name but got: " <> unpack word
+      else return word
 
 parseVerbatim :: Parser Text
 parseVerbatim =
