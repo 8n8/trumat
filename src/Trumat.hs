@@ -88,7 +88,7 @@ parseExpression indent =
 parseFunctionCall :: Int -> Parser Text
 parseFunctionCall indent =
   do
-    lininess <- lookAhead functionCallLininess
+    lininess <- try $ lookAhead functionCallLininess
     f <- parseName
     items <- some $
       try $
@@ -121,8 +121,7 @@ expressionLininess =
   choice
     [ listLininess '[' ']',
       listLininess '(' ')',
-      verbatimLininess,
-      functionCallLininess
+      verbatimLininess
     ]
 
 functionCallLininess :: Parser ContainerType
@@ -324,7 +323,7 @@ parseCaseOfBranch indent =
 
 keywords :: Set Text
 keywords =
-  fromList ["case", "of", "let", "in", "if", "then", "else"]
+  fromList ["case", "of", "let", "in", "if", "then", "else", "->"]
 
 parseName :: Parser Text
 parseName =

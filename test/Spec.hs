@@ -27,7 +27,7 @@ main :: IO ()
 main =
   defaultMain $
     testGroup "Unit tests" $
-      map oneTest cases -- <> [property]
+      property : map oneTest cases
 
 property :: TestTree
 property =
@@ -167,371 +167,371 @@ oneTest (name, input, expected) =
 
 cases :: [(String, Text, Text)]
 cases =
-  [ -- ( "hello world formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    0\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    0\n\
-    --  \"
-    -- ),
-    -- ( "nested lists",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    [ [ [ []\n\
-    --  \        ]\n\
-    --  \      ]\n\
-    --  \    ]\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    [ [ [ []\n\
-    --  \        ]\n\
-    --  \      ]\n\
-    --  \    ]\n\
-    --  \"
-    -- ),
-    -- ( "multi-line list",
-    --  "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n",
-    --  "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n"
-    -- ),
-    -- ( "case of formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case x of\n\
-    --  \        A ->\n\
-    --  \            a\n\
-    --  \\n\
-    --  \        B ->\n\
-    --  \            b\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case x of\n\
-    --  \        A ->\n\
-    --  \            a\n\
-    --  \\n\
-    --  \        B ->\n\
-    --  \            b\n\
-    --  \"
-    -- ),
-    -- ( "case of few spaces",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case x of\n\
-    --  \ A->a\n\
-    --  \ B->b\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case x of\n\
-    --  \        A ->\n\
-    --  \            a\n\
-    --  \\n\
-    --  \        B ->\n\
-    --  \            b\n\
-    --  \"
-    -- ),
-    -- ( "case of multiline",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case [x\n\
-    --  \ ] of\n\
-    --  \ A->a\n\
-    --  \ B->b\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    case\n\
-    --  \        [ x\n\
-    --  \        ]\n\
-    --  \    of\n\
-    --  \        A ->\n\
-    --  \            a\n\
-    --  \\n\
-    --  \        B ->\n\
-    --  \            b\n\
-    --  \"
-    -- ),
-    -- ( "if-then-else ordinary formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if a then\n\
-    --  \        0\n\
-    --  \    else\n\
-    --  \        1\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if a then\n\
-    --  \        0\n\
-    --  \\n\
-    --  \    else\n\
-    --  \        1\n\
-    --  \"
-    -- ),
-    -- ( "if-then-else unformatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if\n\
-    --  \        a\n\
-    --  \    then\n\
-    --  \        0\n\
-    --  \\n\
-    --  \    else\n\
-    --  \        1\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if a then\n\
-    --  \        0\n\
-    --  \\n\
-    --  \    else\n\
-    --  \        1\n\
-    --  \"
-    -- ),
-    -- ( "if-then-else single-line",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if a then b else c\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if a then\n\
-    --  \        b\n\
-    --  \\n\
-    --  \    else\n\
-    --  \        c\n\
-    --  \"
-    -- ),
-    -- ( "if-then-else multi-line list",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if [a\n\
-    --  \ ] then b else c\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    if\n\
-    --  \        [ a\n\
-    --  \        ]\n\
-    --  \    then\n\
-    --  \        b\n\
-    --  \\n\
-    --  \    else\n\
-    --  \        c\n\
-    --  \"
-    -- ),
-    -- ( "tuple formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1, 2 )\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1, 2 )\n\
-    --  \"
-    -- ),
-    -- ( "tuple no spaces, single line",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    (1,2)\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1, 2 )\n\
-    --  \"
-    -- ),
-    -- ( "multi-line tuple, formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1\n\
-    --  \    , 2\n\
-    --  \    )\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1\n\
-    --  \    , 2\n\
-    --  \    )\n\
-    --  \"
-    -- ),
-    -- ( "multi-line tuple, unformatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    (1,2\n\
-    --  \ )\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1\n\
-    --  \    , 2\n\
-    --  \    )\n\
-    --  \"
-    -- ),
-    -- ( "list inside tuple, formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( [], 1 )\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( [], 1 )\n\
-    --  \"
-    -- ),
-    -- ( "no singleton tuple",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    ( 1 )\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    1\n\
-    --  \"
-    -- ),
-    -- ( "let in formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let\n\
-    --  \        a =\n\
-    --  \            1\n\
-    --  \    in\n\
-    --  \    a\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let\n\
-    --  \        a =\n\
-    --  \            1\n\
-    --  \    in\n\
-    --  \    a\n\
-    --  \"
-    -- ),
-    -- ( "let in multiple items, formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let\n\
-    --  \        a =\n\
-    --  \            0\n\
-    --  \        b =\n\
-    --  \            1\n\
-    --  \    in\n\
-    --  \    a\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let\n\
-    --  \        a =\n\
-    --  \            0\n\
-    --  \\n\
-    --  \        b =\n\
-    --  \            1\n\
-    --  \    in\n\
-    --  \    a\n\
-    --  \"
-    -- ),
-    -- ( "let in, single-line",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let a = 0 in a\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    let\n\
-    --  \        a =\n\
-    --  \            0\n\
-    --  \    in\n\
-    --  \    a\n\
-    --  \"
-    -- ),
-    -- ( "single-line function call, formatted",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    a b\n\
-    --  \",
-    --  "module X exposing (x)\n\
-    --  \\n\
-    --  \\n\
-    --  \x =\n\
-    --  \    a b\n\
-    --  \"
-    -- ),
+  [ ( "hello world formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    0\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    0\n\
+     \"
+    ),
+    ( "nested lists",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    [ [ [ []\n\
+     \        ]\n\
+     \      ]\n\
+     \    ]\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    [ [ [ []\n\
+     \        ]\n\
+     \      ]\n\
+     \    ]\n\
+     \"
+    ),
+    ( "multi-line list",
+     "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n",
+     "module X exposing (x)\n\n\nx =\n    [ 0\n    ]\n"
+    ),
+    ( "case of formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case x of\n\
+     \        A ->\n\
+     \            a\n\
+     \\n\
+     \        B ->\n\
+     \            b\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case x of\n\
+     \        A ->\n\
+     \            a\n\
+     \\n\
+     \        B ->\n\
+     \            b\n\
+     \"
+    ),
+    ( "case of few spaces",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case x of\n\
+     \ A->a\n\
+     \ B->b\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case x of\n\
+     \        A ->\n\
+     \            a\n\
+     \\n\
+     \        B ->\n\
+     \            b\n\
+     \"
+    ),
+    ( "case of multiline",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case [x\n\
+     \ ] of\n\
+     \ A->a\n\
+     \ B->b\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    case\n\
+     \        [ x\n\
+     \        ]\n\
+     \    of\n\
+     \        A ->\n\
+     \            a\n\
+     \\n\
+     \        B ->\n\
+     \            b\n\
+     \"
+    ),
+    ( "if-then-else ordinary formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if a then\n\
+     \        0\n\
+     \    else\n\
+     \        1\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if a then\n\
+     \        0\n\
+     \\n\
+     \    else\n\
+     \        1\n\
+     \"
+    ),
+    ( "if-then-else unformatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if\n\
+     \        a\n\
+     \    then\n\
+     \        0\n\
+     \\n\
+     \    else\n\
+     \        1\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if a then\n\
+     \        0\n\
+     \\n\
+     \    else\n\
+     \        1\n\
+     \"
+    ),
+    ( "if-then-else single-line",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if a then b else c\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if a then\n\
+     \        b\n\
+     \\n\
+     \    else\n\
+     \        c\n\
+     \"
+    ),
+    ( "if-then-else multi-line list",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if [a\n\
+     \ ] then b else c\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    if\n\
+     \        [ a\n\
+     \        ]\n\
+     \    then\n\
+     \        b\n\
+     \\n\
+     \    else\n\
+     \        c\n\
+     \"
+    ),
+    ( "tuple formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1, 2 )\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1, 2 )\n\
+     \"
+    ),
+    ( "tuple no spaces, single line",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    (1,2)\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1, 2 )\n\
+     \"
+    ),
+    ( "multi-line tuple, formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1\n\
+     \    , 2\n\
+     \    )\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1\n\
+     \    , 2\n\
+     \    )\n\
+     \"
+    ),
+    ( "multi-line tuple, unformatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    (1,2\n\
+     \ )\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1\n\
+     \    , 2\n\
+     \    )\n\
+     \"
+    ),
+    ( "list inside tuple, formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( [], 1 )\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( [], 1 )\n\
+     \"
+    ),
+    ( "no singleton tuple",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    ( 1 )\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    1\n\
+     \"
+    ),
+    ( "let in formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let\n\
+     \        a =\n\
+     \            1\n\
+     \    in\n\
+     \    a\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let\n\
+     \        a =\n\
+     \            1\n\
+     \    in\n\
+     \    a\n\
+     \"
+    ),
+    ( "let in multiple items, formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let\n\
+     \        a =\n\
+     \            0\n\
+     \        b =\n\
+     \            1\n\
+     \    in\n\
+     \    a\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let\n\
+     \        a =\n\
+     \            0\n\
+     \\n\
+     \        b =\n\
+     \            1\n\
+     \    in\n\
+     \    a\n\
+     \"
+    ),
+    ( "let in, single-line",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let a = 0 in a\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    let\n\
+     \        a =\n\
+     \            0\n\
+     \    in\n\
+     \    a\n\
+     \"
+    ),
+    ( "single-line function call, formatted",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    a b\n\
+     \",
+     "module X exposing (x)\n\
+     \\n\
+     \\n\
+     \x =\n\
+     \    a b\n\
+     \"
+    ),
     ( "multi-line function call, formatted",
       "module X exposing (x)\n\
       \\n\
