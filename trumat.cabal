@@ -10,10 +10,6 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Array8
-      Ast
-      Error
-      Lib
       Trumat
   other-modules:
       Paths_trumat
@@ -38,7 +34,6 @@ executable trumat-exe
   ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode -Wno-missing-import-lists -Wno-unsafe -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , trumat
   default-language: Haskell2010
 
 test-suite trumat-test
