@@ -16,11 +16,14 @@ ghc-options:
 - -Wno-missing-safe-haskell-mode
 - -Wno-missing-import-lists
 - -Wno-unsafe
+- -Wno-prepositive-qualified-module
 
 library:
   source-dirs: src
   dependencies:
   - text
+  - megaparsec
+  - containers
 
 executables:
   trumat-exe:
