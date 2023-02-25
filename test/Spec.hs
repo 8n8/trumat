@@ -561,5 +561,21 @@ cases =
       \x =\n\
       \    a b\n\
       \"
+    ),
+    ( "multi-line function call, unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \     b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        b\n\
+      \"
     )
   ]
