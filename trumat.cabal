@@ -10,9 +10,7 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Ast
       Token
-      Tokens
       Trumat
   other-modules:
       Paths_trumat
@@ -23,7 +21,6 @@ library
   ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode -Wno-missing-import-lists -Wno-unsafe -Wno-prepositive-qualified-module
   build-depends:
       base >=4.7 && <5
-    , containers
     , megaparsec
     , text
   default-language: Haskell2010

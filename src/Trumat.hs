@@ -1,20 +1,30 @@
 module Trumat (trumat) where
 
-import Data.Text
-import Tokens
-import Text.Megaparsec (errorBundlePretty, parse)
-import Ast
+import Text.Megaparsec (errorBundlePretty, parse, Parsec, chunk)
+import Data.Void (Void)
+import Data.Text (Text)
+import qualified Token
 
 trumat :: Text -> Either String Text
 trumat raw =
-  case Text.Megaparsec.parse Tokens.parse "" raw of
+  case Text.Megaparsec.parse Trumat.parse "" raw of
     Left err ->
         Left $ errorBundlePretty err
 
-    Right tokens ->
-        case Ast.create tokens of
-            Left err ->
-                Left err
+    Right formatted ->
+        Right formatted
 
-            Right ast ->
-                Rith $ format ast
+type Parser
+    = Parsec Void Text
+
+parsePreamble :: Parser ()
+parsePreamble =
+   do
+   _ <- chunk "module X exposing (x)\n\n\nx =\n    "
+   return ()
+
+parse :: Parser Text
+parse =
+    do
+    _ <- parsePreamble
+    return ""

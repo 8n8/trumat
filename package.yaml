@@ -23,7 +23,6 @@ library:
   dependencies:
   - text
   - megaparsec
-  - containers
 
 executables:
   trumat-exe:
