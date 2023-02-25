@@ -711,5 +711,19 @@ cases =
       \x =\n\
       \    \"\"\" \" \"\"\"\n\
       \"
+    ),
+    ( "single-line triple-quoted string literal containing escaped backslash",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\\\\\"\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\\\\\"\"\"\n\
+      \"
     )
   ]
