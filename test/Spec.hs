@@ -641,5 +641,19 @@ cases =
       \x =\n\
       \    \"hello\"\n\
       \"
+    ),
+    ( "simple string literal with escaped quote",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\\"\"\n\
+      \"
     )
   ]
