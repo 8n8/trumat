@@ -669,5 +669,19 @@ cases =
       \x =\n\
       \    \"\\\\\"\n\
       \"
+    ),
+    ( "empty triple-quote string literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\"\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\"\"\"\n\
+      \"
     )
   ]

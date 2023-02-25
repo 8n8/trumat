@@ -12,6 +12,7 @@ import Text.Megaparsec
     getSourcePos,
     lookAhead,
     many,
+    notFollowedBy,
     parse,
     some,
     sourceColumn,
@@ -20,7 +21,6 @@ import Text.Megaparsec
     try,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Char,
     Either (..),
@@ -88,7 +88,28 @@ parseExpression indent =
       parseLetIn indent,
       try $ parseFunctionCall indent,
       parseVerbatim,
+      parseTripleStringLiteral,
       parseSimpleStringLiteral
+    ]
+
+parseTripleStringLiteral :: Parser Text
+parseTripleStringLiteral =
+  do
+    _ <- chunk "\"\"\""
+    contents <- many parseTripleStringLiteralChar
+    _ <- chunk "\"\"\""
+    return $ mconcat ["\"\"\"", mconcat contents, "\"\"\""]
+
+parseTripleStringLiteralChar :: Parser Text
+parseTripleStringLiteralChar =
+  choice
+    [ takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
+      chunk "\\\"",
+      chunk "\\\\",
+      try $ do
+        _ <- char '"'
+        _ <- notFollowedBy (char '"')
+        return "\""
     ]
 
 parseSimpleStringLiteral :: Parser Text
@@ -340,22 +361,21 @@ parseCaseOf indent =
 
 parseCaseOfBranch :: Int -> Parser Text
 parseCaseOfBranch indent =
-  dbg "parseCaseOfBranch" $
-    do
-      left <- parsePattern indent
-      _ <- space
-      _ <- chunk "->"
-      _ <- space
-      right <- parseExpression (indent + 4)
-      _ <- space
-      return $
-        mconcat
-          [ pack $ take indent $ repeat ' ',
-            left,
-            " ->\n",
-            pack $ take (indent + 4) $ repeat ' ',
-            right
-          ]
+  do
+    left <- parsePattern indent
+    _ <- space
+    _ <- chunk "->"
+    _ <- space
+    right <- parseExpression (indent + 4)
+    _ <- space
+    return $
+      mconcat
+        [ pack $ take indent $ repeat ' ',
+          left,
+          " ->\n",
+          pack $ take (indent + 4) $ repeat ' ',
+          right
+        ]
 
 keywords :: Set Text
 keywords =
