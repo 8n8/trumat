@@ -24,6 +24,7 @@ library
   ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode -Wno-missing-import-lists -Wno-unsafe
   build-depends:
       base >=4.7 && <5
+    , text
   default-language: Haskell2010
 
 executable trumat-exe
@@ -52,7 +53,6 @@ test-suite trumat-test
   ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode -Wno-missing-import-lists -Wno-unsafe -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , bytestring
     , tasty
     , tasty-hunit
     , text

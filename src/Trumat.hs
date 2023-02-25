@@ -1,8 +1,7 @@
 module Trumat (trumat) where
 
-import Array8 (Array8)
-import Ast (Ast)
+import Data.Text
 
-trumat :: Ast -> Array8 -> IO (Either String ())
-trumat _ _ =
-    return (Right ())
+trumat :: Text -> Either String Text
+trumat _ =
+    Right ""

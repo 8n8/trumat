@@ -19,6 +19,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+  - text
 
 executables:
   trumat-exe:
@@ -44,4 +46,3 @@ tests:
     - tasty-hunit
     - tasty
     - text
-    - bytestring
