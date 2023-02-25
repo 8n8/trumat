@@ -9,15 +9,18 @@ import Text.Megaparsec
     chunk,
     eof,
     errorBundlePretty,
+    getSourcePos,
     lookAhead,
     many,
     parse,
     some,
+    sourceColumn,
     takeWhile1P,
     takeWhileP,
     try,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Char,
     Either (..),
@@ -27,6 +30,7 @@ import Prelude
     String,
     elem,
     fail,
+    fmap,
     head,
     length,
     mconcat,
@@ -41,6 +45,7 @@ import Prelude
     (/=),
     (<>),
     (==),
+    (>),
     (>>),
     (||),
   )
@@ -76,12 +81,20 @@ parser =
 parseExpression :: Int -> Parser Text
 parseExpression indent =
   choice
-    [ parseList indent '(' ')',
+    [ parseCaseOf indent,
+      parseList indent '(' ')',
       parseList indent '[' ']',
-      parseCaseOf indent,
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
+      parseVerbatim
+    ]
+
+parsePattern :: Int -> Parser Text
+parsePattern indent =
+  choice
+    [ parseList indent '(' ')',
+      parseList indent '[' ']',
       parseVerbatim
     ]
 
@@ -127,14 +140,19 @@ expressionLininess =
 functionCallLininess :: Parser ContainerType
 functionCallLininess =
   do
+    startColumn <- fmap sourceColumn getSourcePos
     _ <- parseName
     items <-
       some $
         try $
           do
             spaces <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-            _ <- parseExpression 8
-            return spaces
+            argColumn <- fmap sourceColumn getSourcePos
+            if argColumn > startColumn
+              then do
+                _ <- parseExpression 8
+                return spaces
+              else fail "argument is indented less than function"
     let combined = mconcat items
     if isInfixOf "\n" combined
       then return MultiLine
@@ -305,21 +323,22 @@ parseCaseOf indent =
 
 parseCaseOfBranch :: Int -> Parser Text
 parseCaseOfBranch indent =
-  do
-    left <- parseExpression indent
-    _ <- space
-    _ <- chunk "->"
-    _ <- space
-    right <- parseExpression (indent + 4)
-    _ <- space
-    return $
-      mconcat
-        [ pack $ take indent $ repeat ' ',
-          left,
-          " ->\n",
-          pack $ take (indent + 4) $ repeat ' ',
-          right
-        ]
+  dbg "parseCaseOfBranch" $
+    do
+      left <- parsePattern indent
+      _ <- space
+      _ <- chunk "->"
+      _ <- space
+      right <- parseExpression (indent + 4)
+      _ <- space
+      return $
+        mconcat
+          [ pack $ take indent $ repeat ' ',
+            left,
+            " ->\n",
+            pack $ take (indent + 4) $ repeat ' ',
+            right
+          ]
 
 keywords :: Set Text
 keywords =
