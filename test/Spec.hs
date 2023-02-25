@@ -655,5 +655,19 @@ cases =
       \x =\n\
       \    \"\\\"\"\n\
       \"
+    ),
+    ( "simple string literal with escaped backslash",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\\\\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\\\\"\n\
+      \"
     )
   ]
