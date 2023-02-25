@@ -697,5 +697,19 @@ cases =
       \x =\n\
       \    \"\"\"a\"\"\"\n\
       \"
+    ),
+    ( "single-line triple-quote string literal containing quote mark",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\" \" \"\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\" \" \"\"\"\n\
+      \"
     )
   ]
