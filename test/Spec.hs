@@ -613,5 +613,19 @@ cases =
       \        b\n\
       \        c\n\
       \"
+    ),
+    ( "formatted empty string literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\n\
+      \"
     )
   ]
