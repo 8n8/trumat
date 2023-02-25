@@ -87,7 +87,24 @@ parseExpression indent =
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
-      parseVerbatim
+      parseVerbatim,
+      parseSimpleStringLiteral
+    ]
+
+parseSimpleStringLiteral :: Parser Text
+parseSimpleStringLiteral =
+  do
+    _ <- char '"'
+    contents <- many parseSimpleStringLiteralChar
+    _ <- char '"'
+    return $ mconcat ["\"", mconcat contents, "\""]
+
+parseSimpleStringLiteralChar :: Parser Text
+parseSimpleStringLiteralChar =
+  choice
+    [ takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
+      chunk "\\\"",
+      chunk "\\\\"
     ]
 
 parsePattern :: Int -> Parser Text
