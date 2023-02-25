@@ -1,5 +1,7 @@
 module Main (main) where
 
-main :: IO ()
-main =
-  putStrLn "hi"
+import qualified Lib
+import qualified Prelude
+
+main :: Prelude.IO ()
+main = Lib.someFunc
