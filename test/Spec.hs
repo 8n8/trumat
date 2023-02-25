@@ -578,7 +578,7 @@ cases =
       \        b\n\
       \"
     ),
-    ( "multi-line multi-argument function call",
+    ( "multi-line multi-argument function call, formatted",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -586,6 +586,24 @@ cases =
       \    a\n\
       \        b\n\
       \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        b\n\
+      \        c\n\
+      \"
+    ),
+    ( "multi-line multi-argument function call, unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \                           b\n\
+      \              c\n\
       \",
       "module X exposing (x)\n\
       \\n\
