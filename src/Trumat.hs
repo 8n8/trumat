@@ -34,6 +34,7 @@ import Prelude
     head,
     length,
     mconcat,
+    not,
     null,
     repeat,
     return,
@@ -82,8 +83,8 @@ parseExpression :: Int -> Parser Text
 parseExpression indent =
   choice
     [ parseCaseOf indent,
-      parseList indent '(' ')',
-      parseList indent '[' ']',
+      parseListLike indent '(' ')',
+      parseList indent,
       parseRecord indent,
       parseIfThenElse indent,
       parseLetIn indent,
@@ -165,8 +166,8 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Parser Text
 parsePattern indent =
   choice
-    [ parseList indent '(' ')',
-      parseList indent '[' ']',
+    [ parseListLike indent '(' ')',
+      parseListLike indent '[' ']',
       parseVerbatim
     ]
 
@@ -451,39 +452,98 @@ data ContainerType
   | MultiLine
   deriving (Show)
 
-parseListType :: Char -> Char -> Parser ContainerType
-parseListType start end =
+parseOpen :: Parser ()
+parseOpen =
   do
-    _ <- char start
-    parseListTypeHelp 1 start end
+    _ <- choice [char '(', char '[', char '{']
+    return ()
 
-parseListTypeHelp :: Int -> Char -> Char -> Parser ContainerType
-parseListTypeHelp nesting start end =
+parseClose :: Parser ()
+parseClose =
+  do
+    _ <- choice [char ')', char ']', char '}']
+    return ()
+
+parseListType :: Parser ContainerType
+parseListType =
+  do
+    _ <- parseOpen
+    parseListTypeHelp 1
+
+parseListTypeHelp :: Int -> Parser ContainerType
+parseListTypeHelp nesting =
   if nesting == 0
     then return SingleLine
     else do
-      _ <- takeWhileP Nothing (\ch -> ch /= '\n' && ch /= start && ch /= end)
+      _ <-
+        takeWhileP
+          Nothing
+          (\ch -> not (ch `elem` ("\n([{}])" :: String)))
       choice
         [ do
             _ <- char '\n'
             return MultiLine,
           do
-            _ <- char start
-            parseListTypeHelp (nesting + 1) start end,
+            _ <- parseOpen
+            parseListTypeHelp (nesting + 1),
           do
-            _ <- char end
-            parseListTypeHelp (nesting - 1) start end
+            _ <- parseClose
+            parseListTypeHelp (nesting - 1)
         ]
 
-parseList :: Int -> Char -> Char -> Parser Text
-parseList indent start end =
+parseListLike :: Int -> Char -> Char -> Parser Text
+parseListLike indent start end =
   do
-    listType <- lookAhead (parseListType start end)
+    listType <- lookAhead parseListType
     case listType of
       SingleLine ->
         parseSingleLineList indent start end
       MultiLine ->
         parseMultiLineList indent start end
+
+parseList :: Int -> Parser Text
+parseList indent =
+  do
+    listType <- lookAhead parseListType
+    case listType of
+      SingleLine ->
+        parseSingleLineList' indent
+      MultiLine ->
+        parseMultiLineList' indent
+
+parseMultiLineList' :: Int -> Parser Text
+parseMultiLineList' indent =
+  do
+    _ <- char '['
+    _ <- space
+    items <- many (parseListItem (indent + 2) space ']')
+    _ <- char ']'
+    if null items
+      then return "[]"
+      else
+        return $
+          mconcat
+            [ "[ ",
+              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+              "\n" <> (pack $ take indent $ repeat ' ') <> "]"
+            ]
+
+parseSingleLineList' :: Int -> Parser Text
+parseSingleLineList' indent =
+  do
+    _ <- char '['
+    _ <- parseSpaces
+    items <- many (parseListItem indent parseSpaces ']')
+    _ <- char ']'
+    if null items
+      then return "[]"
+      else
+        return $
+          mconcat
+            [ "[ ",
+              intercalate ", " items,
+              " ]"
+            ]
 
 parseMultiLineList :: Int -> Char -> Char -> Parser Text
 parseMultiLineList indent start end =
