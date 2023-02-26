@@ -1,7 +1,7 @@
 module Trumat (trumat) where
 
 import Data.Set (Set, fromList, member)
-import Data.Text (Text, intercalate, isInfixOf, pack, singleton, unpack)
+import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -83,7 +83,7 @@ parseExpression :: Int -> Parser Text
 parseExpression indent =
   choice
     [ parseCaseOf indent,
-      parseListLike indent '(' ')',
+      parseTuple indent,
       parseList indent,
       parseRecord indent,
       parseIfThenElse indent,
@@ -166,8 +166,8 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Parser Text
 parsePattern indent =
   choice
-    [ parseListLike indent '(' ')',
-      parseListLike indent '[' ']',
+    [ parseTuple indent,
+      parseList indent,
       parseVerbatim
     ]
 
@@ -491,15 +491,52 @@ parseListTypeHelp nesting =
             parseListTypeHelp (nesting - 1)
         ]
 
-parseListLike :: Int -> Char -> Char -> Parser Text
-parseListLike indent start end =
+parseTuple :: Int -> Parser Text
+parseTuple indent =
   do
     listType <- lookAhead parseListType
     case listType of
       SingleLine ->
-        parseSingleLineList indent start end
+        parseSingleLineTuple indent
       MultiLine ->
-        parseMultiLineList indent start end
+        parseMultiLineTuple indent
+
+parseMultiLineTuple :: Int -> Parser Text
+parseMultiLineTuple indent =
+  do
+    _ <- char '('
+    _ <- space
+    items <- many (parseListItem (indent + 2) space ')')
+    _ <- char ')'
+    if null items
+      then return "()"
+      else
+        return $
+          mconcat
+            [ "( ",
+              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+              "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+            ]
+
+parseSingleLineTuple :: Int -> Parser Text
+parseSingleLineTuple indent =
+  do
+    _ <- char '('
+    _ <- parseSpaces
+    items <- many (parseListItem indent parseSpaces ')')
+    _ <- char ')'
+    if null items
+      then return "()"
+      else
+        if length items == 1
+          then return $ head items
+          else
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ", " items,
+                  " )"
+                ]
 
 parseList :: Int -> Parser Text
 parseList indent =
@@ -507,12 +544,12 @@ parseList indent =
     listType <- lookAhead parseListType
     case listType of
       SingleLine ->
-        parseSingleLineList' indent
+        parseSingleLineList indent
       MultiLine ->
-        parseMultiLineList' indent
+        parseMultiLineList indent
 
-parseMultiLineList' :: Int -> Parser Text
-parseMultiLineList' indent =
+parseMultiLineList :: Int -> Parser Text
+parseMultiLineList indent =
   do
     _ <- char '['
     _ <- space
@@ -528,8 +565,8 @@ parseMultiLineList' indent =
               "\n" <> (pack $ take indent $ repeat ' ') <> "]"
             ]
 
-parseSingleLineList' :: Int -> Parser Text
-parseSingleLineList' indent =
+parseSingleLineList :: Int -> Parser Text
+parseSingleLineList indent =
   do
     _ <- char '['
     _ <- parseSpaces
@@ -545,45 +582,8 @@ parseSingleLineList' indent =
               " ]"
             ]
 
-parseMultiLineList :: Int -> Char -> Char -> Parser Text
-parseMultiLineList indent start end =
-  do
-    _ <- char start
-    _ <- space
-    items <- many (parseListItem (indent + 2) space end)
-    _ <- char end
-    if null items
-      then return $ pack [start, end]
-      else
-        return $
-          mconcat
-            [ pack [start, ' '],
-              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> singleton end
-            ]
-
 parseSpaces :: Parser ()
 parseSpaces =
   do
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return ()
-
-parseSingleLineList :: Int -> Char -> Char -> Parser Text
-parseSingleLineList indent start end =
-  do
-    _ <- char start
-    _ <- parseSpaces
-    items <- many (parseListItem indent parseSpaces end)
-    _ <- char end
-    if null items
-      then return $ pack [start, end]
-      else
-        if length items == 1 && start == '('
-          then return $ head items
-          else
-            return $
-              mconcat
-                [ pack [start, ' '],
-                  intercalate ", " items,
-                  pack [' ', end]
-                ]
