@@ -511,12 +511,15 @@ parseMultiLineTuple indent =
     if null items
       then return "()"
       else
-        return $
-          mconcat
-            [ "( ",
-              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> ")"
-            ]
+        if length items == 1
+          then return $ head items
+          else
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+                  "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                ]
 
 parseSingleLineTuple :: Int -> Parser Text
 parseSingleLineTuple indent =

@@ -769,5 +769,20 @@ cases =
       \x =\n\
       \    { a = 2 }\n\
       \"
+    ),
+    ( "multi-line tuple with only one item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \"
     )
   ]
