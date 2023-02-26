@@ -84,6 +84,7 @@ parseExpression indent =
     [ parseCaseOf indent,
       parseList indent '(' ')',
       parseList indent '[' ']',
+      parseList indent '{' '}',
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
