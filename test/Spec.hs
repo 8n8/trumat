@@ -755,5 +755,19 @@ cases =
       \x =\n\
       \    {}\n\
       \"
+    ),
+    ( "formatted record with one item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 2 }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 2 }\n\
+      \"
     )
   ]
