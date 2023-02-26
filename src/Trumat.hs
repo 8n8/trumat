@@ -84,7 +84,7 @@ parseExpression indent =
     [ parseCaseOf indent,
       parseList indent '(' ')',
       parseList indent '[' ']',
-      parseList indent '{' '}',
+      parseRecord indent,
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
@@ -92,6 +92,39 @@ parseExpression indent =
       parseTripleStringLiteral,
       parseSimpleStringLiteral
     ]
+
+parseRecord :: Int -> Parser Text
+parseRecord indent =
+  do
+    _ <- char '{'
+    _ <- parseSpaces
+    items <- many (parseRecordItem indent)
+    _ <- char '}'
+    if null items
+      then return "{}"
+      else
+        return $
+          mconcat
+            [ "{ ",
+              intercalate ", " items,
+              " }"
+            ]
+
+parseRecordItem :: Int -> Parser Text
+parseRecordItem indent =
+  do
+    name <- parseName
+    _ <- space
+    _ <- char '='
+    _ <- space
+    right <- parseExpression indent
+    _ <- space
+    return $
+      mconcat
+        [ name,
+          " = ",
+          right
+        ]
 
 parseTripleStringLiteral :: Parser Text
 parseTripleStringLiteral =
