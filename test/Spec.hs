@@ -828,13 +828,29 @@ cases =
       \    {}\n\
       \"
     ),
-    ( "multi-line record with one single-line item",
+    ( "multi-line formatted record with one single-line item",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
       \    { a = 2\n\
       \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 2\n\
+      \    }\n\
+      \"
+    ),
+    ( "multi-line unformatted record with one single-line item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {a=2\n\
+      \ }\n\
       \",
       "module X exposing (x)\n\
       \\n\
