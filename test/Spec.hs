@@ -798,5 +798,19 @@ cases =
       \x =\n\
       \    { a = 1, b = 2 }\n\
       \"
+    ),
+    ( "single-line empty record with space in it",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {}\n\
+      \"
     )
   ]
