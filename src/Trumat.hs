@@ -97,6 +97,33 @@ parseExpression indent =
 parseRecord :: Int -> Parser Text
 parseRecord indent =
   do
+    listType <- lookAhead parseListType
+    case listType of
+      SingleLine ->
+        parseSingleLineRecord indent
+      MultiLine ->
+        parseMultiLineRecord indent
+
+parseMultiLineRecord :: Int -> Parser Text
+parseMultiLineRecord indent =
+  do
+    _ <- char '{'
+    _ <- space
+    items <- many (parseRecordItem (indent + 2))
+    _ <- char '}'
+    if null items
+      then return "{}"
+      else
+        return $
+          mconcat
+            [ "{ ",
+              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+              "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+            ]
+
+parseSingleLineRecord :: Int -> Parser Text
+parseSingleLineRecord indent =
+  do
     _ <- char '{'
     _ <- parseSpaces
     items <- many (parseRecordItem indent)
