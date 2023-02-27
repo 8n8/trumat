@@ -120,6 +120,8 @@ parseRecordItem indent =
     _ <- space
     right <- parseExpression indent
     _ <- space
+    _ <- choice [char ',', lookAhead (try (char '}'))]
+    _ <- space
     return $
       mconcat
         [ name,
