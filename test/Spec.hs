@@ -784,5 +784,19 @@ cases =
       \x =\n\
       \    a\n\
       \"
+    ),
+    ( "single-line multi-item formatted record",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1, b = 2 }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1, b = 2 }\n\
+      \"
     )
   ]
