@@ -859,5 +859,23 @@ cases =
       \    { a = 2\n\
       \    }\n\
       \"
+    ),
+    ( "multi-line formatted record with one multi-line item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        0\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        0\n\
+      \    }\n\
+      \"
     )
   ]
