@@ -877,5 +877,22 @@ cases =
       \        0\n\
       \    }\n\
       \"
+    ),
+    ( "multi-line unformatted record with one multi-line item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a= \n\
+      \ 1}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        1\n\
+      \    }\n\
+      \"
     )
   ]
