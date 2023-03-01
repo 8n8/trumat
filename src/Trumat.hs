@@ -141,6 +141,7 @@ parseSingleLineRecord indent =
 parseRecordItem :: Int -> Parser Text
 parseRecordItem indent =
   do
+    recordLininess <- lookAhead parseRecordItemLininess
     name <- parseName
     _ <- space
     _ <- char '='
@@ -152,9 +153,26 @@ parseRecordItem indent =
     return $
       mconcat
         [ name,
-          " = ",
+          " =",
+          case recordLininess of
+            SingleLine ->
+              " "
+            MultiLine ->
+              "\n" <> pack (take (indent + 2) (repeat ' ')),
           right
         ]
+
+parseRecordItemLininess :: Parser ContainerType
+parseRecordItemLininess =
+  do
+    _ <- parseName
+    spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    _ <- char '='
+    spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    right <- parseExpression 0
+    if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
+      then return MultiLine
+      else return SingleLine
 
 parseTripleStringLiteral :: Parser Text
 parseTripleStringLiteral =
