@@ -1009,5 +1009,21 @@ cases =
       \        | b = 0\n\
       \    }\n\
       \"
+    ),
+    ( "line comment in a list, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [-- a\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [-- a\n\
+      \    ]\n\
+      \"
     )
   ]
