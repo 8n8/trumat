@@ -894,5 +894,23 @@ cases =
       \        1\n\
       \    }\n\
       \"
+    ),
+    ( "formatted multi-line record with two single-line items",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1\n\
+      \    , b = 2\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1\n\
+      \    , b = 2\n\
+      \    }\n\
+      \"
     )
   ]
