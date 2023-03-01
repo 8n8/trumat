@@ -85,7 +85,8 @@ parseExpression indent =
     [ parseCaseOf indent,
       parseTuple indent,
       parseList indent,
-      parseRecord indent,
+      try $ parseRecord indent,
+      parseRecordUpdate indent,
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
@@ -120,6 +121,26 @@ parseMultiLineRecord indent =
               intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
               "\n" <> (pack $ take indent $ repeat ' ') <> "}"
             ]
+
+parseRecordUpdate :: Int -> Parser Text
+parseRecordUpdate indent =
+  do
+    _ <- char '{'
+    _ <- parseSpaces
+    recordName <- parseName
+    _ <- parseSpaces
+    _ <- char '|'
+    _ <- parseSpaces
+    items <- many (parseRecordItem indent)
+    _ <- char '}'
+    return $
+      mconcat
+        [ "{ ",
+          recordName,
+          " | ",
+          intercalate ", " items,
+          " }"
+        ]
 
 parseSingleLineRecord :: Int -> Parser Text
 parseSingleLineRecord indent =
