@@ -125,6 +125,16 @@ parseMultiLineRecord indent =
 parseRecordUpdate :: Int -> Parser Text
 parseRecordUpdate indent =
   do
+    lininess <- lookAhead parseListType
+    case lininess of
+      MultiLine ->
+        parseMultiLineRecordUpdate indent
+      SingleLine ->
+        parseSingleLineRecordUpdate indent
+
+parseSingleLineRecordUpdate :: Int -> Parser Text
+parseSingleLineRecordUpdate indent =
+  do
     _ <- char '{'
     _ <- parseSpaces
     recordName <- parseName
@@ -140,6 +150,29 @@ parseRecordUpdate indent =
           " | ",
           intercalate ", " items,
           " }"
+        ]
+
+parseMultiLineRecordUpdate :: Int -> Parser Text
+parseMultiLineRecordUpdate indent =
+  do
+    _ <- char '{'
+    _ <- space
+    recordName <- parseName
+    _ <- space
+    _ <- char '|'
+    _ <- space
+    items <- many (parseRecordItem indent)
+    _ <- char '}'
+    let spaces = "\n" <> pack (take (indent + 4) (repeat ' '))
+    return $
+      mconcat
+        [ "{ ",
+          recordName,
+          spaces,
+          "| ",
+          intercalate (spaces <> ", ") items,
+          "\n" <> pack (take indent (repeat ' ')),
+          "}"
         ]
 
 parseSingleLineRecord :: Int -> Parser Text
