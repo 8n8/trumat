@@ -926,5 +926,19 @@ cases =
       \x =\n\
       \    { a | b = 0 }\n\
       \"
+    ),
+    ( "formatted single-line record update, with two items",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a | b = 0, c = 1 }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a | b = 0, c = 1 }\n\
+      \"
     )
   ]
