@@ -992,5 +992,22 @@ cases =
       \x =\n\
       \    { a | b = 2 }\n\
       \"
+    ),
+    ( "unformatted multi-line record update, with one item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {a|b=0\n\
+      \ }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a\n\
+      \        | b = 0\n\
+      \    }\n\
+      \"
     )
   ]
