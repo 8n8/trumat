@@ -978,5 +978,19 @@ cases =
       \        , c = 1\n\
       \    }\n\
       \"
+    ),
+    ( "unformatted single-line record update, with one item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {a|b=2}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a | b = 2 }\n\
+      \"
     )
   ]
