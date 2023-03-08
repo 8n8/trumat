@@ -1,10 +1,8 @@
 module Ast (Ast, malloc) where
 
-
 data Ast
-    = Ast
-
+  = Ast
 
 malloc :: IO Ast
 malloc =
-    return Ast
+  return Ast
