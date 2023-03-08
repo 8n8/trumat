@@ -10,9 +10,16 @@ ghc-options:
 - -Wno-implicit-prelude
 - -Wno-missing-safe-haskell-mode
 - -Wno-safe
+- -Wno-missing-kind-signatures
+- -Wno-unsafe
+- -Wno-monomorphism-restriction
+- -Wno-prepositive-qualified-module
 
 library:
   source-dirs: src
+
+default-extensions:
+- OverloadedStrings
 
 executables:
   trumat-exe:
@@ -33,3 +40,9 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    dependencies:
+    - tasty
+    - trumat
+    - text
+    - tasty-hunit
+    - bytestring
