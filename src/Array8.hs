@@ -1,6 +1,6 @@
 module Array8 (Array8, malloc, push, get) where
 
-import Data.IORef (IORef, newIORef, readIORef)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Word (Word8)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr)
@@ -26,7 +26,8 @@ push word (Array8 buffer sizeRef capacity) =
     if size == capacity
       then return Nothing
       else do
-        pokeElemOff buffer (size + 1) word
+        pokeElemOff buffer size word
+        writeIORef sizeRef (size + 1)
         return $ Just ()
 
 malloc :: Int -> IO Array8
