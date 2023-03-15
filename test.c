@@ -42,7 +42,7 @@ void run_test(struct Case test) {
 	memcpy(text, test.unformatted, unformatted_len);
 	struct Ast* ast = malloc(sizeof(struct Ast));
 	
-	int result = format(text, ast);
+	int result = format(text, unformatted_len, ast);
 	
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
@@ -52,12 +52,12 @@ void run_test(struct Case test) {
 	for (int i = 0; i < result; ++i) {
 		if (text[i] != test.formatted[i]) {
 			printf(
-				"FAILED\n    not formatted, expecting %c at index %d but got %c",
+				"FAILED\n    not formatted, expecting %c at index %d but got %c\n",
 				test.formatted[i],
 				i,
 				text[i]);
+			return;
 		}
-		return;
 	}
 	
 	printf("SUCCESS\n");

@@ -5,4 +5,4 @@
 struct Ast {
 };
 
-int format(uint8_t text[MAX_BUF], struct Ast* ast);
+int format(uint8_t text[MAX_BUF], int size, struct Ast* ast);
