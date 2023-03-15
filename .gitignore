@@ -1,2 +1,3 @@
-.stack-work/
-trumat.cabal
+a.out
+main.h.gch
+main.o
