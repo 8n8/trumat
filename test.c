@@ -37,12 +37,13 @@ int string_length(char* s) {
 
 void run_test(struct Case test) {
 	printf("%s ", test.description);
-	uint8_t* text = malloc(MAX_BUF);
+	uint8_t* in = malloc(MAX_BUF);
+	uint8_t* out = malloc(MAX_BUF);
 	int unformatted_len = string_length(test.unformatted);
-	memcpy(text, test.unformatted, unformatted_len);
+	memcpy(in, test.unformatted, unformatted_len);
 	struct Ast* ast = malloc(sizeof(struct Ast));
 	
-	int result = format(text, unformatted_len, ast);
+	int result = format(in, unformatted_len, out, ast);
 	
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
@@ -50,12 +51,12 @@ void run_test(struct Case test) {
 	}
 	
 	for (int i = 0; i < result; ++i) {
-		if (text[i] != test.formatted[i]) {
+		if (out[i] != test.formatted[i]) {
 			printf(
 				"FAILED\n    not formatted, expecting %c at index %d but got %c\n",
 				test.formatted[i],
 				i,
-				text[i]);
+				out[i]);
 			return;
 		}
 	}
