@@ -133,13 +133,28 @@ int parse_module_declaration(
     return parse_module_exposing(text, size, ast, i);
 }
 
+int parse_top_level_bind(
+    uint8_t text[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    int j = parse_pattern(
+}
+
 int parse_top_level(
     uint8_t text[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
 
-    return parse_module_declaration(text, size, ast, i);
+    int j = parse_module_declaration(text, size, ast, i);
+    if (j != 0) {
+        return j;
+    }
+    i = j;
+
+    return parse_top_level_bind(text, size, ast, i);
 }
 
 int parse(uint8_t text[MAX_BUF], int size, struct Ast* ast) {
