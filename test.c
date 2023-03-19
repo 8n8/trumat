@@ -44,7 +44,7 @@ void run_test(struct Case test) {
 	struct Mem* mem = malloc(sizeof(struct Mem));
 	
 	int result = format(in, unformatted_len, out, mem);
-	
+
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
 		return;

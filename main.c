@@ -1,4 +1,5 @@
 #include "main.h"
+#include <stdio.h>
 
 int apply_edits(
     uint8_t in[MAX_BUF],
@@ -20,12 +21,17 @@ int apply_edits(
         for (int x = 0; x < mem->insert_space[i]; ++x) {
             out[j] = ' ';
             ++j;
+            continue;
         }
 
         for (int x = 0; x < mem->insert_newline[i]; ++x) {
             out[j] = '\n';
             ++j;
+            continue;
         }
+
+        out[j] = in[i];
+        ++j;
     }
 
     return j;
