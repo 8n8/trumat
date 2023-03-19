@@ -26,6 +26,21 @@ struct Case cases[] = {
 			"x =\n"
 			"    0\n"
 	},
+    {
+        .description = "remove trailing newline",
+        .unformatted =
+            "module X exposing (x) \n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    0\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    0\n",
+    },
 	{NULL, NULL, NULL}
 };
 
@@ -53,7 +68,7 @@ void run_test(struct Case test) {
 	for (int i = 0; i < result; ++i) {
 		if (out[i] != test.formatted[i]) {
 			printf(
-				"FAILED\n    not formatted, expecting %c at index %d but got %c\n",
+				"FAILED\n    not formatted, expecting '%c' at index %d but got '%c'\n",
 				test.formatted[i],
 				i,
 				out[i]);
