@@ -7,27 +7,11 @@
 #define MAX_LITERAL 100000
 #define MAX_VERBATIM 100000
 
-struct Ast {
-    uint32_t verbatim_start[MAX_VERBATIM];
-    uint32_t verbatim_end[MAX_VERBATIM];
-    int num_verbatims;
-
-    int has_moduleName;
-    uint32_t module_name;
-
-    uint32_t export[MAX_EXPORTS];
-    int num_exports;
-
-    uint32_t module_membered[MAX_MODULE_MEMBERS];
-    uint32_t module_member[MAX_MODULE_MEMBERS];
-    int num_module_members;
-
-    uint32_t bind_left[MAX_BINDS];
-    uint32_t bind_right[MAX_BINDS];
-    int num_binds;
-
-    uint32_t int_literal[MAX_LITERAL];
-    int num_ints;
+struct Mem {
+    uint8_t delete_space[MAX_BUF];
+    uint8_t delete_newline[MAX_BUF];
+    uint8_t insert_space[MAX_BUF];
+    uint8_t insert_newline[MAX_BUF];
 };
 
-int format(uint8_t in[MAX_BUF], int size, uint8_t out[MAX_BUF], struct Ast* ast);
+int format(uint8_t in[MAX_BUF], int size, uint8_t out[MAX_BUF], struct Mem* mem);

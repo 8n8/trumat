@@ -41,9 +41,9 @@ void run_test(struct Case test) {
 	uint8_t* out = malloc(MAX_BUF);
 	int unformatted_len = string_length(test.unformatted);
 	memcpy(in, test.unformatted, unformatted_len);
-	struct Ast* ast = malloc(sizeof(struct Ast));
+	struct Mem* mem = malloc(sizeof(struct Mem));
 	
-	int result = format(in, unformatted_len, out, ast);
+	int result = format(in, unformatted_len, out, mem);
 	
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
