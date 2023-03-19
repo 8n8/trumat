@@ -12,6 +12,7 @@ struct Mem {
     uint8_t delete_newline[MAX_BUF];
     uint8_t insert_space[MAX_BUF];
     uint8_t insert_newline[MAX_BUF];
+    uint8_t followed_by_newline[MAX_BUF];
 };
 
 int format(uint8_t in[MAX_BUF], int size, uint8_t out[MAX_BUF], struct Mem* mem);
