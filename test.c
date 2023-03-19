@@ -41,6 +41,23 @@ struct Case cases[] = {
             "x =\n"
             "    0\n",
     },
+    {
+        .description = "indent a list",
+        .unformatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ a\n"
+            " ]\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ a\n"
+            "    ]\n",
+    },
 	{NULL, NULL, NULL}
 };
 
