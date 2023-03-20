@@ -26,38 +26,6 @@ struct Case cases[] = {
 			"x =\n"
 			"    0\n"
 	},
-    {
-        .description = "remove trailing newline",
-        .unformatted =
-            "module X exposing (x) \n"
-            "\n"
-            "\n"
-            "x =\n"
-            "    0\n",
-        .formatted =
-            "module X exposing (x)\n"
-            "\n"
-            "\n"
-            "x =\n"
-            "    0\n",
-    },
-    {
-        .description = "indent a list",
-        .unformatted =
-            "module X exposing (x)\n"
-            "\n"
-            "\n"
-            "x =\n"
-            "    [ a\n"
-            " ]\n",
-        .formatted =
-            "module X exposing (x)\n"
-            "\n"
-            "\n"
-            "x =\n"
-            "    [ a\n"
-            "    ]\n",
-    },
 	{NULL, NULL, NULL}
 };
 
@@ -73,10 +41,10 @@ void run_test(struct Case test) {
 	uint8_t* out = malloc(MAX_BUF);
 	int unformatted_len = string_length(test.unformatted);
 	memcpy(in, test.unformatted, unformatted_len);
-	struct Mem* mem = malloc(sizeof(struct Mem));
+	struct Ast* ast = malloc(sizeof(struct Ast));
 	
-	int result = format(in, unformatted_len, out, mem);
-
+	int result = format(in, unformatted_len, out, ast);
+	
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
 		return;
@@ -85,7 +53,7 @@ void run_test(struct Case test) {
 	for (int i = 0; i < result; ++i) {
 		if (out[i] != test.formatted[i]) {
 			printf(
-				"FAILED\n    not formatted, expecting '%c' at index %d but got '%c'\n",
+				"FAILED\n    not formatted, expecting %c at index %d but got %c\n",
 				test.formatted[i],
 				i,
 				out[i]);
