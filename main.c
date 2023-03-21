@@ -1,189 +1,207 @@
 #include "main.h"
 #include <stdio.h>
-#define VERBATIM 0
 
-int parse_keyword(char* keyword, uint8_t text[MAX_BUF], int size, int i) {
-    int j = 0;
-    for (; text[i+j] != keyword[j]; ++j) {
+char* END_NAME_CHARS = " \n-+=(){}[]/*&!";
+
+int is_end_name_char(uint8_t ch) {
+    for (int i = 0; END_NAME_CHARS[i] != '\0'; ++i) {
+        if (ch == END_NAME_CHARS[i]) {
+            return 1;
+        }
     }
 
-    if (keyword[j] != '\0') {
+    return 0;
+}
+
+int is_name_char(uint8_t ch) {
+    return
+        (ch > 'a' && ch < 'z')
+            || (ch > 'A' && ch < 'Z')
+            || (ch > '0' && ch < '9')
+            || ch == '_'
+            || ch == '.';
+}
+
+int is_first_name_char(uint8_t ch) {
+    return
+        (ch > 'a' && ch < 'z')
+            || (ch > 'A' && ch < 'Z')
+            || ch == '_';
+}
+
+int parse_name(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    if (i < size && !is_first_name_char(in[i])) {
         return i;
+    }
+
+    int j = i;
+    for (; j < size && is_name_char(in[j]); ++j) {
+    }
+
+    if (j < size && !is_end_name_char(in[j])) {
+        return i;
+    }
+
+    ast->verbatim_start[ast->num_verbatims] = i;
+    ast->verbatim_end[ast->num_verbatims] = j;
+    ++(ast->num_verbatims);
+
+    return j;
+}
+
+int parse_keyword(
+    char* keyword,
+    uint8_t in[MAX_BUF],
+    int i,
+    int size) {
+
+    int j = i;
+    for (; j < size && keyword[j-i] != '\0'; ++j) {
+        if (in[j] != keyword[j-i]) {
+            return i;
+        }
     }
 
     return j;
 }
 
-int parse_spaces_and_newlines(uint8_t text[MAX_BUF], int size, int i) {
-    for(; (i < size) && (text[i] == '\n' || text[i] == ' '); ++i) {
+int consume_whitespace(
+    uint8_t in[MAX_BUF],
+    int size,
+    int i) {
+
+    for (; i < size && (in[i] == ' ' || in[i] == '\n'); ++i) {
     }
+
     return i;
 }
 
-char* name_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.";
-
-int is_name_char(uint8_t ch) {
-    int i = 0;
-    for (; name_chars[i] != '\0'; ++i) {
+int consume_exports_spaces(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+    
+    for (; i < size && (in[i] == ' ' || in[i] == '\n'); ++i) {
+        if (in[i] == '\n') {
+            ast->newline_exports = 1;
+        }
     }
-
-    return name_chars[i] == '\0';
-}
-
-uint32_t make_verbatim_id(int n) {
-    return (uint32_t)(n) & (VERBATIM << 24);
-}
-
-int record_verbatim(uint8_t text[MAX_BUF], struct Ast* ast, int i) {
-    ast->verbatim_start[ast->num_verbatims] = i;
-    for (; is_name_char(text[i]); ++i) {
-    }
-    ast->verbatim_end[ast->num_verbatims] = i;
-    ++(ast->num_verbatims);
-
-    (ast->export)[ast->num_exports] = make_verbatim_id(ast->num_verbatims);
-    ++(ast->num_exports);
-
     return i;
 }
 
 int parse_export(
-    uint8_t text[MAX_BUF],
+    uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
 
-    i = parse_spaces_and_newlines(text, size, i);
+    int j = parse_name(in, size, ast, i);
+    if (j <= i) {
+        return -1;
+    }
+    i = j;
 
-    if (text[i] == ')') {
+    ast->export[ast->num_exports] = ast->num_verbatims - 1;
+    ++(ast->num_exports);
+
+    if (i < size && in[i] != '(') {
         return i;
     }
 
-    i = record_verbatim(text, ast, i);
-
-    i = parse_spaces_and_newlines(text, size, i);
-    if (text[i] == ',') {
-        ++i;
+    for (; i < size && in[i] != ')'; ++i) {
     }
+    ++i;
+
+    ast->export_expose[ast->num_export_expose] = ast->num_exports - 1;
+    ++(ast->num_export_expose);
 
     return i;
 }
 
-int parse_module_name(
-    uint8_t text[MAX_BUF],
+int parse_module_declaration(
+    uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
 
-    int j = parse_keyword("module", text, size, i);
-    if (j <= i) {
-        return j;
-    }
-    if (text[j] != ' ' && text[j] != '\n') {
-        return j;
-    }
-    i = j;
-
-    i = parse_spaces_and_newlines(text, size, i);
-
-    return record_verbatim(text, ast, i);
-}
-
-int parse_module_exposing(
-    uint8_t text[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
-    int j = parse_keyword("exposing", text, size, i);
+    int j = parse_keyword("module", in, i, size);
     if (j <= i) {
         return j;
     }
     i = j;
 
-    i = parse_spaces_and_newlines(text, size, i);
+    j = parse_name(in, size, ast, i);
+    if (j <= i) {
+        return j;
+    }
+    i = j;
 
-    if (text[i] != '(') {
+    ast->has_module_name = 1;
+    ast->module_name = ast->num_verbatims - 1;
+
+    i = consume_whitespace(in, size, i);
+
+    j = parse_keyword("exposing", in, i, size);
+    if (j <= i) {
+        return -1;
+    }
+
+    i = consume_whitespace(in, size, i);
+
+    if (!(i < size && in[i] == '(')) {
         return -1;
     }
     ++i;
 
-    while (1) {
-        j = parse_export(text, size, ast, i);
-        if (j == i) {
-            break;
+    for (; i < size && in[i] != ')';) {
+        i = consume_exports_spaces(in, size, ast, i);
+        i = parse_export(in, size, ast, i);
+        if (i < 0) {
+            return i;
         }
+        i = consume_exports_spaces(in, size, ast, i);
+        if (i < size && in[i] == ')') {
+            ++i;
+            return i;
+        }
+        if (i < size && in[i] == ',') {
+            ++i;
+            continue;
+        }
+        return -1;
     }
+    ++i;
 
-    return j;
-}
-
-int parse_module_declaration(
-    uint8_t text[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
-    int j = parse_module_name(text, size, ast, i);
-    if (j <= i) {
-        return j;
-    }
-    i = j;
-
-    return parse_module_exposing(text, size, ast, i);
-}
-
-int parse_name_pattern(
-    uint8_t text[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
-    int j = 0;
-    for (; is_name_char(text[j]); ++j) {
-    }
-
-}
-
-int parse_pattern(
-    uint8_t text[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
-    return parse_name_pattern(text, size, ast, i);
-}
-
-int parse_top_level_bind(
-    uint8_t text[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
-    int j = parse_pattern(text, size, ast, i);
+    return i;
 }
 
 int parse_top_level(
-    uint8_t text[MAX_BUF],
+    uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
 
-    int j = parse_module_declaration(text, size, ast, i);
-    if (j != 0) {
-        return j;
-    }
-    i = j;
-
-    return parse_top_level_bind(text, size, ast, i);
+    return parse_module_declaration(in, size, ast, i);
 }
 
-int parse(uint8_t text[MAX_BUF], int size, struct Ast* ast) {
-    for (int i = 0; ;) {
-        i = parse_top_level(text, size, ast, i);
-        if (i <= 0) {
-            return i;
+int parse(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast) {
+
+    int i = 0;
+    while (1) {
+        int j = parse_top_level(in, size, ast, i);
+        if (j <= i) {
+            return j;
         }
+        i = j;
     }
 }
 

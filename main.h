@@ -12,11 +12,14 @@ struct Ast {
     uint32_t verbatim_end[MAX_VERBATIM];
     int num_verbatims;
 
-    int has_moduleName;
+    int has_module_name;
     uint32_t module_name;
 
     uint32_t export[MAX_EXPORTS];
     int num_exports;
+    uint32_t export_expose[MAX_EXPORTS];
+    int num_export_expose;
+    int newline_exports;
 
     uint32_t module_membered[MAX_MODULE_MEMBERS];
     uint32_t module_member[MAX_MODULE_MEMBERS];
