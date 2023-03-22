@@ -1,5 +1,6 @@
 #include "main.h"
 #include <stdio.h>
+#define VERBATIM_EXPRESSION 0
 
 char* END_NAME_CHARS = " \n-+=(){}[]/*&!";
 
@@ -181,13 +182,94 @@ int parse_module_declaration(
     return i;
 }
 
+int is_digit(uint8_t ch) {
+    return ch >= '0' && ch <= '9';
+}
+
+int is_end_int(uint8_t ch) {
+    return ch == ' ' || ch == '\n' || ch == ')' || ch == ']' || ch == '}';
+}
+
+int parse_int(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    int j = i;
+    for (; j < size && is_digit(in[j]); ++j) {
+    }
+
+    if (!(j < size && is_end_int(in[j]))) {
+        return -1;
+    }
+
+    ast->verbatim_start[ast->num_verbatims] = i;
+    ast->verbatim_end[ast->num_verbatims] = j;
+    ++(ast->num_verbatims);
+
+    ast->expression_type[ast->num_expressions] = VERBATIM_EXPRESSION;
+    ast->expression_id[ast->num_expressions] = ast->num_verbatims - 1;
+    ++(ast->num_expressions);
+
+    return j;
+}
+
+int parse_expression(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    return parse_int(in, size, ast, i);
+}
+
+int parse_top_level_bind(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    int j = parse_name(in, size, ast, i);
+    if (j <= i) {
+        return i;
+    }
+    i = j;
+
+    i = consume_whitespace(in, size, i);
+
+    if (!(i < size && in[i] == '=')) {
+        return -1;
+    }
+
+    i = parse_expression(in, size, ast, i);
+    if (i < 0) {
+        return i;
+    }
+
+    ast->bind_left[ast->num_binds] = ast->num_verbatims - 1;
+    ast->bind_right[ast->num_expressions] = ast->num_expressions - 1;
+    ++(ast->num_binds);
+
+    ast->is_top_bind[ast->num_is_top_binds - 1] = ast->num_binds - 1;
+    ++(ast->num_is_top_binds);
+
+    return i;
+}
+
 int parse_top_level(
     uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
 
-    return parse_module_declaration(in, size, ast, i);
+    int j = parse_module_declaration(in, size, ast, i);
+    if (j != i) {
+        return j;    
+    }
+    i = j;
+
+    return parse_top_level_bind(in, size, ast, i);
 }
 
 int parse(
@@ -195,13 +277,13 @@ int parse(
     int size,
     struct Ast* ast) {
 
-    int i = 0;
-    while (1) {
+    for (int i = 0;;) {
         int j = parse_top_level(in, size, ast, i);
         if (j <= i) {
             return j;
         }
         i = j;
+        i = consume_whitespace(in, size, i);
     }
 }
 

@@ -6,6 +6,7 @@
 #define MAX_BINDS 10000
 #define MAX_LITERAL 100000
 #define MAX_VERBATIM 100000
+#define MAX_EXPRESSIONS 100000
 
 struct Ast {
     uint32_t verbatim_start[MAX_VERBATIM];
@@ -21,13 +22,16 @@ struct Ast {
     int num_export_expose;
     int newline_exports;
 
-    uint32_t module_membered[MAX_MODULE_MEMBERS];
-    uint32_t module_member[MAX_MODULE_MEMBERS];
-    int num_module_members;
-
     uint32_t bind_left[MAX_BINDS];
     uint32_t bind_right[MAX_BINDS];
     int num_binds;
+
+    uint32_t is_top_bind[MAX_BINDS];
+    int num_is_top_binds;
+
+    uint8_t expression_type[MAX_EXPRESSIONS];
+    uint32_t expression_id[MAX_EXPRESSIONS];
+    int num_expressions;
 
     uint32_t int_literal[MAX_LITERAL];
     int num_ints;

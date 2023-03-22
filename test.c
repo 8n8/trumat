@@ -47,6 +47,9 @@ void run_test(struct Case test) {
 	
 	if (result < 0) {
 		printf("FAILED\n    invalid Elm: error code is %d\n", result);
+        free(in);
+        free(out);
+        free(ast);
 		return;
 	}
 	
@@ -57,10 +60,16 @@ void run_test(struct Case test) {
 				test.formatted[i],
 				i,
 				out[i]);
+            free(in);
+            free(out);
+            free(ast);
 			return;
 		}
 	}
 	
+    free(in);
+    free(out);
+    free(ast);
 	printf("SUCCESS\n");
 }
 
