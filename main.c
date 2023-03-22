@@ -104,7 +104,7 @@ int parse_export(
 
     int j = parse_name(in, size, ast, i);
     if (j <= i) {
-        return -1;
+        return ExportName;
     }
     i = j;
 
@@ -150,13 +150,13 @@ int parse_module_declaration(
 
     j = parse_keyword("exposing", in, i, size);
     if (j <= i) {
-        return -1;
+        return Exposing;
     }
 
     i = consume_whitespace(in, size, i);
 
     if (!(i < size && in[i] == '(')) {
-        return -1;
+        return OpenBracketAfterExposing;
     }
     ++i;
 
@@ -175,7 +175,7 @@ int parse_module_declaration(
             ++i;
             continue;
         }
-        return -1;
+        return ExposingList;
     }
     ++i;
 
@@ -201,7 +201,7 @@ int parse_int(
     }
 
     if (!(j < size && is_end_int(in[j]))) {
-        return -1;
+        return i;
     }
 
     ast->verbatim_start[ast->num_verbatims] = i;
@@ -239,7 +239,7 @@ int parse_top_level_bind(
     i = consume_whitespace(in, size, i);
 
     if (!(i < size && in[i] == '=')) {
-        return -1;
+        return EqualsInTopLevelBind;
     }
 
     i = parse_expression(in, size, ast, i);
