@@ -56,7 +56,7 @@ void run_test(struct Case test) {
 	for (int i = 0; i < result; ++i) {
 		if (out[i] != test.formatted[i]) {
 			printf(
-				"FAILED\n    not formatted, expecting %c at index %d but got %c\n",
+				"FAILED\n    not formatted, expecting '%c' at index %d but got '%c'\n",
 				test.formatted[i],
 				i,
 				out[i]);
