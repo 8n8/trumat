@@ -1,6 +1,6 @@
 set -e
 
-gcc -c -o main.o main.c
-gcc test.c main.o
+gcc -g3 -c -o main.o main.c
+gcc -g3 test.c main.o
 ./a.out
 

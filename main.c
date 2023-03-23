@@ -137,6 +137,8 @@ int parse_module_declaration(
     }
     i = j;
 
+    i = consume_whitespace(in, size, i);
+
     j = parse_name(in, size, ast, i);
     if (j <= i) {
         return j;
@@ -152,6 +154,7 @@ int parse_module_declaration(
     if (j <= i) {
         return Exposing;
     }
+    i = j;
 
     i = consume_whitespace(in, size, i);
 
