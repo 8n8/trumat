@@ -244,6 +244,9 @@ int parse_top_level_bind(
     if (!(i < size && in[i] == '=')) {
         return EqualsInTopLevelBind;
     }
+    ++i;
+
+    i = consume_whitespace(in, size, i);
 
     i = parse_expression(in, size, ast, i);
     if (i < 0) {
@@ -296,5 +299,9 @@ int format(
     uint8_t out[MAX_BUF],
     struct Ast* ast) {
 
-    return parse(in, size, ast);    
+    int i = parse(in, size, ast);    
+    printf("sizeof(*ast) is %ld\n", sizeof(*ast));
+    if (i != size) {
+        return EndOfInput;
+    }
 }

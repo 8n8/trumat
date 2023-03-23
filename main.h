@@ -42,4 +42,5 @@ enum Error {
     OpenBracketAfterExposing = -3,
     ExposingList = -4,
     EqualsInTopLevelBind = -5,
+    EndOfInput = -6,
 };
