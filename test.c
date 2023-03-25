@@ -26,6 +26,20 @@ struct Case cases[] = {
 			"x =\n"
 			"    0\n"
 	},
+    {
+        .description = "hello world unformatted",
+        .unformatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x = 0\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    0\n"
+    },
 	{NULL, NULL, NULL}
 };
 
