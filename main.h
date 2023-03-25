@@ -43,4 +43,9 @@ enum Error {
     ExposingList = -4,
     EqualsInTopLevelBind = -5,
     EndOfInput = -6,
+    InvalidExpression = -7,
+};
+
+enum Expression {
+    Verbatim = 0,
 };

@@ -239,6 +239,8 @@ int parse_top_level_bind(
     }
     i = j;
 
+    ast->bind_left[ast->num_binds] = ast->num_verbatims - 1;
+
     i = consume_whitespace(in, size, i);
 
     if (!(i < size && in[i] == '=')) {
@@ -253,8 +255,7 @@ int parse_top_level_bind(
         return i;
     }
 
-    ast->bind_left[ast->num_binds] = ast->num_verbatims - 1;
-    ast->bind_right[ast->num_expressions] = ast->num_expressions - 1;
+    ast->bind_right[ast->num_binds] = ast->num_expressions - 1;
     ++(ast->num_binds);
 
     ast->is_top_bind[ast->num_is_top_binds - 1] = ast->num_binds - 1;
@@ -293,15 +294,173 @@ int parse(
     }
 }
 
+int print_string(char* string, int i, uint8_t out[MAX_BUF]) {
+    int j = 0;
+    for (; string[j] != '\0'; ++j) {
+        out[i+j] = string[j];
+    }
+    return i + j; 
+}
+
+int print_verbatim(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t verbatim) {
+
+    uint32_t start = ast->verbatim_start[verbatim];
+    uint32_t end = ast->verbatim_end[verbatim];
+
+    int j = 0;
+    for (; j < (end - start); ++j) {
+        out[i+j] = in[start+j];
+    }
+
+    return i+j;
+}
+
+int print_first_oneline_export(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int export_id,
+    int i) {
+
+    i = print_string("(", i, out);
+    return print_verbatim(ast, in, out, i, ast->export[export_id]);
+}
+
+int print_first_newline_export(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int export_id,
+    int i) {
+
+    i = print_string("\n    ( ", i, out);
+    return print_verbatim(ast, in, out, i, ast->export[export_id]);
+}
+
+int print_subsequent_oneline_export(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int export_id,
+    int i) {
+
+    i = print_string(", ", i, out);
+    return print_verbatim(ast, in, out, i, ast->export[export_id]);
+}
+
+int print_oneline_exports(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i) {
+
+    i = print_first_oneline_export(ast, in, out, 0, i);
+    for (int j = 1; j < ast->num_exports; ++j) {
+        i = print_subsequent_oneline_export(ast, in, out, j, i);
+    }
+    return print_string(")", i, out);
+}
+
+int print_newline_exports(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i) {
+
+    i = print_first_newline_export(ast, in, out, 0, i);
+    for (int j = 1; j < ast->num_exports; ++j) {
+        i = print_subsequent_oneline_export(ast, in, out, j, i);
+    }
+    return print_string("\n    )", i, out);
+}
+
+int print_exports(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i) {
+
+    if (ast->newline_exports) {
+        return print_newline_exports(ast, in, out, i);
+    }
+
+    return print_oneline_exports(ast, in, out, i);
+}
+
+int print_expression(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint8_t expression_id) {
+
+    enum Expression expression_type = ast->expression_type[expression_id];
+    switch (expression_type) {
+    case Verbatim:
+        uint8_t verbatim_id = ast->expression_id[expression_id];
+        return print_verbatim(ast, in, out, i, verbatim_id);
+    }
+
+    return InvalidExpression;
+}
+
+int print_top_level_bind(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint8_t bind_id) {
+
+    uint32_t left = ast->bind_left[bind_id];
+    uint32_t right = ast->bind_right[bind_id];
+
+    i = print_verbatim(ast, in, out, i, left);
+    i = print_string(" =\n    ", i, out);
+    return print_expression(ast, in, out, i, right);
+}
+
+int print_top_level_binds(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i) {
+
+    int j = 0;
+    for (; j < ast->num_is_top_binds - 1; ++j) {
+        i = print_top_level_bind(ast, in, out, i, j);
+        i = print_string("\n\n\n", i, out);
+    }
+
+    i = print_top_level_bind(ast, in, out, i, j);
+    i = print_string("\n", i, out);
+
+    return i;
+}
+
+int print(struct Ast* ast, uint8_t in[MAX_BUF], uint8_t out[MAX_BUF]) {
+    int i = print_string("module ", 0, out);
+    i = print_verbatim(ast, in, out, i, ast->module_name);
+    i = print_string(" exposing ", i, out);
+    i = print_exports(ast, in, out, i);
+    i = print_string("\n\n\n", i, out);
+    return print_top_level_binds(ast, in, out, i);
+}
+
 int format(
     uint8_t in[MAX_BUF],
     int size,
     uint8_t out[MAX_BUF],
     struct Ast* ast) {
 
-    int i = parse(in, size, ast);    
-    printf("sizeof(*ast) is %ld\n", sizeof(*ast));
+    int i = parse(in, size, ast);
     if (i != size) {
         return EndOfInput;
     }
+
+    return print(ast, in, out);
 }

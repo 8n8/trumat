@@ -52,7 +52,15 @@ void run_test(struct Case test) {
         free(ast);
 		return;
 	}
-	
+
+    if (result != string_length(test.formatted)) {
+        printf("FAILED\n    expecting output of %d bytes, but got %d bytes\n", string_length(test.formatted), result);
+        free(in);
+        free(out);
+        free(ast);
+		return;
+    }
+
 	for (int i = 0; i < result; ++i) {
 		if (out[i] != test.formatted[i]) {
 			printf(
