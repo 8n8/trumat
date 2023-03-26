@@ -268,7 +268,9 @@ int parse_list(uint8_t in[MAX_BUF], int size, struct Ast* ast, int i) {
     }         
     ++i;
 
-    uint32_t list_id = ast->num_list_items;
+    uint32_t list_id = ast->next_free_id;
+    ++(ast->next_free_id);
+    printf("list_id: %d\n", list_id);
     for (; i < size && in[i] != ']';) {
         i = consume_list_spaces(in, size, ast, i, list_id);
         i = parse_list_item(in, size, ast, i, list_id);
@@ -365,7 +367,7 @@ int parse_top_level_bind(
     ast->bind_right[ast->num_binds] = ast->num_expressions - 1;
     ++(ast->num_binds);
 
-    ast->is_top_bind[ast->num_is_top_binds - 1] = ast->num_binds - 1;
+    ast->is_top_bind[ast->num_is_top_binds] = ast->num_binds;
     ++(ast->num_is_top_binds);
 
     return i;
@@ -543,7 +545,7 @@ int print_oneline_list(
         if (ast->list_id[j] != list_id) {
             continue;
         }
-        
+
         uint32_t list_item = ast->list_item[j];
         i = print_first_list_item(ast, in, out, i, list_item);
         break;
@@ -557,7 +559,7 @@ int print_oneline_list(
         i = print_subsequent_oneline_list_item(ast, in, out, i, list_item);
     }
 
-    return print_string(" ]", i, out); 
+    return print_string(" ]", i, out);
 }
 
 int print_newline_list(

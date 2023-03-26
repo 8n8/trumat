@@ -39,6 +39,8 @@ struct Ast {
     uint8_t expression_type[MAX_EXPRESSIONS];
     uint32_t expression_id[MAX_EXPRESSIONS];
     int num_expressions;
+
+    uint32_t next_free_id;
 };
 
 int format(uint8_t in[MAX_BUF], int size, uint8_t out[MAX_BUF], struct Ast* ast);
