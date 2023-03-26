@@ -287,7 +287,33 @@ int parse_list(
     ++i;
 
     ast->expression_id[ast->num_expressions] = list_id;
-    ast->expression_type[ast->num_expressions] = List;
+    ast->expression_type[ast->num_expressions] = NonEmptyList;
+    ++(ast->num_expressions);
+
+    return i;
+}
+
+int parse_empty_list(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    if (!(i < size && in[i] == '[')) {
+        return i;
+    }
+
+    int j = i+1;
+    for (; j < size && (in[j] == ' ' || in[j] == '\n'); ++j) {
+    }
+
+    if (!(j < size && in[j] == ']')) {
+        return i;
+    }
+
+    i = j + 1;
+
+    ast->expression_type[ast->num_expressions] = EmptyList;
     ++(ast->num_expressions);
 
     return i;
@@ -299,7 +325,12 @@ int parse_expression(
     struct Ast* ast,
     int i) {
 
-    int j = parse_list(in, size, ast, i);
+    int j = parse_empty_list(in, size, ast, i);
+    if (j != i) {
+        return j;
+    }
+
+    j = parse_list(in, size, ast, i);
     if (j != i) {
         return j;
     }
@@ -535,9 +566,11 @@ int print_expression(
     case Verbatim:
         uint8_t verbatim_id = ast->expression_id[expression_id];
         return print_verbatim(ast, in, out, i, verbatim_id);
-    case List:
+    case NonEmptyList:
         uint8_t list_id = ast->expression_id[expression_id];
         return print_list(ast, in, out, i, list_id);
+    case EmptyList:
+        return print_string("[]", i, out);
     }
 
     return InvalidExpression;

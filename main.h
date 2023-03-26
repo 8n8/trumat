@@ -57,5 +57,6 @@ enum Error {
 
 enum Expression {
     Verbatim = 0,
-    List = 1,
+    NonEmptyList = 1,
+    EmptyList = 2,
 };
