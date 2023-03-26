@@ -101,7 +101,7 @@ struct Case cases[] = {
             "\n"
             "\n"
             "x =\n"
-            "    [ a\n"
+            "    [ 0\n"
             "    ]\n"
     },
 	{NULL, NULL, NULL}
