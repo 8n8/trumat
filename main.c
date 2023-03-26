@@ -5,6 +5,12 @@
 char* END_NAME_CHARS = " \n-+=(){}[]/*&!";
 
 int parse_expression(uint8_t in[MAX_BUF], int size, struct Ast* ast, int i);
+int print_expression(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t expression_id);
 
 int is_end_name_char(uint8_t ch) {
     for (int i = 0; END_NAME_CHARS[i] != '\0'; ++i) {
@@ -151,7 +157,7 @@ int parse_list_item(
 
     int j = parse_expression(in, size, ast, i);
     if (j <= i) {
-        return ListItem;
+        return ListItemError;
     }
     i = j;
 
@@ -274,17 +280,16 @@ int parse_list(
             return i;
         }
         i = consume_list_spaces(in, size, ast, i);
-        if (i < size && in[i] == ']') {
-            ++i;
-            return i;
-        }
         if (i < size && in[i] == ',') {
             ++i;
-            continue;
         }
-        return List;
     }
     ++i;
+
+    ast->expression_id[ast->num_expressions] = list_id;
+    ast->expression_type[ast->num_expressions] = List;
+    ++(ast->num_expressions);
+
     return i;
 }
 
@@ -475,7 +480,7 @@ int print_subsequent_list_item(
     uint32_t list_item) {
 
     i = print_string(", ", i, out);
-    return print_verbatim(ast, in, out, i, list_item);
+    return print_expression(ast, in, out, i, list_item);
 }
 
 int print_first_list_item(
@@ -486,7 +491,7 @@ int print_first_list_item(
     uint32_t list_item) {
 
     i = print_string("[ ", i, out);
-    return print_verbatim(ast, in, out, i, list_item);
+    return print_expression(ast, in, out, i, list_item);
 }
 
 
@@ -497,8 +502,7 @@ int print_list(
     int i,
     uint32_t list_id) {
 
-    int j = 0;
-    for (; j < ast->num_list_items; ++j) {
+    for (int j = 0; j < ast->num_list_items; ++j) {
         if (ast->list_id[j] != list_id) {
             continue;
         }
@@ -508,7 +512,7 @@ int print_list(
         break;
     }
 
-    for (; j < ast->num_list_items; ++j) {
+    for (int j = 1; j < ast->num_list_items; ++j) {
         if (ast->list_id[j] != list_id) {
             break;
         }
@@ -524,7 +528,7 @@ int print_expression(
     uint8_t in[MAX_BUF],
     uint8_t out[MAX_BUF],
     int i,
-    uint8_t expression_id) {
+    uint32_t expression_id) {
 
     enum Expression expression_type = ast->expression_type[expression_id];
     switch (expression_type) {

@@ -51,7 +51,8 @@ enum Error {
     EqualsInTopLevelBind = -5,
     EndOfInput = -6,
     InvalidExpression = -7,
-    ListItem = -8,
+    ListError = -8,
+    ListItemError = -9,
 };
 
 enum Expression {
