@@ -40,6 +40,21 @@ struct Case cases[] = {
             "x =\n"
             "    0\n"
     },
+    {
+        .description = "oneline list formatted",
+        .unformatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ 1, 2 ]\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ 1, 2 ]\n",
+    },
 	{NULL, NULL, NULL}
 };
 

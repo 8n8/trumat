@@ -29,6 +29,13 @@ struct Ast {
     uint32_t is_top_bind[MAX_BINDS];
     int num_is_top_binds;
 
+    uint32_t list_id[MAX_EXPRESSIONS];
+    uint32_t list_item[MAX_EXPRESSIONS];
+    int num_list_items;
+
+    uint32_t has_newlines[MAX_EXPRESSIONS];
+    int num_has_newlines;
+
     uint8_t expression_type[MAX_EXPRESSIONS];
     uint32_t expression_id[MAX_EXPRESSIONS];
     int num_expressions;
@@ -44,8 +51,10 @@ enum Error {
     EqualsInTopLevelBind = -5,
     EndOfInput = -6,
     InvalidExpression = -7,
+    ListItem = -8,
 };
 
 enum Expression {
     Verbatim = 0,
+    List = 1,
 };

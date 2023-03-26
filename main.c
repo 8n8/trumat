@@ -4,6 +4,8 @@
 
 char* END_NAME_CHARS = " \n-+=(){}[]/*&!";
 
+int parse_expression(uint8_t in[MAX_BUF], int size, struct Ast* ast, int i);
+
 int is_end_name_char(uint8_t ch) {
     for (int i = 0; END_NAME_CHARS[i] != '\0'; ++i) {
         if (ch == END_NAME_CHARS[i]) {
@@ -96,6 +98,21 @@ int consume_exports_spaces(
     return i;
 }
 
+int consume_list_spaces(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+    
+    for (; i < size && (in[i] == ' ' || in[i] == '\n'); ++i) {
+        if (in[i] == '\n') {
+            ast->has_newlines[ast->num_has_newlines] = ast->num_list_items;
+            ++(ast->num_has_newlines);
+        }
+    }
+    return i;
+}
+
 int parse_export(
     uint8_t in[MAX_BUF],
     int size,
@@ -121,6 +138,26 @@ int parse_export(
 
     ast->export_expose[ast->num_export_expose] = ast->num_exports - 1;
     ++(ast->num_export_expose);
+
+    return i;
+}
+
+int parse_list_item(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i,
+    uint8_t list_id) {
+
+    int j = parse_expression(in, size, ast, i);
+    if (j <= i) {
+        return ListItem;
+    }
+    i = j;
+
+    ast->list_id[ast->num_list_items] = list_id;
+    ast->list_item[ast->num_list_items] = ast->num_expressions - 1;
+    ++(ast->num_list_items);
 
     return i;
 }
@@ -190,7 +227,7 @@ int is_digit(uint8_t ch) {
 }
 
 int is_end_int(uint8_t ch) {
-    return ch == ' ' || ch == '\n' || ch == ')' || ch == ']' || ch == '}';
+    return ch == ' ' || ch == '\n' || ch == ')' || ch == ']' || ch == '}' || ch == ',';
 }
 
 int parse_int(
@@ -218,11 +255,49 @@ int parse_int(
     return j;
 }
 
+int parse_list(
+    uint8_t in[MAX_BUF],
+    int size,
+    struct Ast* ast,
+    int i) {
+
+    if (!(i < size && in[i] == '[')) {
+        return i;
+    }         
+    ++i;
+
+    uint32_t list_id = ast->num_list_items;
+    for (; i < size && in[i] != ']';) {
+        i = consume_list_spaces(in, size, ast, i);
+        i = parse_list_item(in, size, ast, i, list_id);
+        if (i < 0) {
+            return i;
+        }
+        i = consume_list_spaces(in, size, ast, i);
+        if (i < size && in[i] == ']') {
+            ++i;
+            return i;
+        }
+        if (i < size && in[i] == ',') {
+            ++i;
+            continue;
+        }
+        return List;
+    }
+    ++i;
+    return i;
+}
+
 int parse_expression(
     uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
     int i) {
+
+    int j = parse_list(in, size, ast, i);
+    if (j != i) {
+        return j;
+    }
 
     return parse_int(in, size, ast, i);
 }
@@ -392,6 +467,58 @@ int print_exports(
     return print_oneline_exports(ast, in, out, i);
 }
 
+int print_subsequent_list_item(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_item) {
+
+    i = print_string(", ", i, out);
+    return print_verbatim(ast, in, out, i, list_item);
+}
+
+int print_first_list_item(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_item) {
+
+    i = print_string("[ ", i, out);
+    return print_verbatim(ast, in, out, i, list_item);
+}
+
+
+int print_list(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_id) {
+
+    int j = 0;
+    for (; j < ast->num_list_items; ++j) {
+        if (ast->list_id[j] != list_id) {
+            continue;
+        }
+        
+        uint32_t list_item = ast->list_item[j];
+        i = print_first_list_item(ast, in, out, i, list_item);
+        break;
+    }
+
+    for (; j < ast->num_list_items; ++j) {
+        if (ast->list_id[j] != list_id) {
+            break;
+        }
+        uint32_t list_item = ast->list_item[j];
+        i = print_subsequent_list_item(ast, in, out, i, list_item);
+    }
+
+    return print_string(" ]", i, out); 
+}
+
 int print_expression(
     struct Ast* ast,
     uint8_t in[MAX_BUF],
@@ -404,6 +531,9 @@ int print_expression(
     case Verbatim:
         uint8_t verbatim_id = ast->expression_id[expression_id];
         return print_verbatim(ast, in, out, i, verbatim_id);
+    case List:
+        uint8_t list_id = ast->expression_id[expression_id];
+        return print_list(ast, in, out, i, list_id);
     }
 
     return InvalidExpression;
@@ -458,6 +588,9 @@ int format(
     struct Ast* ast) {
 
     int i = parse(in, size, ast);
+    if (i < 0) {
+        return i;
+    }
     if (i != size) {
         return EndOfInput;
     }
