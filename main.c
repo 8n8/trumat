@@ -108,11 +108,12 @@ int consume_list_spaces(
     uint8_t in[MAX_BUF],
     int size,
     struct Ast* ast,
-    int i) {
+    int i,
+    uint32_t list_id) {
     
     for (; i < size && (in[i] == ' ' || in[i] == '\n'); ++i) {
         if (in[i] == '\n') {
-            ast->has_newlines[ast->num_has_newlines] = ast->num_list_items;
+            ast->has_newlines[ast->num_has_newlines] = list_id;
             ++(ast->num_has_newlines);
         }
     }
@@ -261,12 +262,7 @@ int parse_int(
     return j;
 }
 
-int parse_list(
-    uint8_t in[MAX_BUF],
-    int size,
-    struct Ast* ast,
-    int i) {
-
+int parse_list(uint8_t in[MAX_BUF], int size, struct Ast* ast, int i) {
     if (!(i < size && in[i] == '[')) {
         return i;
     }         
@@ -274,12 +270,12 @@ int parse_list(
 
     uint32_t list_id = ast->num_list_items;
     for (; i < size && in[i] != ']';) {
-        i = consume_list_spaces(in, size, ast, i);
+        i = consume_list_spaces(in, size, ast, i, list_id);
         i = parse_list_item(in, size, ast, i, list_id);
         if (i < 0) {
             return i;
         }
-        i = consume_list_spaces(in, size, ast, i);
+        i = consume_list_spaces(in, size, ast, i, list_id);
         if (i < size && in[i] == ',') {
             ++i;
         }
@@ -503,7 +499,7 @@ int print_exports(
     return print_oneline_exports(ast, in, out, i);
 }
 
-int print_subsequent_list_item(
+int print_subsequent_oneline_list_item(
     struct Ast* ast,
     uint8_t in[MAX_BUF],
     uint8_t out[MAX_BUF],
@@ -511,6 +507,17 @@ int print_subsequent_list_item(
     uint32_t list_item) {
 
     i = print_string(", ", i, out);
+    return print_expression(ast, in, out, i, list_item);
+}
+
+int print_subsequent_newline_list_item(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_item) {
+
+    i = print_string("\n    , ", i, out);
     return print_expression(ast, in, out, i, list_item);
 }
 
@@ -525,8 +532,7 @@ int print_first_list_item(
     return print_expression(ast, in, out, i, list_item);
 }
 
-
-int print_list(
+int print_oneline_list(
     struct Ast* ast,
     uint8_t in[MAX_BUF],
     uint8_t out[MAX_BUF],
@@ -548,10 +554,54 @@ int print_list(
             break;
         }
         uint32_t list_item = ast->list_item[j];
-        i = print_subsequent_list_item(ast, in, out, i, list_item);
+        i = print_subsequent_oneline_list_item(ast, in, out, i, list_item);
     }
 
     return print_string(" ]", i, out); 
+}
+
+int print_newline_list(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_id) {
+
+    for (int j = 0; j < ast->num_list_items; ++j) {
+        if (ast->list_id[j] != list_id) {
+            continue;
+        }
+        
+        uint32_t list_item = ast->list_item[j];
+        i = print_first_list_item(ast, in, out, i, list_item);
+        break;
+    }
+
+    for (int j = 1; j < ast->num_list_items; ++j) {
+        if (ast->list_id[j] != list_id) {
+            break;
+        }
+        uint32_t list_item = ast->list_item[j];
+        i = print_subsequent_newline_list_item(ast, in, out, i, list_item);
+    }
+
+    return print_string("\n    ]", i, out); 
+}
+
+int print_list(
+    struct Ast* ast,
+    uint8_t in[MAX_BUF],
+    uint8_t out[MAX_BUF],
+    int i,
+    uint32_t list_id) {
+
+    for (int j = 0; j < ast->num_has_newlines; ++j) {
+        if (ast->has_newlines[j] == list_id) {
+            return print_newline_list(ast, in, out, i, list_id);
+        }
+    }
+
+    return print_oneline_list(ast, in, out, i, list_id);
 }
 
 int print_expression(

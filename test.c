@@ -94,7 +94,7 @@ struct Case cases[] = {
             "\n"
             "\n"
             "x =\n"
-            "    [ a\n"
+            "    [ 0, 1\n"
             "    ]\n",
         .formatted =
             "module X exposing (x)\n"
@@ -102,6 +102,7 @@ struct Case cases[] = {
             "\n"
             "x =\n"
             "    [ 0\n"
+            "    , 1\n"
             "    ]\n"
     },
 	{NULL, NULL, NULL}
