@@ -105,6 +105,21 @@ struct Case cases[] = {
             "    , 1\n"
             "    ]\n"
     },
+    {
+        .description = "nested lists",
+        .unformatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ [ 0 ] ]\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    [ [ 0 ] ]\n",
+    },
 	{NULL, NULL, NULL}
 };
 
