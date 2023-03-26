@@ -70,6 +70,23 @@ struct Case cases[] = {
             "x =\n"
             "    []\n",
     },
+    {
+        .description = "multi-line empty list, unformatted",
+        .unformatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "   [\n"
+            "\n"
+            " ]\n",
+        .formatted =
+            "module X exposing (x)\n"
+            "\n"
+            "\n"
+            "x =\n"
+            "    []\n",
+    },
 	{NULL, NULL, NULL}
 };
 
