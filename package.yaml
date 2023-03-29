@@ -1,0 +1,40 @@
+name:                trumat
+version:             0.1.0.0
+
+dependencies:
+- base >= 4.7 && < 5
+
+ghc-options:
+- -Weverything
+- -Werror
+- -Wno-missing-kind-signatures
+- -Wno-safe
+- -Wno-implicit-prelude
+- -Wno-missing-safe-haskell-mode
+- -Wno-missing-home-modules
+- -Wno-prepositive-qualified-module
+
+library:
+  source-dirs: src
+
+executables:
+  trumat-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - trumat
+
+tests:
+  trumat-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - trumat
