@@ -6,24 +6,42 @@ import Data.Word (Word8)
 import Ast (Ast)
 
 format :: Array Word8 -> Ast -> Array Word8 -> IO (Either String ())
-format unformatted _ formatted =
-    fmap Right (formatHelp unformatted formatted 0)
-
-
-formatHelp :: Array Word8 -> Array Word8 -> Int -> IO ()
-formatHelp unformatted formatted index =
+format unformatted ast formatted =
     do
-    getResult <- Array.get index unformatted
-    case getResult of
-        Nothing ->
-            return ()
+    parsed <- parse unformatted ast
+    case parsed of
+        Left err ->
+            return $ Left err
 
-        Just byte ->
+        Right () ->
+            print ast unformatted formatted
+
+parse :: Array Word8 -> Ast -> IO (Either String ())
+parse unformatted ast =
+    do
+    parseResult <- parseHelp unformatted ast 0
+    case parseResult of
+        Right _ ->
+            return $ Right ()
+
+        Left err ->
+            return $ Left err
+
+data Result
+    = Success Int
+    | Failure String
+    | None
+
+instance Monad Result where
+    return x = Success x
+    Result >>= f = 
+
+parseHelp unformatted ast i =
+    do
+    result <- parseTopLevel unformatted ast i
+    case result of
+        Success j ->
             do
-            appendResult <- Array.append byte formatted
-            case appendResult of
-                Nothing ->
-                    return ()
 
-                Just () ->
-                    formatHelp unformatted formatted (index + 1)
+    if j <= i then
+        return j
