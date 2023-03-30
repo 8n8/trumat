@@ -58,21 +58,21 @@ fillInBuf buf str =
 oneTest :: (String, String, String) -> IO ()
 oneTest (description, unformatted, formatted) =
     do
-    putStrLn description
+    putStr (description ++ " ")
     inBuf <- Array.new Capacity.k20
     fillResult <- fillInBuf inBuf unformatted
     ast <- Ast.new
     outBuf <- Array.new Capacity.k20
     case fillResult of
         Left _ ->
-            putStrLn "FAILURE: could not fill buffer"
+            error "FAILURE: could not fill buffer"
 
         Right () ->
             do
             formatResult <- format inBuf ast outBuf
             case formatResult of
                 Left err ->
-                    putStrLn ("FAILURE: could not format the code: " ++ err)
+                    error ("FAILURE: could not format the code: " ++ err)
 
 
                 Right () ->
@@ -82,7 +82,7 @@ oneTest (description, unformatted, formatted) =
                         putStrLn "SUCCESS"
 
                     else
-                        putStrLn $
+                        error $
                             mconcat
                             [ "FAILURE: expecting "
                             , formatted
@@ -109,4 +109,3 @@ readOutBufHelp array index accum =
             array
             (index + 1)
             ((Data.Char.chr (fromIntegral byte)) : accum)
-            
