@@ -1025,5 +1025,23 @@ cases =
       \    [-- a\n\
       \    ]\n\
       \"
+    ),
+    ( "line comment in a single-item list, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ -- a\n\
+      \      0\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ -- a\n\
+      \      0\n\
+      \    ]\n\
+      \"
     )
   ]

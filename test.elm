@@ -2,7 +2,6 @@ module X exposing (x)
 
 
 x =
-    [ b
-
-    -- c
+    [ -- a
+      0
     ]
