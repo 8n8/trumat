@@ -4,18 +4,29 @@ version:             0.1.0.0
 dependencies:
 - base >= 4.7 && < 5
 
+default-extensions:
+- OverloadedStrings
+- NoImplicitPrelude
+
 ghc-options:
 - -Weverything
 - -Werror
-- -Wno-missing-kind-signatures
 - -Wno-safe
-- -Wno-implicit-prelude
-- -Wno-missing-safe-haskell-mode
-- -Wno-missing-home-modules
 - -Wno-prepositive-qualified-module
+- -Wno-missing-safe-haskell-mode
+- -Wno-unsafe
+- -Wno-monomorphism-restriction
+- -Wno-missing-import-lists
+- -Wno-missing-kind-signatures
+- -Wno-missing-deriving-strategies
+- -Wno-unused-top-binds
 
 library:
   source-dirs: src
+  dependencies:
+  - text
+  - megaparsec
+  - containers
 
 executables:
   trumat-exe:
@@ -38,3 +49,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - tasty
+    - tasty-hunit
+    - text
+    - hedgehog
+    - tasty-hedgehog

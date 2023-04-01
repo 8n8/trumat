@@ -1,6 +1,2 @@
-a.out
-main.h.gch
-main.o
 .stack-work/
-zig-cache/
-zig-out/
+trumat.cabal
