@@ -1043,5 +1043,25 @@ cases =
       \      0\n\
       \    ]\n\
       \"
+    ),
+    ( "two leading line comments in a single-item list, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ -- a\n\
+      \      -- b\n\
+      \      0\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ -- a\n\
+      \      -- b\n\
+      \      0\n\
+      \    ]\n\
+      \"
     )
   ]

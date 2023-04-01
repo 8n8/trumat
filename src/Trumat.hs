@@ -699,7 +699,7 @@ parseMultiLineList :: Int -> Parser Text
 parseMultiLineList indent =
   do
     _ <- char '['
-    comment <- commentSpaceParser indent
+    comment <- commentSpaceParser (indent + 2)
     items <- many (parseMultiListItem (indent + 2) ']')
     _ <- char ']'
     if null items
