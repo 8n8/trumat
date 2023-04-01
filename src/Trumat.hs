@@ -29,8 +29,8 @@ import Prelude
     Show,
     String,
     elem,
-    filter,
     fail,
+    filter,
     fmap,
     head,
     length,
@@ -542,7 +542,7 @@ parseVerbatim =
 
 parseComment :: Parser Text
 parseComment =
-    do
+  do
     _ <- chunk "--"
     comment <- takeWhileP Nothing (\ch -> ch /= '\n')
     _ <- char '\n'
@@ -550,18 +550,19 @@ parseComment =
 
 commentSpaceParser :: Int -> Parser Text
 commentSpaceParser indent =
-    do
-    comments <- many $ choice
-        [ parseComment
-        , do
-            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-            return ""
-        ]
+  do
+    comments <-
+      many $
+        choice
+          [ parseComment,
+            do
+              _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+              return ""
+          ]
     return $
-        intercalate
-            ("\n" <> pack (take indent (repeat ' ')))
-            (filter (\s -> s /= "") comments)
-
+      intercalate
+        ("\n" <> pack (take indent (repeat ' ')))
+        (filter (\s -> s /= "") comments)
 
 parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
@@ -572,17 +573,14 @@ parseMultiListItem indent end =
     _ <- choice [char ',', lookAhead (try (char end))]
     return $
       mconcat
-      [ if commentBefore == "" then
-            ""
-        else
-            pack (take indent (repeat ' ')) <> commentBefore
-      , expression
-      , if commentAfter == "" then
-            ""
-        else
-            pack (take (indent - 2) (repeat ' ')) <> commentAfter
-      ]
-        
+        [ if commentBefore == ""
+            then ""
+            else pack (take indent (repeat ' ')) <> commentBefore,
+          expression,
+          if commentAfter == ""
+            then ""
+            else pack (take (indent - 2) (repeat ' ')) <> commentAfter
+        ]
 
 parseListItem :: Int -> Parser () -> Char -> Parser Text
 parseListItem indent spaceParser end =
@@ -705,12 +703,11 @@ parseMultiLineList indent =
     items <- many (parseMultiListItem (indent + 2) ']')
     _ <- char ']'
     if null items
-      then return $
-        if comment == "" then
-            "[]"
-
-        else
-            "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
+      then
+        return $
+          if comment == ""
+            then "[]"
+            else "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
       else
         return $
           mconcat
