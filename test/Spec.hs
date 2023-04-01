@@ -1063,5 +1063,25 @@ cases =
       \      0\n\
       \    ]\n\
       \"
+    ),
+    ( "trailing line comment in a single-item list, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ 0\n\
+      \\n\
+      \    -- a\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ 0\n\
+      \\n\
+      \    -- a\n\
+      \    ]\n\
+      \"
     )
   ]
