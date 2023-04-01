@@ -9,21 +9,6 @@ version:        0.1.0.0
 build-type:     Simple
 
 library
-  exposed-modules:
-      Array
-      Ast
-      Bind
-      Bytes
-      Capacity
-      Export
-      Expression
-      Format
-      HasNewline
-      Lib
-      List
-      ModuleName
-      TopBind
-      Verbatim
   other-modules:
       Paths_trumat
   hs-source-dirs:
