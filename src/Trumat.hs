@@ -29,6 +29,7 @@ import Prelude
     Show,
     String,
     elem,
+    filter,
     fail,
     fmap,
     head,
@@ -539,6 +540,50 @@ parseVerbatim =
       then fail $ "expecting a verbatim, but got: " <> unpack word
       else return word
 
+parseComment :: Parser Text
+parseComment =
+    do
+    _ <- chunk "--"
+    comment <- takeWhileP Nothing (\ch -> ch /= '\n')
+    _ <- char '\n'
+    return ("--" <> comment)
+
+commentSpaceParser :: Int -> Parser Text
+commentSpaceParser indent =
+    do
+    comments <- many $ choice
+        [ parseComment
+        , do
+            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+            return ""
+        ]
+    return $
+        intercalate
+            ("\n" <> pack (take indent (repeat ' ')))
+            (filter (\s -> s /= "") comments)
+
+
+parseMultiListItem :: Int -> Char -> Parser Text
+parseMultiListItem indent end =
+  do
+    commentBefore <- commentSpaceParser indent
+    expression <- parseExpression indent
+    commentAfter <- commentSpaceParser indent
+    _ <- choice [char ',', lookAhead (try (char end))]
+    return $
+      mconcat
+      [ if commentBefore == "" then
+            ""
+        else
+            pack (take indent (repeat ' ')) <> commentBefore
+      , expression
+      , if commentAfter == "" then
+            ""
+        else
+            pack (take (indent - 2) (repeat ' ')) <> commentAfter
+      ]
+        
+
 parseListItem :: Int -> Parser () -> Char -> Parser Text
 parseListItem indent spaceParser end =
   do
@@ -656,11 +701,16 @@ parseMultiLineList :: Int -> Parser Text
 parseMultiLineList indent =
   do
     _ <- char '['
-    _ <- space
-    items <- many (parseListItem (indent + 2) space ']')
+    comment <- commentSpaceParser indent
+    items <- many (parseMultiListItem (indent + 2) ']')
     _ <- char ']'
     if null items
-      then return "[]"
+      then return $
+        if comment == "" then
+            "[]"
+
+        else
+            "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
       else
         return $
           mconcat
