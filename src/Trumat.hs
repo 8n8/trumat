@@ -542,10 +542,10 @@ parseVerbatim =
 parseListItem :: Int -> Parser () -> Char -> Parser Text
 parseListItem indent spaceParser end =
   do
+    _ <- spaceParser
     expression <- parseExpression indent
     _ <- spaceParser
     _ <- choice [char ',', lookAhead (try (char end))]
-    _ <- spaceParser
     return expression
 
 data ContainerType
