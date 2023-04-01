@@ -712,6 +712,9 @@ parseMultiLineList indent =
         return $
           mconcat
             [ "[ ",
+              if comment == ""
+                then ""
+                else comment <> "\n" <> (pack $ take indent $ repeat ' ') <> "  ",
               intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
               "\n" <> (pack $ take indent $ repeat ' ') <> "]"
             ]
