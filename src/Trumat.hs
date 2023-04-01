@@ -579,7 +579,7 @@ parseMultiListItem indent end =
           expression,
           if commentAfter == ""
             then ""
-            else pack (take (indent - 2) (repeat ' ')) <> commentAfter
+            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
 parseListItem :: Int -> Parser () -> Char -> Parser Text
