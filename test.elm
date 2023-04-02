@@ -2,5 +2,8 @@ module X exposing (x)
 
 
 x =
-    [ 0 -- a
-    ]
+    { a =
+        1
+
+    -- a
+    }
