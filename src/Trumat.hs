@@ -202,6 +202,7 @@ parseRecordItem indent =
     _ <- char '='
     _ <- space
     right <- parseExpression indent
+    sameLineComment <- choice [try parseSameLineComment, return ""]
     _ <- space
     _ <- choice [char ',', lookAhead (try (char '}'))]
     _ <- space
@@ -214,7 +215,10 @@ parseRecordItem indent =
               " "
             MultiLine ->
               "\n" <> pack (take (indent + 2) (repeat ' ')),
-          right
+          right,
+          if sameLineComment == ""
+            then ""
+            else " " <> sameLineComment
         ]
 
 parseRecordItemLininess :: Parser ContainerType
