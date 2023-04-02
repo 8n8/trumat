@@ -663,7 +663,7 @@ parseMultiLineTuple indent =
   do
     _ <- char '('
     _ <- space
-    items <- many (parseListItem (indent + 2) space ')')
+    items <- many (parseMultiListItem (indent + 2) ')')
     _ <- char ')'
     if null items
       then return "()"
