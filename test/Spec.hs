@@ -1138,7 +1138,7 @@ cases =
       \    }\n\
       \"
     ),
-    ( "trailing line comment in multi-line record, on same line",
+    ( "trailing line comment in multi-line record, on next line",
       "module X exposing (x)\n\
       \\n\
       \\n\
