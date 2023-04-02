@@ -1121,5 +1121,21 @@ cases =
       \    [ 0 -- a\n\
       \    ]\n\
       \"
+    ),
+    ( "trailing line comment in multi-line record, on same line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1 -- a\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = 1 -- a\n\
+      \    }\n\
+      \"
     )
   ]
