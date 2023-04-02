@@ -564,11 +564,21 @@ commentSpaceParser indent =
         ("\n" <> pack (take indent (repeat ' ')))
         (filter (\s -> s /= "") comments)
 
+parseSameLineComment :: Parser Text
+parseSameLineComment =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- chunk "--"
+    comment <- takeWhileP Nothing (\ch -> ch /= '\n')
+    _ <- char '\n'
+    return ("--" <> comment)
+
 parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
     commentBefore <- commentSpaceParser indent
     expression <- parseExpression indent
+    sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- choice [char ',', lookAhead (try (char end))]
     return $
@@ -577,6 +587,9 @@ parseMultiListItem indent end =
             then ""
             else pack (take indent (repeat ' ')) <> commentBefore,
           expression,
+          if sameLineComment == ""
+            then ""
+            else " " <> sameLineComment,
           if commentAfter == ""
             then ""
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
