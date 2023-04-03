@@ -1,9 +1,7 @@
 module X exposing (x)
 
 
-x =
-    { a =
-        1
-
+y =
+    { a = 1
     -- a
     }

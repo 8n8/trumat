@@ -28,7 +28,7 @@ library:
   - containers
 
 executables:
-  trumat-exe:
+  trumat:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
