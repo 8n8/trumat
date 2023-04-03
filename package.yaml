@@ -37,6 +37,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - bytestring
+    - text
+    - directory
 
 tests:
   trumat-test:
