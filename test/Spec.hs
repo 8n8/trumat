@@ -1159,5 +1159,19 @@ cases =
       \    -- a\n\
       \    }\n\
       \"
+    ),
+    ( "module declaration not called X",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]

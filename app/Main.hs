@@ -36,8 +36,8 @@ formatPath path =
             return ()
           Just elmPath ->
             do
-            putStrLn path
-            formatFile elmPath
+              putStrLn path
+              formatFile elmPath
       Right contents ->
         mapM_ formatPath $ map (\dir -> path <> "/" <> dir) contents
 
