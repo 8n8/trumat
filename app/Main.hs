@@ -28,7 +28,6 @@ main =
 formatPath :: FilePath -> IO ()
 formatPath path =
   do
-    putStrLn path
     eitherContents <- listDirectory path
     case eitherContents of
       Left _ ->
@@ -36,6 +35,8 @@ formatPath path =
           Nothing ->
             return ()
           Just elmPath ->
+            do
+            putStrLn path
             formatFile elmPath
       Right contents ->
         mapM_ formatPath $ map (\dir -> path <> "/" <> dir) contents
