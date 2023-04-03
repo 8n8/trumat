@@ -13,10 +13,12 @@ import Prelude
     IO,
     IOError,
     Maybe (Just, Nothing),
+    map,
     mapM_,
     putStrLn,
     return,
     ($),
+    (<>),
   )
 
 main :: IO ()
@@ -26,6 +28,7 @@ main =
 formatPath :: FilePath -> IO ()
 formatPath path =
   do
+    putStrLn path
     eitherContents <- listDirectory path
     case eitherContents of
       Left _ ->
@@ -35,7 +38,7 @@ formatPath path =
           Just elmPath ->
             formatFile elmPath
       Right contents ->
-        mapM_ formatPath contents
+        mapM_ formatPath $ map (\dir -> path <> "/" <> dir) contents
 
 listDirectory :: FilePath -> IO (Either IOError [FilePath])
 listDirectory path =
