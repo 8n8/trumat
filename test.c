@@ -52,8 +52,8 @@ struct Case cases[] = {
 };
 
 int main() {
-    char in[10000];
+    char out[1000];
     for (int i = 0; cases[i].description != NULL; ++i) {
-        one_test(cases[i], in);
+        one_test(cases[i], out);
     }
 }
