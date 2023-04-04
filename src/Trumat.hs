@@ -52,14 +52,6 @@ import Prelude
     (||),
   )
 
-preamble :: Text
-preamble =
-  "module X exposing (x)\n\
-  \\n\
-  \\n\
-  \x =\n\
-  \    "
-
 type Parser =
   Parsec Void Text
 
@@ -71,14 +63,82 @@ trumat unformatted =
     Right formatted ->
       Right formatted
 
+parseExports :: Parser Text
+parseExports =
+  do
+    listType <- lookAhead parseListType
+    case listType of
+      SingleLine ->
+        parseSingleLineExports
+
+      MultiLine ->
+        parseMultiLineExports
+
+parseExport :: Parser Text
+parseExport =
+    do
+    name <- parseName
+    all_ <- choice
+        [ do
+            _ <- char '('
+            _ <- takeWhileP Nothing (\ch -> ch /= ')')
+            _ <- char ')'
+            return "(..)"
+        , return ""
+        ]
+    return $ name <> all_
+
+parseSingleLineExports :: Parser Text
+parseSingleLineExports =
+  do
+    _ <- char '('
+    _ <- parseSpaces
+    items <- some parseExport
+    _ <- char ')'
+    return $
+      mconcat
+        [ "(",
+          intercalate ", " items,
+          " )"
+        ]
+
+parseMultiLineExports :: Parser Text
+parseMultiLineExports =
+  do
+    _ <- char '('
+    _ <- space
+    items <- some parseExport
+    _ <- char ')'
+    return $
+      mconcat
+       [ "( ",
+         intercalate "\n    , " items,
+         "\n    )"
+       ]
+
+parseModuleDeclaration :: Parser Text
+parseModuleDeclaration =
+    do
+    _ <- chunk "module "
+    name <- parseName
+    _ <- chunk " exposing "
+    exports <- parseExports
+    return $
+        mconcat
+        [ "module "
+        , name
+        , " exposing "
+        , exports
+        ]
+
 parser :: Parser Text
 parser =
   do
-    _ <- chunk preamble
+    moduleDeclaration <- parseModuleDeclaration
     expression <- parseExpression 4
     _ <- space
     _ <- eof
-    return $ preamble <> expression <> "\n"
+    return $ moduleDeclaration <> expression <> "\n"
 
 parseExpression :: Int -> Parser Text
 parseExpression indent =
