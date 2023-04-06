@@ -32,6 +32,48 @@ void make_expected_file_path(char result[], char* file_name) {
     result[i+j] = '\0';
 }
 
+int compare_got_and_expected(FILE* got, FILE* expected_file) {
+    int got, expected;
+    for (int i = 0; ; ++i) {
+        got = fgetc(got_file);
+        expected = fgetc(expected_file);
+        if (got == EOF && expected != EOF) {
+            printf("reached end of result file but not expected file\n");
+            return -1;
+        }
+        if (got != EOF && expected == EOF) {
+            printf("reached end of expected file but not result file\n");
+            return -1;
+        }
+        if (got == EOF && expected == EOF) {
+            break;
+        }
+        if (got != expected) {
+            printf(
+                "invalid character %c at position %d, expecting %c "
+                "in file %s\n",
+                got,
+                i,
+                expected,
+                test_file_name);
+            int reset_result = fseek(got_file, 0, SEEK_SET);
+            if (reset_result != 0) {
+                printf(
+                    "could not reset got file to zero in test %s\n",
+                    test_file_name);
+                return -1;
+            }
+
+            for (char c = fgetc(got_file); c != EOF; ) {
+                fputc(c, stdout);
+            }
+
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int one_test(char* test_file_name) {
     printf("%s\n", test_file_name);
 
@@ -86,43 +128,9 @@ int one_test(char* test_file_name) {
         return -1;
     }
 
-    int got, expected;
-    for (int i = 0; ; ++i) {
-        got = fgetc(got_file);
-        expected = fgetc(expected_file);
-        if (got == EOF && expected != EOF) {
-            printf("reached end of result file but not expected file\n");
-            return -1;
-        }
-        if (got != EOF && expected == EOF) {
-            printf("reached end of expected file but not result file\n");
-            return -1;
-        }
-        if (got == EOF && expected == EOF) {
-            break;
-        }
-        if (got != expected) {
-            printf(
-                "invalid character %c at position %d, expecting %c "
-                "in file %s\n",
-                got,
-                i,
-                expected,
-                test_file_name);
-            int reset_result = fseek(got_file, 0, SEEK_SET);
-            if (reset_result != 0) {
-                printf(
-                    "could not reset got file to zero in test %s\n",
-                    test_file_name);
-                return -1;
-            }
-
-            for (char c = fgetc(got_file); c != EOF; ) {
-                fputc(c, stdout);
-            }
-
-            return -1;
-        }
+    int test_result = compare_got_and_expected(got_file, expected_file);
+    if (test_result != 0) {
+        return test_result;
     }
 
     close_got_result = fclose(got_file);
