@@ -32,7 +32,24 @@ void make_expected_file_path(char result[], char* file_name) {
     result[i+j] = '\0';
 }
 
-int compare_got_and_expected(FILE* got, FILE* expected_file) {
+char* got_path = ".temp_trumat_path";
+
+int compare_got_and_expected(char* test_file_name) {
+    char expected_file_path[300];
+    make_expected_file_path(expected_file_path, test_file_name);
+
+    FILE* expected_file = fopen(expected_file_path, "rb");
+    if (expected_file == NULL) {
+        printf("couldn't open expected file: %s\n", expected_file_path);
+        return -1;
+    }
+
+    FILE* got_file = fopen(got_path, "rb");
+    if (got_file == NULL) {
+        printf("couldn't open got file: %s\n", got_path);
+        return -1;
+    }
+
     int got, expected;
     for (int i = 0; ; ++i) {
         got = fgetc(got_file);
@@ -71,6 +88,13 @@ int compare_got_and_expected(FILE* got, FILE* expected_file) {
             return -1;
         }
     }
+
+    int close_expected_result = fclose(expected_file);
+    if (close_expected_result != 0) {
+        printf("couldn't close expected file: %s\n", expected_file_path);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -79,8 +103,6 @@ int one_test(char* test_file_name) {
 
     char input_file_path[300];
     make_input_file_path(input_file_path, test_file_name);
-    char expected_file_path[300];
-    make_expected_file_path(expected_file_path, test_file_name);
 
     FILE* input_file = fopen(input_file_path, "rb");
     if (input_file == NULL) {
@@ -88,7 +110,6 @@ int one_test(char* test_file_name) {
         return -1;
     }
 
-    char* got_path = ".temp_trumat_path";
     FILE* got_file = fopen(got_path, "wb");
     if (got_file == NULL) {
         printf("couldn't open got file: %s\n", got_path);
@@ -116,19 +137,7 @@ int one_test(char* test_file_name) {
         return -1;
     }
 
-    FILE* expected_file = fopen(expected_file_path, "rb");
-    if (expected_file == NULL) {
-        printf("couldn't open expected file: %s\n", expected_file_path);
-        return -1;
-    }
-
-    got_file = fopen(got_path, "rb");
-    if (got_file == NULL) {
-        printf("couldn't open got file: %s\n", got_path);
-        return -1;
-    }
-
-    int test_result = compare_got_and_expected(got_file, expected_file);
+    int test_result = compare_got_and_expected(test_file_name);
     if (test_result != 0) {
         return test_result;
     }
@@ -136,12 +145,6 @@ int one_test(char* test_file_name) {
     close_got_result = fclose(got_file);
     if (close_got_result != 0) {
         printf("couldn't close temporary file: %s\n", got_path);
-        return -1;
-    }
-
-    int close_expected_result = fclose(expected_file);
-    if (close_expected_result != 0) {
-        printf("couldn't close expected file: %s\n", expected_file_path);
         return -1;
     }
 
