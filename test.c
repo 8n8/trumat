@@ -1,59 +1,159 @@
 #include <stddef.h>
-#include <stdio.h>
 #include "main.h"
+#include <dirent.h>
 
-struct Case {
-    char* description;
-    char* in;
-    char* out;
-};
-
-int string_equal(char* a, char* b) {
-    for (; *a == *b && *a != '\0'; ++a && ++b) {
+void make_input_file_path(char result[], char* file_name) {
+    char* prefix = "test_case/input/";
+    int i = 0;
+    for (; prefix[i] != '\0'; ++i) {
+        result[i] = prefix[i];
     }
 
-    return *a == *b;
+    int j = 0;
+    for (; file_name[j] != '\0'; ++j) {
+        result[i+j] = file_name[j];
+    }
+
+    result[i+j] = '\0';
 }
 
-void one_test(struct Case test_case, char* out) {
-    printf("%s ", test_case.description);
-    int result = format(test_case.in, out);
-
-    if (result < 0) {
-        printf("invalid Elm FAILURE\n");
-        return;
+void make_expected_file_path(char result[], char* file_name) {
+    char* prefix = "test_case/expected/";
+    int i = 0;
+    for (; prefix[i] != '\0'; ++i) {
+        result[i] = prefix[i];
     }
 
-    if (!string_equal(test_case.out, out)) {
-        printf("FAILURE\n");
-        printf("EXPECTING:\n%s\nGOT:\n%s\n", test_case.out, out);
-        return;
+    int j = 0;
+    for (; file_name[j] != '\0'; ++j) {
+        result[i+j] = file_name[j];
     }
 
-    puts("SUCCESS\n");
+    result[i+j] = '\0';
 }
 
-struct Case cases[] = {
-    { .description = "hello world formatted",
-      .in =
-        "module X exposing (x)\n"
-        "\n"
-        "\n"
-        "x =\n"
-        "    0\n",
-      .out =
-        "module X exposing (x)\n"
-        "\n"
-        "\n"
-        "x =\n"
-        "    0\n",
-    },
-    { NULL, NULL, NULL }
-};
+int one_test(char* test_file_name) {
+    printf("%s\n", test_file_name);
+
+    char input_file_path[300];
+    make_input_file_path(input_file_path, test_file_name);
+    char expected_file_path[300];
+    make_expected_file_path(expected_file_path, test_file_name);
+
+    FILE* input_file = fopen(input_file_path, "rb");
+    if (input_file == NULL) {
+        printf("couldn't open input file: %s\n", input_file_path);
+        return -1;
+    }
+
+    char* got_path = ".temp_trumat_path";
+    FILE* got_file = fopen(got_path, "wb");
+    if (got_file == NULL) {
+        printf("couldn't open got file: %s\n", got_path);
+        return -1;
+    }
+
+    int format_result = format(input_file, got_file);
+    if (format_result != 0) {
+        printf(
+            "invalid Elm in %s\nerror code: %d\n",
+            input_file_path,
+            format_result);
+        return -1;
+    }
+
+    int close_got_result = fclose(got_file);
+    if (close_got_result != 0) {
+        printf("couldn't close temporary file: %s\n", got_path);
+        return -1;
+    }
+
+    int close_input_result = fclose(input_file); 
+    if (close_input_result != 0) {
+        printf("couldn't close input file: %s\n", input_file_path);
+        return -1;
+    }
+
+    FILE* expected_file = fopen(expected_file_path, "rb");
+    if (expected_file == NULL) {
+        printf("couldn't open expected file: %s\n", expected_file_path);
+        return -1;
+    }
+
+    got_file = fopen(got_path, "rb");
+    if (got_file == NULL) {
+        printf("couldn't open got file: %s\n", got_path);
+        return -1;
+    }
+
+    int got, expected;
+    for (int i = 0; ; ++i) {
+        got = fgetc(got_file);
+        expected = fgetc(expected_file);
+        if (got == EOF && expected != EOF) {
+            printf("reached end of result file but not expected file\n");
+            return -1;
+        }
+        if (got != EOF && expected == EOF) {
+            printf("reached end of expected file but not result file\n");
+            return -1;
+        }
+        if (got == EOF && expected == EOF) {
+            break;
+        }
+        if (got != expected) {
+            printf(
+                "invalid character %c at position %d, expecting %c "
+                "in file %s\n",
+                got,
+                i,
+                expected,
+                test_file_name);
+            int reset_result = fseek(got_file, 0, SEEK_SET);
+            if (reset_result != 0) {
+                printf(
+                    "could not reset got file to zero in test %s\n",
+                    test_file_name);
+                return -1;
+            }
+
+            for (char c = fgetc(got_file); c != EOF; ) {
+                fputc(c, stdout);
+            }
+
+            return -1;
+        }
+    }
+
+    close_got_result = fclose(got_file);
+    if (close_got_result != 0) {
+        printf("couldn't close temporary file: %s\n", got_path);
+        return -1;
+    }
+
+    int close_expected_result = fclose(expected_file);
+    if (close_expected_result != 0) {
+        printf("couldn't close expected file: %s\n", expected_file_path);
+        return -1;
+    }
+
+    return 0;
+}
 
 int main() {
-    char out[1000];
-    for (int i = 0; cases[i].description != NULL; ++i) {
-        one_test(cases[i], out);
+    DIR* input_directory = opendir("test_case/input");
+    if (input_directory == NULL) {
+        return -1;
+    }
+
+    struct dirent* directory_entry;
+    while (directory_entry = readdir(input_directory)) {
+        if (directory_entry->d_name[0] == '.') {
+            continue;
+        }
+        int result = one_test(directory_entry->d_name);
+        if (result != 0) {
+            return -1;
+        }
     }
 }

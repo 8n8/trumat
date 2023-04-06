@@ -1,1 +1,3 @@
-int format(char*, char*);
+#include <stdio.h>
+
+int format(FILE*, FILE*);
