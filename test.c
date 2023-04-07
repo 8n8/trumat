@@ -157,8 +157,11 @@ int main() {
         return -1;
     }
 
-    struct dirent* directory_entry;
-    while (directory_entry = readdir(input_directory)) {
+    for (
+        struct dirent* directory_entry = readdir(input_directory);
+        directory_entry != NULL;
+        directory_entry = readdir(input_directory)) {
+
         if (directory_entry->d_name[0] == '.') {
             continue;
         }
@@ -167,4 +170,6 @@ int main() {
             return -1;
         }
     }
+
+    return 0;
 }

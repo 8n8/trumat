@@ -130,29 +130,27 @@ int consume_all_whitespace(FILE* file) {
 }
 
 int format_module_header(FILE* in, FILE* out) {
-    if (parse_chunk(in, "module ")) {
-        return 0;
-    }
-    {
-        int result = write_chunk(out, "module ");
-        if (result) {
-            return result;
-        }
+    int result = parse_chunk(in, "module ");
+    if (result) {
+        return result;
     }
 
-    {
-        int result = parse_name(in, out);
-        if (result) {
-            return result;
-        }
+    result = write_chunk(out, "module ");
+    if (result) {
+        return result;
     }
 
-    {
-        int result = consume_all_whitespace(in);
-        if (result) {
-            return result;
-        }
+    result = parse_name(in, out);
+    if (result) {
+        return result;
     }
+
+    result = consume_all_whitespace(in);
+    if (result) {
+        return result;
+    }
+
+    return parse_chunk(in, "exposing");
 }
 
 int format(FILE* in, FILE* out) {
@@ -160,4 +158,6 @@ int format(FILE* in, FILE* out) {
     if (result != 0) {
         return result;
     }
+
+    return 0;
 }
