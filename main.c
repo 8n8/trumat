@@ -376,6 +376,8 @@ int format_int_literal(FILE* in, FILE* out) {
         if (!(result >= '0' && result <= '9')) {
             break;
         }
+
+        fputc(result, out);
     }
 
     return 0;
@@ -439,5 +441,10 @@ int format(FILE* in, FILE* out) {
         return result;
     }
 
-    return format_top_level_binds(in, out);
+    result = format_top_level_binds(in, out);
+    if (result) {
+        return result;
+    }
+
+    return write_char(out, '\n');
 }
