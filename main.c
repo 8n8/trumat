@@ -6,6 +6,9 @@
 #define COULDNT_PARSE_NAME -4
 #define CHAR_NOT_FOUND -5
 #define COULDNT_PARSE_CHAR -6
+#define COULDNT_GET_OFFSET -7
+#define COULDNT_SEEK_OFFSET -8
+#define NOT_AN_INT_LITERAL -9
 
 int write_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
@@ -367,6 +370,25 @@ int format_module_header(FILE* in, FILE* out) {
 }
 
 int format_int_literal(FILE* in, FILE* out) {
+    int initial_offset = ftell(in);
+    int result = fgetc(in);
+    if (result == EOF) {
+        return UNEXPECTED_EOF;
+    }
+
+    if (!(result >= '0' && result <= '9')) {
+        result = fseek(in, initial_offset, SEEK_SET);
+        if (result) {
+            return COULDNT_SEEK_OFFSET;
+        }
+        return NOT_AN_INT_LITERAL;
+    }
+
+    result = fputc(result, out);
+    if (result == EOF) {
+        return UNEXPECTED_EOF;
+    }
+
     while(1) {
         int result = fgetc(in);
         if (result == EOF) {
@@ -377,14 +399,49 @@ int format_int_literal(FILE* in, FILE* out) {
             break;
         }
 
-        fputc(result, out);
+        result = fputc(result, out);
+        if (result == EOF) {
+            return UNEXPECTED_EOF;
+        }
     }
 
     return 0;
 }
 
+int format_empty_list(FILE* in, FILE* out) {
+    int initial_offset = ftell(in);
+    if (initial_offset == -1) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int result = parse_char(in, '[');
+    if (result) {
+        return 0;
+    }
+
+    result = consume_all_whitespace(in);
+    if (result) {
+        return result;
+    }
+
+    result = parse_char(in, ']');
+    if (result) {
+        result = fseek(in, initial_offset, SEEK_SET);
+        if (result) {
+            return COULDNT_SEEK_OFFSET;
+        }
+    }
+
+    return write_chunk(out, "[]");
+}
+
 int format_expression(FILE* in, FILE* out, int indent) {
-    return format_int_literal(in, out);
+    int result = format_int_literal(in, out);
+    if (result == 0) {
+        return 0;
+    }
+
+    return format_empty_list(in, out);
 }
 
 int format_top_level_bind(FILE* in, FILE* out) {

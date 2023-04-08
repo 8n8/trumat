@@ -67,12 +67,10 @@ int compare_got_and_expected(char* test_file_name) {
         }
         if (got != expected) {
             printf(
-                "FAILURE\ninvalid character %c at position %d, expecting %c "
-                "in file %s\n",
-                got,
+                "FAILURE\ninvalid character '%c' at position %d, expecting '%c'",
+                (char) got,
                 i,
-                expected,
-                test_file_name);
+                (char) expected);
             return -1;
         }
     }
