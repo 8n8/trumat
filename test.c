@@ -40,13 +40,13 @@ int compare_got_and_expected(char* test_file_name) {
 
     FILE* expected_file = fopen(expected_file_path, "rb");
     if (expected_file == NULL) {
-        printf("couldn't open expected file: %s\n", expected_file_path);
+        printf("FAILURE\ncouldn't open expected file: %s\n", expected_file_path);
         return -1;
     }
 
     FILE* got_file = fopen(got_path, "rb");
     if (got_file == NULL) {
-        printf("couldn't open got file: %s\n", got_path);
+        printf("FAILURE\ncouldn't open got file: %s\n", got_path);
         return -1;
     }
 
@@ -55,11 +55,11 @@ int compare_got_and_expected(char* test_file_name) {
         got = fgetc(got_file);
         expected = fgetc(expected_file);
         if (got == EOF && expected != EOF) {
-            printf("reached end of result file but not expected file\n");
+            printf("FAILURE\nreached end of result file but not expected file\n");
             return -1;
         }
         if (got != EOF && expected == EOF) {
-            printf("reached end of expected file but not result file\n");
+            printf("FAILURE\nreached end of expected file but not result file\n");
             return -1;
         }
         if (got == EOF && expected == EOF) {
@@ -67,7 +67,7 @@ int compare_got_and_expected(char* test_file_name) {
         }
         if (got != expected) {
             printf(
-                "invalid character %c at position %d, expecting %c "
+                "FAILURE\ninvalid character %c at position %d, expecting %c "
                 "in file %s\n",
                 got,
                 i,
@@ -79,7 +79,7 @@ int compare_got_and_expected(char* test_file_name) {
 
     int close_expected_result = fclose(expected_file);
     if (close_expected_result != 0) {
-        printf("couldn't close expected file: %s\n", expected_file_path);
+        printf("FAILURE\ncouldn't close expected file: %s\n", expected_file_path);
         return -1;
     }
 
@@ -87,27 +87,27 @@ int compare_got_and_expected(char* test_file_name) {
 }
 
 int one_test(char* test_file_name) {
-    printf("%s\n", test_file_name);
+    printf("%s ", test_file_name);
 
     char input_file_path[300];
     make_input_file_path(input_file_path, test_file_name);
 
     FILE* input_file = fopen(input_file_path, "rb");
     if (input_file == NULL) {
-        printf("couldn't open input file: %s\n", input_file_path);
+        printf("FAILURE\ncouldn't open input file: %s\n", input_file_path);
         return -1;
     }
 
     FILE* got_file = fopen(got_path, "wb");
     if (got_file == NULL) {
-        printf("couldn't open got file: %s\n", got_path);
+        printf("FAILURE\ncouldn't open got file: %s\n", got_path);
         return -1;
     }
 
     int format_result = format(input_file, got_file);
     if (format_result != 0) {
         printf(
-            "invalid Elm in %s\nerror code: %d\n",
+            "FAILURE\ninvalid Elm in %s\nerror code: %d\n",
             input_file_path,
             format_result);
         return -1;
@@ -115,13 +115,13 @@ int one_test(char* test_file_name) {
 
     int close_got_result = fclose(got_file);
     if (close_got_result != 0) {
-        printf("couldn't close temporary file: %s\n", got_path);
+        printf("FAILURE\ncouldn't close temporary file: %s\n", got_path);
         return -1;
     }
 
     int close_input_result = fclose(input_file); 
     if (close_input_result != 0) {
-        printf("couldn't close input file: %s\n", input_file_path);
+        printf("FAILURE\ncouldn't close input file: %s\n", input_file_path);
         return -1;
     }
 
@@ -132,9 +132,11 @@ int one_test(char* test_file_name) {
 
     close_got_result = fclose(got_file);
     if (close_got_result != 0) {
-        printf("couldn't close temporary file: %s\n", got_path);
+        printf("FAILURE\ncouldn't close temporary file: %s\n", got_path);
         return -1;
     }
+
+    printf("SUCCESS\n");
 
     return 0;
 }
