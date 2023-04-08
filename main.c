@@ -5,6 +5,7 @@
 #define NOT_SUBSEQUENT_NAME_CHAR -3
 #define COULDNT_PARSE_NAME -4
 #define CHAR_NOT_FOUND -5
+#define COULDNT_PARSE_CHAR -6
 
 int write_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
@@ -152,7 +153,12 @@ int parse_char(FILE* file, char ch) {
         return 0;
     }
 
-    return move_back_one_char(file);
+    result = move_back_one_char(file);
+    if (result) {
+        return result;
+    }
+
+    return COULDNT_PARSE_CHAR;
 }
 
 int parse_export(FILE* in, FILE* out) {
