@@ -1,19 +1,25 @@
 #include "main.h"
 
-#define EOF_WHILE_WRITING_CHUNK -1
-#define EOF_WHILE_PARSING_CHUNK -2
-#define EOF_IN_FIRST_NAME_CHAR -3
-#define NOT_FIRST_NAME_CHAR -4
-#define EOF_WHEN_WRITING_FIRST_NAME_CHAR -5
-#define NOT_SUBSEQUENT_NAME_CHAR -6
-#define EOF_WHEN_WRITING_SUBSEQUENT_NAME_CHAR -7
-#define COULDNT_PARSE_NAME -8
+#define UNEXPECTED_EOF -1
+#define NOT_FIRST_NAME_CHAR -2
+#define NOT_SUBSEQUENT_NAME_CHAR -3
+#define COULDNT_PARSE_NAME -4
+#define CHAR_NOT_FOUND -5
 
 int write_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
         if (fputc(*chunk, file) == EOF) {
-            return EOF_WHILE_WRITING_CHUNK;
+            return UNEXPECTED_EOF;
         }
+    }
+
+    return 0;
+}
+
+int write_char(FILE* file, char ch) {
+    int result = fputc(ch, file);
+    if (result == EOF) {
+        return UNEXPECTED_EOF;
     }
 
     return 0;
@@ -25,7 +31,7 @@ int parse_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
         int result = fgetc(file);
         if (result == EOF) {
-            return EOF_WHILE_PARSING_CHUNK;
+            return UNEXPECTED_EOF;
         }
 
         if (result != *chunk) {
@@ -87,7 +93,7 @@ int parse_name(FILE* in, FILE* out) {
 
     int in_char = fgetc(in);
     if (in_char == EOF) {
-        return EOF_IN_FIRST_NAME_CHAR;
+        return UNEXPECTED_EOF;
     }
 
     if (!is_first_name_char(in_char)) {
@@ -96,7 +102,7 @@ int parse_name(FILE* in, FILE* out) {
     }
 
     if (fputc(in_char, out) == EOF) {
-        return EOF_WHEN_WRITING_FIRST_NAME_CHAR;
+        return UNEXPECTED_EOF;
     }
 
     in_char = fgetc(in);
@@ -113,7 +119,7 @@ int parse_name(FILE* in, FILE* out) {
         }
 
         if (fputc(in_char, out) == EOF) {
-            return EOF_WHEN_WRITING_SUBSEQUENT_NAME_CHAR;
+            return UNEXPECTED_EOF;
         }
 
         in_char = fgetc(in);
@@ -127,6 +133,192 @@ int consume_all_whitespace(FILE* file) {
         result = fgetc(file);
     }
     return move_back_one_char(file);
+}
+
+int consume_spaces(FILE* file) {
+    for (int result = fgetc(file); result == ' '; ) {
+        result = fgetc(file);
+    }
+    return move_back_one_char(file);
+}
+
+int parse_char(FILE* file, char ch) {
+    int result = fgetc(file);
+    if (result == EOF) {
+        return UNEXPECTED_EOF;
+    }
+
+    if (result == ch) {
+        return 0;
+    }
+
+    return move_back_one_char(file);
+}
+
+int parse_export(FILE* in, FILE* out) {
+    int result = parse_name(in, out);
+    if (result) {
+        return result;
+    }
+
+    result = parse_char(in, '(');
+    if (result) {
+        return 0;
+    }
+
+    int nesting = 1;
+    while (nesting > 0) {
+        result = fgetc(in);
+        if (result == EOF) {
+            return UNEXPECTED_EOF;
+        }
+
+        if (result == '(') {
+            ++nesting;
+        }
+
+        if (result == ')') {
+            --nesting;
+        }
+    }
+
+    return write_chunk(out, "(..)");
+}
+
+int format_newline_export_list(FILE* in, FILE* out) {
+    int result = write_chunk(out, "\n    (");
+    if (result) {
+        return result;
+    }
+
+    while (1) {
+        int result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_export(in, out);
+        if (result) {
+            result = parse_char(in, ')');
+            if (result) {
+                return result;
+            }
+            break;
+        }
+
+        result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_char(in, ')');
+        if (!result) {
+            break;
+        }
+
+        result = parse_char(in, ',');
+        if (result) {
+            return result;
+        }
+
+        result = write_chunk(out, "\n    , ");
+        if (result) {
+            return result;
+        }
+    }
+
+    return write_chunk(out, "\n    )");
+}
+
+int format_oneline_export_list(FILE* in, FILE* out) {
+    int result = write_chunk(out, " ("); 
+    if (result) {
+        return result;
+    }
+    while (1) {
+        int result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_export(in, out);
+        if (result) {
+            result = parse_char(in, ')');
+            if (result) {
+                return result;
+            }
+            break;
+        }
+
+        result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_char(in, ')');
+        if (!result) {
+            break;
+        }
+
+        result = parse_char(in, ',');
+        if (result) {
+            return result;
+        }
+
+        result = write_chunk(out, ", ");
+        if (result) {
+            return result;
+        }
+    }
+
+    return write_char(out, ')');
+}
+
+int get_exports_have_newlines(FILE* in) {
+    int initial_offset = ftell(in);
+
+    int nesting = 1;
+    while (nesting > 0) {
+        int result = fgetc(in);
+        if (result == EOF) {
+            return UNEXPECTED_EOF;
+        }
+
+        if (result == '\n') {
+            printf("found newline in exports\n");
+            fseek(in, initial_offset, SEEK_SET);
+            return 1;
+        }
+
+        if (result == '(') {
+            ++nesting;
+        }
+
+        if (result == ')') {
+            --nesting;
+        }
+    }
+
+    fseek(in, initial_offset, SEEK_SET);
+    return 0;
+}
+
+int format_export_list(FILE* in, FILE* out) {
+    int result = parse_char(in, '(');
+    if (result) {
+        return result;
+    }
+
+    int has_newlines = get_exports_have_newlines(in);
+    if (has_newlines < 0) {
+        return has_newlines;
+    }
+
+    if (has_newlines) {
+        return format_newline_export_list(in, out);
+    }
+
+    return format_oneline_export_list(in, out);
 }
 
 int format_module_header(FILE* in, FILE* out) {
@@ -150,14 +342,24 @@ int format_module_header(FILE* in, FILE* out) {
         return result;
     }
 
-    return parse_chunk(in, "exposing");
-}
-
-int format(FILE* in, FILE* out) {
-    int result = format_module_header(in, out);
-    if (result != 0) {
+    result = parse_chunk(in, "exposing");
+    if (result) {
         return result;
     }
 
-    return 0;
+    result = write_chunk(out, " exposing");
+    if (result) {
+        return result;
+    }
+
+    result = consume_all_whitespace(in);
+    if (result) {
+        return result;
+    }
+
+    return format_export_list(in, out);
+}
+
+int format(FILE* in, FILE* out) {
+    return format_module_header(in, out);
 }
