@@ -366,6 +366,78 @@ int format_module_header(FILE* in, FILE* out) {
     return format_export_list(in, out);
 }
 
+int format_int_literal(FILE* in, FILE* out) {
+    while(1) {
+        int result = fgetc(in);
+        if (result == EOF) {
+            return UNEXPECTED_EOF;
+        }
+
+        if (!(result >= '0' && result <= '9')) {
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int format_expression(FILE* in, FILE* out, int indent) {
+    return format_int_literal(in, out);
+}
+
+int format_top_level_bind(FILE* in, FILE* out) {
+    int result = parse_name(in, out);
+    if (result) {
+        return result;
+    }
+
+    result = consume_spaces(in);
+    if (result) {
+        return result;
+    }
+
+    result = parse_char(in, '=');
+    if (result) {
+        return result;
+    }
+
+    result = consume_all_whitespace(in);
+    if (result) {
+        return result;
+    }
+
+    result = write_chunk(out, " =\n    ");
+    if (result) {
+        return result;
+    }
+
+    return format_expression(in, out, 4);
+}
+
+int format_top_level_binds(FILE* in, FILE* out) {
+    while (1) {
+        int result = consume_all_whitespace(in);
+        if (result) {
+            return result;
+        }
+
+        result = format_top_level_bind(in, out);
+        if (result) {
+            return 0;
+        }
+    }
+}
+
 int format(FILE* in, FILE* out) {
-    return format_module_header(in, out);
+    int result = format_module_header(in, out);
+    if (result) {
+        return result;
+    }
+
+    result = write_chunk(out, "\n\n\n");
+    if (result) {
+        return result;
+    }
+
+    return format_top_level_binds(in, out);
 }
