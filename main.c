@@ -407,7 +407,7 @@ int format_int_literal(FILE* in, FILE* out) {
         }
     }
 
-    return 0;
+    return move_back_one_char(in);
 }
 
 int format_empty_list(FILE* in, FILE* out) {
