@@ -495,7 +495,7 @@ int format_newline_list(FILE* in, FILE* out, int indent) {
             return result;
         }
 
-        result = write_char(out, ',');
+        result = write_chunk(out, ", ");
         if (result) {
             return result;
         }
