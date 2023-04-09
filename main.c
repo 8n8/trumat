@@ -9,6 +9,9 @@
 #define COULDNT_GET_OFFSET -7
 #define COULDNT_SEEK_OFFSET -8
 #define NOT_AN_INT_LITERAL -9
+#define NOT_AN_EMPTY_LIST -10
+
+int format_expression(FILE*, FILE*, int);
 
 int write_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
@@ -215,7 +218,7 @@ int format_newline_export_list(FILE* in, FILE* out) {
             break;
         }
 
-        result = consume_spaces(in);
+        result = consume_all_whitespace(in);
         if (result) {
             return result;
         }
@@ -294,7 +297,6 @@ int get_exports_have_newlines(FILE* in) {
         }
 
         if (result == '\n') {
-            printf("found newline in exports\n");
             fseek(in, initial_offset, SEEK_SET);
             return 1;
         }
@@ -430,9 +432,177 @@ int format_empty_list(FILE* in, FILE* out) {
         if (result) {
             return COULDNT_SEEK_OFFSET;
         }
+        return NOT_AN_EMPTY_LIST;
     }
 
     return write_chunk(out, "[]");
+}
+
+int write_indent(FILE* out, int indent) {
+    for (int i = 0; i < indent; ++i) {
+        int result = write_char(out, ' ');
+        if (result) {
+            return result;
+        }
+    }
+
+    return 0;
+}
+
+int format_newline_list(FILE* in, FILE* out, int indent) {
+    int result = write_chunk(out, "[ ");
+    if (result) {
+        return result;
+    }
+
+    while (1) {
+        int result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = format_expression(in, out, indent + 2);
+        if (result) {
+            result = parse_char(in, ']');
+            if (result) {
+                return result;
+            }
+            break;
+        }
+
+        result = consume_all_whitespace(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_char(in, ']');
+        if (!result) {
+            break;
+        }
+
+        result = parse_char(in, ',');
+        if (result) {
+            return result;
+        }
+
+        result = write_char(out, '\n');
+        if (result) {
+            return result;
+        }
+
+        result = write_indent(out, indent);
+        if (result) {
+            return result;
+        }
+
+        result = write_char(out, ',');
+        if (result) {
+            return result;
+        }
+    }
+
+    result = write_char(out, '\n');
+    if (result) {
+        return result;
+    }
+
+    result = write_indent(out, indent);
+    if (result) {
+        return result;
+    }
+
+    return write_char(out, ']');
+}
+
+int format_oneline_list(FILE* in, FILE* out, int indent) {
+    int result = write_chunk(out, "[ ");
+    if (result) {
+        return result;
+    }
+
+    while (1) {
+        int result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = format_expression(in, out, indent + 2);
+        if (result) {
+            result = parse_char(in, ']');
+            if (result) {
+                return result;
+            }
+            break;
+        }
+
+        result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_char(in, ']');
+        if (!result) {
+            break;
+        }
+
+        result = parse_char(in, ',');
+        if (result) {
+            return result;
+        }
+
+        result = write_chunk(out, ", ");
+        if (result) {
+            return result;
+        }
+    }
+
+    return write_chunk(out, " ]");
+}
+
+int get_list_has_newlines(FILE* in) {
+    int initial_offset = ftell(in);
+
+    int nesting = 1;
+    while (nesting > 0) {
+        int result = fgetc(in);
+        if (result == EOF) {
+            return UNEXPECTED_EOF;
+        }
+
+        if (result == '\n') {
+            fseek(in, initial_offset, SEEK_SET);
+            return 1;
+        }
+
+        if (result == '[') {
+            ++nesting;
+        }
+
+        if (result == ']') {
+            --nesting;
+        }
+    }
+
+    fseek(in, initial_offset, SEEK_SET);
+    return 0;
+}
+
+int format_non_empty_list(FILE* in, FILE* out, int indent) {
+    int result = parse_char(in, '[');
+    if (result) {
+        return result;
+    }
+
+    int has_newlines = get_list_has_newlines(in);
+    if (has_newlines < 0) {
+        return has_newlines;
+    }
+
+    if (has_newlines) {
+        return format_newline_list(in, out, indent);
+    }
+
+    return format_oneline_list(in, out, indent);
 }
 
 int format_expression(FILE* in, FILE* out, int indent) {
@@ -441,7 +611,12 @@ int format_expression(FILE* in, FILE* out, int indent) {
         return 0;
     }
 
-    return format_empty_list(in, out);
+    result = format_empty_list(in, out);
+    if (result == 0) {
+        return 0;
+    }
+
+    return format_non_empty_list(in, out, indent);
 }
 
 int format_top_level_bind(FILE* in, FILE* out) {
