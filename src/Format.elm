@@ -7,7 +7,7 @@ format : String -> Result String String
 format raw =
     String.toList raw
         |> Array.fromList
-        |> formatHelp "" 0 Start
+        |> formatHelp "" 0 (ModuleKeyword { numConsumed = 0, remainder = "module " })
 
 
 formatHelp : String -> Int -> State -> Array Char -> Result String String
@@ -35,18 +35,18 @@ formatHelp accumulator index oldState chars =
         Commit formatted ->
             formatHelp (accumulator ++ formatted) (index + 1) newState chars
 
-        Fail error ->
-            Err error
-
         Finish ->
             Ok accumulator
+
+        Fail error ->
+            Err error
 
 
 type Action
     = MoveBackBy Int
     | Commit String
-    | Fail String
     | Finish
+    | Fail String
 
 
 type Token
@@ -96,9 +96,60 @@ tokenize char =
 
 
 type State
-    = Start
+    = ModuleKeyword ChunkMachine
+    | TopLevelBindName
+    | SpaceAfterModuleKeyword
 
 
 machine : Token -> State -> ( State, Action )
 machine token state =
-    ( state, Finish )
+    case (token, state) of
+        (AfterEnd, TopLevelBindName) ->
+            (state, Fail "unexpected end of file while parsing top-level bind name")
+        (BeforeStart, TopLevelBindName) ->
+            (state, Fail "internal error: (BeforeStart, TopLevelBindName)")
+        (DontCare _, TopLevelBindName) ->
+            (state, Fail "unexpected character in top-level bind name")
+        (_, ModuleKeyword oldChunkState) ->
+            case chunkMachine token oldChunkState of
+                FinishedChunk ->
+                    (SpaceAfterModuleKeyword, Commit "module ")
+
+                ContinueChunk newChunkState ->
+                    (ModuleKeyword newChunkState, Commit "")
+
+                FailedChunk backtrack ->
+                    (TopLevelBindName, MoveBackBy backtrack)
+        (_, TopLevelBindName) ->
+            case ordinaryNameMachine token of
+                FinishedName ->
+                    (SpaceAfter
+            
+
+        
+
+type ChunkResult
+    = FinishedChunk
+    | ContinueChunk ChunkMachine
+    | FailedChunk Int
+
+type alias ChunkMachine =
+    { numConsumed : Int
+    , remainder : String
+    }
+
+chunkMachine : Token -> ChunkMachine -> ChunkResult
+chunkMachine token {numConsumed, remainder} =
+    case String.uncons remainder of
+        Just (top, tail) ->
+            if tokenize top == token then
+                ContinueChunk
+                    { numConsumed = numConsumed + 1
+                    , remainder = tail
+                    }
+
+            else
+                FailedChunk numConsumed
+
+        Nothing ->
+            FinishedChunk
