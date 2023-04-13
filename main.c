@@ -10,8 +10,12 @@
 #define COULDNT_SEEK_OFFSET -8
 #define NOT_AN_INT_LITERAL -9
 #define NOT_AN_EMPTY_LIST -10
+#define BAD_OFFSET -11
+#define NOT_A_FUNCTION_ARGUMENT -12
+#define COULDNT_GET_CHAR -13
 
 int format_expression(FILE*, FILE*, int);
+int format_function_expression(FILE*, FILE*, int);
 
 int write_chunk(FILE* file, char* chunk) {
     for (; *chunk != '\0'; ++chunk) {
@@ -605,7 +609,188 @@ int format_non_empty_list(FILE* in, FILE* out, int indent) {
     return format_oneline_list(in, out, indent);
 }
 
-int format_expression(FILE* in, FILE* out, int indent) {
+int get_indent(FILE* file) {
+    int initial_offset = ftell(file);
+    if (initial_offset) {
+        return COULDNT_GET_OFFSET;
+    }
+    int result = fgetc(file);
+    if (result < 0) {
+        return COULDNT_GET_CHAR;
+    }
+
+    int offset = initial_offset;
+
+    for (; offset >= 0 && result != '\n'; --offset) {
+        fseek(file, offset, SEEK_SET);
+        result = fgetc(file);
+    }
+
+    fseek(file, initial_offset, SEEK_SET);
+    return initial_offset - offset;
+}
+
+int format_newline_function_call(FILE* in, FILE* out, int indent) {
+    int initial_in_position = ftell(in);
+    if (initial_in_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int initial_out_position = ftell(out);
+    if (initial_out_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int function_indent = get_indent(in);
+    if (function_indent < 0) {
+        return function_indent;
+    }
+
+    int result = format_function_expression(in, out, indent);
+    if (result) {
+        return result;
+    }
+
+    result = write_char(out, '\n');
+    if (result) {
+        return result;
+    }
+
+    result = write_indent(out, indent + 4);
+    if (result) {
+        return result;
+    }
+
+    result = consume_all_whitespace(in);
+    if (result) {
+        return result;
+    }
+
+    while (1) {
+        int argument_indent = get_indent(in);
+        if (argument_indent < 0) {
+            return argument_indent;
+        }
+        if (argument_indent <= function_indent) {
+            break;
+        }
+
+        result = format_function_expression(in, out, indent + 4);
+        if (result) {
+            return result;
+        }
+
+        result = write_char(out, '\n');
+        if (result) {
+            return result;
+        }
+
+        result = write_indent(out, indent + 4);
+        if (result) {
+            return result;
+        }
+
+        result = consume_all_whitespace(in);
+        if (result) {
+            return result;
+        }
+    }
+
+    return 0;
+}
+
+int format_oneline_function_call(FILE* in, FILE* out, int indent) {
+    int initial_in_position = ftell(in);
+    if (initial_in_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int initial_out_position = ftell(out);
+    if (initial_out_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    while (1) {
+        int result = format_function_expression(in, out, indent);
+        if (result) {
+            fseek(in, initial_in_position, SEEK_SET);
+            fseek(out, initial_out_position, SEEK_SET);
+            return result;
+        }
+
+        result = consume_spaces(in);
+        if (result) {
+            return result;
+        }
+
+        result = parse_char(in, '\n');
+        if (!result) {
+            break;
+        }
+
+        result = write_char(out, ' ');
+        if (result) {
+            return result;
+        }
+    }
+
+    return 0;
+}
+
+int get_function_call_has_newlines(FILE* in, FILE* out) {
+    int initial_in_position = ftell(in);
+    if (initial_in_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int initial_out_position = ftell(out);
+    if (initial_out_position < 0) {
+        return COULDNT_GET_OFFSET;
+    }
+
+    int function_indent = get_indent(in);
+    if (function_indent < 0) {
+        return function_indent;
+    }
+
+    int result = parse_function_expression(in, out, indent);
+    if (result) {
+        return result;
+    }
+
+    int has_newlines = parse_whitespace(in);
+    if (has_newlines) {
+        return has_newlines;
+    }
+
+    while (1) {
+        int argument_indent = get_indent(in);
+        if (argument_indent < 0) {
+            return argument_indent;
+        }
+
+        if (argument_indent <= function_indent) {
+            break;
+        }
+
+        result = parse_function_expression
+    }
+}
+
+int format_function_call(FILE* in, FILE* out, int indent) {
+    int has_newlines = get_function_call_has_newlines(in);
+    if (has_newlines < 0) {
+        return has_newlines;
+    }
+
+    if (has_newlines) {
+        return format_newline_function_call(in, out, indent);
+    }
+
+    return format_oneline_function_call(in, out, indent);
+}
+
+int format_function_expression(FILE* in, FILE* out, int indent) {
     int result = format_int_literal(in, out);
     if (result == 0) {
         return 0;
@@ -617,6 +802,25 @@ int format_expression(FILE* in, FILE* out, int indent) {
     }
 
     return format_non_empty_list(in, out, indent);
+}
+
+int format_expression(FILE* in, FILE* out, int indent) {
+    int result = format_int_literal(in, out);
+    if (result == 0) {
+        return 0;
+    }
+
+    result = format_empty_list(in, out);
+    if (result == 0) {
+        return 0;
+    }
+
+    result = format_non_empty_list(in, out, indent);
+    if (result == 0) {
+        return 0;
+    }
+
+    return format_function_call(in, out, indent);
 }
 
 int format_top_level_bind(FILE* in, FILE* out) {
