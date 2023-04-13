@@ -1,9 +1,8 @@
 module Tests exposing (suite)
 
-import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, int, list, string)
-import Test exposing (..)
+import Expect
 import Format exposing (format)
+import Test exposing (Test, describe, test)
 
 
 suite : Test
