@@ -1,4 +1,2 @@
-elm-stuff/
-node_modules/
-package-lock.json
-package.json
+.stack-work/
+trumat.cabal
