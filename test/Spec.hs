@@ -1173,5 +1173,27 @@ cases =
       \y =\n\
       \    0\n\
       \"
+    ),
+    ( "module with two items in it, both exposed",
+      "module X exposing (x, y)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module X exposing (x, y)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]
