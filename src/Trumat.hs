@@ -70,21 +70,21 @@ parseExports =
     case listType of
       SingleLine ->
         parseSingleLineExports
-
       MultiLine ->
         parseMultiLineExports
 
 parseExport :: Parser Text
 parseExport =
-    do
+  do
     name <- parseName
-    all_ <- choice
+    all_ <-
+      choice
         [ do
             _ <- char '('
             _ <- takeWhileP Nothing (\ch -> ch /= ')')
             _ <- char ')'
-            return "(..)"
-        , return ""
+            return "(..)",
+          return ""
         ]
     return $ name <> all_
 
@@ -99,7 +99,7 @@ parseSingleLineExports =
       mconcat
         [ "(",
           intercalate ", " items,
-          " )"
+          ")"
         ]
 
 parseMultiLineExports :: Parser Text
@@ -111,34 +111,46 @@ parseMultiLineExports =
     _ <- char ')'
     return $
       mconcat
-       [ "( ",
-         intercalate "\n    , " items,
-         "\n    )"
-       ]
+        [ "( ",
+          intercalate "\n    , " items,
+          "\n    )"
+        ]
 
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
-    do
+  do
     _ <- chunk "module "
     name <- parseName
     _ <- chunk " exposing "
     exports <- parseExports
     return $
-        mconcat
-        [ "module "
-        , name
-        , " exposing "
-        , exports
+      mconcat
+        [ "module ",
+          name,
+          " exposing ",
+          exports
         ]
 
 parser :: Parser Text
 parser =
   do
     moduleDeclaration <- parseModuleDeclaration
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char '='
+    _ <- space
     expression <- parseExpression 4
     _ <- space
     _ <- eof
-    return $ moduleDeclaration <> expression <> "\n"
+    return $
+      mconcat
+        [ moduleDeclaration,
+          "\n\n\n",
+          name,
+          " =\n    ",
+          expression <> "\n"
+        ]
 
 parseExpression :: Int -> Parser Text
 parseExpression indent =
