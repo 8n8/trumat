@@ -28,6 +28,10 @@ formatHelp accumulator index oldState chars =
         ( newState, action ) =
             machine token oldState
     in
+    executeAction accumulator index newState chars action
+
+
+executeAction accumulator index newState chars action =
     case action of
         MoveBackBy distance ->
             formatHelp accumulator (index - distance) newState chars
@@ -42,7 +46,23 @@ formatHelp accumulator index oldState chars =
             Err error
 
         Batch batch ->
-            formatHelp accumulator index newState chars
+            batchHelp accumulator index newState chars batch
+
+batchHelp accumulator index newState chars batch =
+    case batch of
+        [] ->
+            Ok accumulator
+
+        head :: tail ->
+          let
+            result = executeAction accumulator index newState chars head
+          in
+          case result of
+            Err err ->
+                Err err
+
+            Ok newAccumulator ->
+                batchHelp newAccumulator index
 
 
 type Action
@@ -69,6 +89,11 @@ type State
     | SpaceAfterModuleExposingKeyword SpaceMachine
     | SpaceBeforeTopLevelExpression SpaceMachine
     | Exports ChunkMachine
+    | Expression ExpressionMachine
+
+
+type ExpressionMachine
+    = InitExpression
 
 
 type SpaceMachine
@@ -86,8 +111,8 @@ type SpaceResult
     | ContinueSpace SpaceMachine Char
 
 
-someSpaceMachine : Token -> SpaceMachine -> SpaceResult
-someSpaceMachine token state =
+spaceMachine : Token -> SpaceMachine -> SpaceResult
+spaceMachine token state =
     case (token, state) of
         (Unicode char, OpenCurly) ->
             if char == '-' then
@@ -126,7 +151,7 @@ machine token state =
                     (state, Fail "could not parse top-level bind name")
 
         ( _, SpaceAfterModuleKeyword oldMachine) ->
-            case someSpaceMachine token oldMachine of
+            case spaceMachine token oldMachine of
                 FinishedSpace ->
                     ( {numConsumed = 0, remainder = "exposing" }
                         |> InKeyword
@@ -140,7 +165,7 @@ machine token state =
                     )
 
         ( _, SpaceAfterTopLevelBind oldMachine ) ->
-            case someSpaceMachine token oldMachine of
+            case spaceMachine token oldMachine of
                 FinishedSpace ->
                     (EqualsAfterTopLevelBind, MoveBackBy 1)
 
@@ -168,17 +193,25 @@ machine token state =
                 (state, Fail "expected '=' after top-level bind")
 
         (_, SpaceAfterModuleExposingKeyword oldState) ->
-            case someSpaceMachine token oldState of
+            case spaceMachine token oldState of
                 FinishedSpace ->
                     ( Exports {numConsumed = 0, remainder = "(x)"}
                     , Batch [Commit " ", MoveBackBy 1]
                     )
 
                 ContinueSpace newState char ->
-                    ( SpaceAfterModuleExposingKeyword newState
-                    , Commit (String.fromChar char)
+                    ( SpaceAfterModuleExposingKeyword newState, Commit "")
+
+        (_, SpaceBeforeTopLevelExpression oldState) ->
+            case spaceMachine token oldState of
+                FinishedSpace ->
+                    ( Expression InitExpression
+                    , Batch [Commit "\n    ", MoveBackBy 1 ]
                     )
 
+                ContinueSpace newState char ->
+                    ( SpaceBeforeTopLevelExpression newState, Commit "")
+                    
 
 isEndNameChar : Char -> Bool
 isEndNameChar char =
