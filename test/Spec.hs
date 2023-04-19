@@ -1195,5 +1195,33 @@ cases =
       \y =\n\
       \    0\n\
       \"
+    ),
+    ( "module with two items in it, both exposed, multiline",
+      "module X exposing\n\
+      \    ( x\n\
+      \    , y\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( x\n\
+      \    , y\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]

@@ -88,7 +88,7 @@ parseExport =
         ]
     _ <-
       choice
-        [ do
+        [ try $ do
             _ <- space
             _ <- char ','
             _ <- space
@@ -106,7 +106,7 @@ parseSingleLineExports =
     _ <- char ')'
     return $
       mconcat
-        [ "(",
+        [ " (",
           intercalate ", " items,
           ")"
         ]
@@ -117,10 +117,11 @@ parseMultiLineExports =
     _ <- char '('
     _ <- space
     items <- some parseExport
+    _ <- space
     _ <- char ')'
     return $
       mconcat
-        [ "( ",
+        [ "\n    ( ",
           intercalate "\n    , " items,
           "\n    )"
         ]
@@ -130,13 +131,14 @@ parseModuleDeclaration =
   do
     _ <- chunk "module "
     name <- parseName
-    _ <- chunk " exposing "
+    _ <- chunk " exposing"
+    _ <- space
     exports <- parseExports
     return $
       mconcat
         [ "module ",
           name,
-          " exposing ",
+          " exposing",
           exports
         ]
 
