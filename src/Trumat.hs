@@ -86,6 +86,15 @@ parseExport =
             return "(..)",
           return ""
         ]
+    _ <-
+      choice
+        [ do
+            _ <- space
+            _ <- char ','
+            _ <- space
+            return (),
+          return ()
+        ]
     return $ name <> all_
 
 parseSingleLineExports :: Parser Text
@@ -131,25 +140,30 @@ parseModuleDeclaration =
           exports
         ]
 
-parser :: Parser Text
-parser =
+topLevelBind :: Parser Text
+topLevelBind =
   do
-    moduleDeclaration <- parseModuleDeclaration
-    _ <- space
     name <- parseName
     _ <- space
     _ <- char '='
     _ <- space
     expression <- parseExpression 4
     _ <- space
+    return $ mconcat [name, " =\n    ", expression]
+
+parser :: Parser Text
+parser =
+  do
+    moduleDeclaration <- parseModuleDeclaration
+    _ <- space
+    topLevelBinds <- some topLevelBind
     _ <- eof
     return $
       mconcat
         [ moduleDeclaration,
           "\n\n\n",
-          name,
-          " =\n    ",
-          expression <> "\n"
+          intercalate "\n\n\n" topLevelBinds,
+          "\n"
         ]
 
 parseExpression :: Int -> Parser Text
