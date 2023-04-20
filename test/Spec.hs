@@ -1223,5 +1223,25 @@ cases =
       \y =\n\
       \    0\n\
       \"
+    ),
+    ( "module docs",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| x\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| x\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
