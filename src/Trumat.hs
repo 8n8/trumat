@@ -126,6 +126,20 @@ parseMultiLineExports =
           "\n    )"
         ]
 
+endDocComment :: Parser Text
+endDocComment =
+  do
+    part <- takeWhileP Nothing (\ch -> ch /= '-')
+    _ <- chunk "-}"
+    return part
+
+parseModuleDocs :: Parser Text
+parseModuleDocs =
+  do
+    _ <- chunk "{-|"
+    doc <- endDocComment
+    return $ mconcat ["{-|", doc, "-}"]
+
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
   do
@@ -134,12 +148,17 @@ parseModuleDeclaration =
     _ <- chunk " exposing"
     _ <- space
     exports <- parseExports
+    _ <- space
+    moduleDocs <- choice [parseModuleDocs, return ""]
     return $
       mconcat
         [ "module ",
           name,
           " exposing",
-          exports
+          exports,
+          if moduleDocs == ""
+            then ""
+            else "\n\n" <> moduleDocs
         ]
 
 topLevelBind :: Parser Text
