@@ -1,5 +1,3 @@
 .stack-work/
 trumat.cabal
 elm/
-__pycache__/
-venv/
