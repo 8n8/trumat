@@ -1,6 +1,6 @@
 import re
 
-top_level_bind_unformatted = fr'(\n[a-z] =\n) +{expression_unformatted}'
+top_level_bind_unformatted = r'(\n[a-z] =\n) +(\d)'
 
 top_level_bind_formatted = r'\1    \2'
 
