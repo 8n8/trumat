@@ -251,7 +251,7 @@ typeAliasDeclaration =
     _ <- space
     _ <- char '='
     _ <- space
-    type_ <- parseType
+    type_ <- parseType 0
     _ <- space
     return $
       mconcat
@@ -350,7 +350,7 @@ parseTypeSignature =
     _ <- space
     types <- some $
       do
-        type_ <- parseType
+        type_ <- parseType 0
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         _ <- choice [chunk "->", return ""]
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
@@ -362,12 +362,101 @@ parseTypeSignature =
           intercalate " -> " types
         ]
 
-parseType :: Parser Text
-parseType =
+parseType :: Int -> Parser Text
+parseType indent =
   choice
     [ parseTypeWithParameters,
-      parseEmptyRecord
+      try $ parseEmptyRecord,
+      parseRecordType indent
     ]
+
+parseRecordType :: Int -> Parser Text
+parseRecordType indent =
+  do
+    listType <- lookAhead parseListType
+    case listType of
+      SingleLine ->
+        parseSingleLineRecordType indent
+      MultiLine ->
+        parseMultiLineRecordType indent
+
+parseMultiLineRecordType :: Int -> Parser Text
+parseMultiLineRecordType indent =
+  do
+    _ <- char '{'
+    _ <- space
+    items <- many (parseRecordTypeItem (indent + 2))
+    _ <- char '}'
+    if null items
+      then return "{}"
+      else
+        return $
+          mconcat
+            [ "{ ",
+              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+              "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+            ]
+
+parseRecordTypeItemLininess :: Parser ContainerType
+parseRecordTypeItemLininess =
+  do
+    _ <- parseName
+    spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    _ <- char ':'
+    spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    right <- parseType 0
+    if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
+      then return MultiLine
+      else return SingleLine
+
+parseSingleLineRecordType :: Int -> Parser Text
+parseSingleLineRecordType indent =
+  do
+    _ <- char '{'
+    _ <- parseSpaces
+    items <- many (parseRecordTypeItem indent)
+    _ <- char '}'
+    if null items
+      then return "{}"
+      else
+        return $
+          mconcat
+            [ "{ ",
+              intercalate ", " items,
+              " }"
+            ]
+
+parseRecordTypeItem :: Int -> Parser Text
+parseRecordTypeItem indent =
+  do
+    recordLininess <- lookAhead parseRecordTypeItemLininess
+    name <- parseName
+    _ <- space
+    _ <- char ':'
+    _ <- space
+    right <- parseType indent
+    sameLineComment <- choice [try parseSameLineComment, return ""]
+    commentAfter <- commentSpaceParser indent
+    _ <- space
+    _ <- choice [char ',', lookAhead (try (char '}'))]
+    _ <- space
+    return $
+      mconcat
+        [ name,
+          " :",
+          case recordLininess of
+            SingleLine ->
+              " "
+            MultiLine ->
+              "\n" <> pack (take (indent + 2) (repeat ' ')),
+          right,
+          if sameLineComment == ""
+            then ""
+            else " " <> sameLineComment,
+          if commentAfter == ""
+            then ""
+            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
+        ]
 
 parseTypeWithParameters :: Parser Text
 parseTypeWithParameters =
