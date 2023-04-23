@@ -267,8 +267,16 @@ parseBranch =
       else do
         branchName <- parseName
         _ <- space
+        parameters <- parseParameters
         _ <- choice [char '|', return ' ']
-        return branchName
+        return $
+          mconcat
+            [ branchName,
+              if parameters == ""
+                then ""
+                else " ",
+              parameters
+            ]
 
 topLevelBind :: Parser Text
 topLevelBind =
