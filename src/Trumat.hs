@@ -2,6 +2,7 @@ module Trumat (trumat) where
 
 import Data.Set (Set, fromList, member)
 import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
+import qualified ModuleDeclaration
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -63,16 +64,6 @@ trumat unformatted =
     Right formatted ->
       Right formatted
 
-parseExports :: Parser Text
-parseExports =
-  do
-    listType <- lookAhead parseListType
-    case listType of
-      SingleLine ->
-        parseSingleLineExports
-      MultiLine ->
-        parseMultiLineExports
-
 parseExport :: Parser Text
 parseExport =
   do
@@ -124,41 +115,6 @@ parseMultiLineExports =
         [ "\n    ( ",
           intercalate "\n    , " items,
           "\n    )"
-        ]
-
-endDocComment :: Parser Text
-endDocComment =
-  do
-    part <- takeWhileP Nothing (\ch -> ch /= '-')
-    _ <- chunk "-}"
-    return part
-
-parseModuleDocs :: Parser Text
-parseModuleDocs =
-  do
-    _ <- chunk "{-|"
-    doc <- endDocComment
-    return $ mconcat ["{-|", doc, "-}"]
-
-parseModuleDeclaration :: Parser Text
-parseModuleDeclaration =
-  do
-    _ <- chunk "module "
-    name <- parseName
-    _ <- chunk " exposing"
-    _ <- space
-    exports <- parseExports
-    _ <- space
-    moduleDocs <- choice [parseModuleDocs, return ""]
-    return $
-      mconcat
-        [ "module ",
-          name,
-          " exposing",
-          exports,
-          if moduleDocs == ""
-            then ""
-            else "\n\n" <> moduleDocs
         ]
 
 topLevelBind :: Parser Text
