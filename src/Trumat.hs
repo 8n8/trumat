@@ -239,6 +239,27 @@ parseModuleDeclaration =
             else "\n\n" <> moduleDocs
         ]
 
+typeAliasDeclaration :: Parser Text
+typeAliasDeclaration =
+  do
+    _ <- "type"
+    _ <- space
+    _ <- "alias"
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char '='
+    _ <- space
+    type_ <- parseType
+    _ <- space
+    return $
+      mconcat
+        [ "type alias ",
+          name,
+          " =\n    ",
+          type_
+        ]
+
 customTypeDeclaration :: Parser Text
 customTypeDeclaration =
   do
@@ -345,7 +366,13 @@ parser =
   do
     moduleDeclaration <- parseModuleDeclaration
     _ <- space
-    topLevelBinds <- some $ choice [customTypeDeclaration, topLevelBind]
+    topLevelBinds <-
+      some $
+        choice
+          [ try customTypeDeclaration,
+            typeAliasDeclaration,
+            topLevelBind
+          ]
     _ <- eof
     return $
       mconcat
@@ -1031,6 +1058,14 @@ parseSingleLineList indent =
               intercalate ", " items,
               " ]"
             ]
+
+parseEmptyRecord :: Parser Text
+parseEmptyRecord =
+  do
+    _ <- char '{'
+    _ <- space
+    _ <- char '}'
+    return "{}"
 
 parseSpaces :: Parser ()
 parseSpaces =
