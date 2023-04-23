@@ -1310,5 +1310,21 @@ cases =
       \x a =\n\
       \    a\n\
       \"
+    ),
+    ( "multi-item type signature, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : Int -> Int\n\
+      \x a =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : Int -> Int\n\
+      \x a =\n\
+      \    a\n\
+      \"
     )
   ]
