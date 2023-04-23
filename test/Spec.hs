@@ -1297,7 +1297,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "multi-item type signature, formatted",
+    ( "function parameters, formatted",
       "module X exposing (x)\n\
       \\n\
       \\n\

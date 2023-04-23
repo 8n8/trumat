@@ -245,6 +245,7 @@ topLevelBind =
     _ <- space
     name <- parseName
     _ <- space
+    parameters <- parseParameters
     _ <- char '='
     _ <- space
     expression <- parseExpression 4
@@ -255,9 +256,24 @@ topLevelBind =
             then ""
             else signature <> "\n",
           name,
+          if parameters == ""
+            then ""
+            else " ",
+          parameters,
           " =\n    ",
           expression
         ]
+
+parseParameters :: Parser Text
+parseParameters =
+  do
+    parameters <-
+      many $
+        do
+          parameter <- parsePattern 0
+          _ <- space
+          return parameter
+    return $ intercalate " " parameters
 
 parseTypeSignature :: Parser Text
 parseTypeSignature =
