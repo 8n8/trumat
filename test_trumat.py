@@ -44,3 +44,20 @@ x =
     []
 """
     assert got == expected
+
+def test_empty_list_unformatted():
+    got = trumat.format("""module X exposing (x)
+
+
+x =
+    [
+
+ ]
+""") 
+    expected = """module X exposing (x)
+
+
+x =
+    []
+"""
+    assert got == expected
