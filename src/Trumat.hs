@@ -251,7 +251,7 @@ typeAliasDeclaration =
     _ <- space
     _ <- char '='
     _ <- space
-    type_ <- parseType 0
+    type_ <- parseType 4
     _ <- space
     return $
       mconcat
