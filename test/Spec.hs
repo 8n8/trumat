@@ -1358,5 +1358,19 @@ cases =
       \    = Y Int\n\
       \    | Z\n\
       \"
+    ),
+    ( "type alias, formatted",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    Int\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    Int\n\
+      \"
     )
   ]
