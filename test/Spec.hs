@@ -1342,5 +1342,21 @@ cases =
       \    = Y\n\
       \    | Z\n\
       \"
+    ),
+    ( "custom type with argument, formatted",
+      "module X exposing (X(..))\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y Int\n\
+      \    | Z\n\
+      \",
+      "module X exposing (X(..))\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y Int\n\
+      \    | Z\n\
+      \"
     )
   ]
