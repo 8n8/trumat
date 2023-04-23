@@ -1372,5 +1372,19 @@ cases =
       \type alias X =\n\
       \    Int\n\
       \"
+    ),
+    ( "type alias with parameter, formatted",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X a =\n\
+      \    Maybe a\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X a =\n\
+      \    Maybe a\n\
+      \"
     )
   ]
