@@ -19,8 +19,6 @@ ghc-options:
 - -Wno-missing-import-lists
 - -Wno-missing-kind-signatures
 - -Wno-missing-deriving-strategies
-- -Wno-unused-top-binds
-- -Wno-unused-imports
 
 library:
   source-dirs: src

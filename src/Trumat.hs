@@ -42,7 +42,6 @@ import Prelude
     null,
     repeat,
     return,
-    show,
     take,
     ($),
     (&&),
@@ -365,7 +364,10 @@ parseTypeSignature =
 
 parseType :: Parser Text
 parseType =
-  parseTypeWithParameters
+  choice
+    [ parseTypeWithParameters,
+      parseEmptyRecord
+    ]
 
 parseTypeWithParameters :: Parser Text
 parseTypeWithParameters =
