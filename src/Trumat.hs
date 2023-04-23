@@ -20,6 +20,7 @@ import Text.Megaparsec
     takeWhile1P,
     takeWhileP,
     try,
+    unPos,
   )
 import Text.Megaparsec.Char (char, space)
 import Prelude
@@ -238,6 +239,37 @@ parseModuleDeclaration =
             else "\n\n" <> moduleDocs
         ]
 
+customTypeDeclaration :: Parser Text
+customTypeDeclaration =
+  do
+    _ <- "type"
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char '='
+    _ <- space
+    branches <- some parseBranch
+    return $
+      mconcat
+        [ "type ",
+          name,
+          "\n    = ",
+          intercalate "\n    | " branches
+        ]
+
+parseBranch :: Parser Text
+parseBranch =
+  do
+    _ <- space
+    column <- fmap sourceColumn getSourcePos
+    if unPos column == 0
+      then fail "column == 0"
+      else do
+        branchName <- parseName
+        _ <- space
+        _ <- choice [char '|', return ' ']
+        return branchName
+
 topLevelBind :: Parser Text
 topLevelBind =
   do
@@ -305,7 +337,7 @@ parser =
   do
     moduleDeclaration <- parseModuleDeclaration
     _ <- space
-    topLevelBinds <- some topLevelBind
+    topLevelBinds <- some $ choice [customTypeDeclaration, topLevelBind]
     _ <- eof
     return $
       mconcat
@@ -759,7 +791,7 @@ parseCaseOfBranch indent =
 
 keywords :: Set Text
 keywords =
-  Set.fromList ["case", "of", "let", "in", "if", "then", "else", "->"]
+  Set.fromList ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
 
 parseName :: Parser Text
 parseName =
