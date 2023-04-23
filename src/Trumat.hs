@@ -248,6 +248,8 @@ typeAliasDeclaration =
     _ <- space
     name <- parseName
     _ <- space
+    parameters <- parseParameters
+    _ <- space
     _ <- char '='
     _ <- space
     type_ <- parseType
@@ -256,6 +258,10 @@ typeAliasDeclaration =
       mconcat
         [ "type alias ",
           name,
+          if parameters == ""
+            then ""
+            else " ",
+          parameters,
           " =\n    ",
           type_
         ]
@@ -359,7 +365,17 @@ parseTypeSignature =
 
 parseType :: Parser Text
 parseType =
-  parseName
+  parseTypeWithParameters
+
+parseTypeWithParameters :: Parser Text
+parseTypeWithParameters =
+  do
+    name <- parseName
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    parameters <- parseParameters
+    if parameters == ""
+      then return name
+      else return $ name <> " " <> parameters
 
 parser :: Parser Text
 parser =
