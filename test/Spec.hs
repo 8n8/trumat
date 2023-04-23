@@ -1400,5 +1400,19 @@ cases =
       \type alias X =\n\
       \    {}\n\
       \"
+    ),
+    ( "singleton record type, formatted",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { x : Int }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { x : Int }\n\
+      \"
     )
   ]
