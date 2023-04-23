@@ -1,6 +1,7 @@
 module Trumat (trumat) where
 
-import Data.Set (Set, fromList, member)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
 import Data.Void (Void)
 import Text.Megaparsec
@@ -34,11 +35,13 @@ import Prelude
     fmap,
     head,
     length,
+    map,
     mconcat,
     not,
     null,
     repeat,
     return,
+    show,
     take,
     ($),
     (&&),
@@ -67,11 +70,60 @@ parseExports :: Parser Text
 parseExports =
   do
     listType <- lookAhead parseListType
+    docs <- choice [lookAhead $ try parseExportDocs, return []]
     case listType of
       SingleLine ->
-        parseSingleLineExports
+        parseSingleLineExports docs
       MultiLine ->
-        parseMultiLineExports
+        parseMultiLineExports docs
+
+parseExportDocs :: Parser [[Text]]
+parseExportDocs =
+  do
+    _ <- consumeExportList
+    _ <- space
+    _ <- chunk "{-|"
+    results <- many $ try parseExportDocsRow
+    _ <- endDocComment
+    return results
+
+consumeExportList :: Parser ()
+consumeExportList =
+  do
+    _ <- char '('
+    consumeExportListHelp 1
+
+consumeExportListHelp :: Int -> Parser ()
+consumeExportListHelp nesting =
+  if nesting == 0
+    then return ()
+    else do
+      _ <- takeWhileP Nothing (\ch -> ch /= ')' && ch /= '(')
+      choice
+        [ do
+            _ <- char '('
+            consumeExportListHelp (nesting + 1),
+          do
+            _ <- char ')'
+            consumeExportListHelp (nesting - 1)
+        ]
+
+parseExportDocsRow :: Parser [Text]
+parseExportDocsRow =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch /= '@')
+    _ <- chunk "@docs"
+    _ <- takeWhile1P Nothing (\ch -> ch == ' ')
+    some parseOneExportDoc
+
+parseOneExportDoc :: Parser Text
+parseOneExportDoc =
+  do
+    name <- parseName
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- choice [char ',', lookAhead (char '\n')]
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    return name
 
 parseExport :: Parser Text
 parseExport =
@@ -97,22 +149,43 @@ parseExport =
         ]
     return $ name <> all_
 
-parseSingleLineExports :: Parser Text
-parseSingleLineExports =
+parseSingleLineExports :: [[Text]] -> Parser Text
+parseSingleLineExports docs =
   do
     _ <- char '('
     _ <- parseSpaces
     items <- some parseExport
     _ <- char ')'
-    return $
-      mconcat
-        [ " (",
-          intercalate ", " items,
-          ")"
-        ]
+    return $ formatSingleLineExports docs items
 
-parseMultiLineExports :: Parser Text
-parseMultiLineExports =
+formatExportRow :: [Text] -> [Text] -> Text
+formatExportRow items docRow =
+  let documented = filter (\doc -> elem doc items) docRow
+   in intercalate ", " documented
+
+formatSingleLineExports :: [[Text]] -> [Text] -> Text
+formatSingleLineExports docs items =
+  let rows = (map (formatExportRow items) docs) <> [undocumented]
+      undocumented = intercalate ", " (getUndocumented docs items)
+   in case rows of
+        [] ->
+          "()"
+        [single] ->
+          " (" <> single <> ")"
+        multiple ->
+          mconcat
+            [ "\n    ( ",
+              intercalate "\n    , " multiple,
+              "\n    )"
+            ]
+
+getUndocumented :: [[Text]] -> [Text] -> [Text]
+getUndocumented docs items =
+  let docSet = Set.fromList $ mconcat docs
+   in filter (\item -> not (Set.member item docSet)) items
+
+parseMultiLineExports :: [[Text]] -> Parser Text
+parseMultiLineExports docs =
   do
     _ <- char '('
     _ <- space
@@ -122,9 +195,13 @@ parseMultiLineExports =
     return $
       mconcat
         [ "\n    ( ",
-          intercalate "\n    , " items,
+          constructMultilineExports docs items,
           "\n    )"
         ]
+
+constructMultilineExports :: [[Text]] -> [Text] -> Text
+constructMultilineExports _ exports =
+  intercalate "\n    , " exports
 
 endDocComment :: Parser Text
 endDocComment =
@@ -631,7 +708,7 @@ parseCaseOfBranch indent =
 
 keywords :: Set Text
 keywords =
-  fromList ["case", "of", "let", "in", "if", "then", "else", "->"]
+  Set.fromList ["case", "of", "let", "in", "if", "then", "else", "->"]
 
 parseName :: Parser Text
 parseName =
@@ -640,7 +717,7 @@ parseName =
       takeWhile1P
         (Just "name character")
         (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz." :: String))
-    if member word keywords
+    if Set.member word keywords
       then fail $ "expecting a name but got: " <> unpack word
       else return word
 
@@ -651,7 +728,7 @@ parseVerbatim =
       takeWhile1P
         (Just "verbatim character")
         (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" :: String))
-    if member word keywords
+    if Set.member word keywords
       then fail $ "expecting a verbatim, but got: " <> unpack word
       else return word
 
