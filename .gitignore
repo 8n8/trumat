@@ -1,3 +1,6 @@
 .stack-work/
 trumat.cabal
 elm/
+node_modules/
+package-lock.json
+package.json

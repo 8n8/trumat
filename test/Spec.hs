@@ -1243,5 +1243,42 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "@docs",
+      "module X exposing (x, y)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( x\n\
+      \    , y\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]
