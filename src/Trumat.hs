@@ -282,7 +282,13 @@ parseTypeSignature =
     _ <- space
     _ <- char ':'
     _ <- space
-    types <- some parseType
+    types <- some $
+      do
+        type_ <- parseType
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        _ <- choice [chunk "->", return ""]
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        return type_
     return $
       mconcat
         [ name,
