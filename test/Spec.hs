@@ -1326,5 +1326,21 @@ cases =
       \x a =\n\
       \    a\n\
       \"
+    ),
+    ( "custom type, formatted",
+      "module X exposing (X(..))\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y\n\
+      \    | Z\n\
+      \",
+      "module X exposing (X(..))\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y\n\
+      \    | Z\n\
+      \"
     )
   ]
