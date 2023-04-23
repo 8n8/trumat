@@ -1414,5 +1414,23 @@ cases =
       \type alias X =\n\
       \    { x : Int }\n\
       \"
+    ),
+    ( "multi-line record type, formatted",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { x : Int\n\
+      \    , y : String\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { x : Int\n\
+      \    , y : String\n\
+      \    }\n\
+      \"
     )
   ]
