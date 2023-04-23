@@ -241,13 +241,42 @@ parseModuleDeclaration =
 topLevelBind :: Parser Text
 topLevelBind =
   do
+    signature <- choice [try $ parseTypeSignature, return ""]
+    _ <- space
     name <- parseName
     _ <- space
     _ <- char '='
     _ <- space
     expression <- parseExpression 4
     _ <- space
-    return $ mconcat [name, " =\n    ", expression]
+    return $
+      mconcat
+        [ if signature == ""
+            then ""
+            else signature <> "\n",
+          name,
+          " =\n    ",
+          expression
+        ]
+
+parseTypeSignature :: Parser Text
+parseTypeSignature =
+  do
+    name <- parseName
+    _ <- space
+    _ <- char ':'
+    _ <- space
+    types <- some parseType
+    return $
+      mconcat
+        [ name,
+          " : ",
+          intercalate " -> " types
+        ]
+
+parseType :: Parser Text
+parseType =
+  parseName
 
 parser :: Parser Text
 parser =
