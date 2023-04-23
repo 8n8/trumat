@@ -1296,5 +1296,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi-item type signature, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x a =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x a =\n\
+      \    a\n\
+      \"
     )
   ]
