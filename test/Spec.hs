@@ -1280,5 +1280,21 @@ cases =
       \y =\n\
       \    0\n\
       \"
+    ),
+    ( "simple type signature, formatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : Int\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : Int\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
