@@ -1386,5 +1386,19 @@ cases =
       \type alias X a =\n\
       \    Maybe a\n\
       \"
+    ),
+    ( "empty record type, formatted",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    {}\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    {}\n\
+      \"
     )
   ]
