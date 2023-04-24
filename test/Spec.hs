@@ -1432,5 +1432,27 @@ cases =
       \    , y : String\n\
       \    }\n\
       \"
+    ),
+    ( "function documentation",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| x\n\
+      \-}\n\
+      \x =\n\
+      \    2\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| x\n\
+      \-}\n\
+      \x =\n\
+      \    2\n\
+      \"
     )
   ]
