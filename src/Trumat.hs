@@ -1,5 +1,6 @@
 module Trumat (trumat) where
 
+import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
@@ -47,6 +48,7 @@ import Prelude
     (&&),
     (+),
     (-),
+    (.),
     (/=),
     (<>),
     (==),
@@ -506,7 +508,7 @@ parser =
     moduleDeclaration <- parseModuleDeclaration
     _ <- space
     imports <-
-      fmap (intercalate "\n") $
+      fmap (intercalate "\n" . List.sort) $
         many $
           do
             import_ <- parseImport
