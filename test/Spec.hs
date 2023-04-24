@@ -1534,5 +1534,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module import single-line exposing",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as B exposing (C)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as B exposing (C)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
