@@ -500,7 +500,23 @@ parseImport =
     _ <- chunk "import"
     _ <- space
     name <- parseName
-    return $ "import " <> name
+    _ <- space
+    as_ <-
+      choice
+        [ do
+            _ <- chunk "as"
+            _ <- space
+            parseName,
+          return ""
+        ]
+    return $
+      mconcat
+        [ "import ",
+          name,
+          if as_ == ""
+            then ""
+            else " as " <> as_
+        ]
 
 parser :: Parser Text
 parser =
