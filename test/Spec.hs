@@ -1552,5 +1552,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module import multi-line exposing",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as B exposing (C,\n\
+      \  D)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as B exposing\n\
+      \    ( C\n\
+      \    , D\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
