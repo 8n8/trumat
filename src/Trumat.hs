@@ -68,8 +68,8 @@ trumat unformatted =
     Right formatted ->
       Right formatted
 
-parseExports :: Parser Text
-parseExports =
+parseExposing :: Parser Text
+parseExposing =
   do
     listType <- lookAhead parseListType
     docs <- choice [lookAhead $ try parseExportDocs, return []]
@@ -226,7 +226,7 @@ parseModuleDeclaration =
     name <- parseName
     _ <- chunk " exposing"
     _ <- space
-    exports <- parseExports
+    exports <- parseExposing
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     return $
@@ -509,13 +509,25 @@ parseImport =
             parseName,
           return ""
         ]
+    _ <- space
+    exposing_ <-
+      choice
+        [ do
+            _ <- chunk "exposing"
+            _ <- space
+            parseExposing,
+          return ""
+        ]
     return $
       mconcat
         [ "import ",
           name,
           if as_ == ""
             then ""
-            else " as " <> as_
+            else " as " <> as_,
+          if exposing_ == ""
+            then ""
+            else " exposing" <> exposing_
         ]
 
 parser :: Parser Text
