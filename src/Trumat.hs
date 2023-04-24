@@ -492,10 +492,25 @@ parseTypeWithParameters =
       then return name
       else return $ name <> " " <> parameters
 
+parseImport :: Parser Text
+parseImport =
+  do
+    _ <- chunk "import"
+    _ <- space
+    name <- parseName
+    return $ "import " <> name
+
 parser :: Parser Text
 parser =
   do
     moduleDeclaration <- parseModuleDeclaration
+    _ <- space
+    imports <-
+      fmap (intercalate "\n") $
+        many $
+          do
+            import_ <- parseImport
+            return import_
     _ <- space
     topLevelBinds <-
       some $
@@ -508,6 +523,10 @@ parser =
     return $
       mconcat
         [ moduleDeclaration,
+          if imports == ""
+            then ""
+            else "\n\n",
+          imports,
           "\n\n\n",
           intercalate "\n\n\n" topLevelBinds,
           "\n"
