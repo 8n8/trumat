@@ -304,9 +304,29 @@ parseBranch =
               parameters
             ]
 
+parseDocumentation :: Parser Text
+parseDocumentation =
+  do
+    _ <- chunk "{-"
+    _ <- choice [char '|', return ' ']
+    contents <-
+      many $
+        do
+          _ <- notFollowedBy (char '}')
+          takeWhile1P Nothing (\ch -> ch /= '-')
+    _ <- chunk "-}"
+    return $
+      mconcat
+        [ "{-|",
+          mconcat contents,
+          "-}"
+        ]
+
 topLevelBind :: Parser Text
 topLevelBind =
   do
+    documentation <- choice [try $ parseDocumentation, return ""]
+    _ <- space
     signature <- choice [try $ parseTypeSignature, return ""]
     _ <- space
     name <- parseName
@@ -318,7 +338,11 @@ topLevelBind =
     _ <- space
     return $
       mconcat
-        [ if signature == ""
+        [ documentation,
+          if documentation == ""
+            then ""
+            else "\n",
+          if signature == ""
             then ""
             else signature <> "\n",
           name,

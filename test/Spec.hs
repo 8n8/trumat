@@ -1436,7 +1436,9 @@ cases =
     ( "function documentation",
       "module X exposing (x)\n\
       \\n\
-      \import A\n\
+      \\n\
+      \y =\n\
+      \    0\n\
       \\n\
       \\n\
       \{-| x\n\
@@ -1446,7 +1448,9 @@ cases =
       \",
       "module X exposing (x)\n\
       \\n\
-      \import A\n\
+      \\n\
+      \y =\n\
+      \    0\n\
       \\n\
       \\n\
       \{-| x\n\
