@@ -1574,5 +1574,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module import exposing type constructor",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (A(B))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (A(..))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
