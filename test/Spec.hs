@@ -1459,7 +1459,7 @@ cases =
       \    2\n\
       \"
     ),
-    ( "module imports",
+    ( "simple single module import",
       "module X exposing (x)\n\
       \\n\
       \import A\n\
@@ -1471,6 +1471,26 @@ cases =
       "module X exposing (x)\n\
       \\n\
       \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "simple multiple module import",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \import B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \import B\n\
       \\n\
       \\n\
       \x =\n\

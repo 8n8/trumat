@@ -510,6 +510,7 @@ parser =
         many $
           do
             import_ <- parseImport
+            _ <- space
             return import_
     _ <- space
     topLevelBinds <-
