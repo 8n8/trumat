@@ -1458,5 +1458,23 @@ cases =
       \x =\n\
       \    2\n\
       \"
+    ),
+    ( "module imports",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
