@@ -1496,5 +1496,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "sorting module imports",
+      "module X exposing (x)\n\
+      \\n\
+      \import B\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \import B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
