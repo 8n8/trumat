@@ -50,6 +50,7 @@ import Prelude
     (-),
     (.),
     (/=),
+    (<=),
     (<>),
     (==),
     (>),
@@ -249,7 +250,7 @@ typeAliasDeclaration =
     _ <- space
     name <- parseName
     _ <- space
-    parameters <- parseParameters
+    parameters <- parseParameters 0
     _ <- space
     _ <- char '='
     _ <- space
@@ -293,9 +294,10 @@ parseBranch =
     if unPos column == 0
       then fail "column == 0"
       else do
+        startColumn <- fmap (unPos . sourceColumn) getSourcePos
         branchName <- parseName
         _ <- space
-        parameters <- parseParameters
+        parameters <- parseParameters startColumn
         _ <- choice [char '|', return ' ']
         return $
           mconcat
@@ -333,7 +335,7 @@ topLevelBind =
     _ <- space
     name <- parseName
     _ <- space
-    parameters <- parseParameters
+    parameters <- parseParameters 0
     _ <- char '='
     _ <- space
     expression <- parseExpression 4
@@ -356,31 +358,40 @@ topLevelBind =
           expression
         ]
 
-parseParameters :: Parser Text
-parseParameters =
+parseParameters :: Int -> Parser Text
+parseParameters startColumn =
   do
     parameters <-
       many $
         do
-          parameter <- parsePattern 0
-          _ <- space
-          return parameter
+          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+          if parameterColumn <= startColumn
+            then fail "invalid indentation"
+            else do
+              parameter <- parsePattern 0
+              _ <- space
+              return parameter
     return $ intercalate " " parameters
 
 parseTypeSignature :: Parser Text
 parseTypeSignature =
   do
+    startColumn <- fmap sourceColumn getSourcePos
     name <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
     types <- some $
       do
-        type_ <- parseType 0
-        _ <- takeWhileP Nothing (\ch -> ch == ' ')
-        _ <- choice [chunk "->", return ""]
-        _ <- takeWhileP Nothing (\ch -> ch == ' ')
-        return type_
+        column <- fmap sourceColumn getSourcePos
+        if column <= startColumn
+          then fail "invalid indentation"
+          else do
+            type_ <- parseType 0
+            _ <- space
+            _ <- choice [chunk "->", return ""]
+            _ <- space
+            return type_
     return $
       mconcat
         [ name,
@@ -487,9 +498,10 @@ parseRecordTypeItem indent =
 parseTypeWithParameters :: Parser Text
 parseTypeWithParameters =
   do
+    startColumn <- fmap (unPos . sourceColumn) getSourcePos
     name <- parseName
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    parameters <- parseParameters
+    parameters <- parseParameters startColumn
     if parameters == ""
       then return name
       else return $ name <> " " <> parameters
