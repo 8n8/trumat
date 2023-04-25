@@ -20,6 +20,7 @@ ghc-options:
 - -Wno-missing-kind-signatures
 - -Wno-missing-deriving-strategies
 - -O2
+- -Wno-unused-top-binds
 
 library:
   source-dirs: src
