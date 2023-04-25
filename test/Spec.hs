@@ -1592,5 +1592,21 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "argument to type",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : List Int\n\
+      \x =\n\
+      \    [ 0 ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : List Int\n\
+      \x =\n\
+      \    [ 0 ]\n\
+      \"
     )
   ]
