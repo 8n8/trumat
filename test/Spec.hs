@@ -1608,5 +1608,19 @@ cases =
       \x =\n\
       \    [ 0 ]\n\
       \"
+    ),
+    ( "name with a dot in it",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a.b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a.b\n\
+      \"
     )
   ]
