@@ -27,6 +27,7 @@ import Text.Megaparsec.Char (char, space)
 import Prelude
   ( Char,
     Either (..),
+    Eq,
     Int,
     Maybe (..),
     Show,
@@ -338,7 +339,7 @@ topLevelBind =
     parameters <- parseParameters 0
     _ <- char '='
     _ <- space
-    expression <- parseExpression 4
+    expression <- parseExpression DoesntNeedBrackets 4
     _ <- space
     return $
       mconcat
@@ -575,11 +576,11 @@ parser =
           "\n"
         ]
 
-parseExpression :: Int -> Parser Text
-parseExpression indent =
+parseExpression :: Context -> Int -> Parser Text
+parseExpression context indent =
   choice
     [ parseCaseOf indent,
-      parseTuple indent,
+      parseTuple context indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
@@ -697,7 +698,7 @@ parseRecordItem indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression indent
+    right <- parseExpression DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
@@ -728,7 +729,7 @@ parseRecordItemLininess =
     spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     _ <- char '='
     spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    right <- parseExpression 0
+    right <- parseExpression DoesntNeedBrackets 0
     if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
       then return MultiLine
       else return SingleLine
@@ -772,7 +773,7 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Parser Text
 parsePattern indent =
   choice
-    [ parseTuple indent,
+    [ parseTuple NeedsBrackets indent,
       parseList indent,
       parseVerbatim
     ]
@@ -786,7 +787,7 @@ parseFunctionCall indent =
       try $
         do
           _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-          parseExpression indent
+          parseExpression NeedsBrackets indent
     let spaces =
           case lininess of
             MultiLine ->
@@ -810,7 +811,7 @@ infixes =
 parseInfixedExpression :: Int -> Parser Text
 parseInfixedExpression indent =
   choice
-    [ parseTuple indent,
+    [ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
@@ -874,7 +875,7 @@ functionCallLininess =
             argColumn <- fmap sourceColumn getSourcePos
             if argColumn > startColumn
               then do
-                _ <- parseExpression 8
+                _ <- parseExpression NeedsBrackets 8
                 return spaces
               else fail "argument is indented less than function"
     let combined = mconcat items
@@ -923,7 +924,7 @@ parseLetIn indent =
           return items
     _ <- chunk "in"
     _ <- space1
-    in_ <- parseExpression indent
+    in_ <- parseExpression DoesntNeedBrackets indent
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $
       mconcat
@@ -938,11 +939,11 @@ parseLetIn indent =
 parseLetBind :: Int -> Parser Text
 parseLetBind indent =
   do
-    left <- parseExpression indent
+    left <- parseExpression DoesntNeedBrackets indent
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression indent
+    right <- parseExpression DoesntNeedBrackets indent
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
@@ -960,15 +961,15 @@ parseIfThenElse indent =
     ifThenElseType <- lookAhead parseIfThenElseType
     _ <- chunk "if"
     _ <- space1
-    if_ <- parseExpression (indent + 4)
+    if_ <- parseExpression DoesntNeedBrackets (indent + 4)
     _ <- space1
     _ <- chunk "then"
     _ <- space1
-    then_ <- parseExpression (indent + 4)
+    then_ <- parseExpression DoesntNeedBrackets (indent + 4)
     _ <- space1
     _ <- chunk "else"
     _ <- space1
-    else_ <- parseExpression (indent + 4)
+    else_ <- parseExpression DoesntNeedBrackets (indent + 4)
     return $
       mconcat
         [ "if",
@@ -1023,7 +1024,7 @@ parseCaseOf indent =
     caseOfType <- lookAhead parseCaseOfType
     _ <- chunk "case"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
-    caseOf <- parseExpression (indent + 4)
+    caseOf <- parseExpression DoesntNeedBrackets (indent + 4)
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     _ <- chunk "of"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
@@ -1052,7 +1053,7 @@ parseCaseOfBranch indent =
     _ <- space
     _ <- chunk "->"
     _ <- space
-    right <- parseExpression (indent + 4)
+    right <- parseExpression DoesntNeedBrackets (indent + 4)
     _ <- space
     return $
       mconcat
@@ -1127,7 +1128,7 @@ parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parseExpression indent
+    expression <- parseExpression DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- choice [char ',', lookAhead (try (char end))]
@@ -1149,7 +1150,7 @@ parseListItem :: Int -> Parser () -> Char -> Parser Text
 parseListItem indent spaceParser end =
   do
     _ <- spaceParser
-    expression <- parseExpression indent
+    expression <- parseExpression DoesntNeedBrackets indent
     _ <- spaceParser
     _ <- choice [char ',', lookAhead (try (char end))]
     return expression
@@ -1198,13 +1199,13 @@ parseListTypeHelp nesting =
             parseListTypeHelp (nesting - 1)
         ]
 
-parseTuple :: Int -> Parser Text
-parseTuple indent =
+parseTuple :: Context -> Int -> Parser Text
+parseTuple context indent =
   do
     listType <- lookAhead parseListType
     case listType of
       SingleLine ->
-        parseSingleLineTuple indent
+        parseSingleLineTuple context indent
       MultiLine ->
         parseMultiLineTuple indent
 
@@ -1228,8 +1229,13 @@ parseMultiLineTuple indent =
                   "\n" <> (pack $ take indent $ repeat ' ') <> ")"
                 ]
 
-parseSingleLineTuple :: Int -> Parser Text
-parseSingleLineTuple indent =
+data Context
+  = NeedsBrackets
+  | DoesntNeedBrackets
+  deriving (Eq)
+
+parseSingleLineTuple :: Context -> Int -> Parser Text
+parseSingleLineTuple context indent =
   do
     _ <- char '('
     _ <- parseSpaces
@@ -1239,7 +1245,11 @@ parseSingleLineTuple indent =
       then return "()"
       else
         if length items == 1
-          then return $ head items
+          then case context of
+            NeedsBrackets ->
+              return $ mconcat ["(", head items, ")"]
+            DoesntNeedBrackets ->
+              return $ head items
           else
             return $
               mconcat
