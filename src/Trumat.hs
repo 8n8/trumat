@@ -801,15 +801,11 @@ parseInfix =
     column <- fmap (unPos . sourceColumn) getSourcePos
     if column == 0
       then fail "can't have an infix at column zero"
-      else
-        choice $
-          map
-            chunk
-            ["<|"]
+      else choice $ map chunk infixes
 
 infixes :: [Text]
 infixes =
-  ["<|"]
+  ["<|", "+"]
 
 parseInfixedExpression :: Int -> Parser Text
 parseInfixedExpression indent =
@@ -1071,7 +1067,6 @@ keywords :: Set Text
 keywords =
   Set.fromList $
     ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
-      <> infixes
 
 parseName :: Parser Text
 parseName =
