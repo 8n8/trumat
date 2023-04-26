@@ -1650,5 +1650,19 @@ cases =
       \x =\n\
       \    1 + 2\n\
       \"
+    ),
+    ( "necessary parenthesis around argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    Just (1 + 2)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    Just (1 + 2)\n\
+      \"
     )
   ]
