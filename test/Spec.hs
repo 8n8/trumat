@@ -1636,5 +1636,19 @@ cases =
       \x =\n\
       \    a <| b\n\
       \"
+    ),
+    ( "addition",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1 + 2\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1 + 2\n\
+      \"
     )
   ]
