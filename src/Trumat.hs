@@ -586,6 +586,7 @@ parseExpression indent =
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseFunctionCall indent,
+      try $ parseInfixed indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral
@@ -793,6 +794,55 @@ parseFunctionCall indent =
             SingleLine ->
               " "
     return $ intercalate spaces (f : items)
+
+parseInfix :: Parser Text
+parseInfix =
+  do
+    column <- fmap (unPos . sourceColumn) getSourcePos
+    if column == 0
+      then fail "can't have an infix at column zero"
+      else
+        choice $
+          map
+            chunk
+            ["<|"]
+
+infixes :: [Text]
+infixes =
+  ["<|"]
+
+parseInfixedExpression :: Int -> Parser Text
+parseInfixedExpression indent =
+  choice
+    [ parseTuple indent,
+      parseList indent,
+      try $ parseRecord indent,
+      parseRecordUpdate indent,
+      try $ parseFunctionCall indent,
+      parseVerbatim,
+      parseTripleStringLiteral,
+      parseSimpleStringLiteral
+    ]
+
+parseInfixed :: Int -> Parser Text
+parseInfixed indent =
+  do
+    firstExpression <- parseInfixedExpression indent
+    _ <- space
+
+    items <- some $
+      do
+        infix_ <- parseInfix
+        _ <- space
+        expression <- parseInfixedExpression indent
+        _ <- space
+        return $ infix_ <> " " <> expression
+    return $
+      mconcat
+        [ firstExpression,
+          " ",
+          intercalate " " items
+        ]
 
 space1 :: Parser ()
 space1 =
@@ -1019,7 +1069,9 @@ parseCaseOfBranch indent =
 
 keywords :: Set Text
 keywords =
-  Set.fromList ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
+  Set.fromList $
+    ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
+      <> infixes
 
 parseName :: Parser Text
 parseName =
