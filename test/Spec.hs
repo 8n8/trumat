@@ -1664,5 +1664,22 @@ cases =
       \x =\n\
       \    Just (1 + 2)\n\
       \"
+    ),
+    ( "combination of a left pizza, a function call and an empty list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| b\n\
+      \        []\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        b\n\
+      \            []\n\
+      \"
     )
   ]
