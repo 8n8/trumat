@@ -786,8 +786,11 @@ parseFunctionCall indent =
     items <- some $
       try $
         do
-          _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-          parseExpression NeedsBrackets indent
+          _ <- space
+          column <- fmap (unPos . sourceColumn) getSourcePos
+          if column - 1 > indent - 4
+            then parseExpression NeedsBrackets indent
+            else fail "argument is too far left"
     let spaces =
           case lininess of
             MultiLine ->
@@ -865,7 +868,6 @@ expressionLininess =
 functionCallLininess :: Parser ContainerType
 functionCallLininess =
   do
-    startColumn <- fmap sourceColumn getSourcePos
     _ <- parseName
     items <-
       some $
@@ -873,7 +875,7 @@ functionCallLininess =
           do
             spaces <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
             argColumn <- fmap sourceColumn getSourcePos
-            if argColumn > startColumn
+            if unPos argColumn > 0
               then do
                 _ <- parseExpression NeedsBrackets 8
                 return spaces
