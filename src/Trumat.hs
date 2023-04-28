@@ -19,6 +19,7 @@ import Text.Megaparsec
     parse,
     some,
     sourceColumn,
+    sourceLine,
     takeWhile1P,
     takeWhileP,
     token,
@@ -594,8 +595,8 @@ parseExpression context indent =
       parseRecordUpdate indent,
       parseIfThenElse indent,
       parseLetIn indent,
-      try $ parseFunctionCall indent,
       try $ parseInfixed indent,
+      try $ parseFunctionCall indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral
@@ -832,8 +833,37 @@ parseInfixedExpression indent =
       parseSimpleStringLiteral
     ]
 
+parseInfixLininess :: Int -> Parser ContainerType
+parseInfixLininess indent =
+  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- parseInfixedExpression indent
+    _ <- some $
+      try $
+        do
+          _ <- space
+          _ <- parseInfix
+          _ <- space
+          _ <- parseInfixedExpression indent
+          return ()
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return $
+      if endRow > startRow
+        then MultiLine
+        else SingleLine
+
 parseInfixed :: Int -> Parser Text
 parseInfixed indent =
+  do
+    lininess <- lookAhead $ parseInfixLininess indent
+    case lininess of
+      MultiLine ->
+        parseMultiLineInfixed indent
+      SingleLine ->
+        parseSingleLineInfixed indent
+
+parseMultiLineInfixed :: Int -> Parser Text
+parseMultiLineInfixed indent =
   do
     firstExpression <- parseInfixedExpression indent
     _ <- space
@@ -844,6 +874,27 @@ parseInfixed indent =
         _ <- space
         expression <- parseInfixedExpression indent
         _ <- space
+        return $ infix_ <> " " <> expression
+    let between = "\n" <> pack (take (indent + 4) (repeat ' '))
+    return $
+      mconcat
+        [ firstExpression,
+          between,
+          intercalate between items
+        ]
+
+parseSingleLineInfixed :: Int -> Parser Text
+parseSingleLineInfixed indent =
+  do
+    firstExpression <- parseInfixedExpression indent
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+
+    items <- some $
+      do
+        infix_ <- parseInfix
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        expression <- parseInfixedExpression indent
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
         return $ infix_ <> " " <> expression
     return $
       mconcat
