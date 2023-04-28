@@ -245,6 +245,8 @@ parseModuleDeclaration =
 typeAliasDeclaration :: Parser Text
 typeAliasDeclaration =
   do
+    documentation <- choice [try $ parseDocumentation, return ""]
+    _ <- space
     _ <- "type"
     _ <- space
     _ <- "alias"
@@ -259,7 +261,11 @@ typeAliasDeclaration =
     _ <- space
     return $
       mconcat
-        [ "type alias ",
+        [ documentation,
+          if documentation == ""
+            then ""
+            else "\n",
+          "type alias ",
           name,
           if parameters == ""
             then ""
@@ -560,7 +566,7 @@ parser =
       some $
         choice
           [ try customTypeDeclaration,
-            typeAliasDeclaration,
+            try typeAliasDeclaration,
             topLevelBind
           ]
     _ <- eof
