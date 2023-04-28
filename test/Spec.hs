@@ -1730,5 +1730,21 @@ cases =
       \x =\n\
       \    a |> b\n\
       \"
+    ),
+    ( "function call with parenthesised argument passed to right pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b c)\n\
+      \        |> e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b c)\n\
+      \        |> e\n\
+      \"
     )
   ]
