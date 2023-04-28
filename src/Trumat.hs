@@ -817,7 +817,7 @@ parseInfix =
 
 infixes :: [Text]
 infixes =
-  ["<|", "+"]
+  ["<|", "+", "|>"]
 
 parseInfixedExpression :: Int -> Parser Text
 parseInfixedExpression indent =
