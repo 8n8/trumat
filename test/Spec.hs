@@ -1746,5 +1746,19 @@ cases =
       \    a (b c)\n\
       \        |> e\n\
       \"
+    ),
+    ( "anonymous function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a -> a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a -> a\n\
+      \"
     )
   ]
