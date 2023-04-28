@@ -1680,5 +1680,27 @@ cases =
       \    b\n\
       \        []\n\
       \"
+    ),
+    ( "documentation on a type declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| type documentation\n\
+      \-}\n\
+      \type alias X =\n\
+      \    Int\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| type documentation\n\
+      \-}\n\
+      \type alias X =\n\
+      \    Int\n\
+      \"
     )
   ]
