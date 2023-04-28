@@ -4,6 +4,7 @@ import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
+import qualified Data.Text as Text
 import Data.Void (Void)
 import Text.Megaparsec
   ( Parsec,
@@ -20,6 +21,7 @@ import Text.Megaparsec
     sourceColumn,
     takeWhile1P,
     takeWhileP,
+    token,
     try,
     unPos,
   )
@@ -1077,15 +1079,27 @@ keywords =
   Set.fromList $
     ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
 
+parseFirstNameChar :: Parser Char
+parseFirstNameChar =
+  token getFirstNameChar Set.empty
+
+getFirstNameChar :: Char -> Maybe Char
+getFirstNameChar ch =
+  if ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._" :: String)
+    then Just ch
+    else Nothing
+
 parseName :: Parser Text
 parseName =
   do
-    word <-
-      takeWhile1P
+    firstChar <- parseFirstNameChar
+    remainder <-
+      takeWhileP
         (Just "name character")
-        (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz." :: String))
+        (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.0123456789" :: String))
+    let word = Text.cons firstChar remainder
     if Set.member word keywords
-      then fail $ "expecting a name but got: " <> unpack word
+      then fail $ "expecting a name tail but got: " <> unpack word
       else return word
 
 parseVerbatim :: Parser Text
