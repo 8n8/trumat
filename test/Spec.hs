@@ -1717,30 +1717,18 @@ cases =
       \    0\n\
       \"
     ),
-    ( "|> in list in function call in parenthesis in function call",
+    ( "right pizza",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    a\n\
-      \        (b\n\
-      \            [ c\n\
-      \                |> d\n\
-      \            ]\n\
-      \        )\n\
-      \  ]\n\
+      \    a |> b\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    a\n\
-      \        (b\n\
-      \            [ c\n\
-      \                |> d\n\
-      \            ]\n\
-      \        )\n\
-      \  ]\n\
+      \    a |> b\n\
       \"
     )
   ]
