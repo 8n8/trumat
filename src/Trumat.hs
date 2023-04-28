@@ -599,8 +599,26 @@ parseExpression context indent =
       try $ parseFunctionCall indent,
       parseVerbatim,
       parseTripleStringLiteral,
-      parseSimpleStringLiteral
+      parseSimpleStringLiteral,
+      parseAnonymousFunction indent
     ]
+
+parseAnonymousFunction :: Int -> Parser Text
+parseAnonymousFunction indent =
+  do
+    _ <- char '\\'
+    pattern <- parsePattern indent
+    _ <- space
+    _ <- chunk "->"
+    _ <- space
+    body <- parseExpression DoesntNeedBrackets indent
+    return $
+      mconcat
+        [ "\\",
+          pattern,
+          " -> ",
+          body
+        ]
 
 parseRecord :: Int -> Parser Text
 parseRecord indent =
