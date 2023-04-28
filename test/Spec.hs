@@ -1702,5 +1702,23 @@ cases =
       \type alias X =\n\
       \    Int\n\
       \"
+    ),
+    ( "number in import name",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (a1)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (a1)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
