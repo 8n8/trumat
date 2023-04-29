@@ -414,8 +414,35 @@ parseType indent =
   choice
     [ parseTypeWithParameters,
       try $ parseEmptyRecord,
-      parseRecordType indent
+      parseRecordType indent,
+      parseTupleType indent
     ]
+
+parseTupleType :: Int -> Parser Text
+parseTupleType indent =
+  do
+    _ <- char '('
+    _ <- parseSpaces
+    items <- many (parseTupleTypeItem indent)
+    _ <- char ')'
+    if null items
+      then return "()"
+      else
+        return $
+          mconcat
+            [ "( ",
+              intercalate ", " items,
+              " )"
+            ]
+
+parseTupleTypeItem :: Int -> Parser Text
+parseTupleTypeItem indent =
+  do
+    _ <- space
+    type_ <- parseType indent
+    _ <- space
+    _ <- choice [char ',', lookAhead (try (char ')'))]
+    return type_
 
 parseRecordType :: Int -> Parser Text
 parseRecordType indent =
