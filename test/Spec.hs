@@ -1788,5 +1788,19 @@ cases =
       \type alias X =\n\
       \    ( Int, Int )\n\
       \"
+    ),
+    ( "unicode escape",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\u{0000}\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\u{0000}\"\n\
+      \"
     )
   ]
