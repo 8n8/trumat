@@ -848,7 +848,8 @@ parseInfixedExpression indent =
       try $ parseFunctionCall indent,
       parseVerbatim,
       parseTripleStringLiteral,
-      parseSimpleStringLiteral
+      parseSimpleStringLiteral,
+      parseAnonymousFunction indent
     ]
 
 parseInfixLininess :: Int -> Parser ContainerType
