@@ -1816,5 +1816,19 @@ cases =
       \x =\n\
       \    \"\"\"\\u{0000}\"\"\"\n\
       \"
+    ),
+    ( "newline literal in string",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\n\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\n\"\n\
+      \"
     )
   ]
