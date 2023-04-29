@@ -1760,5 +1760,19 @@ cases =
       \x =\n\
       \    \\a -> a\n\
       \"
+    ),
+    ( "left pizza and anonymous function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| \\() -> b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| \\() -> b\n\
+      \"
     )
   ]
