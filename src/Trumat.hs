@@ -823,6 +823,7 @@ parseSimpleStringLiteralChar =
     [ takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
       chunk "\\\"",
       chunk "\\u",
+      chunk "\\n",
       chunk "\\\\"
     ]
 
