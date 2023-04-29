@@ -1830,5 +1830,19 @@ cases =
       \x =\n\
       \    \"\\n\"\n\
       \"
+    ),
+    ( "newline literal in triple-quoted string",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\\n\"\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\\n\"\"\"\n\
+      \"
     )
   ]
