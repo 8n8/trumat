@@ -1774,5 +1774,19 @@ cases =
       \x =\n\
       \    a <| \\() -> b\n\
       \"
+    ),
+    ( "tuple type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( Int, Int )\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( Int, Int )\n\
+      \"
     )
   ]
