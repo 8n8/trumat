@@ -802,6 +802,7 @@ parseTripleStringLiteralChar =
     [ takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
       chunk "\\\"",
       chunk "\\\\",
+      chunk "\\u",
       try $ do
         _ <- char '"'
         _ <- notFollowedBy (char '"')
