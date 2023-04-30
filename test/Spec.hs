@@ -1844,5 +1844,43 @@ cases =
       \x =\n\
       \    \"\"\"\\n\"\"\"\n\
       \"
+    ),
+    ( "deeply nested expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    A\n\
+      \        { b =\n\
+      \            C\n\
+      \                { d =\n\
+      \                    E\n\
+      \                        F\n\
+      \                        (G <|\n\
+      \                            H\n\
+      \                                I\n\
+      \                                (J { k = { l = 0, m = 1 } })\n\
+      \                        )\n\
+      \                }\n\
+      \        }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    A\n\
+      \        { b =\n\
+      \            C\n\
+      \                { d =\n\
+      \                    E\n\
+      \                        F\n\
+      \                        (G <|\n\
+      \                            H\n\
+      \                                I\n\
+      \                                (J { k = { l = 0, m = 1 } })\n\
+      \                        )\n\
+      \                }\n\
+      \        }\n\
+      \"
     )
   ]
