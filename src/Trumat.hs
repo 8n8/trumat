@@ -348,7 +348,7 @@ topLevelBind =
     parameters <- parseParameters 0
     _ <- char '='
     _ <- space
-    expression <- parseExpression DoesntNeedBrackets 4
+    expression <- parseExpression 1 DoesntNeedBrackets 4
     _ <- space
     return $
       mconcat
@@ -612,8 +612,8 @@ parser =
           "\n"
         ]
 
-parseExpression :: Context -> Int -> Parser Text
-parseExpression context indent =
+parseExpression :: Int -> Context -> Int -> Parser Text
+parseExpression minColumn context indent =
   choice
     [ parseCaseOf indent,
       parseTuple context indent,
@@ -623,7 +623,7 @@ parseExpression context indent =
       parseIfThenElse indent,
       parseLetIn indent,
       try $ parseInfixed indent,
-      try $ parseFunctionCall indent,
+      try $ parseFunctionCall minColumn indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -638,7 +638,7 @@ parseAnonymousFunction indent =
     _ <- space
     _ <- chunk "->"
     _ <- space
-    body <- parseExpression DoesntNeedBrackets indent
+    body <- parseExpression 1 DoesntNeedBrackets indent
     return $
       mconcat
         [ "\\",
@@ -752,7 +752,7 @@ parseRecordItem indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression DoesntNeedBrackets indent
+    right <- parseExpression 1 DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
@@ -783,7 +783,7 @@ parseRecordItemLininess =
     spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     _ <- char '='
     spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    right <- parseExpression DoesntNeedBrackets 0
+    right <- parseExpression 1 DoesntNeedBrackets 0
     if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
       then return MultiLine
       else return SingleLine
@@ -836,10 +836,21 @@ parsePattern indent =
       parseVerbatim
     ]
 
-parseFunctionCall :: Int -> Parser Text
-parseFunctionCall indent =
+parseArgumentExpression :: Int -> Parser Text
+parseArgumentExpression indent =
+  choice
+    [ parseTuple NeedsBrackets indent,
+      parseList indent,
+      try $ parseRecord indent,
+      parseRecordUpdate indent,
+      parseVerbatim,
+      parseTripleStringLiteral,
+      parseSimpleStringLiteral
+    ]
+
+parseFunctionCall :: Int -> Int -> Parser Text
+parseFunctionCall minColumn indent =
   do
-    -- lininess <- try $ lookAhead functionCallLininess
     startRow <- fmap (unPos . sourceLine) getSourcePos
     f <- parseName
     items <- some $
@@ -847,9 +858,9 @@ parseFunctionCall indent =
         do
           _ <- space
           column <- fmap (unPos . sourceColumn) getSourcePos
-          if column - 1 > indent - 4
-            then parseExpression NeedsBrackets indent
-            else fail "argument is too far left"
+          if column <= minColumn
+            then fail "argument is too far left"
+            else parseArgumentExpression indent
     endRow <- fmap (unPos . sourceLine) getSourcePos
     let spaces =
           if endRow > startRow
@@ -876,7 +887,7 @@ parseInfixedExpression indent =
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
-      try $ parseFunctionCall indent,
+      try $ parseFunctionCall 1 indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -1015,7 +1026,7 @@ parseLetIn indent =
           return items
     _ <- chunk "in"
     _ <- space1
-    in_ <- parseExpression DoesntNeedBrackets indent
+    in_ <- parseExpression 1 DoesntNeedBrackets indent
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $
       mconcat
@@ -1030,11 +1041,11 @@ parseLetIn indent =
 parseLetBind :: Int -> Parser Text
 parseLetBind indent =
   do
-    left <- parseExpression DoesntNeedBrackets indent
+    left <- parseExpression 1 DoesntNeedBrackets indent
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression DoesntNeedBrackets indent
+    right <- parseExpression 1 DoesntNeedBrackets indent
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
@@ -1052,15 +1063,15 @@ parseIfThenElse indent =
     ifThenElseType <- lookAhead parseIfThenElseType
     _ <- chunk "if"
     _ <- space1
-    if_ <- parseExpression DoesntNeedBrackets (indent + 4)
+    if_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     _ <- space1
     _ <- chunk "then"
     _ <- space1
-    then_ <- parseExpression DoesntNeedBrackets (indent + 4)
+    then_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     _ <- space1
     _ <- chunk "else"
     _ <- space1
-    else_ <- parseExpression DoesntNeedBrackets (indent + 4)
+    else_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     return $
       mconcat
         [ "if",
@@ -1115,11 +1126,12 @@ parseCaseOf indent =
     caseOfType <- lookAhead parseCaseOfType
     _ <- chunk "case"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
-    caseOf <- parseExpression DoesntNeedBrackets (indent + 4)
+    caseOf <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     _ <- chunk "of"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
-    branches <- some (parseCaseOfBranch (indent + 4))
+    column <- fmap (unPos . sourceColumn) getSourcePos
+    branches <- some (parseCaseOfBranch column (indent + 4))
     return $
       mconcat
         [ "case",
@@ -1137,23 +1149,27 @@ parseCaseOf indent =
           intercalate "\n\n" branches
         ]
 
-parseCaseOfBranch :: Int -> Parser Text
-parseCaseOfBranch indent =
+parseCaseOfBranch :: Int -> Int -> Parser Text
+parseCaseOfBranch minColumn indent =
   do
-    left <- parsePattern indent
-    _ <- space
-    _ <- chunk "->"
-    _ <- space
-    right <- parseExpression DoesntNeedBrackets (indent + 4)
-    _ <- space
-    return $
-      mconcat
-        [ pack $ take indent $ repeat ' ',
-          left,
-          " ->\n",
-          pack $ take (indent + 4) $ repeat ' ',
-          right
-        ]
+    column <- fmap (unPos . sourceColumn) getSourcePos
+    if column /= minColumn
+      then fail "invalid column"
+      else do
+        left <- parsePattern indent
+        _ <- space
+        _ <- chunk "->"
+        _ <- space
+        right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+        _ <- space
+        return $
+          mconcat
+            [ pack $ take indent $ repeat ' ',
+              left,
+              " ->\n",
+              pack $ take (indent + 4) $ repeat ' ',
+              right
+            ]
 
 keywords :: Set Text
 keywords =
@@ -1231,7 +1247,7 @@ parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parseExpression DoesntNeedBrackets indent
+    expression <- parseExpression 1 DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- choice [char ',', lookAhead (try (char end))]
@@ -1253,7 +1269,7 @@ parseListItem :: Int -> Parser () -> Char -> Parser Text
 parseListItem indent spaceParser end =
   do
     _ <- spaceParser
-    expression <- parseExpression DoesntNeedBrackets indent
+    expression <- parseExpression 1 DoesntNeedBrackets indent
     _ <- spaceParser
     _ <- choice [char ',', lookAhead (try (char end))]
     return expression

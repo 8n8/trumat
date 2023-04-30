@@ -1864,13 +1864,13 @@ cases =
       \\n\
       \\n\
       \x =\n\
-      \    A B B B B B B B B B B B B B B B B B B B\n\
+      \    A B B B B B B B B B B B B B B B B B\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    A B B B B B B B B B B B B B B B B B B B\n\
+      \    A B B B B B B B B B B B B B B B B B\n\
       \"
     )
   ]
