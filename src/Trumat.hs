@@ -852,10 +852,9 @@ parseFunctionCall indent =
             else fail "argument is too far left"
     endRow <- fmap (unPos . sourceLine) getSourcePos
     let spaces =
-          if endRow > startRow then
-              pack $ '\n' : (take (indent + 4) $ repeat ' ')
-          else
-              " "
+          if endRow > startRow
+            then pack $ '\n' : (take (indent + 4) $ repeat ' ')
+            else " "
     return $ intercalate spaces (f : items)
 
 parseInfix :: Parser Text
@@ -974,26 +973,6 @@ expressionLininess =
       listLininess '(' ')',
       verbatimLininess
     ]
-
-functionCallLininess :: Parser ContainerType
-functionCallLininess =
-  do
-    _ <- parseName
-    items <-
-      some $
-        try $
-          do
-            spaces <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-            argColumn <- fmap sourceColumn getSourcePos
-            if unPos argColumn > 0
-              then do
-                _ <- parseExpression NeedsBrackets 8
-                return spaces
-              else fail "argument is indented less than function"
-    let combined = mconcat items
-    if isInfixOf "\n" combined
-      then return MultiLine
-      else return SingleLine
 
 verbatimLininess :: Parser ContainerType
 verbatimLininess =
