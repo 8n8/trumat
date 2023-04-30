@@ -1858,5 +1858,19 @@ cases =
       \x =\n\
       \    A B B B B B B B B B\n\
       \"
+    ),
+    ( "very deeply nested expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    A B B B B B B B B B B B B B B B B B B B\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    A B B B B B B B B B B B B B B B B B B B\n\
+      \"
     )
   ]
