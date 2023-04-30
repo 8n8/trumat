@@ -839,7 +839,8 @@ parsePattern indent =
 parseFunctionCall :: Int -> Parser Text
 parseFunctionCall indent =
   do
-    lininess <- try $ lookAhead functionCallLininess
+    -- lininess <- try $ lookAhead functionCallLininess
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     f <- parseName
     items <- some $
       try $
@@ -849,11 +850,11 @@ parseFunctionCall indent =
           if column - 1 > indent - 4
             then parseExpression NeedsBrackets indent
             else fail "argument is too far left"
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     let spaces =
-          case lininess of
-            MultiLine ->
+          if endRow > startRow then
               pack $ '\n' : (take (indent + 4) $ repeat ' ')
-            SingleLine ->
+          else
               " "
     return $ intercalate spaces (f : items)
 

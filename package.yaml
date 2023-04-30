@@ -22,6 +22,8 @@ ghc-options:
 - -Wno-missed-specialisations
 - -O2
 - -Wno-unused-top-binds
+- -Wno-unused-matches
+- -Wno-unused-packages
 
 library:
   source-dirs: src
