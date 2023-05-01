@@ -21,6 +21,7 @@ ghc-options:
 - -Wno-missing-deriving-strategies
 - -Wno-missed-specialisations
 - -Wno-unused-top-binds
+- -Wno-unused-matches
 - -O2
 
 library:
