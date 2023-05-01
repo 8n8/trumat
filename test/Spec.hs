@@ -1895,7 +1895,6 @@ cases =
       \    case a of\n\
       \        Ok ( b, c ) ->\n\
       \            0\n\
-      \  ]\n\
       \",
       "module X exposing (x)\n\
       \\n\
@@ -1904,7 +1903,6 @@ cases =
       \    case a of\n\
       \        Ok ( b, c ) ->\n\
       \            0\n\
-      \  ]\n\
       \"
     )
   ]

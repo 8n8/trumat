@@ -838,6 +838,7 @@ parsePattern indent =
   choice
     [ parseTuple NeedsBrackets indent,
       parseList indent,
+      try $ parseFunctionCall 1 indent,
       parseVerbatim
     ]
 
