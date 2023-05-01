@@ -1211,7 +1211,7 @@ parseVerbatim =
     word <-
       takeWhile1P
         (Just "verbatim character")
-        (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz." :: String))
+        (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._" :: String))
     if Set.member word keywords
       then fail $ "expecting a verbatim, but got: " <> unpack word
       else return word
