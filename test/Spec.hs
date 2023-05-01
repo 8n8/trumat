@@ -1988,5 +1988,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "case of pattern called 'co'",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case co of\n\
+      \        a ->\n\
+      \            0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case co of\n\
+      \        a ->\n\
+      \            0\n\
+      \"
     )
   ]
