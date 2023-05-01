@@ -1886,5 +1886,25 @@ cases =
       \x =\n\
       \    A (B (B (B (B (B (B (B (B (B (B (B (B (B (B (B (B (B 0)))))))))))))))))\n\
       \"
+    ),
+    ( "tuple in case pattern argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Ok ( b, c ) ->\n\
+      \            0\n\
+      \  ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Ok ( b, c ) ->\n\
+      \            0\n\
+      \  ]\n\
+      \"
     )
   ]
