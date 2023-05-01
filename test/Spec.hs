@@ -1950,5 +1950,43 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module @docs and freestyle",
+      "module X exposing\n\
+      \    ( x\n\
+      \    , y\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \@docs y\n\
+      \\n\
+      \abc\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( x\n\
+      \    , y\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \@docs y\n\
+      \\n\
+      \abc\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

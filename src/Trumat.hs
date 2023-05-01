@@ -244,9 +244,10 @@ parseModuleDocs =
                   mconcat
                     [ "\n\n",
                       intercalate "\n" (map (\row -> "@docs " <> intercalate ", " row) docRows),
-                      "\n",
-                      remainder,
-                      "\n"
+                      "\n\n",
+                      if remainder == ""
+                        then ""
+                        else remainder <> "\n\n"
                     ],
           "-}"
         ]
