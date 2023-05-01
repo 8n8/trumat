@@ -622,8 +622,13 @@ parseExpression minColumn context indent =
       parseRecordUpdate indent,
       parseIfThenElse indent,
       parseLetIn indent,
+      try $
+        do
+          f <- parseFunctionCall minColumn indent
+          _ <- space
+          notFollowedBy parseInfix
+          return f,
       try $ parseInfixed indent,
-      try $ parseFunctionCall minColumn indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
