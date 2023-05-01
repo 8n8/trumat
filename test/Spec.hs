@@ -1904,5 +1904,29 @@ cases =
       \        Ok ( b, c ) ->\n\
       \            0\n\
       \"
+    ),
+    ( "underscore in tuple pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Ok ( _, r ) ->\n\
+      \            Just r\n\
+      \\n\
+      \        _ ->\n\
+      \            Nothing\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Ok ( _, r ) ->\n\
+      \            Just r\n\
+      \\n\
+      \        _ ->\n\
+      \            Nothing\n\
+      \"
     )
   ]
