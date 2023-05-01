@@ -27,7 +27,7 @@ main :: IO ()
 main =
   defaultMain $
     testGroup "Unit tests" $
-      {- property : -} map oneTest cases
+      property : map oneTest cases
 
 property :: TestTree
 property =
@@ -167,7 +167,7 @@ oneTest (name, input, expected) =
 
 cases :: [(String, Text, Text)]
 cases =
-  [ {- ( "hello world formatted",
+  [ ( "hello world formatted",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -1872,7 +1872,7 @@ cases =
       \x =\n\
       \    A B B B B B B B B B B B B B B B B B\n\
       \"
-    ), -}
+    ),
     ( "very deeply nested parentheses",
       "module X exposing (x)\n\
       \\n\
