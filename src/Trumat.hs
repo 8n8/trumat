@@ -58,7 +58,6 @@ import Prelude
     (<>),
     (==),
     (>),
-    (>>),
     (||),
   )
 
@@ -1131,59 +1130,29 @@ parseIfThenElse indent =
           else_
         ]
 
-parseCaseOfType :: Parser ContainerType
-parseCaseOfType =
-  do
-    _ <- choice [chunk "case ", chunk "case\n"]
-    parseCaseOfTypeHelp
-
-parseOf :: Parser ()
-parseOf =
-  do
-    _ <- choice [chunk " of", chunk "\nof"]
-    _ <- lookAhead $ choice [char ' ', char '\n']
-    return ()
-
-parseCaseOfTypeHelp :: Parser ContainerType
-parseCaseOfTypeHelp =
-  choice
-    [ parseOf >> return SingleLine,
-      do
-        _ <- takeWhileP Nothing (\ch -> ch /= 'o' && ch /= '\n' && ch /= ' ')
-        choice
-          [ do
-              _ <- char '\n'
-              return MultiLine,
-            parseCaseOfTypeHelp
-          ]
-    ]
-
 parseCaseOf :: Int -> Parser Text
 parseCaseOf indent =
   do
-    caseOfType <- lookAhead parseCaseOfType
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- chunk "case"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     caseOf <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     _ <- chunk "of"
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     column <- fmap (unPos . sourceColumn) getSourcePos
     branches <- some (parseCaseOfBranch column (indent + 4))
     return $
       mconcat
         [ "case",
-          case caseOfType of
-            MultiLine ->
-              "\n" <> pack (take (indent + 4) (repeat ' '))
-            SingleLine ->
-              " ",
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " ",
           caseOf,
-          case caseOfType of
-            MultiLine ->
-              "\n" <> pack (take indent (repeat ' ') <> "of\n")
-            SingleLine ->
-              " of\n",
+          if endRow > startRow
+            then "\n" <> pack (take indent (repeat ' ') <> "of\n")
+            else " of\n",
           intercalate "\n\n" branches
         ]
 
