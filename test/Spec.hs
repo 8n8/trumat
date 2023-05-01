@@ -2006,5 +2006,29 @@ cases =
       \        a ->\n\
       \            0\n\
       \"
+    ),
+    ( "top-level type signature following type declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = A\n\
+      \\n\
+      \\n\
+      \x : Int\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = A\n\
+      \\n\
+      \\n\
+      \x : Int\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
