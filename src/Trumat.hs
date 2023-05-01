@@ -213,16 +213,43 @@ constructMultilineExports _ exports =
 endDocComment :: Parser Text
 endDocComment =
   do
-    part <- takeWhileP Nothing (\ch -> ch /= '-')
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    contents <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '-'),
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy (char '}')
+              return ""
+          ]
     _ <- chunk "-}"
-    return part
+    return $ Text.strip $ mconcat contents
 
 parseModuleDocs :: Parser Text
 parseModuleDocs =
   do
     _ <- chunk "{-|"
-    doc <- endDocComment
-    return $ mconcat ["{-|", doc, "-}"]
+    docRows <- many $ try parseExportDocsRow
+    remainder <- endDocComment
+    return $
+      mconcat
+        [ "{-|",
+          if remainder == "" && null docRows
+            then "\n\n\n"
+            else
+              if null docRows
+                then " " <> remainder <> "\n"
+                else
+                  mconcat
+                    [ "\n\n",
+                      intercalate "\n" (map (\row -> "@docs " <> intercalate ", " row) docRows),
+                      "\n",
+                      remainder,
+                      "\n"
+                    ],
+          "-}"
+        ]
 
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
@@ -325,9 +352,13 @@ parseDocumentation =
     _ <- choice [char '|', return ' ']
     contents <-
       many $
-        do
-          _ <- notFollowedBy (char '}')
-          takeWhile1P Nothing (\ch -> ch /= '-')
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '-'),
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy (char '}')
+              return "-"
+          ]
     _ <- chunk "-}"
     return $
       mconcat
