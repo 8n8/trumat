@@ -2030,5 +2030,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "string concatenation operator: ++",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"a\" ++ \"b\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"a\" ++ \"b\"\n\
+      \"
     )
   ]
