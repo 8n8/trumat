@@ -2068,5 +2068,19 @@ cases =
       \        B ->\n\
       \            0\n\
       \"
+    ),
+    ( "left-to-right pipe operator: >>",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >> b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >> b\n\
+      \"
     )
   ]
