@@ -1,6 +1,6 @@
 # trumat
 
-** work in progress - don't use yet **
+**work in progress - don't use yet**
 
 A fast formatter for Elm, using the same rules as [elm-format](https://github.com/avh4/elm-format).
 
