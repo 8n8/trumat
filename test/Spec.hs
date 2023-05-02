@@ -2044,5 +2044,29 @@ cases =
       \x =\n\
       \    \"a\" ++ \"b\"\n\
       \"
+    ),
+    ( "case expression with infix in first branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        A ->\n\
+      \            y <| z\n\
+      \\n\
+      \        B ->\n\
+      \            0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        A ->\n\
+      \            y <| z\n\
+      \\n\
+      \        B ->\n\
+      \            0\n\
+      \"
     )
   ]
