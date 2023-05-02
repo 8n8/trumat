@@ -2082,5 +2082,19 @@ cases =
       \x =\n\
       \    a >> b\n\
       \"
+    ),
+    ( "deeply nested records",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = 0 } } } } } } } } } } } } } } } } } }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = 0 } } } } } } } } } } } } } } } } } }\n\
+      \"
     )
   ]
