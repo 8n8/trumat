@@ -332,18 +332,21 @@ parseBranch =
       then fail "column == 0"
       else do
         startColumn <- fmap (unPos . sourceColumn) getSourcePos
-        branchName <- parseName
-        _ <- space
-        parameters <- parseParameters startColumn
-        _ <- choice [char '|', return ' ']
-        return $
-          mconcat
-            [ branchName,
-              if parameters == ""
-                then ""
-                else " ",
-              parameters
-            ]
+        if startColumn == 1
+          then fail "column is too low"
+          else do
+            branchName <- parseName
+            _ <- space
+            parameters <- parseParameters startColumn
+            _ <- choice [char '|', return ' ']
+            return $
+              mconcat
+                [ branchName,
+                  if parameters == ""
+                    then ""
+                    else " ",
+                  parameters
+                ]
 
 parseDocumentation :: Parser Text
 parseDocumentation =
