@@ -662,7 +662,7 @@ parseExpression minColumn context indent =
           _ <- space
           notFollowedBy parseInfix
           return f,
-      try $ parseInfixed indent,
+      try $ parseInfixed minColumn indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -892,21 +892,25 @@ parseFunctionCall :: Int -> Int -> Parser Text
 parseFunctionCall minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    f <- parseName
-    items <- some $
-      try $
-        do
-          _ <- space
-          column <- fmap (unPos . sourceColumn) getSourcePos
-          if column <= minColumn
-            then fail "argument is too far left"
-            else parseArgumentExpression indent
-    endRow <- fmap (unPos . sourceLine) getSourcePos
-    let spaces =
-          if endRow > startRow
-            then pack $ '\n' : (take (indent + 4) $ repeat ' ')
-            else " "
-    return $ intercalate spaces (f : items)
+    startColumn <- fmap (unPos . sourceColumn) getSourcePos
+    if startColumn <= minColumn
+      then fail "callable is too far left"
+      else do
+        f <- parseName
+        items <- some $
+          try $
+            do
+              _ <- space
+              column <- fmap (unPos . sourceColumn) getSourcePos
+              if column <= minColumn
+                then fail "argument is too far left"
+                else parseArgumentExpression indent
+        endRow <- fmap (unPos . sourceLine) getSourcePos
+        let spaces =
+              if endRow > startRow
+                then pack $ '\n' : (take (indent + 4) $ repeat ' ')
+                else " "
+        return $ intercalate spaces (f : items)
 
 parseInfix :: Parser Text
 parseInfix =
@@ -920,32 +924,32 @@ infixes :: [Text]
 infixes =
   ["<|", "++", "+", "|>"]
 
-parseInfixedExpression :: Int -> Parser Text
-parseInfixedExpression indent =
+parseInfixedExpression :: Int -> Int -> Parser Text
+parseInfixedExpression minColumn indent =
   choice
     [ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
-      try $ parseFunctionCall 1 indent,
+      try $ parseFunctionCall minColumn indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
       parseAnonymousFunction indent
     ]
 
-parseInfixLininess :: Int -> Parser ContainerType
-parseInfixLininess indent =
+parseInfixLininess :: Int -> Int -> Parser ContainerType
+parseInfixLininess minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    _ <- parseInfixedExpression indent
+    _ <- parseInfixedExpression minColumn indent
     _ <- some $
       try $
         do
           _ <- space
           _ <- parseInfix
           _ <- space
-          _ <- parseInfixedExpression indent
+          _ <- parseInfixedExpression minColumn indent
           return ()
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
@@ -953,27 +957,27 @@ parseInfixLininess indent =
         then MultiLine
         else SingleLine
 
-parseInfixed :: Int -> Parser Text
-parseInfixed indent =
+parseInfixed :: Int -> Int -> Parser Text
+parseInfixed minColumn indent =
   do
-    lininess <- lookAhead $ parseInfixLininess indent
+    lininess <- lookAhead $ parseInfixLininess minColumn indent
     case lininess of
       MultiLine ->
-        parseMultiLineInfixed indent
+        parseMultiLineInfixed minColumn indent
       SingleLine ->
-        parseSingleLineInfixed indent
+        parseSingleLineInfixed minColumn indent
 
-parseMultiLineInfixed :: Int -> Parser Text
-parseMultiLineInfixed indent =
+parseMultiLineInfixed :: Int -> Int -> Parser Text
+parseMultiLineInfixed minColumn indent =
   do
-    firstExpression <- parseInfixedExpression indent
+    firstExpression <- parseInfixedExpression minColumn indent
     _ <- space
 
     items <- some $
       do
         infix_ <- parseInfix
         _ <- space
-        expression <- parseInfixedExpression indent
+        expression <- parseInfixedExpression minColumn indent
         _ <- space
         return $ infix_ <> " " <> expression
     let between = "\n" <> pack (take (indent + 4) (repeat ' '))
@@ -984,17 +988,17 @@ parseMultiLineInfixed indent =
           intercalate between items
         ]
 
-parseSingleLineInfixed :: Int -> Parser Text
-parseSingleLineInfixed indent =
+parseSingleLineInfixed :: Int -> Int -> Parser Text
+parseSingleLineInfixed minColumn indent =
   do
-    firstExpression <- parseInfixedExpression indent
+    firstExpression <- parseInfixedExpression minColumn indent
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
 
     items <- some $
       do
         infix_ <- parseInfix
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
-        expression <- parseInfixedExpression indent
+        expression <- parseInfixedExpression minColumn indent
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         return $ infix_ <> " " <> expression
     return $
@@ -1170,7 +1174,7 @@ parseCaseOfBranch minColumn indent =
         _ <- space
         _ <- chunk "->"
         _ <- space
-        right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+        right <- parseExpression (minColumn + 1) DoesntNeedBrackets (indent + 4)
         _ <- space
         return $
           mconcat
