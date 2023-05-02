@@ -6,6 +6,8 @@ A fast formatter for Elm, using the same rules as [elm-format](https://github.co
 
 ## Install
 
+First install the Haskell Tool Stack: https://docs.haskellstack.org/en/stable/#how-to-install-stack
+
 Run `stack install`. This will build the binary and copy it to `~/.local/bin`. You can add this to your `$PATH` by adding `export PATH=$HOME/.local/bin:$PATH` to your terminal configuration file, probably `~/.bashrc` or `~/.zshrc`. Restart the terminal and you should be able to run `trumat`.
 
 ## Run
