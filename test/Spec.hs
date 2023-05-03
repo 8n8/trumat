@@ -2124,5 +2124,19 @@ cases =
       \x =\n\
       \    (==)\n\
       \"
+    ),
+    ( "infix in brackets as function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (==)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (==)\n\
+      \"
     )
   ]
