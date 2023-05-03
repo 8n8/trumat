@@ -2096,5 +2096,19 @@ cases =
       \x =\n\
       \    { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = { a = 0 } } } } } } } } } } } } } } } } } }\n\
       \"
+    ),
+    ( "equality operator: ==",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 == 1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 == 1\n\
+      \"
     )
   ]
