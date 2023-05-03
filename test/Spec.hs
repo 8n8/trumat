@@ -2138,5 +2138,19 @@ cases =
       \x =\n\
       \    a (==)\n\
       \"
+    ),
+    ( "infix in brackets combined with ordinary infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >> (==) b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >> (==) b\n\
+      \"
     )
   ]
