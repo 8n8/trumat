@@ -2170,5 +2170,31 @@ cases =
       \        C ->\n\
       \            d\n\
       \"
+    ),
+    ( "doc comment before custom type declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| A\n\
+      \-}\n\
+      \type A\n\
+      \    = A\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| A\n\
+      \-}\n\
+      \type A\n\
+      \    = A\n\
+      \"
     )
   ]
