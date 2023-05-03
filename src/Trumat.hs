@@ -867,7 +867,8 @@ parsePattern indent =
 parseArgumentExpression :: Int -> Parser Text
 parseArgumentExpression indent =
   choice
-    [ parseTuple NeedsBrackets indent,
+    [ try $ parseTuple NeedsBrackets indent,
+      parseInfixInBrackets,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
