@@ -786,12 +786,13 @@ parseSingleLineRecord indent =
 parseRecordItem :: Int -> Parser Text
 parseRecordItem indent =
   do
-    recordLininess <- lookAhead parseRecordItemLininess
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     name <- parseName
     _ <- space
     _ <- char '='
     _ <- space
     right <- parseExpression 1 DoesntNeedBrackets indent
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
@@ -801,11 +802,9 @@ parseRecordItem indent =
       mconcat
         [ name,
           " =",
-          case recordLininess of
-            SingleLine ->
-              " "
-            MultiLine ->
-              "\n" <> pack (take (indent + 2) (repeat ' ')),
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 2) (repeat ' '))
+            else " ",
           right,
           if sameLineComment == ""
             then ""
