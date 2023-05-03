@@ -933,7 +933,7 @@ infixes =
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
   choice
-    [ parseTuple NeedsBrackets indent,
+    [ try $ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
