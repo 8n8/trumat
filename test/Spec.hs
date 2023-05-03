@@ -2152,5 +2152,23 @@ cases =
       \x =\n\
       \    a >> (==) b\n\
       \"
+    ),
+    ( "function call in case of expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a b of\n\
+      \        C ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a b of\n\
+      \        C ->\n\
+      \            d\n\
+      \"
     )
   ]
