@@ -1150,7 +1150,7 @@ parseCaseOf indent =
     _ <- chunk "case"
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     caseOf <- parseExpression 1 DoesntNeedBrackets (indent + 4)
-    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    _ <- space
     _ <- chunk "of"
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
