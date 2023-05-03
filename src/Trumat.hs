@@ -308,6 +308,8 @@ typeAliasDeclaration =
 customTypeDeclaration :: Parser Text
 customTypeDeclaration =
   do
+    documentation <- choice [try $ parseDocumentation, return ""]
+    _ <- space
     _ <- "type"
     _ <- space
     name <- parseName
@@ -317,7 +319,11 @@ customTypeDeclaration =
     branches <- some parseBranch
     return $
       mconcat
-        [ "type ",
+        [ documentation,
+          if documentation == ""
+            then ""
+            else "\n",
+          "type ",
           name,
           "\n    = ",
           intercalate "\n    | " branches
