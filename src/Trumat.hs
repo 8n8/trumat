@@ -814,18 +814,6 @@ parseRecordItem indent =
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
-parseRecordItemLininess :: Parser ContainerType
-parseRecordItemLininess =
-  do
-    _ <- parseName
-    spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    _ <- char '='
-    spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    right <- parseExpression 1 DoesntNeedBrackets 0
-    if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
-      then return MultiLine
-      else return SingleLine
-
 parseTripleStringLiteral :: Parser Text
 parseTripleStringLiteral =
   do
@@ -921,7 +909,7 @@ parseInfix =
 
 infixes :: [Text]
 infixes =
-  [">>", "<|", "++", "+", "|>"]
+  ["==", ">>", "<|", "++", "+", "|>"]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
