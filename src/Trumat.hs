@@ -650,7 +650,7 @@ parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ parseCaseOf indent,
-      parseTuple context indent,
+      try $ parseTuple context indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
@@ -662,6 +662,7 @@ parseExpression minColumn context indent =
           _ <- space
           notFollowedBy parseInfix
           return f,
+      parseInfixInBrackets,
       try $ parseInfixed minColumn indent,
       parseVerbatim,
       parseTripleStringLiteral,
@@ -875,6 +876,23 @@ parseArgumentExpression indent =
       parseSimpleStringLiteral
     ]
 
+parseCallable :: Parser Text
+parseCallable =
+  choice
+    [ parseName,
+      parseInfixInBrackets
+    ]
+
+parseInfixInBrackets :: Parser Text
+parseInfixInBrackets =
+  do
+    _ <- char '('
+    _ <- space
+    infix_ <- parseInfix
+    _ <- space
+    _ <- char ')'
+    return $ "(" <> infix_ <> ")"
+
 parseFunctionCall :: Int -> Int -> Parser Text
 parseFunctionCall minColumn indent =
   do
@@ -883,7 +901,7 @@ parseFunctionCall minColumn indent =
     if startColumn <= minColumn
       then fail "callable is too far left"
       else do
-        f <- parseName
+        f <- parseCallable
         items <- some $
           try $
             do
