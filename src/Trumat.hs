@@ -660,7 +660,7 @@ parseExpression minColumn context indent =
       try $ parseRecord indent,
       parseRecordUpdate indent,
       parseIfThenElse indent,
-      parseLetIn indent,
+      parseLetIn minColumn indent,
       try $
         do
           f <- parseFunctionCall minColumn indent
@@ -1069,8 +1069,8 @@ listLinynessHelp nesting start end =
             listLinynessHelp (nesting - 1) start end
         ]
 
-parseLetIn :: Int -> Parser Text
-parseLetIn indent =
+parseLetIn :: Int -> Int -> Parser Text
+parseLetIn minColumn indent =
   do
     _ <- chunk "let"
     _ <- space1
@@ -1082,7 +1082,7 @@ parseLetIn indent =
           return items
     _ <- chunk "in"
     _ <- space1
-    in_ <- parseExpression 1 DoesntNeedBrackets indent
+    in_ <- parseExpression minColumn DoesntNeedBrackets indent
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $
       mconcat
