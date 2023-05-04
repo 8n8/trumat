@@ -656,7 +656,6 @@ parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ parseCaseOf indent,
-      try $ parseTuple context indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
@@ -668,8 +667,9 @@ parseExpression minColumn context indent =
           _ <- space
           notFollowedBy parseInfix
           return f,
-      parseInfixInBrackets,
+      try parseInfixInBrackets,
       try $ parseInfixed minColumn indent,
+      try $ parseTuple context indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
