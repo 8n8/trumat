@@ -2212,5 +2212,29 @@ cases =
       \    (a + b)\n\
       \        |> c\n\
       \"
+    ),
+    ( "type signature inside let in expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a : Int\n\
+      \        a =\n\
+      \            0\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a : Int\n\
+      \        a =\n\
+      \            0\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
