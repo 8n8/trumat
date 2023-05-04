@@ -2260,5 +2260,37 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "case of with let in expression inside first branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Just b ->\n\
+      \            let\n\
+      \                c =\n\
+      \                    d\n\
+      \            in\n\
+      \            e\n\
+      \\n\
+      \        Nothing ->\n\
+      \            f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        Just b ->\n\
+      \            let\n\
+      \                c =\n\
+      \                    d\n\
+      \            in\n\
+      \            e\n\
+      \\n\
+      \        Nothing ->\n\
+      \            f\n\
+      \"
     )
   ]
