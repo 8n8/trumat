@@ -1097,6 +1097,7 @@ parseLetIn indent =
 parseLetBind :: Int -> Parser Text
 parseLetBind indent =
   do
+    signature <- choice [try parseTypeSignature, return ""]
     left <- parseExpression 1 DoesntNeedBrackets indent
     _ <- space
     _ <- char '='
@@ -1106,7 +1107,10 @@ parseLetBind indent =
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
       mconcat
-        [ leftSpaces,
+        [ if signature == ""
+            then ""
+            else leftSpaces <> signature <> "\n",
+          leftSpaces,
           left,
           " =\n",
           rightSpaces,
