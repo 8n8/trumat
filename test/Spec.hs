@@ -2236,5 +2236,29 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "type with parameters in let-in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a : List String\n\
+      \        a =\n\
+      \            []\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a : List String\n\
+      \        a =\n\
+      \            []\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
