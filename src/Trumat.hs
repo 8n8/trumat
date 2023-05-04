@@ -418,7 +418,7 @@ parseParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parsePattern 0
+              parameter <- parsePattern startColumn 0
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -426,14 +426,14 @@ parseParameters startColumn =
 parseTypeSignature :: Parser Text
 parseTypeSignature =
   do
-    startColumn <- fmap sourceColumn getSourcePos
+    startColumn <- fmap (unPos . sourceColumn) getSourcePos
     name <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
     types <- some $
       do
-        column <- fmap sourceColumn getSourcePos
+        column <- fmap (unPos . sourceColumn) getSourcePos
         if column <= startColumn
           then fail "invalid indentation"
           else do
@@ -680,7 +680,7 @@ parseAnonymousFunction :: Int -> Parser Text
 parseAnonymousFunction indent =
   do
     _ <- char '\\'
-    pattern <- parsePattern indent
+    pattern <- parsePattern 1 indent
     _ <- space
     _ <- chunk "->"
     _ <- space
@@ -861,12 +861,12 @@ parseSimpleStringLiteralChar =
       chunk "\\\\"
     ]
 
-parsePattern :: Int -> Parser Text
-parsePattern indent =
+parsePattern :: Int -> Int -> Parser Text
+parsePattern minColumn indent =
   choice
     [ parseTuple NeedsBrackets indent,
       parseList indent,
-      try $ parseFunctionCall 1 indent,
+      try $ parseFunctionCall minColumn indent,
       parseVerbatim
     ]
 
@@ -1186,7 +1186,7 @@ parseCaseOfBranch minColumn indent =
     if column /= minColumn
       then fail "invalid column"
       else do
-        left <- parsePattern indent
+        left <- parsePattern (minColumn - 4) indent
         _ <- space
         _ <- chunk "->"
         _ <- space
