@@ -2196,5 +2196,21 @@ cases =
       \type A\n\
       \    = A\n\
       \"
+    ),
+    ( "pass infixed expression to right pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a + b)\n\
+      \        |> c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a + b)\n\
+      \        |> c\n\
+      \"
     )
   ]
