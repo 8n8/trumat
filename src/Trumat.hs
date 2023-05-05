@@ -864,6 +864,33 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Int -> Parser Text
 parsePattern minColumn indent =
   choice
+    [ try $ parsePatternNoAlias minColumn indent,
+      parseAliasedPattern minColumn indent
+    ]
+
+parseAliasedPattern :: Int -> Int -> Parser Text
+parseAliasedPattern minColumn indent =
+  do
+    _ <- char '('
+    pattern <- parsePatternNoAlias minColumn indent
+    _ <- space
+    _ <- chunk "as"
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char ')'
+    return $
+      mconcat
+        [ "(",
+          pattern,
+          " as ",
+          name,
+          ")"
+        ]
+
+parsePatternNoAlias :: Int -> Int -> Parser Text
+parsePatternNoAlias minColumn indent =
+  choice
     [ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
