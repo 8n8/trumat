@@ -2327,5 +2327,19 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "cons operator: (::)",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 :: []\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 :: []\n\
+      \"
     )
   ]
