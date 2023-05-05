@@ -2341,5 +2341,35 @@ cases =
       \x =\n\
       \    0 :: []\n\
       \"
+    ),
+    ( "type signature after function call in let in expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b c\n\
+      \\n\
+      \        d : Int\n\
+      \        d =\n\
+      \            0\n\
+      \    in\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b c\n\
+      \\n\
+      \        d : Int\n\
+      \        d =\n\
+      \            0\n\
+      \    in\n\
+      \    d\n\
+      \"
     )
   ]
