@@ -1105,10 +1105,10 @@ parseLetIn minColumn indent =
       try $
         do
           items <- parseLetBind (indent + 4)
-          _ <- space1
+          _ <- space
           return items
     _ <- chunk "in"
-    _ <- space1
+    _ <- space
     in_ <- parseExpression minColumn DoesntNeedBrackets indent
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $

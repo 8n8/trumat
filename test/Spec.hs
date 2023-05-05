@@ -2322,7 +2322,8 @@ cases =
       \\n\
       \x =\n\
       \    let\n\
-      \        a = b 0\n\
+      \        a =\n\
+      \            b 0\n\
       \    in\n\
       \    a\n\
       \"
