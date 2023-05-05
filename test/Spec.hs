@@ -2306,5 +2306,25 @@ cases =
       \x (( a, b ) as c) =\n\
       \    c\n\
       \"
+    ),
+    ( "function call in let-in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a = b 0\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a = b 0\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
