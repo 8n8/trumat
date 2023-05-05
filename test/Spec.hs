@@ -2391,5 +2391,21 @@ cases =
       \            -- c\n\
       \            d\n\
       \"
+    ),
+    ( "function argument in function type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : (Int -> Int) -> Int\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : (Int -> Int) -> Int\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
