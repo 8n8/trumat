@@ -2292,5 +2292,19 @@ cases =
       \        Nothing ->\n\
       \            f\n\
       \"
+    ),
+    ( "pattern alias",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x (( a, b ) as c) =\n\
+      \    c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x (( a, b ) as c) =\n\
+      \    c\n\
+      \"
     )
   ]
