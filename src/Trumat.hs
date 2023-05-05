@@ -1217,6 +1217,7 @@ parseCaseOfBranch minColumn indent =
         _ <- space
         _ <- chunk "->"
         _ <- space
+        comment <- commentSpaceParser (indent + 4)
         right <- parseExpression (minColumn + 1) DoesntNeedBrackets (indent + 4)
         _ <- space
         return $
@@ -1224,6 +1225,13 @@ parseCaseOfBranch minColumn indent =
             [ pack $ take indent $ repeat ' ',
               left,
               " ->\n",
+              if comment == ""
+                then ""
+                else pack $ take (indent + 4) $ repeat ' ',
+              comment,
+              if comment == ""
+                then ""
+                else "\n",
               pack $ take (indent + 4) $ repeat ' ',
               right
             ]
