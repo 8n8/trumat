@@ -455,8 +455,23 @@ parseType indent =
     [ parseTypeWithParameters,
       try $ parseEmptyRecord,
       parseRecordType indent,
+      try parseFunctionType,
       parseTupleType indent
     ]
+
+parseFunctionType :: Parser Text
+parseFunctionType =
+  do
+    _ <- char '('
+    types <- some $
+      do
+        type_ <- parseType 0
+        _ <- space
+        _ <- choice [chunk "->", return ""]
+        _ <- space
+        return type_
+    _ <- char ')'
+    return $ "(" <> intercalate " -> " types <> ")"
 
 parseTupleType :: Int -> Parser Text
 parseTupleType indent =
