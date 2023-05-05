@@ -2407,5 +2407,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "list cons in case of pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: c ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: c ->\n\
+      \            d\n\
+      \"
     )
   ]
