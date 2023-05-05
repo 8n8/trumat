@@ -2371,5 +2371,25 @@ cases =
       \    in\n\
       \    d\n\
       \"
+    ),
+    ( "line comment inside case of branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b ->\n\
+      \            -- c\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b ->\n\
+      \            -- c\n\
+      \            d\n\
+      \"
     )
   ]
