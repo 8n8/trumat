@@ -1129,7 +1129,7 @@ parseLetBind indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression 1 DoesntNeedBrackets indent
+    right <- parseExpression (indent + 1) DoesntNeedBrackets indent
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
