@@ -909,8 +909,28 @@ parsePatternNoAlias minColumn indent =
     [ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
+      try $ parseConsPattern minColumn indent,
       parseVerbatim
     ]
+
+parsePatternInsideConsPattern :: Int -> Int -> Parser Text
+parsePatternInsideConsPattern minColumn indent =
+  choice
+    [ parseTuple NeedsBrackets indent,
+      parseList indent,
+      try $ parseFunctionCall minColumn indent,
+      parseVerbatim
+    ]
+
+parseConsPattern :: Int -> Int -> Parser Text
+parseConsPattern minColumn indent =
+  do
+    left <- parsePatternInsideConsPattern minColumn indent
+    _ <- space
+    _ <- chunk "::"
+    _ <- space
+    right <- parsePatternInsideConsPattern minColumn indent
+    return $ left <> " :: " <> right
 
 parseArgumentExpression :: Int -> Parser Text
 parseArgumentExpression indent =
