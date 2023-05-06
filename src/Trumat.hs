@@ -466,23 +466,27 @@ parseType indent =
 parseAliasedType :: Int -> Parser Text
 parseAliasedType indent =
   choice
-    [ try $ parseBareFunctionType indent,
+    [ try $ parseBareFunctionType 1 indent,
       parseTypeWithParameters,
       try $ parseEmptyRecord,
       parseRecordType indent,
       parseTupleType indent
     ]
 
-parseBareFunctionType :: Int -> Parser Text
-parseBareFunctionType indent =
+parseBareFunctionType :: Int -> Int -> Parser Text
+parseBareFunctionType minColumn indent =
   do
     types <- some $
       do
-        type_ <- parseType indent
-        _ <- space
-        _ <- choice [chunk "->", return ""]
-        _ <- space
-        return type_
+        column <- fmap (unPos . sourceColumn) getSourcePos
+        if column <= minColumn
+          then fail "too far left"
+          else do
+            type_ <- parseType indent
+            _ <- space
+            _ <- choice [chunk "->", return ""]
+            _ <- space
+            return type_
     return $ intercalate " -> " types
 
 parseFunctionType :: Parser Text
