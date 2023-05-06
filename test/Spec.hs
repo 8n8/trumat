@@ -2615,5 +2615,23 @@ cases =
       \x { a } =\n\
       \    a\n\
       \"
+    ),
+    ( "record destructuring inside function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B { c } ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B { c } ->\n\
+      \            d\n\
+      \"
     )
   ]
