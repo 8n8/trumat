@@ -2527,5 +2527,23 @@ cases =
       \    else\n\
       \        d\n\
       \"
+    ),
+    ( "comment before infix operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        -- b\n\
+      \        |> c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        -- b\n\
+      \        |> c\n\
+      \"
     )
   ]
