@@ -1093,49 +1093,6 @@ space1 =
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     return ()
 
-parseIfThenElseType :: Parser ContainerType
-parseIfThenElseType =
-  do
-    _ <- chunk "if"
-    _ <- space
-    expressionLininess
-
-expressionLininess :: Parser ContainerType
-expressionLininess =
-  choice
-    [ listLininess '[' ']',
-      listLininess '(' ')',
-      verbatimLininess
-    ]
-
-verbatimLininess :: Parser ContainerType
-verbatimLininess =
-  return SingleLine
-
-listLininess :: Char -> Char -> Parser ContainerType
-listLininess start end =
-  do
-    _ <- char start
-    listLinynessHelp 1 start end
-
-listLinynessHelp :: Int -> Char -> Char -> Parser ContainerType
-listLinynessHelp nesting start end =
-  if nesting == 0
-    then return SingleLine
-    else do
-      _ <- takeWhileP Nothing (\ch -> ch /= start && ch /= end && ch /= '\n')
-      choice
-        [ do
-            _ <- char start
-            listLinynessHelp (nesting + 1) start end,
-          do
-            _ <- char '\n'
-            return MultiLine,
-          do
-            _ <- char end
-            listLinynessHelp (nesting - 1) start end
-        ]
-
 parseLetIn :: Int -> Int -> Parser Text
 parseLetIn minColumn indent =
   do
@@ -1187,7 +1144,6 @@ parseLetBind indent =
 parseIfThenElse :: Int -> Parser Text
 parseIfThenElse indent =
   do
-    ifThenElseType <- lookAhead parseIfThenElseType
     _ <- chunk "if"
     _ <- space1
     if_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
@@ -1203,17 +1159,13 @@ parseIfThenElse indent =
     return $
       mconcat
         [ "if",
-          case ifThenElseType of
-            SingleLine ->
-              " "
-            MultiLine ->
-              "\n" <> pack (take (indent + 4) (repeat ' ')),
+          if Text.elem '\n' if_
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " ",
           if_,
-          case ifThenElseType of
-            SingleLine ->
-              " "
-            MultiLine ->
-              "\n" <> pack (take indent (repeat ' ')),
+          if Text.elem '\n' if_
+            then "\n" <> pack (take indent (repeat ' '))
+            else " ",
           "then\n" <> pack (take (indent + 4) (repeat ' ')),
           then_,
           "\n\n" <> pack (take indent (repeat ' ')),
