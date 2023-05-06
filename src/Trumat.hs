@@ -387,7 +387,7 @@ topLevelBind =
     _ <- space
     parameters <- parseParameters 0
     _ <- char '='
-    _ <- space
+    commentBeforeExpression <- commentSpaceParser 4
     expression <- parseExpression 1 DoesntNeedBrackets 4
     _ <- space
     return $
@@ -405,6 +405,10 @@ topLevelBind =
             else " ",
           parameters,
           " =\n    ",
+          commentBeforeExpression,
+          if commentBeforeExpression == ""
+            then ""
+            else "\n    ",
           expression
         ]
 
