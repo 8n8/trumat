@@ -28,7 +28,8 @@ import Text.Megaparsec
   )
 import Text.Megaparsec.Char (char, space)
 import Prelude
-  ( Char,
+  ( Bool,
+    Char,
     Either (..),
     Eq,
     Int,
@@ -1032,7 +1033,8 @@ infixes =
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
   choice
-    [ try $ parseTuple NeedsBrackets indent,
+    [ parseCaseOf indent,
+      try $ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
@@ -1074,28 +1076,38 @@ parseInfixed minColumn indent =
           comment <- commentSpaceParser (indent + 4)
           infix_ <- parseInfix
           _ <- space
-          expression <- parseInfixedExpression minColumn indent
-          return $
-            mconcat
-              [ comment,
-                if comment == ""
-                  then ""
-                  else "\n" <> pack (take (indent + 4) (repeat ' ')),
-                infix_,
-                " ",
-                expression
-              ]
+          expression <- parseInfixedExpression minColumn (indent + 4)
+          return (comment, infix_, expression)
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    let between =
-          if endRow > startRow
-            then "\n" <> pack (take (indent + 4) (repeat ' '))
-            else " "
     return $
       mconcat
         [ firstExpression,
-          between,
-          intercalate between items
+          mconcat $ map (addInfixWhitespace (endRow > startRow) indent) items
         ]
+
+addInfixWhitespace :: Bool -> Int -> (Text, Text, Text) -> Text
+addInfixWhitespace isMultiline indent (comment, infix_, expression) =
+  if isMultiline
+    then
+      if infix_ == "<|"
+        then
+          mconcat
+            [ " <|\n",
+              pack (take (indent + 4) (repeat ' ')),
+              expression
+            ]
+        else
+          mconcat
+            [ "\n" <> pack (take (indent + 4) (repeat ' ')),
+              comment,
+              if comment == ""
+                then ""
+                else "\n" <> pack (take (indent + 4) (repeat ' ')),
+              infix_,
+              " ",
+              expression
+            ]
+    else " " <> infix_ <> " " <> expression
 
 parseSingleLineInfixed :: Int -> Int -> Parser Text
 parseSingleLineInfixed minColumn indent =
