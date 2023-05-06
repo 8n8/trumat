@@ -1198,6 +1198,7 @@ parseIfThenElse indent =
     _ <- space1
     _ <- chunk "else"
     _ <- space1
+    commentAfterElse <- commentSpaceParser (indent + 4)
     else_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     return $
       mconcat
@@ -1217,6 +1218,10 @@ parseIfThenElse indent =
           then_,
           "\n\n" <> pack (take indent (repeat ' ')),
           "else\n" <> pack (take (indent + 4) (repeat ' ')),
+          commentAfterElse,
+          if commentAfterElse == ""
+            then ""
+            else "\n" <> pack (take (indent + 4) (repeat ' ')),
           else_
         ]
 
