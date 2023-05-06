@@ -287,7 +287,7 @@ typeAliasDeclaration =
     _ <- space
     _ <- char '='
     _ <- space
-    type_ <- parseType 4
+    type_ <- parseAliasedType 4
     _ <- space
     return $
       mconcat
@@ -462,6 +462,28 @@ parseType indent =
       try parseFunctionType,
       parseTupleType indent
     ]
+
+parseAliasedType :: Int -> Parser Text
+parseAliasedType indent =
+  choice
+    [ try $ parseBareFunctionType indent,
+      parseTypeWithParameters,
+      try $ parseEmptyRecord,
+      parseRecordType indent,
+      parseTupleType indent
+    ]
+
+parseBareFunctionType :: Int -> Parser Text
+parseBareFunctionType indent =
+  do
+    types <- some $
+      do
+        type_ <- parseType indent
+        _ <- space
+        _ <- choice [chunk "->", return ""]
+        _ <- space
+        return type_
+    return $ intercalate " -> " types
 
 parseFunctionType :: Parser Text
 parseFunctionType =
