@@ -2481,5 +2481,29 @@ cases =
       \    -- a\n\
       \    b\n\
       \"
+    ),
+    ( "line comment at top of else branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        -- c\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        -- c\n\
+      \        d\n\
+      \"
     )
   ]
