@@ -2425,5 +2425,23 @@ cases =
       \        b :: c ->\n\
       \            d\n\
       \"
+    ),
+    ( "pattern with alias and list cons",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ((B c) as d) :: e ->\n\
+      \            f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ((B c) as d) :: e ->\n\
+      \            f\n\
+      \"
     )
   ]
