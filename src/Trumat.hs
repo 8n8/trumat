@@ -906,7 +906,7 @@ parseAliasedPattern minColumn indent =
 parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
   choice
-    [ parseTuple NeedsBrackets indent,
+    [ try $ parseTuple NeedsBrackets indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       try $ parseConsPattern minColumn indent,
@@ -916,7 +916,8 @@ parsePatternNoAlias minColumn indent =
 parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
-    [ parseTuple NeedsBrackets indent,
+    [ try $ parseTuple NeedsBrackets indent,
+      parseAliasedPattern minColumn indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim
