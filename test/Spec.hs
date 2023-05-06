@@ -2559,5 +2559,27 @@ cases =
       \type alias X =\n\
       \    A -> B\n\
       \"
+    ),
+    ( "declaration after type alias",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type alias A =\n\
+      \    B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type alias A =\n\
+      \    B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    d\n\
+      \"
     )
   ]
