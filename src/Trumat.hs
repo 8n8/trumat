@@ -934,11 +934,32 @@ parseAliasedPattern minColumn indent =
           ")"
         ]
 
+parseRecordPattern :: Parser Text
+parseRecordPattern =
+  do
+    _ <- char '{'
+    _ <- space
+    items <- many parseRecordPatternItem
+    _ <- char '}'
+    if null items
+      then return "{}"
+      else return $ mconcat ["{ ", intercalate ", " items, " }"]
+
+parseRecordPatternItem :: Parser Text
+parseRecordPatternItem =
+  do
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- choice [char ',', lookAhead (try (char '}'))]
+    return name
+
 parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
       parseList indent,
+      parseRecordPattern,
       try $ parseFunctionCall minColumn indent,
       try $ parseConsPattern minColumn indent,
       parseVerbatim
