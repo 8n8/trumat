@@ -2505,5 +2505,27 @@ cases =
       \        -- c\n\
       \        d\n\
       \"
+    ),
+    ( "function call in then part of if-then-else",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \"
     )
   ]
