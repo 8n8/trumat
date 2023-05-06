@@ -2601,5 +2601,19 @@ cases =
       \            C ->\n\
       \                d\n\
       \"
+    ),
+    ( "record destructuring pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x { a } =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x { a } =\n\
+      \    a\n\
+      \"
     )
   ]
