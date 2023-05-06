@@ -2581,5 +2581,25 @@ cases =
       \x =\n\
       \    d\n\
       \"
+    ),
+    ( "case expression inside infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        case b of\n\
+      \            C ->\n\
+      \                d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        case b of\n\
+      \            C ->\n\
+      \                d\n\
+      \"
     )
   ]
