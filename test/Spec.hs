@@ -2443,5 +2443,27 @@ cases =
       \        ((B c) as d) :: e ->\n\
       \            f\n\
       \"
+    ),
+    ( "function call between 'if' and 'else'",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a b then\n\
+      \        c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a b then\n\
+      \        c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \"
     )
   ]
