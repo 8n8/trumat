@@ -1039,27 +1039,31 @@ parseInfixLininess minColumn indent =
 parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
   do
-    lininess <- lookAhead $ parseInfixLininess minColumn indent
-    case lininess of
-      MultiLine ->
-        parseMultiLineInfixed minColumn indent
-      SingleLine ->
-        parseSingleLineInfixed minColumn indent
-
-parseMultiLineInfixed :: Int -> Int -> Parser Text
-parseMultiLineInfixed minColumn indent =
-  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
-    _ <- space
 
     items <- some $
-      do
-        infix_ <- parseInfix
-        _ <- space
-        expression <- parseInfixedExpression minColumn indent
-        _ <- space
-        return $ infix_ <> " " <> expression
-    let between = "\n" <> pack (take (indent + 4) (repeat ' '))
+      try $
+        do
+          comment <- commentSpaceParser (indent + 4)
+          infix_ <- parseInfix
+          _ <- space
+          expression <- parseInfixedExpression minColumn indent
+          return $
+            mconcat
+              [ comment,
+                if comment == ""
+                  then ""
+                  else "\n" <> pack (take (indent + 4) (repeat ' ')),
+                infix_,
+                " ",
+                expression
+              ]
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    let between =
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " "
     return $
       mconcat
         [ firstExpression,
