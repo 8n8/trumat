@@ -2545,5 +2545,19 @@ cases =
       \        -- b\n\
       \        |> c\n\
       \"
+    ),
+    ( "aliased function type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A -> B\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A -> B\n\
+      \"
     )
   ]
