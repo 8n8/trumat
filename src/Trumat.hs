@@ -55,6 +55,7 @@ import Prelude
     (-),
     (.),
     (/=),
+    (<),
     (<=),
     (<>),
     (==),
@@ -960,7 +961,7 @@ parsePatternNoAlias minColumn indent =
     [ try $ parseTuple NeedsBrackets indent,
       parseList indent,
       parseRecordPattern,
-      try $ parseFunctionCall minColumn indent,
+      try parseFunctionCallPattern,
       try $ parseConsPattern minColumn indent,
       parseVerbatim
     ]
@@ -1038,6 +1039,21 @@ parseFunctionCall minColumn indent =
                 then pack $ '\n' : (take (indent + 4) $ repeat ' ')
                 else " "
         return $ intercalate spaces (f : items)
+
+parseFunctionCallPattern :: Parser Text
+parseFunctionCallPattern =
+  do
+    startColumn <- fmap (unPos . sourceColumn) getSourcePos
+    f <- parseName
+    items <- some $
+      try $
+        do
+          _ <- space
+          endColumn <- fmap (unPos . sourceColumn) getSourcePos
+          if endColumn < startColumn
+            then fail "column too low"
+            else parsePatternNoAlias 1 1
+    return $ intercalate " " (f : items)
 
 parseInfix :: Parser Text
 parseInfix =
