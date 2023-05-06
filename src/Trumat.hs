@@ -1187,7 +1187,7 @@ parseIfThenElse indent =
     _ <- chunk "if"
     _ <- space1
     if_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
-    _ <- space1
+    _ <- space
     _ <- chunk "then"
     _ <- space1
     then_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
