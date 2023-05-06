@@ -2465,5 +2465,21 @@ cases =
       \    else\n\
       \        d\n\
       \"
+    ),
+    ( "line comment at the top of a top-level bind expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -- a\n\
+      \    b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -- a\n\
+      \    b\n\
+      \"
     )
   ]
