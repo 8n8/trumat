@@ -740,23 +740,28 @@ parseExpression minColumn context indent =
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
       parseCharLiteral,
-      parseAnonymousFunction indent
+      parseAnonymousFunction minColumn indent
     ]
 
-parseAnonymousFunction :: Int -> Parser Text
-parseAnonymousFunction indent =
+parseAnonymousFunction :: Int -> Int -> Parser Text
+parseAnonymousFunction minColumn indent =
   do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '\\'
     pattern <- parsePattern 1 indent
     _ <- space
     _ <- chunk "->"
     _ <- space
-    body <- parseExpression 1 DoesntNeedBrackets indent
+    body <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
       mconcat
         [ "\\",
           pattern,
-          " -> ",
+          " ->",
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " ",
           body
         ]
 
@@ -1041,20 +1046,20 @@ parseArgumentExpression indent =
       parseSimpleStringLiteral
     ]
 
-parseCallable :: Int -> Parser Text
-parseCallable indent =
+parseCallable :: Int -> Int -> Parser Text
+parseCallable minColumn indent =
   choice
-    [ try $ parseAnonymousFunctionInParenthesis indent,
+    [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
       parseInfixInBrackets,
       parseName
     ]
 
-parseAnonymousFunctionInParenthesis :: Int -> Parser Text
-parseAnonymousFunctionInParenthesis indent =
+parseAnonymousFunctionInParenthesis :: Int -> Int -> Parser Text
+parseAnonymousFunctionInParenthesis minColumn indent =
   do
     _ <- char '('
     _ <- space
-    f <- parseAnonymousFunction indent
+    f <- parseAnonymousFunction minColumn indent
     _ <- space
     _ <- char ')'
     return $ "(" <> f <> ")"
@@ -1077,7 +1082,7 @@ parseFunctionCall minColumn indent =
     if startColumn <= minColumn
       then fail "callable is too far left"
       else do
-        f <- parseCallable indent
+        f <- parseCallable minColumn indent
         items <- some $
           try $
             do
@@ -1133,7 +1138,7 @@ parseInfixedExpression minColumn indent =
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
-      parseAnonymousFunction indent
+      parseAnonymousFunction minColumn indent
     ]
 
 parseInfixLininess :: Int -> Int -> Parser ContainerType
@@ -1231,10 +1236,11 @@ parseLetIn minColumn indent =
   do
     _ <- chunk "let"
     _ <- space1
+    column <- fmap (unPos . sourceColumn) getSourcePos
     let_ <- some $
       try $
         do
-          items <- parseLetBind (indent + 4)
+          items <- parseLetBind (column + 1) (indent + 4)
           _ <- space
           return items
     _ <- chunk "in"
@@ -1251,15 +1257,15 @@ parseLetIn minColumn indent =
           in_
         ]
 
-parseLetBind :: Int -> Parser Text
-parseLetBind indent =
+parseLetBind :: Int -> Int -> Parser Text
+parseLetBind minColumn indent =
   do
     signature <- choice [try parseTypeSignature, return ""]
     left <- parseExpression 1 DoesntNeedBrackets indent
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression (indent + 1) DoesntNeedBrackets indent
+    right <- parseExpression minColumn DoesntNeedBrackets indent
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
