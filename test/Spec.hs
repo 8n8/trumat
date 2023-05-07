@@ -2791,5 +2791,35 @@ cases =
       \x =\n\
       \    '\\''\n\
       \"
+    ),
+    ( "top-level line comment",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- s\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- s\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
