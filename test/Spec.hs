@@ -2647,5 +2647,19 @@ cases =
       \x =\n\
       \    0 > 1\n\
       \"
+    ),
+    ( "less than symbol",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 < 1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 < 1\n\
+      \"
     )
   ]
