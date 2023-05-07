@@ -998,7 +998,8 @@ parsePatternNoAlias minColumn indent =
       parseRecordPattern,
       try parseFunctionCallPattern,
       try $ parseConsPattern minColumn indent,
-      parseVerbatim
+      parseVerbatim,
+      parseSimpleStringLiteral
     ]
 
 parsePatternInsideConsPattern :: Int -> Int -> Parser Text

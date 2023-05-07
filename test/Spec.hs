@@ -2873,5 +2873,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "string literal pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        \"b\" ->\n\
+      \            c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        \"b\" ->\n\
+      \            c\n\
+      \"
     )
   ]
