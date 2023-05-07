@@ -2703,5 +2703,37 @@ cases =
       \x caseA =\n\
       \    caseA\n\
       \"
+    ),
+    ( "if statement in case branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B ->\n\
+      \            if c then\n\
+      \                d\n\
+      \\n\
+      \            else\n\
+      \                e\n\
+      \\n\
+      \        F ->\n\
+      \            g\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B ->\n\
+      \            if c then\n\
+      \                d\n\
+      \\n\
+      \            else\n\
+      \                e\n\
+      \\n\
+      \        F ->\n\
+      \            g\n\
+      \"
     )
   ]
