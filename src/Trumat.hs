@@ -20,6 +20,7 @@ import Text.Megaparsec
     some,
     sourceColumn,
     sourceLine,
+    takeP,
     takeWhile1P,
     takeWhileP,
     token,
@@ -933,7 +934,12 @@ parseCharLiteral =
           chunk "\\n",
           chunk "\\t",
           chunk "\\'",
-          chunk "\\\\"
+          chunk "\\\\",
+          do
+            _ <- chunk "\\u{"
+            codePoint <- takeP Nothing 4
+            _ <- char '}'
+            return $ "\\u{" <> codePoint <> "}"
         ]
     _ <- char '\''
     return $ "'" <> contents <> "'"

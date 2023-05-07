@@ -3023,5 +3023,19 @@ cases =
       \x =\n\
       \    (|=)\n\
       \"
+    ),
+    ( "unicode code point in char literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\u{000D}'\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\u{000D}'\n\
+      \"
     )
   ]
