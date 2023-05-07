@@ -2977,5 +2977,23 @@ cases =
       \x =\n\
       \    (/=)\n\
       \"
+    ),
+    ( "import infix",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing ((==))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing ((==))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
