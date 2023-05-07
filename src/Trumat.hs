@@ -1043,7 +1043,8 @@ parseArgumentExpression indent =
       parseRecordUpdate indent,
       parseVerbatim,
       parseTripleStringLiteral,
-      parseSimpleStringLiteral
+      parseSimpleStringLiteral,
+      parseCharLiteral
     ]
 
 parseCallable :: Int -> Int -> Parser Text
