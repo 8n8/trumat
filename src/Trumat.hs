@@ -908,6 +908,7 @@ parseCharLiteral =
         [ fmap Text.singleton $ token charLiteralMatcher Set.empty,
           chunk "\\n",
           chunk "\\t",
+          chunk "\\'",
           chunk "\\\\"
         ]
     _ <- char '\''
