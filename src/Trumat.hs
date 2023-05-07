@@ -1124,7 +1124,7 @@ parseInfix =
 
 infixes :: [Text]
 infixes =
-  ["==", ">>", "||", "<|", "++", "+", "|>", "|.", "::", ">", "<", "/="]
+  ["==", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/="]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
