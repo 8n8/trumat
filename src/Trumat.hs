@@ -1041,12 +1041,23 @@ parseArgumentExpression indent =
       parseSimpleStringLiteral
     ]
 
-parseCallable :: Parser Text
-parseCallable =
+parseCallable :: Int -> Parser Text
+parseCallable indent =
   choice
-    [ parseName,
-      parseInfixInBrackets
+    [ try $ parseAnonymousFunctionInParenthesis indent,
+      parseInfixInBrackets,
+      parseName
     ]
+
+parseAnonymousFunctionInParenthesis :: Int -> Parser Text
+parseAnonymousFunctionInParenthesis indent =
+  do
+    _ <- char '('
+    _ <- space
+    f <- parseAnonymousFunction indent
+    _ <- space
+    _ <- char ')'
+    return $ "(" <> f <> ")"
 
 parseInfixInBrackets :: Parser Text
 parseInfixInBrackets =
@@ -1066,7 +1077,7 @@ parseFunctionCall minColumn indent =
     if startColumn <= minColumn
       then fail "callable is too far left"
       else do
-        f <- parseCallable
+        f <- parseCallable indent
         items <- some $
           try $
             do
