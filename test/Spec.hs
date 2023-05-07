@@ -2689,5 +2689,19 @@ cases =
       \x ifA =\n\
       \    ifA\n\
       \"
+    ),
+    ( "name beginning with case",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x caseA =\n\
+      \    caseA\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x caseA =\n\
+      \    caseA\n\
+      \"
     )
   ]
