@@ -720,6 +720,7 @@ parseExpression minColumn context indent =
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
+      parseCharLiteral,
       parseAnonymousFunction indent
     ]
 
@@ -897,6 +898,25 @@ parseSimpleStringLiteral =
     contents <- many parseSimpleStringLiteralChar
     _ <- char '"'
     return $ mconcat ["\"", mconcat contents, "\""]
+
+parseCharLiteral :: Parser Text
+parseCharLiteral =
+  do
+    _ <- char '\''
+    contents <-
+      choice
+        [ fmap Text.singleton $ token charLiteralMatcher Set.empty,
+          chunk "\\n",
+          chunk "\\\\"
+        ]
+    _ <- char '\''
+    return $ "'" <> contents <> "'"
+
+charLiteralMatcher :: Char -> Maybe Char
+charLiteralMatcher ch =
+  if ch == '\'' || ch == '\\'
+    then Nothing
+    else Just ch
 
 parseSimpleStringLiteralChar :: Parser Text
 parseSimpleStringLiteralChar =
@@ -1076,6 +1096,7 @@ parseInfixedExpression minColumn indent =
       try $ parseRecord indent,
       parseRecordUpdate indent,
       try $ parseFunctionCall minColumn indent,
+      parseCharLiteral,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
