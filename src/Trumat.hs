@@ -706,7 +706,7 @@ parseExpression minColumn context indent =
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
-      parseIfThenElse indent,
+      try $ parseIfThenElse indent,
       try $ parseLetIn minColumn indent,
       try $
         do
