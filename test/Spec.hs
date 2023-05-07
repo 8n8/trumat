@@ -2661,5 +2661,19 @@ cases =
       \x =\n\
       \    0 < 1\n\
       \"
+    ),
+    ( "name beginning with let",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x letA =\n\
+      \    letA\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x letA =\n\
+      \    letA\n\
+      \"
     )
   ]
