@@ -2905,5 +2905,19 @@ cases =
       \type X a\n\
       \    = X\n\
       \"
+    ),
+    ( "anonymous function with argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (\\a -> a) b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (\\a -> a) b\n\
+      \"
     )
   ]
