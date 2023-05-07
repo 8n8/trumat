@@ -2919,5 +2919,35 @@ cases =
       \x =\n\
       \    (\\a -> a) b\n\
       \"
+    ),
+    ( "multiple binds in let in expression in anonymous function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a ->\n\
+      \        let\n\
+      \            b =\n\
+      \                c\n\
+      \\n\
+      \            d =\n\
+      \                e\n\
+      \        in\n\
+      \        f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a ->\n\
+      \        let\n\
+      \            b =\n\
+      \                c\n\
+      \\n\
+      \            d =\n\
+      \                e\n\
+      \        in\n\
+      \        f\n\
+      \"
     )
   ]
