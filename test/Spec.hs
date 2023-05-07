@@ -3037,5 +3037,19 @@ cases =
       \x =\n\
       \    '\\u{000D}'\n\
       \"
+    ),
+    ( "logical and operator (&&)",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (&&)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (&&)\n\
+      \"
     )
   ]
