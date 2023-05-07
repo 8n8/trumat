@@ -2749,5 +2749,19 @@ cases =
       \x =\n\
       \    'a'\n\
       \"
+    ),
+    ( "tab char literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\t'\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\t'\n\
+      \"
     )
   ]
