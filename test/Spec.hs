@@ -2821,5 +2821,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "section comment at the top of the module",
+      "module X exposing (x)\n\
+      \\n\
+      \-- a\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \-- a\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

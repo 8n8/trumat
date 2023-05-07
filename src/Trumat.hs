@@ -684,6 +684,7 @@ parser =
         choice
           [ try customTypeDeclaration,
             try typeAliasDeclaration,
+            parseSectionComment,
             topLevelBind
           ]
     _ <- eof
@@ -698,6 +699,12 @@ parser =
           intercalate "\n\n\n" topLevelBinds,
           "\n"
         ]
+
+parseSectionComment :: Parser Text
+parseSectionComment =
+  do
+    comment <- parseComment
+    return $ "\n" <> comment
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
