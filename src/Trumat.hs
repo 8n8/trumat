@@ -136,7 +136,7 @@ parseOneExportDoc =
 parseExport :: Parser Text
 parseExport =
   do
-    name <- parseName
+    name <- choice [parseName, parseInfixInBrackets]
     all_ <-
       choice
         [ do
