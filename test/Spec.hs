@@ -2633,5 +2633,19 @@ cases =
       \        B { c } ->\n\
       \            d\n\
       \"
+    ),
+    ( "greater than symbol",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 > 1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0 > 1\n\
+      \"
     )
   ]
