@@ -707,7 +707,7 @@ parseExpression minColumn context indent =
       try $ parseRecord indent,
       parseRecordUpdate indent,
       parseIfThenElse indent,
-      parseLetIn minColumn indent,
+      try $ parseLetIn minColumn indent,
       try $
         do
           f <- parseFunctionCall minColumn indent
