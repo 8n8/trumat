@@ -386,7 +386,7 @@ parseDocumentation =
 topLevelBind :: Parser Text
 topLevelBind =
   do
-    documentation <- choice [try $ parseDocumentation, return ""]
+    documentation <- try $ choice [try $ parseDocumentation, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature, return ""]
     _ <- space
@@ -709,6 +709,7 @@ parseSectionComment :: Parser Text
 parseSectionComment =
   do
     comment <- parseComment
+    _ <- space
     return $ "\n" <> comment
 
 parseExpression :: Int -> Context -> Int -> Parser Text
