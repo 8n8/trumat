@@ -2735,5 +2735,19 @@ cases =
       \        F ->\n\
       \            g\n\
       \"
+    ),
+    ( "char literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    'a'\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    'a'\n\
+      \"
     )
   ]
