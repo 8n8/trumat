@@ -702,7 +702,7 @@ parser =
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
-    [ parseCaseOf indent,
+    [ try $ parseCaseOf indent,
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
