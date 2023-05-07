@@ -263,6 +263,8 @@ parseModuleDeclaration =
     exports <- parseExposing
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
+    _ <- space
+    title <- choice [parseSectionComment, return ""]
     return $
       mconcat
         [ "module ",
@@ -271,7 +273,10 @@ parseModuleDeclaration =
           exports,
           if moduleDocs == ""
             then ""
-            else "\n\n" <> moduleDocs
+            else "\n\n" <> moduleDocs,
+          if title == ""
+            then ""
+            else "\n" <> title
         ]
 
 typeAliasDeclaration :: Parser Text
