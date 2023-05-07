@@ -2963,5 +2963,19 @@ cases =
       \x =\n\
       \    a ','\n\
       \"
+    ),
+    ( "not equal infix operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (/=)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (/=)\n\
+      \"
     )
   ]
