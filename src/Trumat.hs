@@ -706,7 +706,7 @@ parseExpression minColumn context indent =
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
-      try $ parseIfThenElse indent,
+      try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
       try $
         do
@@ -1220,21 +1220,21 @@ parseLetBind indent =
           right
         ]
 
-parseIfThenElse :: Int -> Parser Text
-parseIfThenElse indent =
+parseIfThenElse :: Int -> Int -> Parser Text
+parseIfThenElse minColumn indent =
   do
     _ <- chunk "if"
     _ <- space1
-    if_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
+    if_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     _ <- space
     _ <- chunk "then"
     _ <- space1
-    then_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
+    then_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     _ <- space
     _ <- chunk "else"
     _ <- space1
     commentAfterElse <- commentSpaceParser (indent + 4)
-    else_ <- parseExpression 1 DoesntNeedBrackets (indent + 4)
+    else_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     return $
       mconcat
         [ "if",
