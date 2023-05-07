@@ -2839,5 +2839,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "declaration followed by line comment and documented declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- a\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- a\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
