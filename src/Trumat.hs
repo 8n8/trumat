@@ -321,6 +321,8 @@ customTypeDeclaration =
     _ <- space
     name <- parseName
     _ <- space
+    parameters <- parseParameters 0
+    _ <- space
     _ <- char '='
     _ <- space
     branches <- some parseBranch
@@ -332,6 +334,10 @@ customTypeDeclaration =
             else "\n",
           "type ",
           name,
+          if parameters == ""
+            then ""
+            else " ",
+          parameters,
           "\n    = ",
           intercalate "\n    | " branches
         ]
@@ -687,8 +693,8 @@ parser =
     topLevelBinds <-
       some $
         choice
-          [ try customTypeDeclaration,
-            try typeAliasDeclaration,
+          [ try typeAliasDeclaration,
+            try customTypeDeclaration,
             parseSectionComment,
             topLevelBind
           ]
