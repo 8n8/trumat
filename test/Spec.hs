@@ -2891,5 +2891,19 @@ cases =
       \        \"b\" ->\n\
       \            c\n\
       \"
+    ),
+    ( "type declaration with parameters",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X a\n\
+      \    = X\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X a\n\
+      \    = X\n\
+      \"
     )
   ]
