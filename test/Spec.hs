@@ -2777,5 +2777,19 @@ cases =
       \x =\n\
       \    a || b\n\
       \"
+    ),
+    ( "single quote in char literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\''\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\''\n\
+      \"
     )
   ]
