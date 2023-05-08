@@ -37,6 +37,7 @@ import Prelude
     Maybe (..),
     Show,
     String,
+    div,
     elem,
     fail,
     filter,
@@ -52,6 +53,7 @@ import Prelude
     take,
     ($),
     (&&),
+    (*),
     (+),
     (-),
     (.),
@@ -1145,8 +1147,12 @@ addArgSpaces startRow endRow indent (arg, row) =
     then " " <> arg
     else
       if endRow > startRow
-        then (pack $ '\n' : (take (indent + 4) $ repeat ' ')) <> arg
+        then (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' ')) <> arg
         else " " <> arg
+
+floorToFour :: Int -> Int
+floorToFour i =
+  4 * (i `div` 4)
 
 parseFunctionCallPattern :: Parser Text
 parseFunctionCallPattern =

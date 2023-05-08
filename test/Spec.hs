@@ -3357,5 +3357,23 @@ cases =
       \    a b\n\
       \        c\n\
       \"
+    ),
+    ( "multiline function call inside a list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        b\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        b\n\
+      \    ]\n\
+      \"
     )
   ]
