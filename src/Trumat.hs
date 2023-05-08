@@ -1177,7 +1177,7 @@ infixes =
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
   choice
-    [ parseCaseOf indent,
+    [ try $ parseCaseOf indent,
       parseLetIn minColumn indent,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,

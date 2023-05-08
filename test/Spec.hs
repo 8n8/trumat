@@ -3313,5 +3313,19 @@ cases =
       \x =\n\
       \    a ^ b\n\
       \"
+    ),
+    ( "name beginning with case in infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    caseA |> b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    caseA |> b\n\
+      \"
     )
   ]
