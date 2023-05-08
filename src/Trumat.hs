@@ -28,6 +28,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -736,28 +737,29 @@ parseSectionComment =
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
-  choice
-    [ try $ parseCaseOf indent,
-      parseList indent,
-      try $ parseRecord indent,
-      parseRecordUpdate indent,
-      try $ parseIfThenElse minColumn indent,
-      try $ parseLetIn minColumn indent,
-      try $
-        do
-          f <- parseFunctionCall minColumn indent
-          _ <- space
-          notFollowedBy parseInfix
-          return f,
-      try parseInfixInBrackets,
-      try $ parseInfixed minColumn indent,
-      try $ parseTuple context indent,
-      parseVerbatim,
-      parseTripleStringLiteral,
-      parseSimpleStringLiteral,
-      parseCharLiteral,
-      parseAnonymousFunction minColumn indent
-    ]
+  dbg "parseExpression" $
+    choice
+      [ try $ parseCaseOf indent,
+        parseList indent,
+        try $ parseRecord indent,
+        parseRecordUpdate indent,
+        try $ parseIfThenElse minColumn indent,
+        try $ parseLetIn minColumn indent,
+        try $
+          do
+            f <- parseFunctionCall minColumn indent
+            _ <- space
+            notFollowedBy parseInfix
+            return f,
+        try $ parseInfixed minColumn indent,
+        try parseInfixInBrackets,
+        try $ parseTuple context indent,
+        parseVerbatim,
+        parseTripleStringLiteral,
+        parseSimpleStringLiteral,
+        parseCharLiteral,
+        parseAnonymousFunction minColumn indent
+      ]
 
 parseAnonymousFunction :: Int -> Int -> Parser Text
 parseAnonymousFunction minColumn indent =
@@ -1175,6 +1177,7 @@ parseInfixedExpression minColumn indent =
       try $ parseRecord indent,
       parseRecordUpdate indent,
       try $ parseFunctionCall minColumn indent,
+      try parseInfixInBrackets,
       parseCharLiteral,
       parseVerbatim,
       parseTripleStringLiteral,
