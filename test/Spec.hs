@@ -3051,5 +3051,19 @@ cases =
       \x =\n\
       \    (&&)\n\
       \"
+    ),
+    ( "name beginning with import",
+      "module X exposing (importX)\n\
+      \\n\
+      \\n\
+      \importX =\n\
+      \    0\n\
+      \",
+      "module X exposing (importX)\n\
+      \\n\
+      \\n\
+      \importX =\n\
+      \    0\n\
+      \"
     )
   ]
