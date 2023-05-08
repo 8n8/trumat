@@ -28,7 +28,6 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -737,29 +736,28 @@ parseSectionComment =
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
-  dbg "parseExpression" $
-    choice
-      [ try $ parseCaseOf indent,
-        parseList indent,
-        try $ parseRecord indent,
-        parseRecordUpdate indent,
-        try $ parseIfThenElse minColumn indent,
-        try $ parseLetIn minColumn indent,
-        try $
-          do
-            f <- parseFunctionCall minColumn indent
-            _ <- space
-            notFollowedBy parseInfix
-            return f,
-        try $ parseInfixed minColumn indent,
-        try parseInfixInBrackets,
-        try $ parseTuple context indent,
-        parseVerbatim,
-        parseTripleStringLiteral,
-        parseSimpleStringLiteral,
-        parseCharLiteral,
-        parseAnonymousFunction minColumn indent
-      ]
+  choice
+    [ try $ parseCaseOf indent,
+      parseList indent,
+      try $ parseRecord indent,
+      parseRecordUpdate indent,
+      try $ parseIfThenElse minColumn indent,
+      try $ parseLetIn minColumn indent,
+      try $
+        do
+          f <- parseFunctionCall minColumn indent
+          _ <- space
+          notFollowedBy parseInfix
+          return f,
+      try $ parseInfixed minColumn indent,
+      try parseInfixInBrackets,
+      try $ parseTuple context indent,
+      parseVerbatim,
+      parseTripleStringLiteral,
+      parseSimpleStringLiteral,
+      parseCharLiteral,
+      parseAnonymousFunction minColumn indent
+    ]
 
 parseAnonymousFunction :: Int -> Int -> Parser Text
 parseAnonymousFunction minColumn indent =
