@@ -931,7 +931,11 @@ parseTripleStringLiteralChar =
       try $ do
         _ <- char '"'
         _ <- notFollowedBy (char '"')
-        return "\""
+        return "\"",
+      try $ do
+        _ <- chunk "\"\""
+        _ <- notFollowedBy (char '"')
+        return "\"\""
     ]
 
 parseSimpleStringLiteral :: Parser Text
