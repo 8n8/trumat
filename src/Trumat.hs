@@ -28,6 +28,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -1119,7 +1120,7 @@ parseInfixInBrackets =
 parseFunctionCall :: Int -> Int -> Parser Text
 parseFunctionCall minColumn indent =
   do
-    startRow <- fmap (unPos . sourceLine) getSourcePos
+    startRow <- dbg "startRow" $ fmap (unPos . sourceLine) getSourcePos
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     if startColumn <= minColumn
       then fail "callable is too far left"
@@ -1132,13 +1133,21 @@ parseFunctionCall minColumn indent =
               column <- fmap (unPos . sourceColumn) getSourcePos
               if column <= minColumn
                 then fail "argument is too far left"
-                else parseArgumentExpression indent
+                else do
+                  arg <- dbg "arg" $ parseArgumentExpression indent
+                  argEndRow <- dbg "argEndRow" $ fmap (unPos . sourceLine) getSourcePos
+                  return (arg, argEndRow)
         endRow <- fmap (unPos . sourceLine) getSourcePos
-        let spaces =
-              if endRow > startRow
-                then pack $ '\n' : (take (indent + 4) $ repeat ' ')
-                else " "
-        return $ intercalate spaces (f : items)
+        return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
+
+addArgSpaces :: Int -> Int -> Int -> (Text, Int) -> Text
+addArgSpaces startRow endRow indent (arg, row) =
+  if row == startRow
+    then " " <> arg
+    else
+      if endRow > startRow
+        then (pack $ '\n' : (take (indent + 4) $ repeat ' ')) <> arg
+        else " " <> arg
 
 parseFunctionCallPattern :: Parser Text
 parseFunctionCallPattern =
