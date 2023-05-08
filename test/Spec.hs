@@ -3375,5 +3375,23 @@ cases =
       \        b\n\
       \    ]\n\
       \"
+    ),
+    ( "multiline infix expression inside a list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a <|\n\
+      \        b\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a <|\n\
+      \        b\n\
+      \    ]\n\
+      \"
     )
   ]

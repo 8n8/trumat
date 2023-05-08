@@ -1230,30 +1230,31 @@ parseInfixed minColumn indent =
 
 addInfixWhitespace :: Bool -> Int -> (Text, Text, Text) -> Text
 addInfixWhitespace isMultiline indent (comment, infix_, expression) =
-  if isMultiline
-    then
-      if infix_ == "<|"
+  let newIndent = floorToFour (indent + 4)
+   in if isMultiline
         then
-          mconcat
-            [ " <|\n",
-              pack (take (indent + 4) (repeat ' ')),
-              expression
-            ]
+          if infix_ == "<|"
+            then
+              mconcat
+                [ " <|\n",
+                  pack (take newIndent (repeat ' ')),
+                  expression
+                ]
+            else
+              mconcat
+                [ "\n" <> pack (take newIndent (repeat ' ')),
+                  comment,
+                  if comment == ""
+                    then ""
+                    else "\n" <> pack (take newIndent (repeat ' ')),
+                  infix_,
+                  " ",
+                  expression
+                ]
         else
-          mconcat
-            [ "\n" <> pack (take (indent + 4) (repeat ' ')),
-              comment,
-              if comment == ""
-                then ""
-                else "\n" <> pack (take (indent + 4) (repeat ' ')),
-              infix_,
-              " ",
-              expression
-            ]
-    else
-      if infix_ == "."
-        then infix_ <> expression
-        else " " <> infix_ <> " " <> expression
+          if infix_ == "."
+            then infix_ <> expression
+            else " " <> infix_ <> " " <> expression
 
 space1 :: Parser ()
 space1 =
