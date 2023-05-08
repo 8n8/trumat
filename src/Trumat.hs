@@ -652,7 +652,7 @@ parseTypeParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parseTypeParameter startColumn 0
+              parameter <- parseTypeParameter 0
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -982,15 +982,14 @@ parsePattern minColumn indent =
       parseAliasedPattern minColumn indent
     ]
 
-parseTypeParameter :: Int -> Int -> Parser Text
-parseTypeParameter minColumn indent =
+parseTypeParameter :: Int -> Parser Text
+parseTypeParameter indent =
   choice
     [ try parseFunctionType,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,
-      parseRecordPattern,
+      parseRecordType indent,
       try parseFunctionCallPattern,
-      try $ parseConsPattern minColumn indent,
       parseVerbatim,
       parseSimpleStringLiteral
     ]

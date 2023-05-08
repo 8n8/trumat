@@ -3131,5 +3131,19 @@ cases =
       \type X\n\
       \    = X (A -> B)\n\
       \"
+    ),
+    ( "record type as type parameter",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = A { b : C }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = A { b : C }\n\
+      \"
     )
   ]
