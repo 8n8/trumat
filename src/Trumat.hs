@@ -646,7 +646,7 @@ parseImport :: Parser Text
 parseImport =
   do
     _ <- chunk "import"
-    _ <- space
+    _ <- space1
     name <- parseName
     _ <- space
     as_ <-
@@ -687,7 +687,7 @@ parser =
       fmap (intercalate "\n" . List.sort) $
         many $
           do
-            import_ <- parseImport
+            import_ <- try parseImport
             _ <- space
             return import_
     _ <- space
