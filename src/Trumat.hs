@@ -1135,7 +1135,7 @@ parseFunctionCall minColumn indent =
               if column <= minColumn
                 then fail "argument is too far left"
                 else do
-                  arg <- parseArgumentExpression indent
+                  arg <- parseArgumentExpression (indent + 4)
                   argEndRow <- fmap (unPos . sourceLine) getSourcePos
                   return (arg, argEndRow)
         endRow <- fmap (unPos . sourceLine) getSourcePos
