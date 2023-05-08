@@ -781,7 +781,7 @@ parseAnonymousFunction minColumn indent =
           pattern,
           " ->",
           if endRow > startRow
-            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
             else " ",
           body
         ]
