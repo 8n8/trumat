@@ -3247,5 +3247,29 @@ cases =
       \x =\n\
       \    \"\\t\"\n\
       \"
+    ),
+    ( "let expression in infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        let\n\
+      \            b =\n\
+      \                c\n\
+      \        in\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        let\n\
+      \            b =\n\
+      \                c\n\
+      \        in\n\
+      \        d\n\
+      \"
     )
   ]
