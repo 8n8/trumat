@@ -3285,5 +3285,19 @@ cases =
       \x =\n\
       \    \"\"\" \"\" \"\"\"\n\
       \"
+    ),
+    ( "multiplication infix operator *",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a * b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a * b\n\
+      \"
     )
   ]
