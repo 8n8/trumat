@@ -3101,5 +3101,21 @@ cases =
       \\n\
       \-- c\n\
       \"
+    ),
+    ( "closing bracket inside string literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \"]\"\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \"]\"\n\
+      \    ]\n\
+      \"
     )
   ]

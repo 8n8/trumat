@@ -1155,25 +1155,6 @@ parseInfixedExpression minColumn indent =
       parseAnonymousFunction minColumn indent
     ]
 
-parseInfixLininess :: Int -> Int -> Parser ContainerType
-parseInfixLininess minColumn indent =
-  do
-    startRow <- fmap (unPos . sourceLine) getSourcePos
-    _ <- parseInfixedExpression minColumn indent
-    _ <- some $
-      try $
-        do
-          _ <- space
-          _ <- parseInfix
-          _ <- space
-          _ <- parseInfixedExpression minColumn indent
-          return ()
-    endRow <- fmap (unPos . sourceLine) getSourcePos
-    return $
-      if endRow > startRow
-        then MultiLine
-        else SingleLine
-
 parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
   do
@@ -1218,26 +1199,6 @@ addInfixWhitespace isMultiline indent (comment, infix_, expression) =
               expression
             ]
     else " " <> infix_ <> " " <> expression
-
-parseSingleLineInfixed :: Int -> Int -> Parser Text
-parseSingleLineInfixed minColumn indent =
-  do
-    firstExpression <- parseInfixedExpression minColumn indent
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-
-    items <- some $
-      do
-        infix_ <- parseInfix
-        _ <- takeWhileP Nothing (\ch -> ch == ' ')
-        expression <- parseInfixedExpression minColumn indent
-        _ <- takeWhileP Nothing (\ch -> ch == ' ')
-        return $ infix_ <> " " <> expression
-    return $
-      mconcat
-        [ firstExpression,
-          " ",
-          intercalate " " items
-        ]
 
 space1 :: Parser ()
 space1 =
@@ -1595,20 +1556,20 @@ parseSingleLineTuple context indent =
 parseList :: Int -> Parser Text
 parseList indent =
   do
-    listType <- lookAhead parseListType
-    case listType of
-      SingleLine ->
-        parseSingleLineList indent
-      MultiLine ->
-        parseMultiLineList indent
-
-parseMultiLineList :: Int -> Parser Text
-parseMultiLineList indent =
-  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '['
     comment <- commentSpaceParser (indent + 2)
     items <- many (parseMultiListItem (indent + 2) ']')
     _ <- char ']'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    let indentation =
+          if endRow > startRow
+            then "\n" <> (pack $ take indent $ repeat ' ')
+            else ""
+    let endSpace =
+          if endRow > startRow
+            then ""
+            else " "
     if null items
       then
         return $
@@ -1621,26 +1582,9 @@ parseMultiLineList indent =
             [ "[ ",
               if comment == ""
                 then ""
-                else comment <> "\n" <> (pack $ take indent $ repeat ' ') <> "  ",
-              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> "]"
-            ]
-
-parseSingleLineList :: Int -> Parser Text
-parseSingleLineList indent =
-  do
-    _ <- char '['
-    _ <- parseSpaces
-    items <- many (parseListItem indent parseSpaces ']')
-    _ <- char ']'
-    if null items
-      then return "[]"
-      else
-        return $
-          mconcat
-            [ "[ ",
-              intercalate ", " items,
-              " ]"
+                else comment <> indentation <> "  ",
+              intercalate (indentation <> ", ") items,
+              indentation <> endSpace <> "]"
             ]
 
 parseEmptyRecord :: Parser Text
