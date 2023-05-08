@@ -3327,5 +3327,19 @@ cases =
       \x =\n\
       \    caseA |> b\n\
       \"
+    ),
+    ( "name beginning with let in infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    letA |> b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    letA |> b\n\
+      \"
     )
   ]
