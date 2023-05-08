@@ -3219,5 +3219,19 @@ cases =
       \x =\n\
       \    {} |> a\n\
       \"
+    ),
+    ( "tuple and name patterns in anonymous function arguments",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\( a, b ) c -> d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\( a, b ) c -> d\n\
+      \"
     )
   ]

@@ -767,7 +767,7 @@ parseAnonymousFunction minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '\\'
-    pattern <- parsePattern 1 indent
+    pattern <- parseParameters minColumn
     _ <- space
     _ <- chunk "->"
     _ <- space
