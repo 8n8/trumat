@@ -3233,5 +3233,19 @@ cases =
       \x =\n\
       \    \\( a, b ) c -> d\n\
       \"
+    ),
+    ( "tab literal inside simple string literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\t\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\t\"\n\
+      \"
     )
   ]

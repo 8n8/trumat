@@ -975,6 +975,7 @@ parseSimpleStringLiteralChar =
       chunk "\\\"",
       chunk "\\u",
       chunk "\\n",
+      chunk "\\t",
       chunk "\\\\"
     ]
 
