@@ -3117,5 +3117,19 @@ cases =
       \    [ \"]\"\n\
       \    ]\n\
       \"
+    ),
+    ( "function type as argument to type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X (A -> B)\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X (A -> B)\n\
+      \"
     )
   ]

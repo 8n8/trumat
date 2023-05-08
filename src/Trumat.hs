@@ -357,7 +357,7 @@ parseBranch =
           else do
             branchName <- parseName
             _ <- space
-            parameters <- parseParameters startColumn
+            parameters <- parseTypeParameters startColumn
             _ <- choice [char '|', return ' ']
             return $
               mconcat
@@ -637,10 +637,25 @@ parseTypeWithParameters =
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     name <- parseName
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    parameters <- parseParameters startColumn
+    parameters <- parseTypeParameters startColumn
     if parameters == ""
       then return name
       else return $ name <> " " <> parameters
+
+parseTypeParameters :: Int -> Parser Text
+parseTypeParameters startColumn =
+  do
+    parameters <-
+      many $
+        do
+          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+          if parameterColumn <= startColumn
+            then fail "invalid indentation"
+            else do
+              parameter <- parseTypeParameter startColumn 0
+              _ <- space
+              return parameter
+    return $ intercalate " " parameters
 
 parseImport :: Parser Text
 parseImport =
@@ -965,6 +980,19 @@ parsePattern minColumn indent =
   choice
     [ try $ parsePatternNoAlias minColumn indent,
       parseAliasedPattern minColumn indent
+    ]
+
+parseTypeParameter :: Int -> Int -> Parser Text
+parseTypeParameter minColumn indent =
+  choice
+    [ try parseFunctionType,
+      try $ parseTuple NeedsBrackets indent,
+      parseList indent,
+      parseRecordPattern,
+      try parseFunctionCallPattern,
+      try $ parseConsPattern minColumn indent,
+      parseVerbatim,
+      parseSimpleStringLiteral
     ]
 
 parseAliasedPattern :: Int -> Int -> Parser Text
