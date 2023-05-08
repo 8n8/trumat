@@ -734,21 +734,24 @@ parseSectionComment =
     _ <- space
     return $ "\n" <> comment
 
+notFollowedByInfix :: Parser Text -> Parser Text
+notFollowedByInfix p =
+  do
+    item <- p
+    _ <- space
+    notFollowedBy parseInfix
+    return item
+
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ try $ parseCaseOf indent,
       parseList indent,
-      try $ parseRecord indent,
-      parseRecordUpdate indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
-      try $
-        do
-          f <- parseFunctionCall minColumn indent
-          _ <- space
-          notFollowedBy parseInfix
-          return f,
+      try $ notFollowedByInfix $ parseRecord indent,
+      try $ notFollowedByInfix $ parseRecordUpdate indent,
+      try $ notFollowedByInfix (parseFunctionCall minColumn indent),
       try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
       try $ parseTuple context indent,
@@ -1172,6 +1175,7 @@ parseInfixedExpression minColumn indent =
     [ parseCaseOf indent,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,
+      try parseEmptyRecord,
       try $ parseRecord indent,
       parseRecordUpdate indent,
       try $ parseFunctionCall minColumn indent,

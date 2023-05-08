@@ -3205,5 +3205,19 @@ cases =
       \x (A { b }) =\n\
       \    c\n\
       \"
+    ),
+    ( "record literal in infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {} |> a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {} |> a\n\
+      \"
     )
   ]
