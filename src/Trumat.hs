@@ -1164,7 +1164,7 @@ afterInfixChar =
 
 infixes :: [Text]
 infixes =
-  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-"]
+  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", "."]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
@@ -1225,7 +1225,10 @@ addInfixWhitespace isMultiline indent (comment, infix_, expression) =
               " ",
               expression
             ]
-    else " " <> infix_ <> " " <> expression
+    else
+      if infix_ == "."
+        then infix_ <> expression
+        else " " <> infix_ <> " " <> expression
 
 space1 :: Parser ()
 space1 =

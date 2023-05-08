@@ -3163,5 +3163,19 @@ cases =
       \        (B C) :: _ ->\n\
       \            d\n\
       \"
+    ),
+    ( "record lookup on parenthesised expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a b).c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a b).c\n\
+      \"
     )
   ]
