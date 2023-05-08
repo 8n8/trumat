@@ -3341,5 +3341,21 @@ cases =
       \x =\n\
       \    letA |> b\n\
       \"
+    ),
+    ( "multi-line function call with first argument on first line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        c\n\
+      \"
     )
   ]
