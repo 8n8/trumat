@@ -3079,5 +3079,27 @@ cases =
       \x =\n\
       \    a - b\n\
       \"
+    ),
+    ( "function call followed by section comment",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- c\n\
+      \"
     )
   ]

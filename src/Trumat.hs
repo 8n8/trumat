@@ -402,7 +402,7 @@ topLevelBind =
     parameters <- parseParameters 0
     _ <- char '='
     commentBeforeExpression <- commentSpaceParser 4
-    expression <- parseExpression 1 DoesntNeedBrackets 4
+    expression <- parseExpression 2 DoesntNeedBrackets 4
     _ <- space
     return $
       mconcat
@@ -1124,9 +1124,16 @@ parseInfix :: Parser Text
 parseInfix =
   do
     column <- fmap (unPos . sourceColumn) getSourcePos
-    if column == 0
-      then fail "can't have an infix at column zero"
-      else choice $ map chunk infixes
+    infix_ <-
+      if column == 0
+        then fail "can't have an infix at column zero"
+        else choice $ map chunk infixes
+    _ <- lookAhead $ try $ afterInfixChar
+    return infix_
+
+afterInfixChar :: Parser Char
+afterInfixChar =
+  choice $ map char ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789()[] \n" :: String)
 
 infixes :: [Text]
 infixes =
