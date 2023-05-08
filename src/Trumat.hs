@@ -28,7 +28,6 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -1037,16 +1036,15 @@ parseRecordPatternItem =
 
 parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
-  dbg "parsePatternNoAlias" $
-    choice
-      [ try $ parseConsPattern minColumn indent,
-        try $ parseTuple NeedsBrackets indent,
-        parseList indent,
-        parseRecordPattern,
-        try parseFunctionCallPattern,
-        parseVerbatim,
-        parseSimpleStringLiteral
-      ]
+  choice
+    [ try $ parseConsPattern minColumn indent,
+      try $ parseTuple NeedsBrackets indent,
+      parseList indent,
+      parseRecordPattern,
+      try parseFunctionCallPattern,
+      parseVerbatim,
+      parseSimpleStringLiteral
+    ]
 
 parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
