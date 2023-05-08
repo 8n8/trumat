@@ -1038,7 +1038,7 @@ parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
   choice
     [ try $ parseConsPattern minColumn indent,
-      try $ parseTuple NeedsBrackets indent,
+      try $ parseTuplePattern NeedsBrackets indent,
       parseList indent,
       parseRecordPattern,
       try parseFunctionCallPattern,
@@ -1450,6 +1450,28 @@ parseSameLineComment =
     _ <- char '\n'
     return ("--" <> comment)
 
+parseTuplePatternItem :: Int -> Parser Text
+parseTuplePatternItem indent =
+  do
+    commentBefore <- commentSpaceParser indent
+    expression <- parsePattern 1 indent
+    sameLineComment <- choice [try parseSameLineComment, return ""]
+    commentAfter <- commentSpaceParser indent
+    _ <- choice [char ',', lookAhead (try (char ')'))]
+    return $
+      mconcat
+        [ if commentBefore == ""
+            then ""
+            else pack (take indent (repeat ' ')) <> commentBefore,
+          expression,
+          if sameLineComment == ""
+            then ""
+            else " " <> sameLineComment,
+          if commentAfter == ""
+            then ""
+            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
+        ]
+
 parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
@@ -1471,15 +1493,6 @@ parseMultiListItem indent end =
             then ""
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
-
-parseListItem :: Int -> Parser () -> Char -> Parser Text
-parseListItem indent spaceParser end =
-  do
-    _ <- spaceParser
-    expression <- parseExpression 1 DoesntNeedBrackets indent
-    _ <- spaceParser
-    _ <- choice [char ',', lookAhead (try (char end))]
-    return expression
 
 data ContainerType
   = SingleLine
@@ -1525,48 +1538,15 @@ parseListTypeHelp nesting =
             parseListTypeHelp (nesting - 1)
         ]
 
-parseTuple :: Context -> Int -> Parser Text
-parseTuple context indent =
+parseTuplePattern :: Context -> Int -> Parser Text
+parseTuplePattern context indent =
   do
-    listType <- lookAhead parseListType
-    case listType of
-      SingleLine ->
-        parseSingleLineTuple context indent
-      MultiLine ->
-        parseMultiLineTuple indent
-
-parseMultiLineTuple :: Int -> Parser Text
-parseMultiLineTuple indent =
-  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- many (parseMultiListItem (indent + 2) ')')
+    items <- many (parseTuplePatternItem (indent + 2))
     _ <- char ')'
-    if null items
-      then return "()"
-      else
-        if length items == 1
-          then return $ head items
-          else
-            return $
-              mconcat
-                [ "( ",
-                  intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-                  "\n" <> (pack $ take indent $ repeat ' ') <> ")"
-                ]
-
-data Context
-  = NeedsBrackets
-  | DoesntNeedBrackets
-  deriving (Eq)
-
-parseSingleLineTuple :: Context -> Int -> Parser Text
-parseSingleLineTuple context indent =
-  do
-    _ <- char '('
-    _ <- parseSpaces
-    items <- many (parseListItem indent parseSpaces ')')
-    _ <- char ')'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then return "()"
       else
@@ -1577,12 +1557,61 @@ parseSingleLineTuple context indent =
             DoesntNeedBrackets ->
               return $ head items
           else
-            return $
-              mconcat
-                [ "( ",
-                  intercalate ", " items,
-                  " )"
-                ]
+            if endRow > startRow
+              then
+                return $
+                  mconcat
+                    [ "( ",
+                      intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+                      "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                    ]
+              else
+                return $
+                  mconcat
+                    [ "( ",
+                      intercalate ", " items,
+                      " )"
+                    ]
+
+parseTuple :: Context -> Int -> Parser Text
+parseTuple context indent =
+  do
+    startLine <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '('
+    _ <- space
+    items <- many (parseMultiListItem (indent + 2) ')')
+    _ <- char ')'
+    endLine <- fmap (unPos . sourceLine) getSourcePos
+    if null items
+      then return "()"
+      else
+        if length items == 1
+          then case context of
+            NeedsBrackets ->
+              return $ mconcat ["(", head items, ")"]
+            DoesntNeedBrackets ->
+              return $ head items
+          else
+            if endLine > startLine
+              then
+                return $
+                  mconcat
+                    [ "( ",
+                      intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+                      "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                    ]
+              else
+                return $
+                  mconcat
+                    [ "( ",
+                      intercalate ", " items,
+                      " )"
+                    ]
+
+data Context
+  = NeedsBrackets
+  | DoesntNeedBrackets
+  deriving (Eq)
 
 parseList :: Int -> Parser Text
 parseList indent =

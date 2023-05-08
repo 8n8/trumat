@@ -3191,5 +3191,19 @@ cases =
       \x =\n\
       \    (++) >> a\n\
       \"
+    ),
+    ( "combination of record and type pattern in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x (A { b }) =\n\
+      \    c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x (A { b }) =\n\
+      \    c\n\
+      \"
     )
   ]
