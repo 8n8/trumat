@@ -3145,5 +3145,23 @@ cases =
       \type A\n\
       \    = A { b : C }\n\
       \"
+    ),
+    ( "pattern containing type function call and list cons",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        (B C) :: _ ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        (B C) :: _ ->\n\
+      \            d\n\
+      \"
     )
   ]
