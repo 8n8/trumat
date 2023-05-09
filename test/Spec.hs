@@ -3451,5 +3451,25 @@ cases =
       \            c\n\
       \    }\n\
       \"
+    ),
+    ( "multiline infix as function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (b\n\
+      \            ++ c\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (b\n\
+      \            ++ c\n\
+      \        )\n\
+      \"
     )
   ]
