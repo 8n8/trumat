@@ -3471,5 +3471,27 @@ cases =
       \            ++ c\n\
       \        )\n\
       \"
+    ),
+    ( "multiline record in function argument in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        { b = c\n\
+      \        , d = f\n\
+      \        }\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        { b = c\n\
+      \        , d = f\n\
+      \        }\n\
+      \    ]\n\
+      \"
     )
   ]
