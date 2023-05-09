@@ -1613,7 +1613,16 @@ parseTuple context indent =
         if length items == 1
           then case context of
             NeedsBrackets ->
-              return $ mconcat ["(", head items, ")"]
+              if endLine > startLine
+                then
+                  return $
+                    mconcat
+                      [ "(",
+                        head items,
+                        "\n" <> (pack $ take indent $ repeat ' '),
+                        ")"
+                      ]
+                else return $ mconcat ["(", head items, ")"]
             DoesntNeedBrackets ->
               return $ head items
           else
