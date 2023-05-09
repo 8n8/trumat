@@ -740,8 +740,10 @@ notFollowedByInfix :: Parser Text -> Parser Text
 notFollowedByInfix p =
   do
     item <- p
-    _ <- space
-    notFollowedBy parseInfix
+    _ <- lookAhead $
+      do
+        _ <- space
+        notFollowedBy parseInfix
     return item
 
 parseExpression :: Int -> Int -> Context -> Int -> Parser Text

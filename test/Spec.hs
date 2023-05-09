@@ -3493,5 +3493,21 @@ cases =
       \        }\n\
       \    ]\n\
       \"
+    ),
+    ( "single line record field in multi line record",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = b c\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = b c\n\
+      \    }\n\
+      \"
     )
   ]
