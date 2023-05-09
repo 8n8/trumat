@@ -801,7 +801,7 @@ parseMultiLineRecord indent =
   do
     _ <- char '{'
     _ <- space
-    items <- many (parseRecordItem (indent + 2))
+    items <- many (parseRecordItem indent)
     _ <- char '}'
     if null items
       then return "{}"
@@ -891,7 +891,7 @@ parseRecordItem indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression 1 DoesntNeedBrackets indent
+    right <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
@@ -903,7 +903,7 @@ parseRecordItem indent =
         [ name,
           " =",
           if endRow > startRow
-            then "\n" <> pack (take (indent + 2) (repeat ' '))
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
             else " ",
           right,
           if sameLineComment == ""
@@ -911,7 +911,7 @@ parseRecordItem indent =
             else " " <> sameLineComment,
           if commentAfter == ""
             then ""
-            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
+            else "\n\n" <> pack (take indent (repeat ' ')) <> commentAfter
         ]
 
 parseTripleStringLiteral :: Parser Text
