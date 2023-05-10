@@ -3553,5 +3553,29 @@ cases =
       \    )\n\
       \        |> d\n\
       \"
+    ),
+    ( "multiline list in function call in function call",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (b\n\
+      \            [ c\n\
+      \            , d\n\
+      \            ]\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (b\n\
+      \            [ c\n\
+      \            , d\n\
+      \            ]\n\
+      \        )\n\
+      \"
     )
   ]
