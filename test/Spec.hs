@@ -3529,5 +3529,29 @@ cases =
       \        ]\n\
       \    }\n\
       \"
+    ),
+    ( "multiline list in infix in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a <|\n\
+      \        [ b\n\
+      \        , c\n\
+      \        ]\n\
+      \    )\n\
+      \        |> d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a <|\n\
+      \        [ b\n\
+      \        , c\n\
+      \        ]\n\
+      \    )\n\
+      \        |> d\n\
+      \"
     )
   ]
