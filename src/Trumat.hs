@@ -1602,6 +1602,40 @@ parseTuplePattern context indent =
 
 parseTuple :: Int -> Context -> Int -> Parser Text
 parseTuple nesting context indent =
+  choice
+    [ try $ parseParenthesised context indent,
+      parseMultiTuple nesting indent
+    ]
+
+parseParenthesised :: Context -> Int -> Parser Text
+parseParenthesised context indent =
+  do
+    startLine <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '('
+    _ <- space
+    item <- parseExpression 0 1 DoesntNeedBrackets indent
+    _ <- space
+    _ <- char ')'
+    endLine <- fmap (unPos . sourceLine) getSourcePos
+    if endLine > startLine
+      then case context of
+        NeedsBrackets ->
+          return $
+            mconcat
+              [ "(",
+                item,
+                "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+              ]
+        DoesntNeedBrackets ->
+          return item
+      else case context of
+        NeedsBrackets ->
+          return $ "(" <> item <> ")"
+        DoesntNeedBrackets ->
+          return item
+
+parseMultiTuple :: Int -> Int -> Parser Text
+parseMultiTuple nesting indent =
   do
     startLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
@@ -1612,37 +1646,21 @@ parseTuple nesting context indent =
     if null items
       then return "()"
       else
-        if length items == 1
-          then case context of
-            NeedsBrackets ->
-              if endLine > startLine
-                then
-                  return $
-                    mconcat
-                      [ "(",
-                        head items,
-                        "\n" <> (pack $ take indent $ repeat ' '),
-                        ")"
-                      ]
-                else return $ mconcat ["(", head items, ")"]
-            DoesntNeedBrackets ->
-              return $ head items
+        if endLine > startLine
+          then
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+                  "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                ]
           else
-            if endLine > startLine
-              then
-                return $
-                  mconcat
-                    [ "( ",
-                      intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-                      "\n" <> (pack $ take indent $ repeat ' ') <> ")"
-                    ]
-              else
-                return $
-                  mconcat
-                    [ "( ",
-                      intercalate ", " items,
-                      " )"
-                    ]
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ", " items,
+                  " )"
+                ]
 
 data Context
   = NeedsBrackets
