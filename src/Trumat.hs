@@ -1221,7 +1221,7 @@ parseInfixed minColumn indent =
           comment <- commentSpaceParser (indent + 4)
           infix_ <- parseInfix
           _ <- space
-          expression <- parseInfixedExpression minColumn (indent + 4)
+          expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
           return (comment, infix_, expression)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
