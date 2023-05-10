@@ -3509,5 +3509,25 @@ cases =
       \    { a = b c\n\
       \    }\n\
       \"
+    ),
+    ( "multiline list inside record",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        [ b\n\
+      \        ]\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        [ b\n\
+      \        ]\n\
+      \    }\n\
+      \"
     )
   ]
