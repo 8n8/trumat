@@ -791,22 +791,24 @@ parseAnonymousFunction minColumn indent =
 parseRecord :: Int -> Int -> Parser Text
 parseRecord nesting indent =
   do
-    listType <- lookAhead parseListType
-    case listType of
-      SingleLine ->
-        parseSingleLineRecord indent
-      MultiLine ->
-        parseMultiLineRecord nesting indent
-
-parseMultiLineRecord :: Int -> Int -> Parser Text
-parseMultiLineRecord nesting indent =
-  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '{'
     _ <- space
     items <- many (parseRecordItem nesting indent)
     _ <- char '}'
-    let nestingSpace = mconcat (take nesting (repeat "  "))
-    let indentation = "\n" <> (pack $ take indent $ repeat ' ')
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    let nestingSpace =
+          if endRow > startRow
+            then mconcat (take nesting (repeat "  "))
+            else ""
+    let indentation =
+          if endRow > startRow
+            then "\n" <> (pack $ take indent $ repeat ' ')
+            else ""
+    let endSpace =
+          if endRow > startRow
+            then ""
+            else " "
     if null items
       then return "{}"
       else
@@ -814,7 +816,7 @@ parseMultiLineRecord nesting indent =
           mconcat
             [ "{ ",
               intercalate (indentation <> nestingSpace <> ", ") items,
-              indentation <> nestingSpace <> "}"
+              indentation <> endSpace <> nestingSpace <> "}"
             ]
 
 parseRecordUpdate :: Int -> Parser Text
@@ -869,23 +871,6 @@ parseMultiLineRecordUpdate indent =
           "\n" <> pack (take indent (repeat ' ')),
           "}"
         ]
-
-parseSingleLineRecord :: Int -> Parser Text
-parseSingleLineRecord indent =
-  do
-    _ <- char '{'
-    _ <- parseSpaces
-    items <- many (parseRecordItem 0 indent)
-    _ <- char '}'
-    if null items
-      then return "{}"
-      else
-        return $
-          mconcat
-            [ "{ ",
-              intercalate ", " items,
-              " }"
-            ]
 
 parseRecordItem :: Int -> Int -> Parser Text
 parseRecordItem nesting indent =
