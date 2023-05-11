@@ -805,14 +805,16 @@ parseMultiLineRecord nesting indent =
     _ <- space
     items <- many (parseRecordItem nesting indent)
     _ <- char '}'
+    let nestingSpace = mconcat (take nesting (repeat "  "))
+    let indentation = "\n" <> (pack $ take indent $ repeat ' ')
     if null items
       then return "{}"
       else
         return $
           mconcat
             [ "{ ",
-              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+              intercalate (indentation <> nestingSpace <> ", ") items,
+              indentation <> nestingSpace <> "}"
             ]
 
 parseRecordUpdate :: Int -> Parser Text
