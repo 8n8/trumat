@@ -1298,7 +1298,7 @@ parseLetBind minColumn indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression 0 minColumn DoesntNeedBrackets indent
+    right <- parseExpression 0 minColumn DoesntNeedBrackets (indent + 4)
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $

@@ -3577,5 +3577,29 @@ cases =
       \            ]\n\
       \        )\n\
       \"
+    ),
+    ( "multiline function call in let binding",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \                c\n\
+      \    in\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \                c\n\
+      \    in\n\
+      \    d\n\
+      \"
     )
   ]
