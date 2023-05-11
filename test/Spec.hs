@@ -3619,5 +3619,23 @@ cases =
       \      }\n\
       \    ]\n\
       \"
+    ),
+    ( "double multiline infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        b <|\n\
+      \            c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        b <|\n\
+      \            c\n\
+      \"
     )
   ]
