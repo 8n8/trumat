@@ -3601,5 +3601,23 @@ cases =
       \    in\n\
       \    d\n\
       \"
+    ),
+    ( "single line record field in multiline record in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ { a = b\n\
+      \      }\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ { a = b\n\
+      \      }\n\
+      \    ]\n\
+      \"
     )
   ]
