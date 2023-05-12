@@ -3,7 +3,7 @@ module Trumat (trumat) where
 import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Text (Text, intercalate, isInfixOf, pack, unpack)
+import Data.Text (Text, intercalate, isInfixOf, pack, takeEnd, unpack)
 import qualified Data.Text as Text
 import Data.Void (Void)
 import Text.Megaparsec
@@ -28,6 +28,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -1202,9 +1203,9 @@ parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    firstExpression <- parseInfixedExpression minColumn indent
+    firstExpression <- dbg "firstExpression" $ parseInfixedExpression minColumn indent
 
-    items <- parseInfixedItems minColumn indent []
+    items <- dbg "items" $ parseInfixedItems minColumn indent []
     if null items
       then fail "zero infix items"
       else do
@@ -1212,7 +1213,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace (endRow > startRow)) items
+              mconcat $ map (addInfixWhitespace (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
             ]
 
 parseInfixedItems ::
@@ -1221,25 +1222,25 @@ parseInfixedItems ::
   [(Int, Text, Text, Text)] ->
   Parser [(Int, Text, Text, Text)]
 parseInfixedItems minColumn indent accum =
-    choice
-      [ try $
-          do
-            comment <- commentSpaceParser (indent + 4)
-            infix_ <- parseInfix
-            _ <- space
-            expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
-            parseInfixedItems
-              minColumn
-              ( if infix_ == "<|"
-                  then indent + 4
-                  else indent
-              )
-              ((indent + 4, comment, infix_, expression) : accum),
-        return $ reverse accum
-      ]
+  choice
+    [ try $
+        do
+          comment <- commentSpaceParser (indent + 4)
+          infix_ <- parseInfix
+          _ <- space
+          expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
+          parseInfixedItems
+            minColumn
+            ( if infix_ == "<|"
+                then indent + 4
+                else indent
+            )
+            ((indent + 4, comment, infix_, expression) : accum),
+      return $ reverse accum
+    ]
 
-addInfixWhitespace :: Bool -> (Int, Text, Text, Text) -> Text
-addInfixWhitespace isMultiline (indent, comment, infix_, expression) =
+addInfixWhitespace :: Bool -> Bool -> (Int, Text, Text, Text) -> Text
+addInfixWhitespace followsTripleQuoteString isMultiline (indent, comment, infix_, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
@@ -1251,16 +1252,19 @@ addInfixWhitespace isMultiline (indent, comment, infix_, expression) =
                   expression
                 ]
             else
-              mconcat
-                [ "\n" <> pack (take newIndent (repeat ' ')),
-                  comment,
-                  if comment == ""
-                    then ""
-                    else "\n" <> pack (take newIndent (repeat ' ')),
-                  infix_,
-                  " ",
-                  expression
-                ]
+              if infix_ == "|>" && followsTripleQuoteString
+                then " |> " <> expression
+                else
+                  mconcat
+                    [ "\n" <> pack (take newIndent (repeat ' ')),
+                      comment,
+                      if comment == ""
+                        then ""
+                        else "\n" <> pack (take newIndent (repeat ' ')),
+                      infix_,
+                      " ",
+                      expression
+                    ]
         else
           if infix_ == "."
             then infix_ <> expression

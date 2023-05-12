@@ -3637,5 +3637,21 @@ cases =
       \        b <|\n\
       \            c\n\
       \"
+    ),
+    ( "multiline string in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" |> a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" |> a\n\
+      \"
     )
   ]
