@@ -28,7 +28,6 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -1203,9 +1202,9 @@ parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    firstExpression <- dbg "firstExpression" $ parseInfixedExpression minColumn indent
+    firstExpression <- parseInfixedExpression minColumn indent
 
-    items <- dbg "items" $ parseInfixedItems minColumn indent []
+    items <- parseInfixedItems minColumn indent []
     if null items
       then fail "zero infix items"
       else do
