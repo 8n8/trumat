@@ -3741,5 +3741,19 @@ cases =
       \    <|\n\
       \        c\n\
       \"
+    ),
+    ( "name ending with underscore",
+      "module X exposing (x_)\n\
+      \\n\
+      \\n\
+      \x_ =\n\
+      \    0\n\
+      \",
+      "module X exposing (x_)\n\
+      \\n\
+      \\n\
+      \x_ =\n\
+      \    0\n\
+      \"
     )
   ]
