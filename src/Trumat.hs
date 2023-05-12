@@ -1205,16 +1205,16 @@ parseInfixed minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
-
+    midRow <- fmap (unPos . sourceLine) getSourcePos
     items <- parseInfixedItems minColumn indent []
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then fail "zero infix items"
       else do
-        endRow <- fmap (unPos . sourceLine) getSourcePos
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
+              mconcat $ map (addInfixWhitespace (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
             ]
 
 parseInfixedItems ::
@@ -1240,18 +1240,28 @@ parseInfixedItems minColumn indent accum =
       return $ reverse accum
     ]
 
-addInfixWhitespace :: Bool -> Bool -> (Int, Text, Text, Text) -> Text
-addInfixWhitespace followsTripleQuoteString isMultiline (indent, comment, infix_, expression) =
+addInfixWhitespace :: Bool -> Bool -> Bool -> (Int, Text, Text, Text) -> Text
+addInfixWhitespace firstIsMultiline followsTripleQuoteString isMultiline (indent, comment, infix_, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
           if infix_ == "<|"
             then
-              mconcat
-                [ " <|\n",
-                  pack (take newIndent (repeat ' ')),
-                  expression
-                ]
+              if firstIsMultiline
+                then
+                  mconcat
+                    [ "\n",
+                      pack $ take (newIndent - 4) (repeat ' '),
+                      "<|\n",
+                      pack (take newIndent (repeat ' ')),
+                      expression
+                    ]
+                else
+                  mconcat
+                    [ " <|\n",
+                      pack (take newIndent (repeat ' ')),
+                      expression
+                    ]
             else
               if infix_ == "|>" && followsTripleQuoteString
                 then " |> " <> expression
