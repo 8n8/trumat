@@ -28,7 +28,6 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -759,7 +758,7 @@ parseExpression nesting minColumn context indent =
       try $ notFollowedByInfix $ parseRecord nesting indent,
       try $ notFollowedByInfix $ parseRecordUpdate indent,
       try $ notFollowedByInfix (parseFunctionCall minColumn indent),
-      dbg "infixed" $ try $ parseInfixed minColumn indent,
+      try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
       try $ parseTuple nesting context indent,
       parseVerbatim,
@@ -1222,7 +1221,6 @@ parseInfixedItems ::
   [(Int, Text, Text, Text)] ->
   Parser [(Int, Text, Text, Text)]
 parseInfixedItems minColumn indent accum =
-  dbg "parseInfixedItems" $
     choice
       [ try $
           do
