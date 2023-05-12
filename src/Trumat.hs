@@ -882,7 +882,7 @@ parseRecordItem recordFieldIndent nesting indent =
     _ <- space
     _ <- char '='
     _ <- space
-    right <- parseExpression 0 0 1 DoesntNeedBrackets (indent + 4 + recordFieldIndent)
+    right <- parseExpression 0 0 1 DoesntNeedBrackets (indent + 4 + nesting * 2 + recordFieldIndent)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
