@@ -817,7 +817,7 @@ parseRecord recordFieldIndent nesting indent =
         return $
           mconcat
             [ "{ ",
-              intercalate (indentation <> nestingSpace <> pack (take recordFieldIndent $ repeat ' ') <> ", ") items,
+              intercalate (indentation <> nestingSpace <> ", ") items,
               indentation <> endSpace <> nestingSpace <> "}"
             ]
 
