@@ -28,6 +28,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -50,7 +51,9 @@ import Prelude
     null,
     repeat,
     return,
+    reverse,
     take,
+    zip,
     ($),
     (&&),
     (*),
@@ -756,7 +759,7 @@ parseExpression nesting minColumn context indent =
       try $ notFollowedByInfix $ parseRecord nesting indent,
       try $ notFollowedByInfix $ parseRecordUpdate indent,
       try $ notFollowedByInfix (parseFunctionCall minColumn indent),
-      try $ parseInfixed minColumn indent,
+      dbg "infixed" $ try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
       try $ parseTuple nesting context indent,
       parseVerbatim,
@@ -1202,24 +1205,44 @@ parseInfixed minColumn indent =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
 
-    items <- some $
-      try $
-        do
-          comment <- commentSpaceParser (indent + 4)
-          infix_ <- parseInfix
-          _ <- space
-          expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
-          return (comment, infix_, expression)
-    endRow <- fmap (unPos . sourceLine) getSourcePos
-    return $
-      mconcat
-        [ firstExpression,
-          mconcat $ map (addInfixWhitespace (endRow > startRow) indent) items
-        ]
+    items <- parseInfixedItems minColumn indent []
+    if null items
+      then fail "zero infix items"
+      else do
+        endRow <- fmap (unPos . sourceLine) getSourcePos
+        return $
+          mconcat
+            [ firstExpression,
+              mconcat $ map (addInfixWhitespace (endRow > startRow)) items
+            ]
 
-addInfixWhitespace :: Bool -> Int -> (Text, Text, Text) -> Text
-addInfixWhitespace isMultiline indent (comment, infix_, expression) =
-  let newIndent = floorToFour (indent + 4)
+parseInfixedItems ::
+  Int ->
+  Int ->
+  [(Int, Text, Text, Text)] ->
+  Parser [(Int, Text, Text, Text)]
+parseInfixedItems minColumn indent accum =
+  dbg "parseInfixedItems" $
+    choice
+      [ try $
+          do
+            comment <- commentSpaceParser (indent + 4)
+            infix_ <- parseInfix
+            _ <- space
+            expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
+            parseInfixedItems
+              minColumn
+              ( if infix_ == "<|"
+                  then indent + 4
+                  else indent
+              )
+              ((indent + 4, comment, infix_, expression) : accum),
+        return $ reverse accum
+      ]
+
+addInfixWhitespace :: Bool -> (Int, Text, Text, Text) -> Text
+addInfixWhitespace isMultiline (indent, comment, infix_, expression) =
+  let newIndent = floorToFour indent
    in if isMultiline
         then
           if infix_ == "<|"
@@ -1597,13 +1620,13 @@ parseTuple nesting context indent =
 parseParenthesised :: Context -> Int -> Parser Text
 parseParenthesised context indent =
   do
-    startLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
+    startLine <- fmap (unPos . sourceLine) getSourcePos
     item <- parseExpression 0 1 DoesntNeedBrackets indent
+    endLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     _ <- char ')'
-    endLine <- fmap (unPos . sourceLine) getSourcePos
     if endLine > startLine
       then case context of
         NeedsBrackets ->
