@@ -3675,5 +3675,29 @@ cases =
       \      }\n\
       \    )\n\
       \"
+    ),
+    ( "infix in multiline record field in tuple",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , { b =\n\
+      \            c <|\n\
+      \                d\n\
+      \      }\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , { b =\n\
+      \            c <|\n\
+      \                d\n\
+      \      }\n\
+      \    )\n\
+      \"
     )
   ]
