@@ -1450,7 +1450,7 @@ parseName =
     remainder <-
       takeWhileP
         (Just "name character")
-        (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.0123456789" :: String))
+        (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.0123456789_" :: String))
     let word = Text.cons firstChar remainder
     if Set.member word keywords
       then fail $ "expecting a name tail but got: " <> unpack word
