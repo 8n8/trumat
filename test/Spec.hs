@@ -3755,5 +3755,25 @@ cases =
       \x_ =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline string in multiline infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\"\n\
+      \        |> a\n\
+      \        |> b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\"\n\
+      \        |> a\n\
+      \        |> b\n\
+      \"
     )
   ]
