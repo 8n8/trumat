@@ -3653,5 +3653,27 @@ cases =
       \    \"\"\"\n\
       \\"\"\" |> a\n\
       \"
+    ),
+    ( "multiline record field in tuple",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , { b =\n\
+      \            c\n\
+      \      }\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , { b =\n\
+      \            c\n\
+      \      }\n\
+      \    )\n\
+      \"
     )
   ]
