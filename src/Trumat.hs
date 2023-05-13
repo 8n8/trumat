@@ -178,8 +178,9 @@ formatExportRow items docRow =
 
 formatSingleLineExports :: [[Text]] -> [Text] -> Text
 formatSingleLineExports docs items =
-  let rows = (map (formatExportRow items) (removeUnused items docs)) <> [undocumented]
+  let rows = filter (\row -> row /= "") $ (map (formatExportRow items) (removeUnused items docs)) <> [undocumented]
       undocumented = intercalate ", " (getUndocumented docs items)
+      isMultiline = length (removeUnused items docs) == 1
    in case rows of
         [] ->
           "()"
@@ -187,9 +188,19 @@ formatSingleLineExports docs items =
           " (" <> single <> ")"
         multiple ->
           mconcat
-            [ "\n    ( ",
-              intercalate "\n    , " multiple,
-              "\n    )"
+            [ if isMultiline
+                then "\n    ( "
+                else "(",
+              intercalate
+                ( if isMultiline
+                    then "\n    , "
+                    else ", "
+                )
+                multiple,
+              if isMultiline
+                then "\n    "
+                else "",
+              ")"
             ]
 
 removeUnused :: [Text] -> [[Text]] -> [[Text]]
