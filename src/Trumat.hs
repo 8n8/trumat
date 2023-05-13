@@ -777,7 +777,7 @@ parseAnonymousFunction minColumn indent =
     _ <- space
     _ <- chunk "->"
     _ <- space
-    body <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+    body <- parseExpression minColumn DoesntNeedBrackets (floorToFour (indent + 4))
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
       mconcat
