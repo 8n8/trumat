@@ -1130,15 +1130,11 @@ parseFunctionCall minColumn indent =
 
 addArgSpaces :: Int -> Int -> Int -> (Text, Int) -> Text
 addArgSpaces startRow endRow indent (arg, row) =
-  if row == startRow
-    then " " <> arg
-    else
-      if endRow > startRow
-        then
-          if Text.take 3 arg == "\"\"\""
-            then " " <> arg
-            else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' ')) <> arg
-        else " " <> arg
+  ( if endRow == startRow || row == startRow || Text.take 3 arg == "\"\"\""
+      then " "
+      else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
+  )
+    <> arg
 
 floorToFour :: Int -> Int
 floorToFour i =
