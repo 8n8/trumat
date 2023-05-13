@@ -3853,5 +3853,27 @@ cases =
       \        (b \"\"\"\n\
       \\"\"\")\n\
       \"
+    ),
+    ( "multiple trailing line comments in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \\n\
+      \    --\n\
+      \    --\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \\n\
+      \    --\n\
+      \    --\n\
+      \    ]\n\
+      \"
     )
   ]
