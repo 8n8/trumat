@@ -1640,7 +1640,9 @@ parseParenthesised context indent =
             mconcat
               [ "(",
                 item,
-                "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                if Text.takeEnd 3 item == "\"\"\""
+                  then ")"
+                  else "\n" <> (pack $ take indent $ repeat ' ') <> ")"
               ]
         DoesntNeedBrackets ->
           return item
