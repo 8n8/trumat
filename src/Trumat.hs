@@ -1669,8 +1669,8 @@ parseMultiTuple indent =
             return $
               mconcat
                 [ "( ",
-                  intercalate ("\n" <> (pack $ take (floorToFour indent) $ repeat ' ') <> ", ") items,
-                  "\n" <> (pack $ take (floorToFour indent) $ repeat ' ') <> ")"
+                  intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
+                  "\n" <> (pack $ take indent $ repeat ' ') <> ")"
                 ]
           else
             return $
