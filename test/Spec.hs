@@ -3945,5 +3945,31 @@ cases =
       \      )\n\
       \    ]\n\
       \"
+    ),
+    ( "single line export with @docs",
+      "module Elm.Writer exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Elm.Writer exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
