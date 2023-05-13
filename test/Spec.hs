@@ -3875,5 +3875,29 @@ cases =
       \    --\n\
       \    ]\n\
       \"
+    ),
+    ( "let bind in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ let\n\
+      \        a =\n\
+      \            b\n\
+      \      in\n\
+      \      a\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ let\n\
+      \        a =\n\
+      \            b\n\
+      \      in\n\
+      \      a\n\
+      \    ]\n\
+      \"
     )
   ]
