@@ -45,12 +45,14 @@ import Prelude
     head,
     length,
     map,
+    max,
     mconcat,
     not,
     null,
     repeat,
     return,
     reverse,
+    show,
     take,
     zip,
     ($),
@@ -83,7 +85,11 @@ parseExposing :: Parser Text
 parseExposing =
   do
     listType <- lookAhead parseListType
-    docs <- choice [lookAhead $ try parseExportDocs, return []]
+    docs <-
+      choice
+        [ lookAhead $ try parseExportDocs,
+          return []
+        ]
     case listType of
       SingleLine ->
         parseSingleLineExports docs
@@ -96,7 +102,7 @@ parseExportDocs =
     _ <- consumeExportList
     _ <- space
     _ <- chunk "{-|"
-    results <- many $ try parseExportDocsRow
+    results <- many $ try parseExportDocsRowOnly
     _ <- endDocComment
     return results
 
@@ -121,10 +127,43 @@ consumeExportListHelp nesting =
             consumeExportListHelp (nesting - 1)
         ]
 
+parseOtherDocs :: Parser Text
+parseOtherDocs =
+  fmap mconcat $
+    some $
+      choice
+        [ do
+            text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-')
+            if Text.strip text == ""
+              then return ""
+              else return $ Text.strip text,
+          do
+            _ <- space1
+            return "",
+          try $ do
+            _ <- char '-'
+            _ <- try $ notFollowedBy $ lookAhead $ char '}'
+            return ""
+        ]
+
+parseExportDocsRowOnly :: Parser [Text]
+parseExportDocsRowOnly =
+  do
+    _ <-
+      choice
+        [ takeWhileP Nothing (\ch -> ch /= '@' && ch /= '-'),
+          try $ do
+            _ <- char '-'
+            _ <- try $ notFollowedBy $ lookAhead $ char '}'
+            return ""
+        ]
+    _ <- chunk "@docs"
+    _ <- takeWhile1P Nothing (\ch -> ch == ' ')
+    some parseOneExportDoc
+
 parseExportDocsRow :: Parser [Text]
 parseExportDocsRow =
   do
-    _ <- takeWhileP Nothing (\ch -> ch /= '@')
     _ <- chunk "@docs"
     _ <- takeWhile1P Nothing (\ch -> ch == ' ')
     some parseOneExportDoc
@@ -180,7 +219,7 @@ formatSingleLineExports :: [[Text]] -> [Text] -> Text
 formatSingleLineExports docs items =
   let rows = filter (\row -> row /= "") $ (map (formatExportRow items) (removeUnused items docs)) <> [undocumented]
       undocumented = intercalate ", " (getUndocumented docs items)
-      isMultiline = length (removeUnused items docs) == 1
+      isMultiline = not (null (removeUnused items docs)) && length items > 1
    in case rows of
         [] ->
           "()"
@@ -253,27 +292,33 @@ parseModuleDocs :: Parser Text
 parseModuleDocs =
   do
     _ <- chunk "{-|"
-    docRows <- many $ try parseExportDocsRow
-    remainder <- endDocComment
+    firstRow <- fmap (\row -> if row == "" then "" else " " <> row) $ choice [try parseOtherDocs, return ""]
+    docRows <-
+      fmap (\rows -> filter (\row -> row /= "") rows) $
+        many $
+          choice
+            [ fmap
+                (\row -> "@docs " <> intercalate ", " row <> "\n")
+                (try parseExportDocsRow),
+              fmap
+                (\row -> if row == "" then "" else "\n" <> row <> "\n")
+                (try parseOtherDocs)
+            ]
+    _ <- chunk "-}"
     return $
-      mconcat
-        [ "{-|",
-          if remainder == "" && null docRows
-            then "\n\n\n"
-            else
+      if firstRow /= "" && null docRows
+        then "{-|" <> firstRow <> "\n-}"
+        else
+          mconcat
+            [ "{-|",
+              firstRow,
+              if firstRow == "" && null docRows then "" else "\n\n",
               if null docRows
-                then " " <> remainder <> "\n"
-                else
-                  mconcat
-                    [ "\n\n",
-                      intercalate "\n" (map (\row -> "@docs " <> intercalate ", " row) docRows),
-                      "\n\n",
-                      if remainder == ""
-                        then ""
-                        else remainder <> "\n\n"
-                    ],
-          "-}"
-        ]
+                then "\n\n\n"
+                else mconcat docRows,
+              if firstRow == "" && null docRows then "" else "\n",
+              "-}"
+            ]
 
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =

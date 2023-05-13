@@ -1244,7 +1244,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "@docs",
+    ( "at docs",
       "module X exposing (x, y)\n\
       \\n\
       \{-|\n\
