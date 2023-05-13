@@ -3775,5 +3775,27 @@ cases =
       \        |> a\n\
       \        |> b\n\
       \"
+    ),
+    ( "multiline record field in anonymous function in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \\() ->\n\
+      \        { a =\n\
+      \            b\n\
+      \        }\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \\() ->\n\
+      \        { a =\n\
+      \            b\n\
+      \        }\n\
+      \    ]\n\
+      \"
     )
   ]
