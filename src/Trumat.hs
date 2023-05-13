@@ -1521,7 +1521,7 @@ parseMultiListItem indent end =
     commentBefore <- commentSpaceParser indent
     expression <- parseExpression 1 DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
-    commentAfter <- commentSpaceParser indent
+    commentAfter <- commentSpaceParser (floorToFour indent)
     _ <- choice [char ',', lookAhead (try (char end))]
     return $
       mconcat
