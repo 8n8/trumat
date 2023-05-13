@@ -1199,7 +1199,7 @@ parseInfixed minColumn indent =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
     midRow <- fmap (unPos . sourceLine) getSourcePos
-    items <- parseInfixedItems minColumn indent []
+    items <- parseInfixedItems minColumn (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then fail "zero infix items"
