@@ -178,7 +178,7 @@ formatExportRow items docRow =
 
 formatSingleLineExports :: [[Text]] -> [Text] -> Text
 formatSingleLineExports docs items =
-  let rows = (map (formatExportRow items) docs) <> [undocumented]
+  let rows = (map (formatExportRow items) (removeUnused items docs)) <> [undocumented]
       undocumented = intercalate ", " (getUndocumented docs items)
    in case rows of
         [] ->
@@ -191,6 +191,12 @@ formatSingleLineExports docs items =
               intercalate "\n    , " multiple,
               "\n    )"
             ]
+
+removeUnused :: [Text] -> [[Text]] -> [[Text]]
+removeUnused used docs =
+  filter (\usedDocsRow -> not (null usedDocsRow)) $
+    map (\docsRow -> filter (\docsItem -> docsItem `elem` used) docsRow) $
+      docs
 
 getUndocumented :: [[Text]] -> [Text] -> [Text]
 getUndocumented docs items =

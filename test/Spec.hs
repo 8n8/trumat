@@ -3947,7 +3947,7 @@ cases =
       \"
     ),
     ( "single line export with @docs",
-      "module Elm.Writer exposing (x)\n\
+      "module X exposing (x)\n\
       \\n\
       \{-|\n\
       \\n\
@@ -3959,7 +3959,7 @@ cases =
       \x =\n\
       \    0\n\
       \",
-      "module Elm.Writer exposing (x)\n\
+      "module X exposing (x)\n\
       \\n\
       \{-|\n\
       \\n\
