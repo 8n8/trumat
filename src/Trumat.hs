@@ -1134,7 +1134,10 @@ addArgSpaces startRow endRow indent (arg, row) =
     then " " <> arg
     else
       if endRow > startRow
-        then (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' ')) <> arg
+        then
+          if Text.take 3 arg == "\"\"\""
+            then " " <> arg
+            else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' ')) <> arg
         else " " <> arg
 
 floorToFour :: Int -> Int
