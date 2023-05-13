@@ -1223,7 +1223,7 @@ parseInfixedItems minColumn indent accum =
           comment <- commentSpaceParser (indent + 4)
           infix_ <- parseInfix
           _ <- space
-          expression <- parseInfixedExpression minColumn (floorToFour (indent + 4))
+          expression <- parseInfixedExpression minColumn (indent + 4)
           parseInfixedItems
             minColumn
             ( if infix_ == "<|"
