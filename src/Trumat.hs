@@ -1289,7 +1289,7 @@ parseLetIn minColumn indent =
     let_ <- some $
       try $
         do
-          items <- parseLetBind (column + 1) (indent + 4)
+          items <- parseLetBind (column + 1) (floorToFour (indent + 4))
           _ <- space
           return items
     _ <- chunk "in"
