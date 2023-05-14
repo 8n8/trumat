@@ -1450,7 +1450,7 @@ parseCaseOf indent =
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     column <- fmap (unPos . sourceColumn) getSourcePos
-    branches <- some (parseCaseOfBranch column (indent + 4))
+    branches <- some (parseCaseOfBranch column (floorToFour (indent + 4)))
     return $
       mconcat
         [ "case",
