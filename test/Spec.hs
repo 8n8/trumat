@@ -4111,5 +4111,37 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module docs with expose all on type export",
+      "module X exposing\n\
+      \    ( B(..), c\n\
+      \    , d\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs B, c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( B(..), c\n\
+      \    , d\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs B, c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
