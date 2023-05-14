@@ -4253,5 +4253,19 @@ cases =
       \    else\n\
       \        e\n\
       \"
+    ),
+    ( "function call in record lookup in function call",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b c).d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b c).d\n\
+      \"
     )
   ]
