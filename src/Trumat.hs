@@ -1,4 +1,4 @@
-module Trumat (trumat) where
+module Trumat (trumat, formatExports) where
 
 import qualified Data.List as List
 import Data.Set (Set)
@@ -80,21 +80,6 @@ trumat unformatted =
       Left $ errorBundlePretty err
     Right formatted ->
       Right formatted
-
-parseExposing :: Parser Text
-parseExposing =
-  do
-    listType <- lookAhead parseListType
-    docs <-
-      choice
-        [ lookAhead $ try parseExportDocs,
-          return []
-        ]
-    case listType of
-      SingleLine ->
-        parseSingleLineExports docs
-      MultiLine ->
-        parseMultiLineExports docs
 
 parseExportDocs :: Parser [[Text]]
 parseExportDocs =
@@ -229,25 +214,34 @@ parseExport =
         ]
     return $ name <> all_
 
-parseSingleLineExports :: [[Text]] -> Parser Text
-parseSingleLineExports docs =
+parseExposing :: Parser Text
+parseExposing =
   do
+    docs <-
+      choice
+        [ lookAhead $ try parseExportDocs,
+          return []
+        ]
+
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
-    _ <- parseSpaces
+    _ <- space
     items <- some parseExport
+    _ <- space
     _ <- char ')'
-    return $ formatSingleLineExports docs items
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return $ formatExports (endRow > startRow) docs items
 
 formatExportRow :: [Text] -> [Text] -> Text
 formatExportRow items docRow =
   let documented = filter (\doc -> elem doc items) docRow
    in intercalate ", " documented
 
-formatSingleLineExports :: [[Text]] -> [Text] -> Text
-formatSingleLineExports docs items =
-  let rows = filter (\row -> row /= "") $ (map (formatExportRow items) (removeUnused items docs)) <> [undocumented]
-      undocumented = intercalate ", " (getUndocumented docs items)
-      isMultiline = not (null (removeUnused items docs)) && length items > 1
+formatExports :: Bool -> [[Text]] -> [Text] -> Text
+formatExports originalIsMultiline docs items =
+  let rows = filter (\row -> row /= "") $ (map (formatExportRow items) (removeUnused items docs)) <> undocumented
+      undocumented = getUndocumented docs items
+      isMultiline = (not (null (removeUnused items docs)) && length items > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -257,7 +251,7 @@ formatSingleLineExports docs items =
           mconcat
             [ if isMultiline
                 then "\n    ( "
-                else "(",
+                else " (",
               intercalate
                 ( if isMultiline
                     then "\n    , "
