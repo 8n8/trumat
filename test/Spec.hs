@@ -4267,5 +4267,19 @@ cases =
       \x =\n\
       \    a (b c).d\n\
       \"
+    ),
+    ( "pass record access function to function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a .b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a .b\n\
+      \"
     )
   ]
