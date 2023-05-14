@@ -871,6 +871,25 @@ notFollowedByInfix p =
         notFollowedBy parseInfix
     return item
 
+makeDottable :: Parser Text -> Parser Text
+makeDottable p =
+  do
+    item <- p
+    dottings <-
+      some $
+        do
+          _ <- char '.'
+          parseName
+    return $ intercalate "." (item : dottings)
+
+notDottable :: Parser Text -> Parser Text
+notDottable p =
+  try $
+    do
+      item <- p
+      _ <- notFollowedBy $ char '.'
+      return item
+
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
@@ -883,6 +902,8 @@ parseExpression minColumn context indent =
       try $ notFollowedByInfix (parseFunctionCall minColumn indent),
       try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
+      try $ notDottable $ parseParenthesised context indent,
+      try $ makeDottable $ parseParenthesised NeedsBrackets indent,
       try $ parseTuple context indent,
       parseVerbatim,
       parseTripleStringLiteral,
@@ -1189,7 +1210,8 @@ parseConsPattern minColumn indent =
 parseArgumentExpression :: Int -> Parser Text
 parseArgumentExpression indent =
   choice
-    [ try $ parseTuple NeedsBrackets indent,
+    [ try $ notDottable $ parseTuple NeedsBrackets indent,
+      try $ makeDottable $ parseTuple NeedsBrackets indent,
       parseInfixInBrackets,
       parseList indent,
       try $ parseRecord indent,
@@ -1295,7 +1317,7 @@ afterInfixChar =
 
 infixes :: [Text]
 infixes =
-  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", ".", "*", "^"]
+  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", "*", "^"]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
