@@ -122,7 +122,7 @@ parseDocRow =
         _ <- chunk "    "
         code <- takeWhileP Nothing (\ch -> ch /= '\n')
         _ <- char '\n'
-        return $ "    " <> Text.strip code <> "\n",
+        return $ "    " <> code <> "\n",
       try $ do
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         docs <- parseExportDocsRow
