@@ -4259,13 +4259,13 @@ cases =
       \\n\
       \\n\
       \x =\n\
-      \    (b c).d\n\
+      \    a (b c).d\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    (b c).d\n\
+      \    a (b c).d\n\
       \"
     )
   ]
