@@ -4225,5 +4225,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "chained if then else expressions",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else if c then\n\
+      \        d\n\
+      \\n\
+      \    else\n\
+      \        e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else if c then\n\
+      \        d\n\
+      \\n\
+      \    else\n\
+      \        e\n\
+      \"
     )
   ]
