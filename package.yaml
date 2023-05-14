@@ -22,6 +22,7 @@ ghc-options:
 - -Wno-missed-specialisations
 - -Wno-unused-matches
 - -Wno-unused-imports
+- -Wno-unused-top-binds
 - -O2
 
 library:

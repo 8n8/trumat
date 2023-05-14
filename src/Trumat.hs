@@ -127,24 +127,52 @@ consumeExportListHelp nesting =
             consumeExportListHelp (nesting - 1)
         ]
 
-parseOtherDocs :: Parser Text
-parseOtherDocs =
-  fmap mconcat $
-    some $
-      choice
-        [ do
-            text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-')
-            if Text.strip text == ""
-              then return ""
-              else return $ Text.strip text,
-          do
-            _ <- space1
-            return "",
-          try $ do
-            _ <- char '-'
-            _ <- try $ notFollowedBy $ lookAhead $ char '}'
-            return ""
-        ]
+parseDocRow :: Parser Text
+parseDocRow =
+  choice
+    [ chunk "\n",
+      try $ do
+        _ <- chunk "    "
+        code <- takeWhileP Nothing (\ch -> ch /= '\n')
+        _ <- char '\n'
+        return $ "    " <> Text.strip code <> "\n",
+      try $ do
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        docs <- parseExportDocsRow
+        _ <- char '\n'
+        return $ "@docs " <> intercalate ", " docs <> "\n",
+      try $ do
+        pieces <-
+          some $
+            do
+              text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
+              _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+              _ <- choice [char '-', return ' ']
+              return text
+        return $ mconcat pieces
+    ]
+
+parseOtherDocRow :: Parser Text
+parseOtherDocRow =
+  choice
+    [ try $ do
+        _ <- chunk "\n    "
+        code <- takeWhileP Nothing (\ch -> ch /= '\n')
+        return $ "\n    " <> code,
+      try $ do
+        text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-')
+        _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+        if Text.strip text == ""
+          then return ""
+          else return $ Text.strip text,
+      do
+        _ <- space1
+        return "",
+      try $ do
+        _ <- char '-'
+        _ <- try $ notFollowedBy $ lookAhead $ char '}'
+        return ""
+    ]
 
 parseExportDocsRowOnly :: Parser [Text]
 parseExportDocsRowOnly =
@@ -292,33 +320,16 @@ parseModuleDocs :: Parser Text
 parseModuleDocs =
   do
     _ <- chunk "{-|"
-    firstRow <- fmap (\row -> if row == "" then "" else " " <> row) $ choice [try parseOtherDocs, return ""]
-    docRows <-
-      fmap (\rows -> filter (\row -> row /= "") rows) $
-        many $
-          choice
-            [ fmap
-                (\row -> "@docs " <> intercalate ", " row <> "\n")
-                (try parseExportDocsRow),
-              fmap
-                (\row -> if row == "" then "" else "\n" <> row <> "\n")
-                (try parseOtherDocs)
-            ]
+    rows <- many parseDocRow
     _ <- chunk "-}"
     return $
-      if firstRow /= "" && null docRows
-        then "{-|" <> firstRow <> "\n-}"
-        else
-          mconcat
-            [ "{-|",
-              firstRow,
-              if firstRow == "" && null docRows then "" else "\n\n",
-              if null docRows
-                then "\n\n\n"
-                else mconcat docRows,
-              if firstRow == "" && null docRows then "" else "\n",
-              "-}"
-            ]
+      mconcat
+        [ "{-|",
+          if Text.strip (mconcat rows) == ""
+            then "\n\n\n"
+            else mconcat rows,
+          "-}"
+        ]
 
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
