@@ -1693,7 +1693,7 @@ parseMultiListItem indent end =
       mconcat
         [ if commentBefore == ""
             then ""
-            else pack (take indent (repeat ' ')) <> commentBefore,
+            else commentBefore <> "\n" <> pack (take indent (repeat ' ')),
           expression,
           if sameLineComment == ""
             then ""
