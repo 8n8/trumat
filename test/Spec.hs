@@ -4079,5 +4079,37 @@ cases =
       \            e\n\
       \    ]\n\
       \"
+    ),
+    ( "export docs",
+      "module X exposing\n\
+      \    ( a, b\n\
+      \    , c\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a, b\n\
+      \    , c\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
