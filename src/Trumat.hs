@@ -1240,7 +1240,7 @@ parseFunctionCall minColumn indent =
         items <- some $
           try $
             do
-              _ <- space
+              _ <- space1
               column <- fmap (unPos . sourceColumn) getSourcePos
               if column <= minColumn
                 then fail "argument is too far left"
@@ -1254,10 +1254,7 @@ parseFunctionCall minColumn indent =
 addArgSpaces :: Int -> Int -> Int -> (Text, Int) -> Text
 addArgSpaces startRow endRow indent (arg, row) =
   ( if endRow == startRow || row == startRow || Text.take 3 arg == "\"\"\""
-      then
-        if Text.take 1 arg == "."
-          then ""
-          else " "
+      then " "
       else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
   )
     <> arg
