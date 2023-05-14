@@ -29,6 +29,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -164,13 +165,24 @@ parseExportDocsRowOnly :: Parser [Text]
 parseExportDocsRowOnly =
   do
     _ <-
-      choice
-        [ takeWhileP Nothing (\ch -> ch /= '@' && ch /= '-'),
-          try $ do
-            _ <- char '-'
-            _ <- try $ notFollowedBy $ lookAhead $ char '}'
-            return ""
-        ]
+      some $
+        choice
+          [ chunk "\n",
+            try $ do
+              _ <- chunk "    "
+              code <- takeWhileP Nothing (\ch -> ch /= '\n')
+              _ <- char '\n'
+              return $ "    " <> Text.strip code <> "\n",
+            try $ do
+              pieces <-
+                some $
+                  do
+                    text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
+                    _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+                    _ <- choice [char '-', return ' ']
+                    return text
+              return $ mconcat pieces
+          ]
     _ <- chunk "@docs"
     _ <- takeWhile1P Nothing (\ch -> ch == ' ')
     some parseOneExportDoc
