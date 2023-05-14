@@ -214,15 +214,9 @@ parseExport =
         ]
     return $ name <> all_
 
-parseExposing :: Parser Text
-parseExposing =
+parseExposing :: [[Text]] -> Parser Text
+parseExposing docs =
   do
-    docs <-
-      choice
-        [ lookAhead $ try parseExportDocs,
-          return []
-        ]
-
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
@@ -332,7 +326,13 @@ parseModuleDeclaration =
     name <- parseName
     _ <- chunk " exposing"
     _ <- space
-    exports <- parseExposing
+    docs <-
+      choice
+        [ lookAhead $ try parseExportDocs,
+          return []
+        ]
+
+    exports <- parseExposing docs
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
@@ -749,7 +749,7 @@ parseImport =
         [ do
             _ <- chunk "exposing"
             _ <- space
-            parseExposing,
+            parseExposing [],
           return ""
         ]
     return $
