@@ -4295,5 +4295,25 @@ cases =
       \x =\n\
       \    (\\a -> a) (b c).d\n\
       \"
+    ),
+    ( "line comment at start of subsequent list item",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \    , -- b\n\
+      \      c\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \    , -- b\n\
+      \      c\n\
+      \    ]\n\
+      \"
     )
   ]
