@@ -871,16 +871,6 @@ notFollowedByInfix p =
         notFollowedBy parseInfix
     return item
 
-notFollowedByInfixOrDot :: Parser Text -> Parser Text
-notFollowedByInfixOrDot p =
-  do
-    item <- p
-    _ <- lookAhead $
-      do
-        _ <- space
-        notFollowedBy parseInfix
-    return item
-
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
@@ -888,13 +878,12 @@ parseExpression minColumn context indent =
       parseList indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
-      try $ notFollowedByInfixOrDot $ parseRecord indent,
-      try $ notFollowedByInfixOrDot $ parseRecordUpdate indent,
-      try $ notFollowedByInfixOrDot $ parseFunctionCall minColumn indent,
-      try $ parseTuple context indent,
+      try $ notFollowedByInfix $ parseRecord indent,
+      try $ notFollowedByInfix $ parseRecordUpdate indent,
+      try $ notFollowedByInfix (parseFunctionCall minColumn indent),
       try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
-      try $ notFollowedByInfix $ parseDotted minColumn indent,
+      try $ parseTuple context indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -1200,8 +1189,7 @@ parseConsPattern minColumn indent =
 parseArgumentExpression :: Int -> Parser Text
 parseArgumentExpression indent =
   choice
-    [ try $ parseDotted 2 indent,
-      try $ parseTuple NeedsBrackets indent,
+    [ try $ parseTuple NeedsBrackets indent,
       parseInfixInBrackets,
       parseList indent,
       try $ parseRecord indent,
@@ -1218,16 +1206,6 @@ parseCallable minColumn indent =
     [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
       parseInfixInBrackets,
       parseName
-    ]
-
-parseDottable :: Int -> Int -> Parser Text
-parseDottable minColumn indent =
-  choice
-    [ parseName,
-      parseRecord indent,
-      parseRecordUpdate indent,
-      parseTuple NeedsBrackets indent,
-      parseInfixInBrackets
     ]
 
 parseAnonymousFunctionInParenthesis :: Int -> Int -> Parser Text
@@ -1249,17 +1227,6 @@ parseInfixInBrackets =
     _ <- space
     _ <- char ')'
     return $ "(" <> infix_ <> ")"
-
-parseDotted :: Int -> Int -> Parser Text
-parseDotted minColumn indent =
-  do
-        f <- parseDottable minColumn indent
-        items <- some $
-          try $
-            do
-              _ <- char '.'
-              parseName
-        return $ intercalate "." (f : items)
 
 parseFunctionCall :: Int -> Int -> Parser Text
 parseFunctionCall minColumn indent =
@@ -1328,7 +1295,7 @@ afterInfixChar =
 
 infixes :: [Text]
 infixes =
-  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", "*", "^"]
+  ["==", "&&", ">>", "||", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", ".", "*", "^"]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
