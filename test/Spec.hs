@@ -4315,5 +4315,23 @@ cases =
       \      c\n\
       \    ]\n\
       \"
+    ),
+    ( "multiline record type declaration in custom type declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X\n\
+      \        { a : A\n\
+      \        }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X\n\
+      \        { a : A\n\
+      \        }\n\
+      \"
     )
   ]
