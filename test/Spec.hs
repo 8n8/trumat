@@ -4281,5 +4281,19 @@ cases =
       \x =\n\
       \    a .b\n\
       \"
+    ),
+    ( "function call in dotted expression in argument to anonymous function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (\\a -> a) (b c).d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (\\a -> a) (b c).d\n\
+      \"
     )
   ]
