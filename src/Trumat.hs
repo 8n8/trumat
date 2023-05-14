@@ -134,9 +134,16 @@ parseDocRow =
             do
               text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
               _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
-              _ <- choice [char '-', return ' ']
-              return text
-        return $ mconcat pieces
+              choice
+                [ do
+                    _ <- char '-'
+                    return $ text <> "-",
+                  return text
+                ]
+        return $
+          if Text.strip (mconcat pieces) == "-"
+            then ""
+            else mconcat pieces
     ]
 
 parseOtherDocRow :: Parser Text
