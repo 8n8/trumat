@@ -1466,27 +1466,48 @@ parseIfThenElse minColumn indent =
     _ <- chunk "else"
     _ <- space1
     commentAfterElse <- commentSpaceParser (indent + 4)
-    else_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
-    return $
-      mconcat
-        [ "if",
-          if Text.elem '\n' if_
-            then "\n" <> pack (take (indent + 4) (repeat ' '))
-            else " ",
-          if_,
-          if Text.elem '\n' if_
-            then "\n" <> pack (take indent (repeat ' '))
-            else " ",
-          "then\n" <> pack (take (indent + 4) (repeat ' ')),
-          then_,
-          "\n\n" <> pack (take indent (repeat ' ')),
-          "else\n" <> pack (take (indent + 4) (repeat ' ')),
-          commentAfterElse,
-          if commentAfterElse == ""
-            then ""
-            else "\n" <> pack (take (indent + 4) (repeat ' ')),
-          else_
-        ]
+    let ifThen =
+          mconcat
+            [ "if",
+              if Text.elem '\n' if_
+                then "\n" <> pack (take (indent + 4) (repeat ' '))
+                else " ",
+              if_,
+              if Text.elem '\n' if_
+                then "\n" <> pack (take indent (repeat ' '))
+                else " ",
+              "then\n" <> pack (take (indent + 4) (repeat ' ')),
+              then_,
+              "\n\n" <> pack (take indent (repeat ' ')),
+              "else"
+            ]
+    choice
+      [ do
+          nestedIf <- parseIfThenElse minColumn indent
+          return $ ifThen <> " " <> nestedIf,
+        do
+          else_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+          return $
+            mconcat
+              [ "if",
+                if Text.elem '\n' if_
+                  then "\n" <> pack (take (indent + 4) (repeat ' '))
+                  else " ",
+                if_,
+                if Text.elem '\n' if_
+                  then "\n" <> pack (take indent (repeat ' '))
+                  else " ",
+                "then\n" <> pack (take (indent + 4) (repeat ' ')),
+                then_,
+                "\n\n" <> pack (take indent (repeat ' ')),
+                "else\n" <> pack (take (indent + 4) (repeat ' ')),
+                commentAfterElse,
+                if commentAfterElse == ""
+                  then ""
+                  else "\n" <> pack (take (indent + 4) (repeat ' ')),
+                else_
+              ]
+      ]
 
 parseCaseOf :: Int -> Parser Text
 parseCaseOf indent =
