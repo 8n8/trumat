@@ -4053,5 +4053,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "case of expression in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ case a of\n\
+      \        B ->\n\
+      \            c\n\
+      \\n\
+      \        D ->\n\
+      \            e\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ case a of\n\
+      \        B ->\n\
+      \            c\n\
+      \\n\
+      \        D ->\n\
+      \            e\n\
+      \    ]\n\
+      \"
     )
   ]
