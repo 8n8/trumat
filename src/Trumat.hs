@@ -1,4 +1,4 @@
-module Trumat (trumat, formatExports) where
+module Trumat (trumat) where
 
 import qualified Data.List as List
 import Data.Set (Set)
@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import Data.Text (Text, intercalate, isInfixOf, pack, takeEnd, unpack)
 import qualified Data.Text as Text
 import Data.Void (Void)
+import Debug.Trace (trace)
 import Text.Megaparsec
   ( Parsec,
     choice,
@@ -231,11 +232,16 @@ formatExportRow items docRow =
   let documented = filter (\doc -> elem doc items) docRow
    in intercalate ", " documented
 
+log :: (Show a) => String -> a -> a
+log description value =
+  trace (description <> ": " <> show value) value
+
 formatExports :: Bool -> [[Text]] -> [Text] -> Text
 formatExports originalIsMultiline docs items =
-  let rows = filter (\row -> row /= "") $ (map (formatExportRow items) (removeUnused items docs)) <> undocumented
+  let unformattedRows = removeUndocumented items docs
+      rows = filter (\row -> row /= "") $ (map (formatExportRow items) unformattedRows) <> undocumented
       undocumented = getUndocumented docs items
-      isMultiline = (not (null (removeUnused items docs)) && length items > 1) || originalIsMultiline
+      isMultiline = (not (null (removeUndocumented items docs)) && length items > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -258,16 +264,47 @@ formatExports originalIsMultiline docs items =
               ")"
             ]
 
-removeUnused :: [Text] -> [[Text]] -> [[Text]]
-removeUnused used docs =
-  filter (\usedDocsRow -> not (null usedDocsRow)) $
-    map (\docsRow -> filter (\docsItem -> docsItem `elem` used) docsRow) $
-      docs
+removeUndocumented :: [Text] -> [[Text]] -> [[Text]]
+removeUndocumented used docs =
+  let docsWithExposeAll = addExposeAllToDocs used docs
+      usedDocs = removeUnusedDocs used docsWithExposeAll
+   in removeEmptyLists usedDocs
+
+removeUnusedDocs :: [Text] -> [[Text]] -> [[Text]]
+removeUnusedDocs used docs =
+  map (\docRow -> filter (\doc -> doc `elem` used) docRow) docs
+
+addExposeAllToDocs :: [Text] -> [[Text]] -> [[Text]]
+addExposeAllToDocs used docs =
+  let hasExposeAll = makeHasExposeAll used
+   in map
+        (map (\doc -> if Set.member doc hasExposeAll then doc <> "(..)" else doc))
+        docs
+
+makeHasExposeAll :: [Text] -> Set Text
+makeHasExposeAll names =
+  Set.fromList $
+    map (\name -> Text.dropEnd 4 name) $
+      filter (\name -> Text.takeEnd 4 name == "(..)") names
+
+--   removeEmptyLists $
+--     map (\docsRow -> filter (\docsItem -> docsItem `elem` (map trimExposeAll used)) docsRow) $
+--        used
+
+removeEmptyLists :: [[a]] -> [[a]]
+removeEmptyLists items =
+  filter (\item -> not (null item)) items
+
+trimExposeAll :: Text -> Text
+trimExposeAll text =
+  if takeEnd 4 text == "(..)"
+    then Text.dropEnd 4 text
+    else text
 
 getUndocumented :: [[Text]] -> [Text] -> [Text]
 getUndocumented docs items =
   let docSet = Set.fromList $ mconcat docs
-   in filter (\item -> not (Set.member item docSet)) items
+   in filter (\item -> not (Set.member (trimExposeAll item) docSet)) items
 
 parseMultiLineExports :: [[Text]] -> Parser Text
 parseMultiLineExports docs =
