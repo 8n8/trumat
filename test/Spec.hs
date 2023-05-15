@@ -4399,5 +4399,21 @@ cases =
       \x =\n\
       \    a <| { b | c = d }\n\
       \"
+    ),
+    ( "tuple type in type parameter",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A ( B, C )\n\
+      \x =\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A ( B, C )\n\
+      \x =\n\
+      \    d\n\
+      \"
     )
   ]
