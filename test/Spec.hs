@@ -4355,5 +4355,21 @@ cases =
       \x =\n\
       \    e\n\
       \"
+    ),
+    ( "tuple type in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A, B )\n\
+      \x =\n\
+      \    c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A, B )\n\
+      \x =\n\
+      \    c\n\
+      \"
     )
   ]
