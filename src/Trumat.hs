@@ -564,14 +564,15 @@ parseTypeDeclarationParameters startColumn =
   do
     parameters <-
       many $
-        do
-          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
-          if parameterColumn <= startColumn
-            then fail "invalid indentation"
-            else try $ do
-              _ <- space
-              parameter <- parseType 8
-              return parameter
+        try $
+          do
+            _ <- space
+            parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+            if parameterColumn <= startColumn
+              then fail "invalid indentation"
+              else try $ do
+                parameter <- parseType 8
+                return parameter
     return $ intercalate " " parameters
 
 parseParameters :: Int -> Parser Text
