@@ -622,7 +622,7 @@ parseType indent =
     [ try parseTypeWithParameters,
       try parseEmptyRecord,
       parseRecordType indent,
-      parseFunctionType,
+      try parseFunctionType,
       parseTupleType indent,
       parseVerbatim
     ]
