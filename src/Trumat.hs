@@ -1229,7 +1229,7 @@ parseArgumentExpression indent =
       try $ makeDottable $ parseTuple NeedsBrackets indent,
       parseInfixInBrackets,
       parseList indent,
-      parseRecord indent,
+      try $ parseRecord indent,
       parseRecordUpdate indent,
       parseVerbatim,
       parseTripleStringLiteral,
