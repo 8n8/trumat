@@ -4385,5 +4385,19 @@ cases =
       \x =\n\
       \    a { b | c = d }\n\
       \"
+    ),
+    ( "record update in infix expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| { b | c = d }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| { b | c = d }\n\
+      \"
     )
   ]
