@@ -4333,5 +4333,27 @@ cases =
       \        { a : A\n\
       \        }\n\
       \"
+    ),
+    ( "type declaration followed by function declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B C\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B C\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    e\n\
+      \"
     )
   ]
