@@ -118,7 +118,7 @@ parseDocRow :: Parser Text
 parseDocRow =
   choice
     [ chunk "\n",
-      try $ do
+      do
         _ <- chunk "    "
         code <- takeWhileP Nothing (\ch -> ch /= '\n')
         _ <- char '\n'
@@ -128,12 +128,12 @@ parseDocRow =
         docs <- parseExportDocsRow
         _ <- char '\n'
         return $ "@docs " <> intercalate ", " docs <> "\n",
-      try $ do
+      do
         pieces <-
           some $
             do
               text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
-              _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+              _ <- notFollowedBy $ lookAhead $ chunk "-}"
               choice
                 [ do
                     _ <- char '-'
@@ -149,22 +149,22 @@ parseDocRow =
 parseOtherDocRow :: Parser Text
 parseOtherDocRow =
   choice
-    [ try $ do
+    [ do
         _ <- chunk "\n    "
         code <- takeWhileP Nothing (\ch -> ch /= '\n')
         return $ "\n    " <> code,
-      try $ do
+      do
         text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-')
-        _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+        _ <- notFollowedBy $ lookAhead $ chunk "-}"
         if Text.strip text == ""
           then return ""
           else return $ Text.strip text,
       do
         _ <- space1
         return "",
-      try $ do
+      do
         _ <- char '-'
-        _ <- try $ notFollowedBy $ lookAhead $ char '}'
+        _ <- notFollowedBy $ lookAhead $ char '}'
         return ""
     ]
 
@@ -175,17 +175,17 @@ parseExportDocsRowOnly =
       some $
         choice
           [ chunk "\n",
-            try $ do
+            do
               _ <- chunk "    "
               code <- takeWhileP Nothing (\ch -> ch /= '\n')
               _ <- char '\n'
               return $ "    " <> Text.strip code <> "\n",
-            try $ do
+            do
               pieces <-
                 some $
                   do
                     text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
-                    _ <- try $ notFollowedBy $ lookAhead $ chunk "-}"
+                    _ <- notFollowedBy $ lookAhead $ chunk "-}"
                     _ <- choice [char '-', return ' ']
                     return text
               return $ mconcat pieces
@@ -410,7 +410,7 @@ parseModuleDeclaration =
 typeAliasDeclaration :: Parser Text
 typeAliasDeclaration =
   do
-    documentation <- choice [try $ parseDocumentation, return ""]
+    documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -443,7 +443,7 @@ typeAliasDeclaration =
 customTypeDeclaration :: Parser Text
 customTypeDeclaration =
   do
-    documentation <- choice [try $ parseDocumentation, return ""]
+    documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -482,16 +482,22 @@ parseBranch =
         if startColumn == 1
           then fail "column is too low"
           else do
+            startRow <- fmap (unPos . sourceLine) getSourcePos
             branchName <- parseName
             _ <- space
-            parameters <- parseTypeParameters startColumn
+            parameters <- parseTypeDeclarationParameters startColumn
+            endRow <- fmap (unPos . sourceLine) getSourcePos
+            _ <- space
             _ <- choice [char '|', return ' ']
             return $
               mconcat
                 [ branchName,
                   if parameters == ""
                     then ""
-                    else " ",
+                    else
+                      if endRow > startRow
+                        then "\n        "
+                        else " ",
                   parameters
                 ]
 
@@ -520,9 +526,9 @@ parseDocumentation =
 topLevelBind :: Parser Text
 topLevelBind =
   do
-    documentation <- try $ choice [try $ parseDocumentation, return ""]
+    documentation <- choice [parseDocumentation, return ""]
     _ <- space
-    signature <- choice [try $ parseTypeSignature, return ""]
+    signature <- choice [try parseTypeSignature, return ""]
     _ <- space
     name <- parseName
     _ <- space
@@ -552,6 +558,21 @@ topLevelBind =
             else "\n    ",
           expression
         ]
+
+parseTypeDeclarationParameters :: Int -> Parser Text
+parseTypeDeclarationParameters startColumn =
+  do
+    parameters <-
+      many $
+        do
+          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+          if parameterColumn <= startColumn
+            then fail "invalid indentation"
+            else try $ do
+              _ <- space
+              parameter <- parseType 8
+              return parameter
+    return $ intercalate " " parameters
 
 parseParameters :: Int -> Parser Text
 parseParameters startColumn =
@@ -597,19 +618,20 @@ parseTypeSignature =
 parseType :: Int -> Parser Text
 parseType indent =
   choice
-    [ parseTypeWithParameters,
-      try $ parseEmptyRecord,
+    [ try parseTypeWithParameters,
+      try parseEmptyRecord,
       parseRecordType indent,
-      try parseFunctionType,
-      parseTupleType indent
+      parseFunctionType,
+      parseTupleType indent,
+      parseVerbatim
     ]
 
 parseAliasedType :: Int -> Parser Text
 parseAliasedType indent =
   choice
-    [ try $ parseBareFunctionType 1 indent,
+    [ try $ parseBareFunctionType 2 indent,
       parseTypeWithParameters,
-      try $ parseEmptyRecord,
+      parseEmptyRecord,
       parseRecordType indent,
       parseTupleType indent
     ]
@@ -620,7 +642,7 @@ parseBareFunctionType minColumn indent =
     types <- some $
       do
         column <- fmap (unPos . sourceColumn) getSourcePos
-        if column <= minColumn
+        if column < minColumn
           then fail "too far left"
           else do
             type_ <- parseType indent
@@ -667,34 +689,33 @@ parseTupleTypeItem indent =
     _ <- space
     type_ <- parseType indent
     _ <- space
-    _ <- choice [char ',', lookAhead (try (char ')'))]
+    _ <- choice [char ',', lookAhead (char ')')]
     return type_
 
 parseRecordType :: Int -> Parser Text
 parseRecordType indent =
   do
-    listType <- lookAhead parseListType
-    case listType of
-      SingleLine ->
-        parseSingleLineRecordType indent
-      MultiLine ->
-        parseMultiLineRecordType indent
-
-parseMultiLineRecordType :: Int -> Parser Text
-parseMultiLineRecordType indent =
-  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '{'
     _ <- space
     items <- many (parseRecordTypeItem (indent + 2))
     _ <- char '}'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then return "{}"
       else
         return $
           mconcat
             [ "{ ",
-              intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-              "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+              intercalate
+                ( if endRow > startRow
+                    then "\n" <> (pack $ take indent $ repeat ' ') <> ", "
+                    else ", "
+                )
+                items,
+              if endRow > startRow
+                then "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+                else " }"
             ]
 
 parseRecordTypeItemLininess :: Parser ContainerType
@@ -729,7 +750,6 @@ parseSingleLineRecordType indent =
 parseRecordTypeItem :: Int -> Parser Text
 parseRecordTypeItem indent =
   do
-    recordLininess <- lookAhead parseRecordTypeItemLininess
     name <- parseName
     _ <- space
     _ <- char ':'
@@ -738,17 +758,12 @@ parseRecordTypeItem indent =
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
-    _ <- choice [char ',', lookAhead (try (char '}'))]
+    _ <- choice [char ',', lookAhead (char '}')]
     _ <- space
     return $
       mconcat
         [ name,
-          " :",
-          case recordLininess of
-            SingleLine ->
-              " "
-            MultiLine ->
-              "\n" <> pack (take (indent + 2) (repeat ' ')),
+          " : ",
           right,
           if sameLineComment == ""
             then ""
@@ -763,7 +778,7 @@ parseTypeWithParameters =
   do
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     name <- parseName
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- space
     parameters <- parseTypeParameters startColumn
     if parameters == ""
       then return name
@@ -773,13 +788,13 @@ parseTypeParameters :: Int -> Parser Text
 parseTypeParameters startColumn =
   do
     parameters <-
-      many $
+      some $
         do
           parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parseTypeParameter 0
+              parameter <- parseTypeParameter 8
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -884,11 +899,10 @@ makeDottable p =
 
 notDottable :: Parser Text -> Parser Text
 notDottable p =
-  try $
-    do
-      item <- p
-      _ <- notFollowedBy $ char '.'
-      return item
+  do
+    item <- p
+    _ <- notFollowedBy $ char '.'
+    return item
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
@@ -904,7 +918,7 @@ parseExpression minColumn context indent =
       try parseInfixInBrackets,
       try $ notDottable $ parseParenthesised context indent,
       try $ makeDottable $ parseParenthesised NeedsBrackets indent,
-      try $ parseTuple context indent,
+      parseTuple context indent,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -1027,7 +1041,7 @@ parseRecordItem indent =
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
-    _ <- choice [char ',', lookAhead (try (char '}'))]
+    _ <- choice [char ',', lookAhead (char '}')]
     _ <- space
     return $
       mconcat
@@ -1119,15 +1133,15 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Int -> Parser Text
 parsePattern minColumn indent =
   choice
-    [ try $ parsePatternNoAlias minColumn indent,
+    [ parsePatternNoAlias minColumn indent,
       parseAliasedPattern minColumn indent
     ]
 
 parseTypeParameter :: Int -> Parser Text
 parseTypeParameter indent =
   choice
-    [ try parseFunctionType,
-      try $ parseTuple NeedsBrackets indent,
+    [ parseFunctionType,
+      parseTuple NeedsBrackets indent,
       parseList indent,
       parseRecordType indent,
       try parseFunctionCallPattern,
@@ -1172,7 +1186,7 @@ parseRecordPatternItem =
     _ <- space
     name <- parseName
     _ <- space
-    _ <- choice [char ',', lookAhead (try (char '}'))]
+    _ <- choice [char ',', lookAhead (char '}')]
     return name
 
 parsePatternNoAlias :: Int -> Int -> Parser Text
@@ -1214,7 +1228,7 @@ parseArgumentExpression indent =
       try $ makeDottable $ parseTuple NeedsBrackets indent,
       parseInfixInBrackets,
       parseList indent,
-      try $ parseRecord indent,
+      parseRecord indent,
       parseRecordUpdate indent,
       parseVerbatim,
       parseTripleStringLiteral,
@@ -1308,7 +1322,7 @@ parseInfix =
       if column == 0
         then fail "can't have an infix at column zero"
         else choice $ map chunk infixes
-    _ <- lookAhead $ try $ afterInfixChar
+    _ <- lookAhead afterInfixChar
     return infix_
 
 afterInfixChar :: Parser Char
@@ -1326,11 +1340,11 @@ parseInfixedExpression minColumn indent =
       try $ parseLetIn minColumn indent,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,
-      try parseEmptyRecord,
-      try $ parseRecord indent,
+      parseEmptyRecord,
+      parseRecord indent,
       parseRecordUpdate indent,
       try $ parseFunctionCall minColumn indent,
-      try parseInfixInBrackets,
+      parseInfixInBrackets,
       parseCharLiteral,
       parseVerbatim,
       parseTripleStringLiteral,
@@ -1666,7 +1680,7 @@ parseTuplePatternItem indent =
     expression <- parsePattern 1 indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
-    _ <- choice [char ',', lookAhead (try (char ')'))]
+    _ <- choice [char ',', lookAhead (char ')')]
     return $
       mconcat
         [ if commentBefore == ""
@@ -1688,7 +1702,7 @@ parseMultiListItem indent end =
     expression <- parseExpression 1 DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser (floorToFour indent)
-    _ <- choice [char ',', lookAhead (try (char end))]
+    _ <- choice [char ',', lookAhead (char end)]
     return $
       mconcat
         [ if commentBefore == ""
