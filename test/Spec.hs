@@ -4371,5 +4371,19 @@ cases =
       \x =\n\
       \    c\n\
       \"
+    ),
+    ( "record update in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a { b | c = d }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a { b | c = d }\n\
+      \"
     )
   ]
