@@ -4477,5 +4477,23 @@ cases =
       \    in\n\
       \    d\n\
       \"
+    ),
+    ( "newline after colon in type alias declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a :\n\
+      \        B\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a :\n\
+      \        B\n\
+      \    }\n\
+      \"
     )
   ]
