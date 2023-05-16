@@ -4415,5 +4415,19 @@ cases =
       \x =\n\
       \    d\n\
       \"
+    ),
+    ( "simple and function parameters in custom type branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A B (C D)\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A B (C D)\n\
+      \"
     )
   ]
