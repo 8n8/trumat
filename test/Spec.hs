@@ -4495,5 +4495,21 @@ cases =
       \        B\n\
       \    }\n\
       \"
+    ),
+    ( "multiline string in function argument in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b \"\"\"\n\
+      \\"\"\")\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b \"\"\"\n\
+      \\"\"\")\n\
+      \"
     )
   ]
