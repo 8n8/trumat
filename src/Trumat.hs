@@ -1468,26 +1468,27 @@ parseLetIn minColumn indent =
 
 parseLetBind :: Int -> Int -> Parser Text
 parseLetBind minColumn indent =
-  do
-    signature <- choice [try parseTypeSignature, return ""]
-    left <- parseExpression 1 DoesntNeedBrackets indent
-    _ <- space
-    _ <- char '='
-    _ <- space
-    right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
-    let leftSpaces = pack $ take indent $ repeat ' '
-    let rightSpaces = pack $ take (indent + 4) $ repeat ' '
-    return $
-      mconcat
-        [ if signature == ""
-            then ""
-            else leftSpaces <> signature <> "\n",
-          leftSpaces,
-          left,
-          " =\n",
-          rightSpaces,
-          right
-        ]
+  dbg "parseLetBind" $
+    do
+      signature <- choice [try parseTypeSignature, return ""]
+      left <- parsePattern 1 indent
+      _ <- space
+      _ <- char '='
+      _ <- space
+      right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+      let leftSpaces = pack $ take indent $ repeat ' '
+      let rightSpaces = pack $ take (indent + 4) $ repeat ' '
+      return $
+        mconcat
+          [ if signature == ""
+              then ""
+              else leftSpaces <> signature <> "\n",
+            leftSpaces,
+            left,
+            " =\n",
+            rightSpaces,
+            right
+          ]
 
 parseIfThenElse :: Int -> Int -> Parser Text
 parseIfThenElse minColumn indent =
