@@ -4429,5 +4429,31 @@ cases =
       \type X\n\
       \    = A B (C D)\n\
       \"
+    ),
+    ( "if else expression in parentheses",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            d\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            d\n\
+      \        )\n\
+      \"
     )
   ]
