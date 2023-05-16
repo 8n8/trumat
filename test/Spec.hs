@@ -4456,7 +4456,7 @@ cases =
       \        )\n\
       \"
     ),
-    ( "parenthesised destructing in let in binding",
+    ( "parenthesised destructuring in let in binding",
       "module X exposing (x)\n\
       \\n\
       \\n\
