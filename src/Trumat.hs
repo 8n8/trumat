@@ -1534,10 +1534,10 @@ parseIfThenElse minColumn indent =
                 if Text.elem '\n' if_
                   then "\n" <> pack (take indent (repeat ' '))
                   else " ",
-                "then\n" <> pack (take (indent + 4) (repeat ' ')),
+                "then\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
                 then_,
                 "\n\n" <> pack (take indent (repeat ' ')),
-                "else\n" <> pack (take (indent + 4) (repeat ' ')),
+                "else\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
                 commentAfterElse,
                 if commentAfterElse == ""
                   then ""
@@ -1810,7 +1810,7 @@ parseParenthesised context indent =
     _ <- char '('
     _ <- space
     startLine <- fmap (unPos . sourceLine) getSourcePos
-    item <- parseExpression 1 DoesntNeedBrackets indent
+    item <- parseExpression 1 DoesntNeedBrackets (indent + 1)
     endLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     _ <- char ')'
