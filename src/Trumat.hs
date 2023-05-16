@@ -751,11 +751,13 @@ parseSingleLineRecordType indent =
 parseRecordTypeItem :: Int -> Parser Text
 parseRecordTypeItem indent =
   do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     name <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
     right <- parseType indent
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- space
@@ -764,7 +766,10 @@ parseRecordTypeItem indent =
     return $
       mconcat
         [ name,
-          " : ",
+          " :",
+          if endRow > startRow
+            then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
+            else " ",
           right,
           if sameLineComment == ""
             then ""
