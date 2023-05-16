@@ -4455,5 +4455,27 @@ cases =
       \            d\n\
       \        )\n\
       \"
+    ),
+    ( "parenthesised destructing in let in binding",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        (A b) =\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        (A b) =\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \"
     )
   ]
