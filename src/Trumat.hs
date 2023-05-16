@@ -1141,7 +1141,7 @@ parsePattern minColumn indent =
 parseTypeParameter :: Int -> Parser Text
 parseTypeParameter indent =
   choice
-    [ parseFunctionType,
+    [ try parseFunctionType,
       parseTuple NeedsBrackets indent,
       parseList indent,
       parseRecordType indent,
