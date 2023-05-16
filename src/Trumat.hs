@@ -790,13 +790,13 @@ parseTypeParameters startColumn =
   do
     parameters <-
       some $
-        do
+        try $ do
+          _ <- space
           parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
               parameter <- parseTypeParameter 8
-              _ <- space
               return parameter
     return $ intercalate " " parameters
 
