@@ -44,6 +44,7 @@ import Prelude
     fail,
     filter,
     fmap,
+    fst,
     head,
     length,
     map,
@@ -55,6 +56,7 @@ import Prelude
     return,
     reverse,
     show,
+    snd,
     take,
     zip,
     ($),
@@ -1295,11 +1297,16 @@ parseFunctionCall minColumn indent =
 
 addArgSpaces :: Int -> Int -> Int -> (Text, Int) -> Text
 addArgSpaces startRow endRow indent (arg, row) =
-  ( if endRow == startRow || row == startRow || Text.take 3 arg == "\"\"\""
+  ( if endRow == startRow || row == startRow || numNewlinesInMultiline arg == endRow - startRow
       then " "
       else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
   )
     <> arg
+
+numNewlinesInMultiline :: Text -> Int
+numNewlinesInMultiline arg =
+  let multiline = snd $ Text.breakOn "\"\"\"" (fst $ Text.breakOnEnd "\"\"\"" arg)
+   in Text.count "\n" multiline
 
 floorToFour :: Int -> Int
 floorToFour i =
