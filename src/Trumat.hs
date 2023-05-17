@@ -674,7 +674,13 @@ parseTupleType indent =
   do
     _ <- char '('
     _ <- parseSpaces
-    items <- many (parseTupleTypeItem indent)
+    items <- many $
+      do
+        _ <- space
+        choice
+          [ try $ parseTupleTypeItem indent,
+            parseBareFunctionType 2 indent
+          ]
     _ <- char ')'
     if null items
       then return "()"
