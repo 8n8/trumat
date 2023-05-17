@@ -880,7 +880,7 @@ parser =
 parseSectionComment :: Parser Text
 parseSectionComment =
   do
-    comment <- parseComment
+    comment <- parseLineComment
     _ <- space
     return $ "\n" <> comment
 
@@ -1284,24 +1284,26 @@ parseFunctionCall minColumn indent =
         items <- some $
           try $
             do
-              _ <- space1
+              comment <- commentSpaceParser (indent + 4)
               column <- fmap (unPos . sourceColumn) getSourcePos
               if column <= minColumn
                 then fail "argument is too far left"
                 else do
                   arg <- parseArgumentExpression (floorToFour (indent + 4))
                   argEndRow <- fmap (unPos . sourceLine) getSourcePos
-                  return (arg, argEndRow)
+                  return (comment, arg, argEndRow)
         endRow <- fmap (unPos . sourceLine) getSourcePos
         return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
 
-addArgSpaces :: Int -> Int -> Int -> (Text, Int) -> Text
-addArgSpaces startRow endRow indent (arg, row) =
-  ( if endRow == startRow || row == startRow || numNewlinesInMultiline arg == endRow - startRow
-      then " "
-      else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
-  )
-    <> arg
+addArgSpaces :: Int -> Int -> Int -> (Text, Text, Int) -> Text
+addArgSpaces startRow endRow indent (comment, arg, row) =
+  let indentation =
+        if endRow == startRow || row == startRow || numNewlinesInMultiline arg == endRow - startRow
+          then " "
+          else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
+   in if comment == ""
+        then indentation <> arg
+        else indentation <> comment <> indentation <> arg
 
 numNewlinesInMultiline :: Text -> Int
 numNewlinesInMultiline arg =
@@ -1653,8 +1655,8 @@ parseVerbatim =
       then fail $ "expecting a verbatim, but got: " <> unpack word
       else return word
 
-parseComment :: Parser Text
-parseComment =
+parseLineComment :: Parser Text
+parseLineComment =
   do
     _ <- chunk "--"
     comment <- takeWhileP Nothing (\ch -> ch /= '\n')
@@ -1667,7 +1669,8 @@ commentSpaceParser indent =
     comments <-
       many $
         choice
-          [ parseComment,
+          [ parseLineComment,
+            parseBlockComment,
             do
               _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
               return ""
@@ -1676,6 +1679,22 @@ commentSpaceParser indent =
       intercalate
         ("\n" <> pack (take indent (repeat ' ')))
         (filter (\s -> s /= "") comments)
+
+parseBlockComment :: Parser Text
+parseBlockComment =
+  do
+    _ <- chunk "{-"
+    contents <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '-'),
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy $ lookAhead $ char '}'
+              return "-"
+          ]
+    _ <- chunk "-}"
+    return $ "{-" <> mconcat contents <> "-}"
 
 parseSameLineComment :: Parser Text
 parseSameLineComment =
