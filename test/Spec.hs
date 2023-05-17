@@ -4511,5 +4511,19 @@ cases =
       \    a (b \"\"\"\n\
       \\"\"\")\n\
       \"
+    ),
+    ( "point left function composition operator <<",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a << b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a << b\n\
+      \"
     )
   ]
