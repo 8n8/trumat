@@ -4539,5 +4539,21 @@ cases =
       \x =\n\
       \    a {- b -} c\n\
       \"
+    ),
+    ( "function type in tuple in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A, B -> C )\n\
+      \x =\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A, B -> C )\n\
+      \x =\n\
+      \    d\n\
+      \"
     )
   ]
