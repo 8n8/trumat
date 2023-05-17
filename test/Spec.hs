@@ -4525,5 +4525,19 @@ cases =
       \x =\n\
       \    a << b\n\
       \"
+    ),
+    ( "block comment between function and argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a {- b -} c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a {- b -} c\n\
+      \"
     )
   ]
