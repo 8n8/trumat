@@ -825,6 +825,7 @@ parseImport =
   do
     _ <- chunk "import"
     _ <- space1
+    commentBetween <- commentSpaceParser 1
     name <- parseName
     _ <- space
     as_ <-
@@ -847,6 +848,8 @@ parseImport =
     return $
       mconcat
         [ "import ",
+          commentBetween,
+          if commentBetween == "" then "" else " ",
           name,
           if as_ == ""
             then ""
