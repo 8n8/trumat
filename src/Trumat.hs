@@ -71,6 +71,7 @@ import Prelude
     (<>),
     (==),
     (>),
+    (>>),
     (||),
   )
 
@@ -593,7 +594,7 @@ parseParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parsePattern startColumn 0
+              parameter <- parsePattern NeedsBrackets startColumn 0
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -1150,11 +1151,21 @@ parseSimpleStringLiteralChar =
       chunk "\\\\"
     ]
 
-parsePattern :: Int -> Int -> Parser Text
-parsePattern minColumn indent =
+parsePattern :: Context -> Int -> Int -> Parser Text
+parsePattern context minColumn indent =
   choice
-    [ parsePatternNoAlias minColumn indent,
-      parseAliasedPattern minColumn indent
+    [ try $ do
+        pattern <- parsePatternNoAlias minColumn indent
+        _ <-
+          notFollowedBy $
+            lookAhead $
+              do
+                _ <- space1
+                _ <- chunk "as"
+                _ <- space1
+                return ()
+        return pattern,
+      try $ parseAliasedPattern context minColumn indent
     ]
 
 parseTypeParameter :: Int -> Parser Text
@@ -1169,24 +1180,32 @@ parseTypeParameter indent =
       parseSimpleStringLiteral
     ]
 
-parseAliasedPattern :: Int -> Int -> Parser Text
-parseAliasedPattern minColumn indent =
+parseAliasedPattern :: Context -> Int -> Int -> Parser Text
+parseAliasedPattern context minColumn indent =
   do
-    _ <- char '('
-    pattern <- parsePatternNoAlias minColumn indent
+    _ <- choice [char '(' >> return (), return ()]
+    pattern <- parsePatternBeforeAs minColumn indent
     _ <- space
     _ <- chunk "as"
     _ <- space
     name <- parseName
     _ <- space
-    _ <- char ')'
+    _ <- choice [char ')' >> return (), return ()]
     return $
       mconcat
-        [ "(",
+        [ case context of
+            NeedsBrackets ->
+              "("
+            DoesntNeedBrackets ->
+              "",
           pattern,
           " as ",
           name,
-          ")"
+          case context of
+            NeedsBrackets ->
+              ")"
+            DoesntNeedBrackets ->
+              ""
         ]
 
 parseRecordPattern :: Parser Text
@@ -1209,6 +1228,14 @@ parseRecordPatternItem =
     _ <- choice [char ',', lookAhead (char '}')]
     return name
 
+parsePatternBeforeAs :: Int -> Int -> Parser Text
+parsePatternBeforeAs minColumn indent =
+  choice
+    [ try $ parseTuplePattern NeedsBrackets indent,
+      parseList indent,
+      parseRecordPattern
+    ]
+
 parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
   choice
@@ -1225,7 +1252,7 @@ parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
-      parseAliasedPattern minColumn indent,
+      parseAliasedPattern NeedsBrackets minColumn indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim
@@ -1497,7 +1524,7 @@ parseLetBind minColumn indent =
   do
     comment <- commentSpaceParser indent
     signature <- choice [try parseTypeSignature, return ""]
-    left <- parsePattern 1 indent
+    left <- parsePattern DoesntNeedBrackets 1 indent
     _ <- space
     _ <- char '='
     _ <- space
@@ -1609,7 +1636,7 @@ parseCaseOfBranch minColumn indent =
     if column /= minColumn
       then fail "invalid column"
       else do
-        left <- parsePattern (minColumn - 4) indent
+        left <- parsePattern DoesntNeedBrackets (minColumn - 4) indent
         _ <- space
         _ <- chunk "->"
         _ <- space
@@ -1725,7 +1752,7 @@ parseTuplePatternItem :: Int -> Parser Text
 parseTuplePatternItem indent =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parsePattern 1 indent
+    expression <- parsePattern DoesntNeedBrackets 1 indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- choice [char ',', lookAhead (char ')')]
