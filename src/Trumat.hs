@@ -489,7 +489,7 @@ parseBranch =
             _ <- space
             parameters <- parseTypeDeclarationParameters startColumn
             endRow <- fmap (unPos . sourceLine) getSourcePos
-            _ <- space
+            comment <- commentSpaceParser 6
             _ <- choice [char '|', return ' ']
             return $
               mconcat
@@ -500,7 +500,8 @@ parseBranch =
                       if endRow > startRow
                         then "\n        "
                         else " ",
-                  parameters
+                  parameters,
+                  if comment == "" then "" else "\n      " <> comment
                 ]
 
 parseDocumentation :: Parser Text
