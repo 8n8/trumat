@@ -46,7 +46,6 @@ import Prelude
     fmap,
     fst,
     head,
-    (>>),
     length,
     map,
     max,
@@ -594,7 +593,7 @@ parseParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parsePattern NeedsBrackets startColumn 0
+              parameter <- parsePattern startColumn 0
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -1151,6 +1150,13 @@ parseSimpleStringLiteralChar =
       chunk "\\\\"
     ]
 
+parsePattern :: Int -> Int -> Parser Text
+parsePattern minColumn indent =
+  choice
+    [ parsePatternNoAlias minColumn indent,
+      parseAliasedPattern minColumn indent
+    ]
+
 parseTypeParameter :: Int -> Parser Text
 parseTypeParameter indent =
   choice
@@ -1163,43 +1169,25 @@ parseTypeParameter indent =
       parseSimpleStringLiteral
     ]
 
-parsePattern :: Context -> Int -> Int -> Parser Text
-parsePattern context minColumn indent =
- dbg "parsePattern" $
+parseAliasedPattern :: Int -> Int -> Parser Text
+parseAliasedPattern minColumn indent =
   do
-    _ <- choice [ char '(' >> return (), return ()]
-    _ <- space
+    _ <- char '('
     pattern <- parsePatternNoAlias minColumn indent
-    alias_ <-
-            choice
-              [ try $ do
-                 _ <- space
-                 _ <- chunk "as"
-                 _ <- space
-                 name <- parseName
-                 return $
-                   mconcat
-                     [ pattern,
-                       " as ",
-                       name
-                     ]
-              , return ""
-              ]
+    _ <- space
+    _ <- chunk "as"
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char ')'
     return $
       mconcat
-      [ case context of
-          NeedsBrackets ->
-            "("
-          DoesntNeedBrackets ->
-            ""
-      , pattern
-      , alias_
-      , case context of
-          NeedsBrackets ->
-            ")"
-          DoesntNeedBrackets ->
-            ""
-      ]
+        [ "(",
+          pattern,
+          " as ",
+          name,
+          ")"
+        ]
 
 parseRecordPattern :: Parser Text
 parseRecordPattern =
@@ -1237,7 +1225,7 @@ parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
-      parsePattern DoesntNeedBrackets minColumn indent,
+      parseAliasedPattern minColumn indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim
@@ -1509,7 +1497,7 @@ parseLetBind minColumn indent =
   do
     comment <- commentSpaceParser indent
     signature <- choice [try parseTypeSignature, return ""]
-    left <- parsePattern DoesntNeedBrackets 1 indent
+    left <- parsePattern 1 indent
     _ <- space
     _ <- char '='
     _ <- space
@@ -1621,7 +1609,7 @@ parseCaseOfBranch minColumn indent =
     if column /= minColumn
       then fail "invalid column"
       else do
-        left <- parsePattern DoesntNeedBrackets (minColumn - 4) indent
+        left <- parsePattern (minColumn - 4) indent
         _ <- space
         _ <- chunk "->"
         _ <- space
@@ -1737,7 +1725,7 @@ parseTuplePatternItem :: Int -> Parser Text
 parseTuplePatternItem indent =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parsePattern DoesntNeedBrackets 1 indent
+    expression <- parsePattern 1 indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
     _ <- choice [char ',', lookAhead (char ')')]
