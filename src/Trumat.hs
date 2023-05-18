@@ -1365,7 +1365,7 @@ parseFunctionCallPattern =
           endColumn <- fmap (unPos . sourceColumn) getSourcePos
           if endColumn < startColumn
             then fail "column too low"
-            else parsePatternNoAlias 1 1
+            else parsePattern NeedsBrackets 1 1
     return $ intercalate " " (f : items)
 
 parseInfix :: Parser Text
