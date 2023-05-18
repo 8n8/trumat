@@ -485,15 +485,20 @@ parseBranch =
           then fail "column is too low"
           else do
             startRow <- fmap (unPos . sourceLine) getSourcePos
+            commentBefore <- commentSpaceParser 6
             branchName <- parseName
             _ <- space
             parameters <- parseTypeDeclarationParameters startColumn
             endRow <- fmap (unPos . sourceLine) getSourcePos
-            comment <- commentSpaceParser 6
+            commentAfter <- commentSpaceParser 6
             _ <- choice [char '|', return ' ']
             return $
               mconcat
-                [ branchName,
+                [ commentBefore,
+                  if commentBefore == ""
+                    then ""
+                    else "\n      ",
+                  branchName,
                   if parameters == ""
                     then ""
                     else
@@ -501,7 +506,7 @@ parseBranch =
                         then "\n        "
                         else " ",
                   parameters,
-                  if comment == "" then "" else "\n      " <> comment
+                  if commentAfter == "" then "" else "\n      " <> commentAfter
                 ]
 
 parseDocumentation :: Parser Text
