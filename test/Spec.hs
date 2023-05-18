@@ -4673,5 +4673,23 @@ cases =
       \    in\n\
       \    d\n\
       \"
+    ),
+    ( "block comment between import keyword and name",
+      "module X exposing (x)\n\
+      \\n\
+      \import {- a -} B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import {- a -} B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
