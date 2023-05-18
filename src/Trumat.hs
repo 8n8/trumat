@@ -1153,8 +1153,17 @@ parseSimpleStringLiteralChar =
 parsePattern :: Int -> Int -> Parser Text
 parsePattern minColumn indent =
   choice
-    [ parsePatternNoAlias minColumn indent,
-      parseAliasedPattern minColumn indent
+    [ try $ do
+        pattern <- parsePatternNoAlias minColumn indent
+        _ <-
+           notFollowedBy $ lookAhead $
+            do
+            _ <- space1
+            _ <- chunk "as"
+            _ <- choice [ char '\n', char ' ' ]
+            return ()
+        return pattern
+    , parseAliasedPattern minColumn indent
     ]
 
 parseTypeParameter :: Int -> Parser Text
@@ -1172,14 +1181,11 @@ parseTypeParameter indent =
 parseAliasedPattern :: Int -> Int -> Parser Text
 parseAliasedPattern minColumn indent =
   do
-    _ <- char '('
     pattern <- parsePatternNoAlias minColumn indent
     _ <- space
     _ <- chunk "as"
     _ <- space
     name <- parseName
-    _ <- space
-    _ <- char ')'
     return $
       mconcat
         [ "(",
