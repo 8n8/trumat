@@ -1152,6 +1152,7 @@ parseSimpleStringLiteralChar =
 
 parsePattern :: Int -> Int -> Parser Text
 parsePattern minColumn indent =
+ dbg "parsePattern" $
   choice
     [ parsePatternNoAlias minColumn indent,
       parseAliasedPattern minColumn indent
@@ -1172,14 +1173,11 @@ parseTypeParameter indent =
 parseAliasedPattern :: Int -> Int -> Parser Text
 parseAliasedPattern minColumn indent =
   do
-    _ <- char '('
-    pattern <- parsePatternNoAlias minColumn indent
+    pattern <- parsePatternBeforeAs minColumn indent
     _ <- space
     _ <- chunk "as"
     _ <- space
     name <- parseName
-    _ <- space
-    _ <- char ')'
     return $
       mconcat
         [ "(",
@@ -1209,16 +1207,28 @@ parseRecordPatternItem =
     _ <- choice [char ',', lookAhead (char '}')]
     return name
 
+notFollowedByAs :: Parser Text -> Parser Text
+notFollowedByAs p =
+  do
+    item <- p
+    _ <- notFollowedBy $ lookAhead $
+        do
+        _ <- space1
+        _ <- chunk "as"
+        _ <- space1
+        return ()
+    return item
+
 parsePatternNoAlias :: Int -> Int -> Parser Text
 parsePatternNoAlias minColumn indent =
   choice
-    [ try $ parseConsPattern minColumn indent,
-      try $ parseTuplePattern NeedsBrackets indent,
-      parseList indent,
-      parseRecordPattern,
-      try parseFunctionCallPattern,
-      parseVerbatim,
-      parseSimpleStringLiteral
+    [ try $ notFollowedByAs $ parseConsPattern minColumn indent,
+      try $ notFollowedByAs $ parseTuplePattern NeedsBrackets indent,
+      notFollowedByAs $ parseList indent,
+      notFollowedByAs parseRecordPattern,
+      try $ notFollowedByAs parseFunctionCallPattern,
+      notFollowedByAs parseVerbatim,
+      notFollowedByAs parseSimpleStringLiteral
     ]
 
 parsePatternInsideConsPattern :: Int -> Int -> Parser Text
