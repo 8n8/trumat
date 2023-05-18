@@ -1527,7 +1527,7 @@ parseLetBind minColumn indent =
     left <- parsePattern DoesntNeedBrackets 1 indent
     _ <- space
     _ <- char '='
-    _ <- space
+    commentBeforeRight <- commentSpaceParser indent
     right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
@@ -1542,6 +1542,9 @@ parseLetBind minColumn indent =
           leftSpaces,
           left,
           " =\n",
+          if commentBeforeRight == "" then "" else rightSpaces,
+          commentBeforeRight,
+          if commentBeforeRight == "" then "" else "\n",
           rightSpaces,
           right
         ]
