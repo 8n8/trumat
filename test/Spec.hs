@@ -4613,5 +4613,23 @@ cases =
       \    = -- a\n\
       \      B\n\
       \"
+    ),
+    ( "record destructuring pattern in alias pattern in case of",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        { b } as c ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        { b } as c ->\n\
+      \            d\n\
+      \"
     )
   ]
