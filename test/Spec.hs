@@ -4573,5 +4573,29 @@ cases =
       \      -- b\n\
       \    | C\n\
       \"
+    ),
+    ( "line comment before let in binding",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        -- a\n\
+      \        b =\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        -- a\n\
+      \        b =\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \"
     )
   ]
