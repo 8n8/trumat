@@ -4649,5 +4649,29 @@ cases =
       \        B ({ c } as d) ->\n\
       \            e\n\
       \"
+    ),
+    ( "block comment above right hand side of let in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            {- b -}\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            {- b -}\n\
+      \            c\n\
+      \    in\n\
+      \    d\n\
+      \"
     )
   ]
