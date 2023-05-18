@@ -4597,5 +4597,21 @@ cases =
       \    in\n\
       \    d\n\
       \"
+    ),
+    ( "line comment before custom type branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = -- a\n\
+      \      B\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = -- a\n\
+      \      B\n\
+      \"
     )
   ]
