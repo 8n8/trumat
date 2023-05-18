@@ -1490,6 +1490,7 @@ parseLetIn minColumn indent =
 parseLetBind :: Int -> Int -> Parser Text
 parseLetBind minColumn indent =
   do
+    comment <- commentSpaceParser indent
     signature <- choice [try parseTypeSignature, return ""]
     left <- parsePattern 1 indent
     _ <- space
@@ -1500,7 +1501,10 @@ parseLetBind minColumn indent =
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
       mconcat
-        [ if signature == ""
+        [ if comment == ""
+            then ""
+            else leftSpaces <> comment <> "\n",
+          if signature == ""
             then ""
             else leftSpaces <> signature <> "\n",
           leftSpaces,
