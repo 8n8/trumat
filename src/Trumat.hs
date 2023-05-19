@@ -424,7 +424,7 @@ typeAliasDeclaration =
     parameters <- parseParameters 0
     _ <- space
     _ <- char '='
-    _ <- space
+    comment <- commentSpaceParser 4
     type_ <- parseAliasedType 4
     _ <- space
     return $
@@ -440,6 +440,8 @@ typeAliasDeclaration =
             else " ",
           parameters,
           " =\n    ",
+          comment,
+          if comment == "" then "" else "\n    ",
           type_
         ]
 
