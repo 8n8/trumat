@@ -734,7 +734,7 @@ parseExtensibleRecordType indent =
                 else " | ",
               intercalate
                 ( if endRow > startRow
-                    then "\n" <> (pack $ take indent $ repeat ' ') <> ", "
+                    then "\n" <> (pack $ take (indent + 4) $ repeat ' ') <> ", "
                     else ", "
                 )
                 items,
