@@ -1600,7 +1600,7 @@ parseIfThenElse minColumn indent =
     if_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     _ <- space
     _ <- chunk "then"
-    _ <- space1
+    commentBeforeThen <- commentSpaceParser (indent + 4)
     then_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     _ <- space
     _ <- chunk "else"
@@ -1617,6 +1617,10 @@ parseIfThenElse minColumn indent =
                 then "\n" <> pack (take indent (repeat ' '))
                 else " ",
               "then\n" <> pack (take (indent + 4) (repeat ' ')),
+              commentBeforeThen,
+              if commentBeforeThen == ""
+                then ""
+                else "\n" <> pack (take (indent + 4) (repeat ' ')),
               then_,
               "\n\n" <> pack (take indent (repeat ' ')),
               "else"
@@ -1638,6 +1642,8 @@ parseIfThenElse minColumn indent =
                   then "\n" <> pack (take indent (repeat ' '))
                   else " ",
                 "then\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
+                commentBeforeThen,
+                if commentBeforeThen == "" then "" else "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
                 then_,
                 "\n\n" <> pack (take indent (repeat ' ')),
                 "else\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
