@@ -4763,5 +4763,29 @@ cases =
       \      b : C\n\
       \    }\n\
       \"
+    ),
+    ( "comment in then part of if then else statement",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        -- b\n\
+      \        c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        -- b\n\
+      \        c\n\
+      \\n\
+      \    else\n\
+      \        d\n\
+      \"
     )
   ]
