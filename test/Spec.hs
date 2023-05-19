@@ -4709,5 +4709,25 @@ cases =
       \        | b : C\n\
       \    }\n\
       \"
+    ),
+    ( "multi item extensible record type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a\n\
+      \        | b : C\n\
+      \        , d : E\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a\n\
+      \        | b : C\n\
+      \        , d : E\n\
+      \    }\n\
+      \"
     )
   ]
