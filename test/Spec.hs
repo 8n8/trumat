@@ -4815,5 +4815,25 @@ cases =
       \x =\n\
       \    a / b\n\
       \"
+    ),
+    ( "line comment above case of branch",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        -- b\n\
+      \        c ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        -- b\n\
+      \        c ->\n\
+      \            d\n\
+      \"
     )
   ]
