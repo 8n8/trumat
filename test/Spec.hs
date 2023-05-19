@@ -4745,5 +4745,23 @@ cases =
       \    -- a\n\
       \    { b : C }\n\
       \"
+    ),
+    ( "line comment before record type field in type alias",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { -- a\n\
+      \      b : C\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { -- a\n\
+      \      b : C\n\
+      \    }\n\
+      \"
     )
   ]
