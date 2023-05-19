@@ -4729,5 +4729,21 @@ cases =
       \        , d : E\n\
       \    }\n\
       \"
+    ),
+    ( "line comment and record type in type alias",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    -- a\n\
+      \    { b : C }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    -- a\n\
+      \    { b : C }\n\
+      \"
     )
   ]
