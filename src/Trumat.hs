@@ -630,7 +630,8 @@ parseType indent =
   choice
     [ try parseTypeWithParameters,
       try parseEmptyRecord,
-      parseRecordType indent,
+      try $ parseRecordType indent,
+      parseExtensibleRecordType indent,
       try parseFunctionType,
       parseTupleType indent,
       parseVerbatim
@@ -707,6 +708,40 @@ parseTupleTypeItem indent =
     _ <- space
     _ <- choice [char ',', lookAhead (char ')')]
     return type_
+
+parseExtensibleRecordType :: Int -> Parser Text
+parseExtensibleRecordType indent =
+  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '{'
+    _ <- space
+    name <- parseName
+    _ <- space
+    _ <- char '|'
+    _ <- space
+    items <- many (parseRecordTypeItem (indent + 2))
+    _ <- char '}'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    if null items
+      then return "{}"
+      else
+        return $
+          mconcat
+            [ "{ ",
+              name,
+              if endRow > startRow
+                then "\n" <> (pack $ take (indent + 4) $ repeat ' ') <> "| "
+                else " | ",
+              intercalate
+                ( if endRow > startRow
+                    then "\n" <> (pack $ take indent $ repeat ' ') <> ", "
+                    else ", "
+                )
+                items,
+              if endRow > startRow
+                then "\n" <> (pack $ take indent $ repeat ' ') <> "}"
+                else " }"
+            ]
 
 parseRecordType :: Int -> Parser Text
 parseRecordType indent =
