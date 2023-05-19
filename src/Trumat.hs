@@ -1688,6 +1688,7 @@ parseCaseOfBranch minColumn indent =
     if column /= minColumn
       then fail "invalid column"
       else do
+        commentAbove <- commentSpaceParser indent
         left <- parsePattern DoesntNeedBrackets (minColumn - 4) indent
         _ <- space
         _ <- chunk "->"
@@ -1698,6 +1699,8 @@ parseCaseOfBranch minColumn indent =
         return $
           mconcat
             [ pack $ take indent $ repeat ' ',
+              commentAbove,
+              if commentAbove == "" then "" else "\n" <> pack (take indent (repeat ' ')),
               left,
               " ->\n",
               if comment == ""
