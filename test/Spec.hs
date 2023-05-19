@@ -4691,5 +4691,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "extensible record type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a\n\
+      \        | b : C\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a\n\
+      \        | b : C\n\
+      \    }\n\
+      \"
     )
   ]
