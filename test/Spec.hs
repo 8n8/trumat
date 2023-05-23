@@ -4835,5 +4835,19 @@ cases =
       \        c ->\n\
       \            d\n\
       \"
+    ),
+    ( "negative int",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -1\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -1\n\
+      \"
     )
   ]
