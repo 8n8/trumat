@@ -4849,5 +4849,19 @@ cases =
       \x =\n\
       \    -1\n\
       \"
+    ),
+    ( "less than or equal to operator <=",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <= b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <= b\n\
+      \"
     )
   ]
