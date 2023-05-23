@@ -1742,16 +1742,27 @@ parseName =
       then fail $ "expecting a name tail but got: " <> unpack word
       else return word
 
+parseNegative :: Parser Text
+parseNegative =
+  do
+    _ <- char '-'
+    firstDigit <- choice $ map char ("0123456789" :: String)
+    remainder <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789xabcdef" :: String))
+    return ("-" <> Text.singleton firstDigit <> remainder)
+
 parseVerbatim :: Parser Text
 parseVerbatim =
-  do
-    word <-
-      takeWhile1P
-        (Just "verbatim character")
-        (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._" :: String))
-    if Set.member word keywords
-      then fail $ "expecting a verbatim, but got: " <> unpack word
-      else return word
+  choice
+    [ try parseNegative,
+      do
+        word <-
+          takeWhile1P
+            (Just "verbatim character")
+            (\ch -> ch `elem` ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._" :: String))
+        if Set.member word keywords
+          then fail $ "expecting a verbatim, but got: " <> unpack word
+          else return word
+    ]
 
 parseLineComment :: Parser Text
 parseLineComment =
