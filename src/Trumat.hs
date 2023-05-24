@@ -1469,15 +1469,15 @@ parseInfixed minColumn indent =
 parseInfixedItems ::
   Int ->
   Int ->
-  [(Int, Text, Text, Text)] ->
-  Parser [(Int, Text, Text, Text)]
+  [(Int, Text, Text, Text, Text)] ->
+  Parser [(Int, Text, Text, Text, Text)]
 parseInfixedItems minColumn indent accum =
   choice
     [ try $
         do
-          comment <- commentSpaceParser (indent + 4)
+          commentBefore <- commentSpaceParser (indent + 4)
           infix_ <- parseInfix
-          _ <- space
+          commentAfter <- commentSpaceParser (indent + 4)
           expression <- parseInfixedExpression minColumn (indent + 4)
           parseInfixedItems
             minColumn
@@ -1485,12 +1485,12 @@ parseInfixedItems minColumn indent accum =
                 then indent + 4
                 else indent
             )
-            ((indent + 4, comment, infix_, expression) : accum),
+            ((indent + 4, commentBefore, infix_, commentAfter, expression) : accum),
       return $ reverse accum
     ]
 
-addInfixWhitespace :: Bool -> Bool -> Bool -> Bool -> (Int, Text, Text, Text) -> Text
-addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, comment, infix_, expression) =
+addInfixWhitespace :: Bool -> Bool -> Bool -> Bool -> (Int, Text, Text, Text, Text) -> Text
+addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
@@ -1517,8 +1517,8 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                 else
                   mconcat
                     [ "\n" <> pack (take newIndent (repeat ' ')),
-                      comment,
-                      if comment == ""
+                      commentBefore,
+                      if commentBefore == ""
                         then ""
                         else "\n" <> pack (take newIndent (repeat ' ')),
                       infix_,
@@ -1528,7 +1528,16 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
         else
           if infix_ == "."
             then infix_ <> expression
-            else " " <> infix_ <> " " <> expression
+            else
+              mconcat
+                [ " ",
+                  infix_,
+                  " ",
+                  if commentAfter == ""
+                    then ""
+                    else commentAfter <> " ",
+                  expression
+                ]
 
 space1 :: Parser ()
 space1 =
