@@ -5043,5 +5043,29 @@ cases =
       \x =\n\
       \    { a = {- b -} c }\n\
       \"
+    ),
+    ( "if then else statement on the right of left pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        if b then\n\
+      \            c\n\
+      \\n\
+      \        else\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        if b then\n\
+      \            c\n\
+      \\n\
+      \        else\n\
+      \            d\n\
+      \"
     )
   ]
