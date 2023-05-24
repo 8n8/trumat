@@ -972,7 +972,7 @@ parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ try $ parseCaseOf indent,
-      parseList indent,
+      try $ notFollowedByInfix $ parseList indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
       try $ notFollowedByInfix $ parseRecord indent,
