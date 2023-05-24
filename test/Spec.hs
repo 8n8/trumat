@@ -4937,5 +4937,29 @@ cases =
       \        {- b -}\n\
       \        c\n\
       \"
+    ),
+    ( "block comment after in in let in statement",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \    in\n\
+      \    {- c -}\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \    in\n\
+      \    {- c -}\n\
+      \    d\n\
+      \"
     )
   ]
