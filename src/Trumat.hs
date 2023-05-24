@@ -998,7 +998,7 @@ parseAnonymousFunction minColumn indent =
     pattern <- parseParameters minColumn
     _ <- space
     _ <- chunk "->"
-    _ <- space
+    comment <- commentSpaceParser (floorToFour (indent + 4))
     body <- parseExpression minColumn DoesntNeedBrackets (floorToFour (indent + 4))
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
@@ -1009,6 +1009,10 @@ parseAnonymousFunction minColumn indent =
           if endRow > startRow
             then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
             else " ",
+          comment,
+          if comment == ""
+            then ""
+            else "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
           body
         ]
 
