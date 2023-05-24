@@ -5011,5 +5011,23 @@ cases =
       \asx =\n\
       \    a\n\
       \"
+    ),
+    ( "pattern with two list cons operators",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: c :: d ->\n\
+      \            e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: c :: d ->\n\
+      \            e\n\
+      \"
     )
   ]
