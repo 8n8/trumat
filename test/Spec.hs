@@ -4975,5 +4975,23 @@ cases =
       \x =\n\
       \    [] ++ a\n\
       \"
+    ),
+    ( "line comment in infix following function call",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        -- c\n\
+      \        :: d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        -- c\n\
+      \        :: d\n\
+      \"
     )
   ]
