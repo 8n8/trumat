@@ -649,6 +649,16 @@ parseAliasedType indent =
       parseTupleType indent
     ]
 
+parseNotFollowedByArrow :: Parser Text -> Parser Text
+parseNotFollowedByArrow p =
+  do
+    item <- p
+    _ <- lookAhead $
+      do
+        _ <- commentSpaceParser 0
+        notFollowedBy $ chunk "->"
+    return item
+
 parseBareFunctionType :: Int -> Int -> Parser Text
 parseBareFunctionType minColumn indent =
   do
@@ -809,7 +819,11 @@ parseRecordTypeItem indent =
     _ <- space
     _ <- char ':'
     _ <- space
-    right <- parseType indent
+    right <-
+      choice
+        [ try $ parseNotFollowedByArrow $ parseType indent,
+          parseBareFunctionType 2 indent
+        ]
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser indent
