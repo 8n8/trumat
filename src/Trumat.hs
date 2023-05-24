@@ -1313,11 +1313,15 @@ parseConsPattern :: Int -> Int -> Parser Text
 parseConsPattern minColumn indent =
   do
     left <- parsePatternInsideConsPattern minColumn indent
-    _ <- space
-    _ <- chunk "::"
-    _ <- space
-    right <- parsePatternInsideConsPattern minColumn indent
-    return $ left <> " :: " <> right
+    items <-
+      some
+        ( try $ do
+            _ <- space
+            _ <- chunk "::"
+            _ <- space
+            parsePatternInsideConsPattern minColumn indent
+        )
+    return $ intercalate " :: " (left : items)
 
 parseArgumentExpression :: Int -> Parser Text
 parseArgumentExpression indent =
