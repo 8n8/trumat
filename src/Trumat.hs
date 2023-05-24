@@ -1107,7 +1107,7 @@ parseRecordItem indent =
     name <- parseName
     _ <- space
     _ <- char '='
-    _ <- space
+    commentBefore <- commentSpaceParser indent
     right <- parseExpression 1 DoesntNeedBrackets (floorToFour (indent + 4))
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
@@ -1121,7 +1121,12 @@ parseRecordItem indent =
           " =",
           if endRow > startRow
             then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
-            else " ",
+            else
+              ( if commentBefore == ""
+                  then ""
+                  else " " <> commentBefore
+              )
+                <> " ",
           right,
           if sameLineComment == ""
             then ""
