@@ -4891,5 +4891,33 @@ cases =
       \x =\n\
       \    a {- b -} |> c\n\
       \"
+    ),
+    ( "block comment before left pizza operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a {- b -} <| c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a {- b -} <| c\n\
+      \"
+    ),
+    ( "block comment after left pizza operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| {- b -} c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| {- b -} c\n\
+      \"
     )
   ]
