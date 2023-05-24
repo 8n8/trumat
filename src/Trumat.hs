@@ -871,9 +871,13 @@ parseImport =
     as_ <-
       choice
         [ do
-            _ <- chunk "as"
-            _ <- space
-            parseName,
+            column <- fmap (unPos . sourceColumn) getSourcePos
+            if column == 1
+              then fail "can't have import 'as' at start of line"
+              else do
+                _ <- chunk "as"
+                _ <- space
+                parseName,
           return ""
         ]
     _ <- space
