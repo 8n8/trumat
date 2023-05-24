@@ -5067,5 +5067,23 @@ cases =
       \        else\n\
       \            d\n\
       \"
+    ),
+    ( "char literal in pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ' ' ->\n\
+      \            b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ' ' ->\n\
+      \            b\n\
+      \"
     )
   ]
