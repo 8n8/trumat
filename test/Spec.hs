@@ -5085,5 +5085,21 @@ cases =
       \        ' ' ->\n\
       \            b\n\
       \"
+    ),
+    ( "function type in record type field in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : { a : A -> B }\n\
+      \x =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : { a : A -> B }\n\
+      \x =\n\
+      \    a\n\
+      \"
     )
   ]
