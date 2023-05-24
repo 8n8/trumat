@@ -4993,5 +4993,23 @@ cases =
       \        -- c\n\
       \        :: d\n\
       \"
+    ),
+    ( "top-level name beginning with as in module with exports",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \asx =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \asx =\n\
+      \    a\n\
+      \"
     )
   ]
