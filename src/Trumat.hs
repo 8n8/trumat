@@ -1301,6 +1301,7 @@ parsePatternNoAlias minColumn indent =
       parseRecordPattern,
       try parseFunctionCallPattern,
       parseVerbatim,
+      parseCharLiteral,
       parseSimpleStringLiteral
     ]
 
