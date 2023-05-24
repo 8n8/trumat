@@ -4919,5 +4919,23 @@ cases =
       \x =\n\
       \    a <| {- b -} c\n\
       \"
+    ),
+    ( "block comment at start of anonymous function body",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a ->\n\
+      \        {- b -}\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \\a ->\n\
+      \        {- b -}\n\
+      \        c\n\
+      \"
     )
   ]
