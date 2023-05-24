@@ -1530,7 +1530,10 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
             then infix_ <> expression
             else
               mconcat
-                [ " ",
+                [ if commentBefore == ""
+                    then ""
+                    else " " <> commentBefore,
+                  " ",
                   infix_,
                   " ",
                   if commentAfter == ""
