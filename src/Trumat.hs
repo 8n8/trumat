@@ -946,7 +946,7 @@ notFollowedByInfix p =
     item <- p
     _ <- lookAhead $
       do
-        _ <- space
+        _ <- commentSpaceParser 0
         notFollowedBy parseInfix
     return item
 
