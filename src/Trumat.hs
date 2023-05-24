@@ -1565,7 +1565,7 @@ parseLetIn minColumn indent =
           _ <- space
           return items
     _ <- chunk "in"
-    _ <- space
+    comment <- commentSpaceParser indent
     in_ <- parseExpression minColumn DoesntNeedBrackets indent
     let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
     return $
@@ -1575,6 +1575,10 @@ parseLetIn minColumn indent =
           inSpaces,
           "in",
           inSpaces,
+          comment,
+          if comment == ""
+            then ""
+            else inSpaces,
           in_
         ]
 
