@@ -4863,5 +4863,19 @@ cases =
       \x =\n\
       \    a <= b\n\
       \"
+    ),
+    ( "block comment after right pizza operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a |> {- b -} c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a |> {- b -} c\n\
+      \"
     )
   ]
