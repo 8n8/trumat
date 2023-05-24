@@ -1451,6 +1451,7 @@ parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
   choice
     [ try $ parseCaseOf indent,
+      try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,
