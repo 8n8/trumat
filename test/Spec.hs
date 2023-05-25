@@ -5119,5 +5119,27 @@ cases =
       \        'b' :: _ ->\n\
       \            c\n\
       \"
+    ),
+    ( "case of expression as callable",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (case a of\n\
+      \        b ->\n\
+      \            c\n\
+      \    )\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (case a of\n\
+      \        b ->\n\
+      \            c\n\
+      \    )\n\
+      \        d\n\
+      \"
     )
   ]
