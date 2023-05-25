@@ -5215,5 +5215,21 @@ cases =
       \    A\n\
       \    -> B\n\
       \"
+    ),
+    ( "function type in tuple in type argument in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A ( B, C -> D )\n\
+      \x =\n\
+      \    e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A ( B, C -> D )\n\
+      \x =\n\
+      \    e\n\
+      \"
     )
   ]
