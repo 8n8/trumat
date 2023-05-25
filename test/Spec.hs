@@ -5101,5 +5101,23 @@ cases =
       \x =\n\
       \    a\n\
       \"
+    ),
+    ( "char literal in cons pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        'b' :: _ ->\n\
+      \            c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        'b' :: _ ->\n\
+      \            c\n\
+      \"
     )
   ]
