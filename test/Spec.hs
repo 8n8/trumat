@@ -5159,5 +5159,19 @@ cases =
       \        c ->\n\
       \            d\n\
       \"
+    ),
+    ( "port module",
+      "port module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "port module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
