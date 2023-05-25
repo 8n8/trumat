@@ -5141,5 +5141,23 @@ cases =
       \    )\n\
       \        d\n\
       \"
+    ),
+    ( "block comment before main expression in case of statement",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case {- a -} b of\n\
+      \        c ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case {- a -} b of\n\
+      \        c ->\n\
+      \            d\n\
+      \"
     )
   ]
