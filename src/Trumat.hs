@@ -381,6 +381,14 @@ parseModuleDocs =
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
   do
+    port <-
+      choice
+        [ do
+            p <- chunk "port"
+            _ <- space
+            return ("port " :: Text),
+          return ""
+        ]
     _ <- chunk "module "
     name <- parseName
     _ <- chunk " exposing"
@@ -398,7 +406,8 @@ parseModuleDeclaration =
     title <- choice [parseSectionComment, return ""]
     return $
       mconcat
-        [ "module ",
+        [ port,
+          "module ",
           name,
           " exposing",
           exports,
