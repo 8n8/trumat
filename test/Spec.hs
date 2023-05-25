@@ -5174,7 +5174,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "port declaration",
+    ( "single line port declaration",
       "port module X exposing (x)\n\
       \\n\
       \\n\

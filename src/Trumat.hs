@@ -548,7 +548,7 @@ topLevelBind =
   do
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
-    signature <- choice [try parseTypeSignature, return ""]
+    signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
     name <- parseName
     _ <- space
@@ -610,30 +610,48 @@ parseParameters startColumn =
               return parameter
     return $ intercalate " " parameters
 
-parseTypeSignature :: Parser Text
-parseTypeSignature =
+parseTypeSignature :: Int -> Int -> Parser Text
+parseTypeSignature startColumn indent =
   do
-    startColumn <- fmap (unPos . sourceColumn) getSourcePos
     name <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     types <- some $
-      do
+      try $ do
         column <- fmap (unPos . sourceColumn) getSourcePos
         if column <= startColumn
           then fail "invalid indentation"
           else do
             type_ <- parseType 0
-            _ <- space
-            _ <- choice [chunk "->", return ""]
-            _ <- space
+            _ <-
+              choice
+                [ try $ do
+                    space
+                    _ <- chunk "->"
+                    space,
+                  return ()
+                ]
             return type_
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- space
     return $
       mconcat
         [ name,
-          " : ",
-          intercalate " -> " types
+          " :",
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " ",
+          intercalate
+            ( mconcat
+                [ if endRow > startRow
+                    then "\n" <> pack (take (indent + 4) (repeat ' '))
+                    else " ",
+                  "-> "
+                ]
+            )
+            types
         ]
 
 parseType :: Int -> Parser Text
@@ -966,7 +984,7 @@ portDeclaration =
   do
     _ <- chunk "port"
     _ <- space
-    signature <- parseTypeSignature
+    signature <- parseTypeSignature 1 0
     return $ "port " <> signature
 
 parseSectionComment :: Parser Text
@@ -1651,7 +1669,7 @@ parseLetBind :: Int -> Int -> Parser Text
 parseLetBind minColumn indent =
   do
     comment <- commentSpaceParser indent
-    signature <- choice [try parseTypeSignature, return ""]
+    signature <- choice [try $ parseTypeSignature minColumn indent, return ""]
     left <- parsePattern DoesntNeedBrackets 1 indent
     _ <- space
     _ <- char '='
