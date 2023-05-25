@@ -1294,7 +1294,7 @@ parseTypeParameter :: Int -> Parser Text
 parseTypeParameter indent =
   choice
     [ try parseFunctionType,
-      parseTuple NeedsBrackets indent,
+      parseTupleType indent,
       parseList indent,
       parseRecordType indent,
       try parseFunctionCallPattern,
