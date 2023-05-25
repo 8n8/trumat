@@ -5185,5 +5185,19 @@ cases =
       \\n\
       \port x : A\n\
       \"
+    ),
+    ( "top-level name beginning with port",
+      "module X exposing (portX)\n\
+      \\n\
+      \\n\
+      \portX =\n\
+      \    0\n\
+      \",
+      "module X exposing (portX)\n\
+      \\n\
+      \\n\
+      \portX =\n\
+      \    0\n\
+      \"
     )
   ]
