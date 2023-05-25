@@ -945,7 +945,7 @@ parser =
           [ try typeAliasDeclaration,
             try customTypeDeclaration,
             parseSectionComment,
-            portDeclaration,
+            try portDeclaration,
             topLevelBind
           ]
     _ <- eof
