@@ -945,6 +945,7 @@ parser =
           [ try typeAliasDeclaration,
             try customTypeDeclaration,
             parseSectionComment,
+            portDeclaration,
             topLevelBind
           ]
     _ <- eof
@@ -959,6 +960,14 @@ parser =
           intercalate "\n\n\n" topLevelBinds,
           "\n"
         ]
+
+portDeclaration :: Parser Text
+portDeclaration =
+  do
+    _ <- chunk "port"
+    _ <- space
+    signature <- parseTypeSignature
+    return $ "port " <> signature
 
 parseSectionComment :: Parser Text
 parseSectionComment =
