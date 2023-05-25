@@ -5173,5 +5173,17 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "port declaration",
+      "port module X exposing (x)\n\
+      \\n\
+      \\n\
+      \port x : A\n\
+      \",
+      "port module X exposing (x)\n\
+      \\n\
+      \\n\
+      \port x : A\n\
+      \"
     )
   ]
