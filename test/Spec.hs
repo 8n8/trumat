@@ -5199,5 +5199,21 @@ cases =
       \portX =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline type signature in port declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \port x :\n\
+      \    A\n\
+      \    -> B\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \port x :\n\
+      \    A\n\
+      \    -> B\n\
+      \"
     )
   ]
