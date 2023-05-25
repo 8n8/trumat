@@ -1727,7 +1727,7 @@ parseCaseOf indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- chunk "case"
-    _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
+    commentAfterCase <- commentSpaceParser (indent + 4)
     caseOf <- parseExpression 1 DoesntNeedBrackets (indent + 4)
     _ <- space
     _ <- chunk "of"
@@ -1741,6 +1741,13 @@ parseCaseOf indent =
           if endRow > startRow
             then "\n" <> pack (take (indent + 4) (repeat ' '))
             else " ",
+          commentAfterCase,
+          if commentAfterCase == ""
+            then ""
+            else
+              if endRow > startRow
+                then "\n" <> pack (take (indent + 4) (repeat ' '))
+                else " ",
           caseOf,
           if endRow > startRow
             then "\n" <> pack (take indent (repeat ' ') <> "of\n")
