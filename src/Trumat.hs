@@ -986,6 +986,22 @@ notDottable p =
     _ <- notFollowedBy $ char '.'
     return item
 
+parseCaseOfInBrackets :: Int -> Int -> Parser Text
+parseCaseOfInBrackets minColumn indent =
+  do
+    _ <- char '('
+    _ <- space
+    caseOf <- parseCaseOf indent
+    _ <- space
+    _ <- char ')'
+    return $
+      mconcat
+        [ "(",
+          caseOf,
+          "\n" <> pack (take indent $ repeat ' '),
+          ")"
+        ]
+
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
@@ -1363,6 +1379,7 @@ parseCallable :: Int -> Int -> Parser Text
 parseCallable minColumn indent =
   choice
     [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
+      try $ parseCaseOfInBrackets minColumn indent,
       parseInfixInBrackets,
       parseName
     ]
