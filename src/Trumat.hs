@@ -986,10 +986,13 @@ parser =
 portDeclaration :: Parser Text
 portDeclaration =
   do
+    _ <- space
+    documentation <- choice [parseDocumentation, return ""]
+    _ <- space
     _ <- chunk "port"
     _ <- space
     signature <- parseTypeSignature 1 0
-    return $ "port " <> signature
+    return $ (if documentation == "" then "" else documentation <> "\n") <> "port " <> signature
 
 parseSectionComment :: Parser Text
 parseSectionComment =
