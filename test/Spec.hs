@@ -5344,5 +5344,25 @@ cases =
       \x =\n\
       \    a >= b\n\
       \"
+    ),
+    ( "port with documentation",
+      "port module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \port x : Int\n\
+      \",
+      "port module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \port x : Int\n\
+      \"
     )
   ]
