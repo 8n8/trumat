@@ -403,7 +403,7 @@ parseModuleDeclaration =
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
-    title <- choice [parseSectionComment, return ""]
+    title <- many parseSectionComment
     return $
       mconcat
         [ port,
@@ -414,9 +414,9 @@ parseModuleDeclaration =
           if moduleDocs == ""
             then ""
             else "\n\n" <> moduleDocs,
-          if title == ""
+          if title == []
             then ""
-            else "\n" <> title
+            else "\n" <> mconcat title
         ]
 
 typeAliasDeclaration :: Parser Text

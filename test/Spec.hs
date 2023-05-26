@@ -5249,7 +5249,7 @@ cases =
       \    | B\n\
       \"
     ),
-    ( "top-level line comment between import and declaration, with two line comments after module exports",
+    ( "multiline module title",
       "module X exposing (x)\n\
       \\n\
       \-- a\n\
