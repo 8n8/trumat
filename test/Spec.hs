@@ -5330,5 +5330,19 @@ cases =
       \type X\n\
       \    = D\n\
       \"
+    ),
+    ( "greater than or equal to operator >=",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >= b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a >= b\n\
+      \"
     )
   ]
