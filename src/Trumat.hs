@@ -966,7 +966,7 @@ parser =
             try customTypeDeclaration,
             try parseSectionComment,
             try portDeclaration,
-            dbg "topLevelBind" topLevelBind
+            topLevelBind
           ]
     _ <- eof
     return $
