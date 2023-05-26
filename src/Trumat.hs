@@ -403,7 +403,7 @@ parseModuleDeclaration =
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
-    title <- many parseSectionComment
+    title <- choice [parseSectionComment, return ""]
     return $
       mconcat
         [ port,
@@ -414,9 +414,9 @@ parseModuleDeclaration =
           if moduleDocs == ""
             then ""
             else "\n\n" <> moduleDocs,
-          if title == []
+          if title == ""
             then ""
-            else "\n" <> mconcat title
+            else "\n" <> title
         ]
 
 typeAliasDeclaration :: Parser Text
@@ -547,6 +547,7 @@ parseDocumentation =
 topLevelBind :: Parser Text
 topLevelBind =
   do
+    _ <- space
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
@@ -963,9 +964,9 @@ parser =
         choice
           [ try typeAliasDeclaration,
             try customTypeDeclaration,
-            parseSectionComment,
+            try parseSectionComment,
             try portDeclaration,
-            topLevelBind
+            dbg "topLevelBind" topLevelBind
           ]
     _ <- eof
     return $
@@ -990,10 +991,19 @@ portDeclaration =
 
 parseSectionComment :: Parser Text
 parseSectionComment =
-  do
-    comment <- parseLineComment
-    _ <- space
-    return $ "\n" <> comment
+  choice
+    [ try $ do
+        _ <- space
+        block <- parseBlockComment
+        _ <- space
+        line <- parseLineComment
+        _ <- space
+        return $ "\n" <> block <> "\n" <> line,
+      do
+        _ <- space
+        lines_ <- some parseLineComment
+        return $ "\n" <> intercalate "\n" lines_
+    ]
 
 notFollowedByInfix :: Parser Text -> Parser Text
 notFollowedByInfix p =
