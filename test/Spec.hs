@@ -5248,5 +5248,37 @@ cases =
       \    = A\n\
       \    | B\n\
       \"
+    ),
+    ( "top-level line comment between import and declaration, with two line comments after module exports",
+      "module X exposing (x)\n\
+      \\n\
+      \-- a\n\
+      \-- b\n\
+      \\n\
+      \import C\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- d\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \-- a\n\
+      \-- b\n\
+      \\n\
+      \import C\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- d\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
