@@ -465,9 +465,9 @@ customTypeDeclaration =
     _ <- space
     parameters <- parseParameters 0
     _ <- space
-    _ <- char '='
-    _ <- space
-    branches <- some parseBranch
+    firstBranch <- parseBranch '='
+    nextBranches <- many (parseBranch '|')
+    let branches = firstBranch : nextBranches
     return $
       mconcat
         [ documentation,
@@ -484,26 +484,27 @@ customTypeDeclaration =
           intercalate "\n    | " branches
         ]
 
-parseBranch :: Parser Text
-parseBranch =
+parseBranch :: Char -> Parser Text
+parseBranch startChar =
   do
+    _ <- char startChar
     _ <- space
     column <- fmap sourceColumn getSourcePos
     if unPos column == 0
       then fail "column == 0"
-      else do
+      else try $ do
+        startRow <- fmap (unPos . sourceLine) getSourcePos
+        commentBefore <- commentSpaceParser 6
+        branchName <- parseName
         startColumn <- fmap (unPos . sourceColumn) getSourcePos
         if startColumn == 1
           then fail "column is too low"
           else do
-            startRow <- fmap (unPos . sourceLine) getSourcePos
-            commentBefore <- commentSpaceParser 6
-            branchName <- parseName
             _ <- space
-            parameters <- parseTypeDeclarationParameters startColumn
+            parameters <- parseTypeDeclarationParameters 2
             endRow <- fmap (unPos . sourceLine) getSourcePos
-            commentAfter <- commentSpaceParser 6
-            _ <- choice [char '|', return ' ']
+            commentAfter <- commentSpaceParser 1
+            afterCommentRow <- fmap (unPos . sourceLine) getSourcePos
             return $
               mconcat
                 [ commentBefore,
