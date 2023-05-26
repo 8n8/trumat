@@ -422,6 +422,7 @@ parseModuleDeclaration =
 typeAliasDeclaration :: Parser Text
 typeAliasDeclaration =
   do
+    _ <- space
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
@@ -457,6 +458,7 @@ typeAliasDeclaration =
 customTypeDeclaration :: Parser Text
 customTypeDeclaration =
   do
+    _ <- space
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
