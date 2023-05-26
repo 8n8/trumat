@@ -5231,5 +5231,22 @@ cases =
       \x =\n\
       \    e\n\
       \"
+    ),
+    ( "type branch name at start of line",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \    |\n\
+      \B\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \    | B\n\
+      \"
     )
   ]
