@@ -5300,5 +5300,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "section comment after import before documented type declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- b\n\
+      \\n\
+      \\n\
+      \{-| c\n\
+      \-}\n\
+      \type X\n\
+      \    = D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- b\n\
+      \\n\
+      \\n\
+      \{-| c\n\
+      \-}\n\
+      \type X\n\
+      \    = D\n\
+      \"
     )
   ]
