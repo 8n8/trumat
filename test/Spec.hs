@@ -1565,10 +1565,11 @@ cases =
       \",
       "module X exposing (x)\n\
       \\n\
-      \import A as B exposing\n\
-      \    ( C\n\
-      \    , D\n\
-      \    )\n\
+      \import A as B\n\
+      \    exposing\n\
+      \        ( C\n\
+      \        , D\n\
+      \        )\n\
       \\n\
       \\n\
       \x =\n\
@@ -5516,24 +5517,24 @@ cases =
       \"
     ),
     ( "multiline imports",
-      "module OptimizeTest exposing (optimize)\n\
+      "module X exposing (x)\n\
       \\n\
-      \import TestHelpers\n\
+      \import A\n\
       \    exposing\n\
-      \        ( a\n\
-      \        , b\n\
+      \        ( b\n\
+      \        , c\n\
       \        )\n\
       \\n\
       \\n\
       \x =\n\
       \    0\n\
       \",
-      "module OptimizeTest exposing (optimize)\n\
+      "module X exposing (x)\n\
       \\n\
-      \import TestHelpers\n\
+      \import A\n\
       \    exposing\n\
-      \        ( a\n\
-      \        , b\n\
+      \        ( b\n\
+      \        , c\n\
       \        )\n\
       \\n\
       \\n\

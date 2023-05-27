@@ -237,8 +237,8 @@ parseExport =
         ]
     return $ name <> all_
 
-parseExposing :: [[Text]] -> Parser Text
-parseExposing docs =
+parseExposing :: Int -> [[Text]] -> Parser Text
+parseExposing indent docs =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
@@ -247,7 +247,7 @@ parseExposing docs =
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    return $ formatExports (endRow > startRow) docs items
+    return $ formatExports indent (endRow > startRow) docs items
 
 formatExportRow :: [Text] -> [Text] -> Text
 formatExportRow items docRow =
@@ -258,8 +258,8 @@ log :: (Show a) => String -> a -> a
 log description value =
   trace (description <> ": " <> show value) value
 
-formatExports :: Bool -> [[Text]] -> [Text] -> Text
-formatExports originalIsMultiline docs items =
+formatExports :: Int -> Bool -> [[Text]] -> [Text] -> Text
+formatExports indent originalIsMultiline docs items =
   let unformattedRows = removeUndocumented items docs
       rows = filter (\row -> row /= "") $ (map (formatExportRow items) unformattedRows) <> undocumented
       undocumented = getUndocumented docs items
@@ -272,16 +272,16 @@ formatExports originalIsMultiline docs items =
         multiple ->
           mconcat
             [ if isMultiline
-                then "\n    ( "
+                then "\n" <> pack (take indent (repeat ' ')) <> "( "
                 else " (",
               intercalate
                 ( if isMultiline
-                    then "\n    , "
+                    then "\n" <> pack (take indent (repeat ' ')) <> ", "
                     else ", "
                 )
                 multiple,
               if isMultiline
-                then "\n    "
+                then "\n" <> pack (take indent (repeat ' '))
                 else "",
               ")"
             ]
@@ -399,7 +399,7 @@ parseModuleDeclaration =
           return []
         ]
 
-    exports <- parseExposing docs
+    exports <- parseExposing 4 docs
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
@@ -908,6 +908,7 @@ parseTypeParameters startColumn =
 parseImport :: Parser Text
 parseImport =
   do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- chunk "import"
     _ <- space1
     commentBetween <- commentSpaceParser 1
@@ -931,9 +932,10 @@ parseImport =
         [ do
             _ <- chunk "exposing"
             _ <- space
-            parseExposing [],
+            parseExposing 8 [],
           return ""
         ]
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
       mconcat
         [ "import ",
@@ -945,7 +947,10 @@ parseImport =
             else " as " <> as_,
           if exposing_ == ""
             then ""
-            else " exposing" <> exposing_
+            else
+              if endRow == startRow
+                then " exposing" <> exposing_
+                else "\n    exposing" <> exposing_
         ]
 
 parser :: Parser Text
