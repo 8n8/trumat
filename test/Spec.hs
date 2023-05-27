@@ -5667,5 +5667,23 @@ cases =
       \x =\n\
       \    d\n\
       \"
+    ),
+    ( "two line comments inside empty list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [-- a\n\
+      \     -- b\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [-- a\n\
+      \     -- b\n\
+      \    ]\n\
+      \"
     )
   ]
