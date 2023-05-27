@@ -990,7 +990,7 @@ portDeclaration =
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- chunk "port"
-    _ <- space
+    _ <- space1
     signature <- parseTypeSignature 1 0
     return $ (if documentation == "" then "" else documentation <> "\n") <> "port " <> signature
 
