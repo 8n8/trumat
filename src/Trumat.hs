@@ -627,7 +627,7 @@ parseTypeSignature startColumn indent =
         if column <= startColumn
           then fail "invalid indentation"
           else do
-            type_ <- parseType 0
+            type_ <- parseType (indent + 4)
             _ <-
               choice
                 [ try $ do
