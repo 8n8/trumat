@@ -5364,5 +5364,43 @@ cases =
       \-}\n\
       \port x : Int\n\
       \"
+    ),
+    ( "GLSL syntax",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [glsl|\n\
+      \\n\
+      \attribute vec3 position;\n\
+      \attribute vec3 coord;\n\
+      \uniform   mat4 view;\n\
+      \varying   vec2 vcoord;\n\
+      \\n\
+      \void main () {\n\
+      \  gl_Position = view * vec4(position, 1.0);\n\
+      \  vcoord = coord.xy;\n\
+      \}\n\
+      \\n\
+      \|]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [glsl|\n\
+      \\n\
+      \attribute vec3 position;\n\
+      \attribute vec3 coord;\n\
+      \uniform   mat4 view;\n\
+      \varying   vec2 vcoord;\n\
+      \\n\
+      \void main () {\n\
+      \  gl_Position = view * vec4(position, 1.0);\n\
+      \  vcoord = coord.xy;\n\
+      \}\n\
+      \\n\
+      \|]\n\
+      \"
     )
   ]
