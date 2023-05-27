@@ -1058,6 +1058,7 @@ parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ try $ parseCaseOf indent,
+      try $ parseGlsl indent,
       try $ notFollowedByInfix $ parseList indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
@@ -1075,6 +1076,22 @@ parseExpression minColumn context indent =
       parseCharLiteral,
       parseAnonymousFunction minColumn indent
     ]
+
+parseGlsl :: Int -> Parser Text
+parseGlsl indent =
+  do
+    _ <- chunk "[glsl|"
+    pieces <-
+      some $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '|'),
+            try $ do
+              _ <- char '|'
+              _ <- lookAhead $ notFollowedBy (char ']')
+              return "|"
+          ]
+    _ <- chunk "|]"
+    return $ "[glsl|" <> mconcat pieces <> "|]"
 
 parseAnonymousFunction :: Int -> Int -> Parser Text
 parseAnonymousFunction minColumn indent =
