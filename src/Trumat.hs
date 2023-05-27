@@ -1891,7 +1891,7 @@ parseNegative =
   do
     _ <- char '-'
     firstDigit <- choice $ map char ("0123456789" :: String)
-    remainder <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789xabcdef" :: String))
+    remainder <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789xabcdef." :: String))
     return ("-" <> Text.singleton firstDigit <> remainder)
 
 parseVerbatim :: Parser Text
