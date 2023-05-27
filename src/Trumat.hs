@@ -498,6 +498,7 @@ parseBranch startChar =
         startRow <- fmap (unPos . sourceLine) getSourcePos
         commentBefore <- commentSpaceParser 6
         branchName <- parseName
+        afterNameRow <- fmap (unPos . sourceLine) getSourcePos
         startColumn <- fmap (unPos . sourceColumn) getSourcePos
         if startColumn == 1
           then fail "column is too low"
@@ -505,6 +506,8 @@ parseBranch startChar =
             _ <- space
             parameters <- parseTypeDeclarationParameters 2
             endRow <- fmap (unPos . sourceLine) getSourcePos
+            _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+            afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
             commentAfter <- commentSpaceParser 1
             afterCommentRow <- fmap (unPos . sourceLine) getSourcePos
             return $
@@ -521,7 +524,14 @@ parseBranch startChar =
                         then "\n        "
                         else " ",
                   parameters,
-                  if commentAfter == "" then "" else "\n      " <> commentAfter
+                  if commentAfter == ""
+                    then ""
+                    else
+                      ( if afterEmptySpaceRow == afterNameRow
+                          then " "
+                          else "\n      "
+                      )
+                        <> commentAfter
                 ]
 
 parseDocumentation :: Parser Text
