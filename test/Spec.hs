@@ -5641,5 +5641,31 @@ cases =
       \        {- b -} 0\n\
       \    }\n\
       \"
+    ),
+    ( "doc comment on top level bind after type declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B\n\
+      \\n\
+      \\n\
+      \{-| c\n\
+      \-}\n\
+      \x =\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B\n\
+      \\n\
+      \\n\
+      \{-| c\n\
+      \-}\n\
+      \x =\n\
+      \    d\n\
+      \"
     )
   ]
