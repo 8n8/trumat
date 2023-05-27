@@ -702,6 +702,7 @@ parseNotFollowedByArrow p =
 parseBareFunctionType :: Int -> Int -> Parser Text
 parseBareFunctionType minColumn indent =
   do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     types <- some $
       do
         column <- fmap (unPos . sourceColumn) getSourcePos
@@ -709,11 +710,22 @@ parseBareFunctionType minColumn indent =
           then fail "too far left"
           else do
             type_ <- parseType indent
-            _ <- space
-            _ <- choice [chunk "->", return ""]
-            _ <- space
-            return type_
-    return $ intercalate " -> " types
+            choice
+              [ try $ do
+                  _ <- space
+                  _ <- chunk "->"
+                  _ <- space
+                  return type_,
+                return type_
+              ]
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    if endRow == startRow
+      then return $ intercalate " -> " types
+      else
+        return $
+          intercalate
+            ("\n" <> (pack $ take indent (repeat ' ')) <> "-> ")
+            types
 
 parseFunctionType :: Parser Text
 parseFunctionType =
@@ -735,12 +747,14 @@ parseTupleType indent =
     _ <- char '('
     _ <- parseSpaces
     items <- many $
-      do
-        _ <- space
-        choice
-          [ try $ parseTupleTypeItem indent,
-            parseBareFunctionType 2 indent
-          ]
+      try $
+        do
+          _ <- space
+          choice
+            [ try $ parseTupleTypeItem indent,
+              parseBareFunctionType 2 indent
+            ]
+    _ <- space
     _ <- char ')'
     if null items
       then return "()"
