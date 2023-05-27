@@ -1989,6 +1989,28 @@ parseTuplePatternItem indent =
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
+parseMultiTupleItem :: Int -> Char -> Parser Text
+parseMultiTupleItem indent end =
+  do
+    commentBefore <- commentSpaceParser indent
+    expression <- parseExpression 1 DoesntNeedBrackets indent
+    sameLineComment <- choice [try parseSameLineComment, return ""]
+    commentAfter <- commentSpaceParser (floorToFour indent)
+    _ <- choice [char ',', lookAhead (char end)]
+    return $
+      mconcat
+        [ if commentBefore == ""
+            then ""
+            else commentBefore <> "\n" <> pack (take indent (repeat ' ')),
+          expression,
+          if sameLineComment == ""
+            then ""
+            else " " <> sameLineComment,
+          if commentAfter == ""
+            then ""
+            else "\n" <> pack (take indent (repeat ' ')) <> commentAfter
+        ]
+
 parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
@@ -2132,7 +2154,7 @@ parseMultiTuple indent =
     startLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- many (parseMultiListItem (indent + 2) ')')
+    items <- many (parseMultiTupleItem (indent + 2) ')')
     _ <- char ')'
     endLine <- fmap (unPos . sourceLine) getSourcePos
     if null items
