@@ -5609,5 +5609,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "same line comment after type branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X -- a\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X -- a\n\
+      \"
     )
   ]
