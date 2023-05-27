@@ -2230,6 +2230,26 @@ data Context
 
 parseList :: Int -> Parser Text
 parseList indent =
+  choice
+    [ try $ parseEmptyList indent,
+      parseNonEmptyList indent
+    ]
+
+parseEmptyList :: Int -> Parser Text
+parseEmptyList indent =
+  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '['
+    comment <- commentSpaceParser (indent + 1)
+    _ <- char ']'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return $
+      if comment == ""
+        then "[]"
+        else "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
+
+parseNonEmptyList :: Int -> Parser Text
+parseNonEmptyList indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '['
