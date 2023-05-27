@@ -5727,5 +5727,21 @@ cases =
       \           , d\n\
       \           ]\n\
       \"
+    ),
+    ( "multiline function type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    -> B\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    -> B\n\
+      \"
     )
   ]
