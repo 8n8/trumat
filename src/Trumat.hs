@@ -527,8 +527,7 @@ parseBranch startChar =
 parseDocumentation :: Parser Text
 parseDocumentation =
   do
-    _ <- chunk "{-"
-    _ <- choice [char '|', return ' ']
+    _ <- chunk "{-|"
     contents <-
       many $
         choice
@@ -1004,7 +1003,7 @@ parseSectionComment =
   choice
     [ try $ do
         _ <- space
-        block <- parseBlockComment
+        block <- parseNonDocBlockComment
         _ <- space
         line <- parseLineComment
         _ <- space
@@ -1012,8 +1011,29 @@ parseSectionComment =
       do
         _ <- space
         lines_ <- some parseLineComment
-        return $ "\n" <> intercalate "\n" lines_
+        return $ "\n" <> intercalate "\n" lines_,
+      try $ do
+        _ <- space
+        block <- parseNonDocBlockComment
+        return $ "\n" <> block
     ]
+
+parseNonDocBlockComment :: Parser Text
+parseNonDocBlockComment =
+  do
+    _ <- chunk "{-"
+    _ <- lookAhead $ notFollowedBy (char '|')
+    contents <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '-'),
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy $ lookAhead $ char '}'
+              return "-"
+          ]
+    _ <- chunk "-}"
+    return $ "{-" <> mconcat contents <> "-}"
 
 notFollowedByInfix :: Parser Text -> Parser Text
 notFollowedByInfix p =
