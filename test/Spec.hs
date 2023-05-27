@@ -5478,5 +5478,25 @@ cases =
       \\"\"\"\n\
       \        |> a\n\
       \"
+    ),
+    ( "trailing line comment on new line in tuple",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , b\n\
+      \      -- c\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( a\n\
+      \    , b\n\
+      \      -- c\n\
+      \    )\n\
+      \"
     )
   ]
