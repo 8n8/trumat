@@ -1210,7 +1210,7 @@ parseMultiLineRecordUpdate indent =
     _ <- space
     _ <- char '|'
     _ <- space
-    items <- many (parseRecordItem (indent + 2))
+    items <- many (parseRecordItem (indent + 4))
     _ <- char '}'
     let spaces = "\n" <> pack (take (indent + 4) (repeat ' '))
     return $
