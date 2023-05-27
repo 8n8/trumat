@@ -5587,5 +5587,27 @@ cases =
       \            c\n\
       \    }\n\
       \"
+    ),
+    ( "multiline record type in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    { a : B\n\
+      \    , c : D\n\
+      \    }\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    { a : B\n\
+      \    , c : D\n\
+      \    }\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
