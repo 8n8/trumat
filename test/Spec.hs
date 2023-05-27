@@ -5498,5 +5498,21 @@ cases =
       \      -- c\n\
       \    )\n\
       \"
+    ),
+    ( "type declaration on name beginning with port",
+      "module X exposing (portX)\n\
+      \\n\
+      \\n\
+      \portX : A\n\
+      \portX =\n\
+      \    0\n\
+      \",
+      "module X exposing (portX)\n\
+      \\n\
+      \\n\
+      \portX : A\n\
+      \portX =\n\
+      \    0\n\
+      \"
     )
   ]
