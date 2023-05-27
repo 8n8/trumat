@@ -1329,7 +1329,8 @@ parseTypeParameter indent =
     [ try parseFunctionType,
       parseTupleType indent,
       parseList indent,
-      parseRecordType indent,
+      try $ parseRecordType indent,
+      parseExtensibleRecordType indent,
       try parseFunctionCallPattern,
       parseVerbatim,
       parseSimpleStringLiteral
