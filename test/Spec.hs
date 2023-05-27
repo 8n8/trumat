@@ -5623,5 +5623,23 @@ cases =
       \type X\n\
       \    = X -- a\n\
       \"
+    ),
+    ( "block comment before value in multiline record field",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        {- b -} 0\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        {- b -} 0\n\
+      \    }\n\
+      \"
     )
   ]
