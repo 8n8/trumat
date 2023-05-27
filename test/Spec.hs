@@ -5541,5 +5541,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unattached top level block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
