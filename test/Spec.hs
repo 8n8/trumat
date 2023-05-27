@@ -5514,5 +5514,31 @@ cases =
       \portX =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline imports",
+      "module OptimizeTest exposing (optimize)\n\
+      \\n\
+      \import TestHelpers\n\
+      \    exposing\n\
+      \        ( a\n\
+      \        , b\n\
+      \        )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module OptimizeTest exposing (optimize)\n\
+      \\n\
+      \import TestHelpers\n\
+      \    exposing\n\
+      \        ( a\n\
+      \        , b\n\
+      \        )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
