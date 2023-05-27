@@ -5402,5 +5402,21 @@ cases =
       \\n\
       \|]\n\
       \"
+    ),
+    ( "extensible record type in type parameter",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A { b | c : D }\n\
+      \x =\n\
+      \    e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A { b | c : D }\n\
+      \x =\n\
+      \    e\n\
+      \"
     )
   ]
