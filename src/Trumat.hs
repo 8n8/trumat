@@ -1979,7 +1979,7 @@ commentSpaceParser indent =
       many $
         choice
           [ parseLineComment,
-            parseBlockComment,
+            try parseNonDocBlockComment,
             do
               _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
               return ""
