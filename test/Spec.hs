@@ -5460,5 +5460,23 @@ cases =
       \x =\n\
       \    0x00\n\
       \"
+    ),
+    ( "multiline string followed by right pizza on new line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\"\n\
+      \        |> a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\"\n\
+      \        |> a\n\
+      \"
     )
   ]
