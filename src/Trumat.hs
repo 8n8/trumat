@@ -1590,14 +1590,16 @@ parseInfixed minColumn indent =
 parseInfixedItems ::
   Int ->
   Int ->
-  [(Int, Text, Text, Text, Text)] ->
-  Parser [(Int, Text, Text, Text, Text)]
+  [(Int, Bool, Text, Text, Text, Text)] ->
+  Parser [(Int, Bool, Text, Text, Text, Text)]
 parseInfixedItems minColumn indent accum =
   choice
     [ try $
         do
+          startRow <- fmap (unPos . sourceLine) getSourcePos
           commentBefore <- commentSpaceParser (indent + 4)
           infix_ <- parseInfix
+          afterInfixRow <- fmap (unPos . sourceLine) getSourcePos
           commentAfter <- commentSpaceParser (indent + 4)
           expression <- parseInfixedExpression minColumn (indent + 4)
           parseInfixedItems
@@ -1606,12 +1608,12 @@ parseInfixedItems minColumn indent accum =
                 then indent + 4
                 else indent
             )
-            ((indent + 4, commentBefore, infix_, commentAfter, expression) : accum),
+            ((indent + 4, afterInfixRow == startRow, commentBefore, infix_, commentAfter, expression) : accum),
       return $ reverse accum
     ]
 
-addInfixWhitespace :: Bool -> Bool -> Bool -> Bool -> (Int, Text, Text, Text, Text) -> Text
-addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, commentBefore, infix_, commentAfter, expression) =
+addInfixWhitespace :: Bool -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
+addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
@@ -1633,7 +1635,7 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                       expression
                     ]
             else
-              if infix_ == "|>" && followsTripleQuoteString && oneOrTwo
+              if infix_ == "|>" && followsTripleQuoteString && oneOrTwo && isOnSameRowAsPrevious
                 then " |> " <> expression
                 else
                   mconcat
