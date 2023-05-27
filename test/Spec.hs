@@ -5432,5 +5432,19 @@ cases =
       \x =\n\
       \    -1.0\n\
       \"
+    ),
+    ( "negative zero integer literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
