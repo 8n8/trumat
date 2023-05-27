@@ -5703,5 +5703,29 @@ cases =
       \        ++ [ b\n\
       \           ]\n\
       \"
+    ),
+    ( "line comment in list in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ++ [ b\n\
+      \\n\
+      \           -- c\n\
+      \           , d\n\
+      \           ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ++ [ b\n\
+      \\n\
+      \           -- c\n\
+      \           , d\n\
+      \           ]\n\
+      \"
     )
   ]

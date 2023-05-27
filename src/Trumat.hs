@@ -2082,7 +2082,7 @@ parseMultiListItem indent end =
             else " " <> sameLineComment,
           if commentAfter == ""
             then ""
-            else "\n\n" <> pack (take (floorToFour indent) (repeat ' ')) <> commentAfter
+            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
 data ContainerType
