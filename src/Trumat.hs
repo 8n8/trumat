@@ -1896,6 +1896,8 @@ parseNegative =
     return $ case combined of
       "-0" ->
         "0"
+      "-0x00" ->
+        "0x00"
       _ ->
         combined
 
