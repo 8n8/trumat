@@ -5743,5 +5743,21 @@ cases =
       \    A\n\
       \    -> B\n\
       \"
+    ),
+    ( "block comment after right pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> {- b -} c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> {- b -} c\n\
+      \"
     )
   ]
