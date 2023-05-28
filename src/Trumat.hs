@@ -212,18 +212,6 @@ parseOneExportDoc =
     _ <- choice [char ',', lookAhead (char '\n')]
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return name
-    
-
-parseExportLine :: Parser [Text]
-parseExportLine =
- dbg "parseExportLine" $
-  do
-    _ <- takeWhileP Nothing (\ch -> ch == '\n')
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    _ <- choice [ char ',', return ' ']
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    some parseExport
-    
 
 parseExport :: Parser Text
 parseExport =
@@ -241,9 +229,9 @@ parseExport =
     _ <-
       choice
         [ try $ do
-            _ <- takeWhileP Nothing (\ch -> ch == ' ')
+            _ <- space
             _ <- char ','
-            _ <- takeWhileP Nothing (\ch -> ch == ' ')
+            _ <- space
             return (),
           return ()
         ]
@@ -255,7 +243,7 @@ parseExposing indent docs =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- some parseExportLine
+    items <- some parseExport
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -270,11 +258,11 @@ log :: (Show a) => String -> a -> a
 log description value =
   trace (description <> ": " <> show value) value
 
-formatExports :: Int -> Bool -> [[Text]] -> [[Text]] -> Text
+formatExports :: Int -> Bool -> [[Text]] -> [Text] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedRows = removeUndocumented items docs
-      rows = filter (\row -> row /= "") $ (map (formatExportRow (mconcat items)) unformattedRows) <> undocumented
-      undocumented = getUndocumented docs (mconcat items)
+      rows = filter (\row -> row /= "") $ (map (formatExportRow items) unformattedRows) <> undocumented
+      undocumented = getUndocumented docs items
       isMultiline = (not (null (removeUndocumented items docs)) && length items > 1) || originalIsMultiline
    in case rows of
         [] ->
@@ -298,15 +286,15 @@ formatExports indent originalIsMultiline docs items =
               ")"
             ]
 
-removeUndocumented :: [[Text]] -> [[Text]] -> [[Text]]
+removeUndocumented :: [Text] -> [[Text]] -> [[Text]]
 removeUndocumented used docs =
-  let docsWithExposeAll = addExposeAllToDocs (mconcat used) docs
+  let docsWithExposeAll = addExposeAllToDocs used docs
       usedDocs = removeUnusedDocs used docsWithExposeAll
    in removeEmptyLists usedDocs
 
-removeUnusedDocs :: [[Text]] -> [[Text]] -> [[Text]]
+removeUnusedDocs :: [Text] -> [[Text]] -> [[Text]]
 removeUnusedDocs used docs =
-  map (\docRow -> filter (\doc -> doc `elem` (mconcat used)) docRow) docs
+  map (\docRow -> filter (\doc -> doc `elem` used) docRow) docs
 
 addExposeAllToDocs :: [Text] -> [[Text]] -> [[Text]]
 addExposeAllToDocs used docs =

@@ -5916,37 +5916,5 @@ cases =
       \        -> B\n\
       \    }\n\
       \"
-    ),
-    ( "multiline module exports with some documented and some on same line",
-      "module X exposing\n\
-      \    ( A, B\n\
-      \    , C, D\n\
-      \    )\n\
-      \\n\
-      \{-|\n\
-      \\n\
-      \@docs A, B\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \",
-      "module X exposing\n\
-      \    ( A, B\n\
-      \    , C, D\n\
-      \    )\n\
-      \\n\
-      \{-|\n\
-      \\n\
-      \@docs A, B\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \"
     )
   ]
