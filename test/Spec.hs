@@ -5816,5 +5816,25 @@ cases =
       \x =\n\
       \    (a {- b -}) |> c\n\
       \"
+    ),
+    ( "single line type branch with multi line comment",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {- a\n\
+      \         b\n\
+      \      -}\n\
+      \      C D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {- a\n\
+      \         b\n\
+      \      -}\n\
+      \      C D\n\
+      \"
     )
   ]
