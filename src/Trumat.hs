@@ -2193,13 +2193,13 @@ parseParenthesised context indent =
   do
     _ <- char '('
     _ <- space
-    startLine <- fmap (unPos . sourceLine) getSourcePos
     commentBefore <- commentSpaceParser indent
     item <- parseExpression 1 DoesntNeedBrackets (indent + 1)
     commentAfter <- commentSpaceParser indent
-    endLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- char ')'
-    if endLine > startLine
+    let isMultiline =
+          Text.elem '\n' (commentBefore <> item <> commentAfter)
+    if isMultiline
       then case context of
         NeedsBrackets ->
           return $
