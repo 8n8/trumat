@@ -876,7 +876,7 @@ parseRecordTypeItem indent =
     right <-
       choice
         [ try $ parseNotFollowedByArrow $ parseType (indent + 2),
-          parseBareFunctionType 2 indent
+          parseBareFunctionType 2 (indent + 2)
         ]
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
