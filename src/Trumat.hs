@@ -2195,8 +2195,8 @@ parseParenthesised context indent =
     _ <- space
     startLine <- fmap (unPos . sourceLine) getSourcePos
     item <- parseExpression 1 DoesntNeedBrackets (indent + 1)
+    commentAfter <- commentSpaceParser indent
     endLine <- fmap (unPos . sourceLine) getSourcePos
-    _ <- space
     _ <- char ')'
     if endLine > startLine
       then case context of
@@ -2215,7 +2215,9 @@ parseParenthesised context indent =
         NeedsBrackets ->
           return $ "(" <> item <> ")"
         DoesntNeedBrackets ->
-          return item
+          if commentAfter == ""
+            then return item
+            else return $ "(" <> item <> " " <> commentAfter <> ")"
 
 parseMultiTuple :: Int -> Parser Text
 parseMultiTuple indent =
