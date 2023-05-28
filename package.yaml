@@ -20,9 +20,6 @@ ghc-options:
 - -Wno-missing-kind-signatures
 - -Wno-missing-deriving-strategies
 - -Wno-missed-specialisations
-- -Wno-unused-matches
-- -Wno-unused-imports
-- -Wno-unused-top-binds
 - -O2
 
 library:

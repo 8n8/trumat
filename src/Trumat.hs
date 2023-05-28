@@ -3,10 +3,9 @@ module Trumat (trumat) where
 import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Text (Text, intercalate, isInfixOf, pack, takeEnd, unpack)
+import Data.Text (Text, intercalate, pack, takeEnd, unpack)
 import qualified Data.Text as Text
 import Data.Void (Void)
-import Debug.Trace (trace)
 import Text.Megaparsec
   ( Parsec,
     choice,
@@ -29,7 +28,6 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
-import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -48,17 +46,14 @@ import Prelude
     head,
     length,
     map,
-    max,
     mconcat,
     not,
     null,
     repeat,
     return,
     reverse,
-    show,
     snd,
     take,
-    zip,
     ($),
     (&&),
     (*),
@@ -149,28 +144,6 @@ parseDocRow =
             else mconcat pieces
     ]
 
-parseOtherDocRow :: Parser Text
-parseOtherDocRow =
-  choice
-    [ do
-        _ <- chunk "\n    "
-        code <- takeWhileP Nothing (\ch -> ch /= '\n')
-        return $ "\n    " <> code,
-      do
-        text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-')
-        _ <- notFollowedBy $ lookAhead $ chunk "-}"
-        if Text.strip text == ""
-          then return ""
-          else return $ Text.strip text,
-      do
-        _ <- space1
-        return "",
-      do
-        _ <- char '-'
-        _ <- notFollowedBy $ lookAhead $ char '}'
-        return ""
-    ]
-
 parseExportDocsRowOnly :: Parser [Text]
 parseExportDocsRowOnly =
   do
@@ -254,10 +227,6 @@ formatExportRow items docRow =
   let documented = filter (\doc -> elem doc items) docRow
    in intercalate ", " documented
 
-log :: (Show a) => String -> a -> a
-log description value =
-  trace (description <> ": " <> show value) value
-
 formatExports :: Int -> Bool -> [[Text]] -> [Text] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedRows = removeUndocumented items docs
@@ -328,25 +297,6 @@ getUndocumented docs items =
   let docSet = Set.fromList $ mconcat docs
    in filter (\item -> not (Set.member (trimExposeAll item) docSet)) items
 
-parseMultiLineExports :: [[Text]] -> Parser Text
-parseMultiLineExports docs =
-  do
-    _ <- char '('
-    _ <- space
-    items <- some parseExport
-    _ <- space
-    _ <- char ')'
-    return $
-      mconcat
-        [ "\n    ( ",
-          constructMultilineExports docs items,
-          "\n    )"
-        ]
-
-constructMultilineExports :: [[Text]] -> [Text] -> Text
-constructMultilineExports _ exports =
-  intercalate "\n    , " exports
-
 endDocComment :: Parser Text
 endDocComment =
   do
@@ -384,7 +334,7 @@ parseModuleDeclaration =
     port <-
       choice
         [ do
-            p <- chunk "port"
+            _ <- chunk "port"
             _ <- space
             return ("port " :: Text),
           return ""
@@ -419,8 +369,8 @@ parseModuleDeclaration =
             else "\n" <> title
         ]
 
-typeAliasDeclaration :: Parser Text
-typeAliasDeclaration =
+parseTypeAliasDeclaration :: Parser Text
+parseTypeAliasDeclaration =
   do
     _ <- space
     documentation <- choice [parseDocumentation, return ""]
@@ -495,7 +445,6 @@ parseBranch startChar =
     if unPos column == 0
       then fail "column == 0"
       else try $ do
-        startRow <- fmap (unPos . sourceLine) getSourcePos
         commentBefore <- commentSpaceParser 6
         branchName <- parseName
         afterNameRow <- fmap (unPos . sourceLine) getSourcePos
@@ -505,11 +454,9 @@ parseBranch startChar =
           else do
             _ <- space
             parameters <- parseTypeDeclarationParameters 2
-            endRow <- fmap (unPos . sourceLine) getSourcePos
             _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
             afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
             commentAfter <- commentSpaceParser 6
-            afterCommentRow <- fmap (unPos . sourceLine) getSourcePos
             return $
               mconcat
                 [ commentBefore,
@@ -835,35 +782,6 @@ parseRecordType indent =
                 else " }"
             ]
 
-parseRecordTypeItemLininess :: Parser ContainerType
-parseRecordTypeItemLininess =
-  do
-    _ <- parseName
-    spaces1 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    _ <- char ':'
-    spaces2 <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    right <- parseType 0
-    if "\n" `isInfixOf` (spaces1 <> spaces2 <> right)
-      then return MultiLine
-      else return SingleLine
-
-parseSingleLineRecordType :: Int -> Parser Text
-parseSingleLineRecordType indent =
-  do
-    _ <- char '{'
-    _ <- parseSpaces
-    items <- many (parseRecordTypeItem indent)
-    _ <- char '}'
-    if null items
-      then return "{}"
-      else
-        return $
-          mconcat
-            [ "{ ",
-              intercalate ", " items,
-              " }"
-            ]
-
 parseRecordTypeItem :: Int -> Parser Text
 parseRecordTypeItem indent =
   do
@@ -992,7 +910,7 @@ parser =
     topLevelBinds <-
       some $
         choice
-          [ try typeAliasDeclaration,
+          [ try parseTypeAliasDeclaration,
             try customTypeDeclaration,
             try parseSectionComment,
             try portDeclaration,
@@ -1087,8 +1005,8 @@ notDottable p =
     _ <- notFollowedBy $ char '.'
     return item
 
-parseCaseOfInBrackets :: Int -> Int -> Parser Text
-parseCaseOfInBrackets minColumn indent =
+parseCaseOfInBrackets :: Int -> Parser Text
+parseCaseOfInBrackets indent =
   do
     _ <- char '('
     _ <- space
@@ -1107,7 +1025,7 @@ parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
     [ try $ parseCaseOf indent,
-      try $ parseGlsl indent,
+      try parseGlsl,
       try $ notFollowedByInfix $ parseList indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
@@ -1126,8 +1044,8 @@ parseExpression minColumn context indent =
       parseAnonymousFunction minColumn indent
     ]
 
-parseGlsl :: Int -> Parser Text
-parseGlsl indent =
+parseGlsl :: Parser Text
+parseGlsl =
   do
     _ <- chunk "[glsl|"
     pieces <-
@@ -1381,7 +1299,7 @@ parsePattern context minColumn indent =
                 _ <- space1
                 return ()
         return pattern,
-      try $ parseAliasedPattern context minColumn indent
+      try $ parseAliasedPattern context indent
     ]
 
 parseTypeParameter :: Int -> Parser Text
@@ -1397,11 +1315,11 @@ parseTypeParameter indent =
       parseSimpleStringLiteral
     ]
 
-parseAliasedPattern :: Context -> Int -> Int -> Parser Text
-parseAliasedPattern context minColumn indent =
+parseAliasedPattern :: Context -> Int -> Parser Text
+parseAliasedPattern context indent =
   do
     _ <- choice [char '(' >> return (), return ()]
-    pattern <- parsePatternBeforeAs minColumn indent
+    pattern <- parsePatternBeforeAs indent
     _ <- space
     _ <- chunk "as"
     _ <- space
@@ -1445,8 +1363,8 @@ parseRecordPatternItem =
     _ <- choice [char ',', lookAhead (char '}')]
     return name
 
-parsePatternBeforeAs :: Int -> Int -> Parser Text
-parsePatternBeforeAs minColumn indent =
+parsePatternBeforeAs :: Int -> Parser Text
+parsePatternBeforeAs indent =
   choice
     [ try $ parseTuplePattern NeedsBrackets indent,
       parseList indent,
@@ -1470,7 +1388,7 @@ parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
-      parseAliasedPattern NeedsBrackets minColumn indent,
+      parseAliasedPattern NeedsBrackets indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim,
@@ -1510,7 +1428,7 @@ parseCallable :: Int -> Int -> Parser Text
 parseCallable minColumn indent =
   choice
     [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
-      try $ parseCaseOfInBrackets minColumn indent,
+      try $ parseCaseOfInBrackets indent,
       parseInfixInBrackets,
       parseName
     ]
@@ -2011,22 +1929,6 @@ commentSpaceParser indent =
         ("\n" <> pack (take indent (repeat ' ')))
         (filter (\s -> s /= "") comments)
 
-parseBlockComment :: Parser Text
-parseBlockComment =
-  do
-    _ <- chunk "{-"
-    contents <-
-      many $
-        choice
-          [ takeWhile1P Nothing (\ch -> ch /= '-'),
-            try $ do
-              _ <- char '-'
-              _ <- notFollowedBy $ lookAhead $ char '}'
-              return "-"
-          ]
-    _ <- chunk "-}"
-    return $ "{-" <> mconcat contents <> "-}"
-
 parseSameLineComment :: Parser Text
 parseSameLineComment =
   do
@@ -2290,11 +2192,9 @@ parseList indent =
 parseEmptyList :: Int -> Parser Text
 parseEmptyList indent =
   do
-    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '['
     comment <- commentSpaceParser (indent + 1)
     _ <- char ']'
-    endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
       if comment == ""
         then "[]"
