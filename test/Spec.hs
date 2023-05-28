@@ -5836,5 +5836,23 @@ cases =
       \      -}\n\
       \      C D\n\
       \"
+    ),
+    ( "multi line line comment after type branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A -- b\n\
+      \      -- c\n\
+      \    | D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A -- b\n\
+      \      -- c\n\
+      \    | D\n\
+      \"
     )
   ]
