@@ -5759,5 +5759,19 @@ cases =
       \    a\n\
       \        |> {- b -} c\n\
       \"
+    ),
+    ( "block comment after expression in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a {- b -}) |> c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a {- b -}) |> c\n\
+      \"
     )
   ]
