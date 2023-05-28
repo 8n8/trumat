@@ -2214,7 +2214,20 @@ parseParenthesised context indent =
           return item
       else case context of
         NeedsBrackets ->
-          return $ "(" <> item <> ")"
+          return $
+            mconcat
+              [ "(",
+                commentBefore,
+                if commentBefore == ""
+                  then ""
+                  else " ",
+                item,
+                if commentAfter == ""
+                  then ""
+                  else " ",
+                commentAfter,
+                ")"
+              ]
         DoesntNeedBrackets ->
           if commentAfter == "" && commentBefore == ""
             then return item
