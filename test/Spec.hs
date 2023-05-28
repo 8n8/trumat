@@ -5854,5 +5854,27 @@ cases =
       \      -- c\n\
       \    | D\n\
       \"
+    ),
+    ( "multi line line comment after record type field",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a : B\n\
+      \\n\
+      \    -- c\n\
+      \    -- d\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a : B\n\
+      \\n\
+      \    -- c\n\
+      \    -- d\n\
+      \    }\n\
+      \"
     )
   ]
