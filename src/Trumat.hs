@@ -1712,6 +1712,9 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                         else "\n" <> pack (take newIndent (repeat ' ')),
                       infix_,
                       " ",
+                      if commentAfter == ""
+                        then ""
+                        else commentAfter <> " ",
                       expression
                     ]
         else
