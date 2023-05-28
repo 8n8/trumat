@@ -508,7 +508,7 @@ parseBranch startChar =
             endRow <- fmap (unPos . sourceLine) getSourcePos
             _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
             afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
-            commentAfter <- commentSpaceParser 1
+            commentAfter <- commentSpaceParser 6
             afterCommentRow <- fmap (unPos . sourceLine) getSourcePos
             return $
               mconcat
