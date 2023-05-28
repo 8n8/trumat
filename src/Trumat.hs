@@ -504,7 +504,7 @@ parseBranch startChar =
           then fail "column is too low"
           else do
             _ <- space
-            parameters <- parseTypeDeclarationParameters 2
+            parameters <- dbg "parameters" $ parseTypeDeclarationParameters 2
             endRow <- fmap (unPos . sourceLine) getSourcePos
             _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
             afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
@@ -520,7 +520,7 @@ parseBranch startChar =
                   if parameters == ""
                     then ""
                     else
-                      if endRow > startRow
+                      if Text.elem '\n' (branchName <> parameters)
                         then "\n        "
                         else " ",
                   parameters,
