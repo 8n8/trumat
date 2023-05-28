@@ -5773,5 +5773,19 @@ cases =
       \x =\n\
       \    (a {- b -})\n\
       \"
+    ),
+    ( "block comment before expression with both in parentheses",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ({- a -} b)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ({- a -} b)\n\
+      \"
     )
   ]
