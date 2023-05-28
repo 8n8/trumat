@@ -405,8 +405,8 @@ parseTypeAliasDeclaration =
           type_
         ]
 
-customTypeDeclaration :: Parser Text
-customTypeDeclaration =
+parseCustomTypeDeclaration :: Parser Text
+parseCustomTypeDeclaration =
   do
     _ <- space
     documentation <- choice [parseDocumentation, return ""]
@@ -911,7 +911,7 @@ parser =
       some $
         choice
           [ try parseTypeAliasDeclaration,
-            try customTypeDeclaration,
+            try parseCustomTypeDeclaration,
             try parseSectionComment,
             try portDeclaration,
             topLevelBind
