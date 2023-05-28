@@ -875,7 +875,7 @@ parseRecordTypeItem indent =
     _ <- space
     right <-
       choice
-        [ try $ parseNotFollowedByArrow $ parseType indent,
+        [ try $ parseNotFollowedByArrow $ parseType (indent + 2),
           parseBareFunctionType 2 indent
         ]
     endRow <- fmap (unPos . sourceLine) getSourcePos
