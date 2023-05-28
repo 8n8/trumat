@@ -502,8 +502,8 @@ parseDocumentation =
           "-}"
         ]
 
-topLevelBind :: Parser Text
-topLevelBind =
+parseTopLevelBind :: Parser Text
+parseTopLevelBind =
   do
     _ <- space
     documentation <- choice [parseDocumentation, return ""]
@@ -913,8 +913,8 @@ parser =
           [ try parseTypeAliasDeclaration,
             try parseCustomTypeDeclaration,
             try parseSectionComment,
-            try portDeclaration,
-            topLevelBind
+            try parsePortDeclaration,
+            parseTopLevelBind
           ]
     _ <- eof
     return $
@@ -929,8 +929,8 @@ parser =
           "\n"
         ]
 
-portDeclaration :: Parser Text
-portDeclaration =
+parsePortDeclaration :: Parser Text
+parsePortDeclaration =
   do
     _ <- space
     documentation <- choice [parseDocumentation, return ""]
