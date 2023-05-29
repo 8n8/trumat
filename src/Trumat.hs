@@ -478,7 +478,11 @@ parseBranch startChar =
                 [ commentBefore,
                   if commentBefore == ""
                     then ""
-                    else "\n      ",
+                    else
+                      if not (Text.elem '\n' commentBefore)
+                        && Text.take 2 commentBefore == "{-"
+                        then " "
+                        else "\n      ",
                   branchName,
                   if parameters == ""
                     then ""
