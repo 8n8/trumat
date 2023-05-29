@@ -694,14 +694,11 @@ parseBareFunctionType minColumn indent =
           mconcat $
             mconcat
               [ [first],
-                if null remainder
-                  then []
-                  else ["\n" <> (pack $ take indent (repeat ' '))],
                 map
                   ( \item ->
                       if Text.elem '\n' item
-                        then "->\n" <> (pack $ take (indent + 4) (repeat ' ')) <> item
-                        else "-> " <> item
+                        then "\n" <> pack (take indent (repeat ' ')) <> "->\n" <> (pack $ take (indent + 4) (repeat ' ')) <> item
+                        else "\n" <> pack (take indent (repeat ' ')) <> "-> " <> item
                   )
                   remainder
               ]
