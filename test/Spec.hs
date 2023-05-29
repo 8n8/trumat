@@ -6018,5 +6018,29 @@ cases =
       \        { b : C\n\
       \        }\n\
       \"
+    ),
+    ( "type following multiline function type in function type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    ->\n\
+      \        (B\n\
+      \         -> C\n\
+      \        )\n\
+      \    -> D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    ->\n\
+      \        (B\n\
+      \         -> C\n\
+      \        )\n\
+      \    -> D\n\
+      \"
     )
   ]
