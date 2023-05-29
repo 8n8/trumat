@@ -6082,5 +6082,27 @@ cases =
       \type X\n\
       \    = {- a -} B\n\
       \"
+    ),
+    ( "expression after multiline block comment in multiline infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |. {- b\n\
+      \              c\n\
+      \           -}\n\
+      \           d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |. {- b\n\
+      \              c\n\
+      \           -}\n\
+      \           d\n\
+      \"
     )
   ]
