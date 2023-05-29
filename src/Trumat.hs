@@ -594,22 +594,7 @@ parseTypeSignature startColumn indent =
     _ <- char ':'
     _ <- space
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    types <- some $
-      try $ do
-        column <- fmap (unPos . sourceColumn) getSourcePos
-        if column <= startColumn
-          then fail "invalid indentation"
-          else do
-            type_ <- parseType 1 (indent + 4)
-            _ <-
-              choice
-                [ try $ do
-                    space
-                    _ <- chunk "->"
-                    space,
-                  return ()
-                ]
-            return type_
+    type_ <- parseBareFunctionType startColumn (indent + 4)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     return $
@@ -619,15 +604,7 @@ parseTypeSignature startColumn indent =
           if endRow > startRow
             then "\n" <> pack (take (indent + 4) (repeat ' '))
             else " ",
-          intercalate
-            ( mconcat
-                [ if endRow > startRow
-                    then "\n" <> pack (take (indent + 4) (repeat ' '))
-                    else " ",
-                  "-> "
-                ]
-            )
-            types
+          type_
         ]
 
 parseType :: Int -> Int -> Parser Text
