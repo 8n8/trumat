@@ -1644,9 +1644,13 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                         else "\n" <> pack (take newIndent (repeat ' ')),
                       infix_,
                       " ",
+                      commentAfter,
                       if commentAfter == ""
                         then ""
-                        else commentAfter <> " ",
+                        else
+                          if Text.elem '\n' commentAfter
+                            then "\n" <> pack (take (newIndent + Text.length infix_ + 1) (repeat ' '))
+                            else " ",
                       expression
                     ]
         else
