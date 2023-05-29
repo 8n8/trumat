@@ -5948,5 +5948,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline line comments before expression in let in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            -- b\n\
+      \            -- c\n\
+      \            d\n\
+      \    in\n\
+      \    e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            -- b\n\
+      \            -- c\n\
+      \            d\n\
+      \    in\n\
+      \    e\n\
+      \"
     )
   ]
