@@ -662,33 +662,49 @@ parseNotFollowedByArrow p =
         notFollowedBy $ chunk "->"
     return item
 
+parseOneFunctionTypeItem :: Int -> Int -> Parser Text
+parseOneFunctionTypeItem minColumn indent =
+  do
+    column <- fmap (unPos . sourceColumn) getSourcePos
+    if column < minColumn
+      then fail "too far left"
+      else do
+        type_ <- parseType minColumn indent
+        choice
+          [ try $ do
+              _ <- space
+              _ <- chunk "->"
+              _ <- space
+              return type_,
+            return type_
+          ]
+
 parseBareFunctionType :: Int -> Int -> Parser Text
 parseBareFunctionType minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    types <- some $
-      do
-        column <- fmap (unPos . sourceColumn) getSourcePos
-        if column < minColumn
-          then fail "too far left"
-          else do
-            type_ <- parseType minColumn indent
-            choice
-              [ try $ do
-                  _ <- space
-                  _ <- chunk "->"
-                  _ <- space
-                  return type_,
-                return type_
-              ]
+    first <- parseOneFunctionTypeItem minColumn indent
+    remainder <- many $ parseOneFunctionTypeItem minColumn (indent + 4)
+    let types = first : remainder
     endRow <- fmap (unPos . sourceLine) getSourcePos
     if endRow == startRow
       then return $ intercalate " -> " types
       else
         return $
-          intercalate
-            ("\n" <> (pack $ take indent (repeat ' ')) <> "-> ")
-            types
+          mconcat $
+            mconcat
+              [ [first],
+                if null remainder
+                  then []
+                  else ["\n" <> (pack $ take indent (repeat ' '))],
+                map
+                  ( \item ->
+                      if Text.elem '\n' (log "item" item)
+                        then "->\n" <> (pack $ take (indent + 4) (repeat ' ')) <> item
+                        else "-> " <> item
+                  )
+                  remainder
+              ]
 
 parseFunctionType :: Int -> Int -> Parser Text
 parseFunctionType minColumn indent =
