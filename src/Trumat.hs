@@ -699,7 +699,7 @@ parseBareFunctionType minColumn indent =
                   else ["\n" <> (pack $ take indent (repeat ' '))],
                 map
                   ( \item ->
-                      if Text.elem '\n' (log "item" item)
+                      if Text.elem '\n' item
                         then "->\n" <> (pack $ take (indent + 4) (repeat ' ')) <> item
                         else "-> " <> item
                   )
