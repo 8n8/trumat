@@ -6104,5 +6104,23 @@ cases =
       \           -}\n\
       \           d\n\
       \"
+    ),
+    ( "line comment after name in multiline branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        -- b\n\
+      \        C\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        -- b\n\
+      \        C\n\
+      \"
     )
   ]
