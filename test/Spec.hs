@@ -5974,5 +5974,29 @@ cases =
       \    in\n\
       \    e\n\
       \"
+    ),
+    ( "multiline record in function type in function type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ({ a : B\n\
+      \     , c : D\n\
+      \     }\n\
+      \     -> E\n\
+      \    )\n\
+      \    -> F\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ({ a : B\n\
+      \     , c : D\n\
+      \     }\n\
+      \     -> E\n\
+      \    )\n\
+      \    -> F\n\
+      \"
     )
   ]
