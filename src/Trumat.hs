@@ -1712,7 +1712,7 @@ parseLetBind minColumn indent =
     left <- parsePattern DoesntNeedBrackets 1 indent
     _ <- space
     _ <- char '='
-    commentBeforeRight <- commentSpaceParser indent
+    commentBeforeRight <- commentSpaceParser (indent + 4)
     right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
