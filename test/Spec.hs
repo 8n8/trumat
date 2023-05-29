@@ -6068,5 +6068,19 @@ cases =
       \x =\n\
       \    d\n\
       \"
+    ),
+    ( "block comment before type branch name",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {- a -} B\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {- a -} B\n\
+      \"
     )
   ]
