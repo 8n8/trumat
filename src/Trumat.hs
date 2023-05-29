@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import Data.Text (Text, intercalate, pack, takeEnd, unpack)
 import qualified Data.Text as Text
 import Data.Void (Void)
+import Debug.Trace (trace)
 import Text.Megaparsec
   ( Parsec,
     choice,
@@ -28,6 +29,7 @@ import Text.Megaparsec
     unPos,
   )
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool,
     Char,
@@ -52,6 +54,7 @@ import Prelude
     repeat,
     return,
     reverse,
+    show,
     snd,
     take,
     ($),
@@ -96,6 +99,10 @@ consumeExportList =
   do
     _ <- char '('
     consumeExportListHelp 1
+
+log :: Show a => String -> a -> a
+log message value =
+  trace (message <> ": " <> show value) value
 
 consumeExportListHelp :: Int -> Parser ()
 consumeExportListHelp nesting =
@@ -186,9 +193,18 @@ parseOneExportDoc =
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return name
 
-parseExport :: Parser Text
-parseExport =
+parseExportRow :: Parser [Text]
+parseExportRow =
   do
+    items <- some parseSingleItemInExportRow
+    _ <- space
+    return items
+
+parseSingleItemInExportRow :: Parser Text
+parseSingleItemInExportRow =
+  do
+    _ <- choice [char ',', return ' ']
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
     name <- choice [parseName, parseInfixInBrackets]
     all_ <-
       choice
@@ -199,15 +215,9 @@ parseExport =
             return "(..)",
           return ""
         ]
-    _ <-
-      choice
-        [ try $ do
-            _ <- space
-            _ <- char ','
-            _ <- space
-            return (),
-          return ()
-        ]
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- choice [char ',', return ' ']
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return $ name <> all_
 
 parseExposing :: Int -> [[Text]] -> Parser Text
@@ -216,7 +226,7 @@ parseExposing indent docs =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- some parseExport
+    items <- some parseExportRow
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -227,12 +237,12 @@ formatExportRow items docRow =
   let documented = filter (\doc -> elem doc items) docRow
    in intercalate ", " documented
 
-formatExports :: Int -> Bool -> [[Text]] -> [Text] -> Text
+formatExports :: Int -> Bool -> [[Text]] -> [[Text]] -> Text
 formatExports indent originalIsMultiline docs items =
-  let unformattedRows = removeUndocumented items docs
-      rows = filter (\row -> row /= "") $ (map (formatExportRow items) unformattedRows) <> undocumented
+  let unformattedRows = removeUndocumented (mconcat items) docs
+      rows = filter (\row -> row /= "") $ (map (formatExportRow (mconcat items)) unformattedRows) <> undocumented
       undocumented = getUndocumented docs items
-      isMultiline = (not (null (removeUndocumented items docs)) && length items > 1) || originalIsMultiline
+      isMultiline = (not (null (removeUndocumented (mconcat items) docs)) && length (mconcat items) > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -292,10 +302,16 @@ trimExposeAll text =
     then Text.dropEnd 4 text
     else text
 
-getUndocumented :: [[Text]] -> [Text] -> [Text]
+getUndocumented :: [[Text]] -> [[Text]] -> [Text]
 getUndocumented docs items =
   let docSet = Set.fromList $ mconcat docs
-   in filter (\item -> not (Set.member (trimExposeAll item) docSet)) items
+   in map (\row -> intercalate ", " row) $
+        filter (\row -> not (null row)) $
+          map
+            ( \row ->
+                filter (\item -> not (Set.member (trimExposeAll item) docSet)) row
+            )
+            items
 
 endDocComment :: Parser Text
 endDocComment =
