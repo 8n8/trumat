@@ -567,7 +567,7 @@ parseTypeDeclarationParameters startColumn =
             if parameterColumn <= startColumn
               then fail "invalid indentation"
               else try $ do
-                parameter <- parseType 8
+                parameter <- parseType 1 8
                 return parameter
     return $ intercalate " " parameters
 
@@ -600,7 +600,7 @@ parseTypeSignature startColumn indent =
         if column <= startColumn
           then fail "invalid indentation"
           else do
-            type_ <- parseType (indent + 4)
+            type_ <- parseType 1 (indent + 4)
             _ <-
               choice
                 [ try $ do
@@ -630,14 +630,14 @@ parseTypeSignature startColumn indent =
             types
         ]
 
-parseType :: Int -> Parser Text
-parseType indent =
+parseType :: Int -> Int -> Parser Text
+parseType minColumn indent =
   choice
     [ try parseTypeWithParameters,
       try parseEmptyRecord,
       try $ parseRecordType indent,
       parseExtensibleRecordType indent,
-      try parseFunctionType,
+      try $ parseFunctionType minColumn indent,
       parseTupleType indent,
       parseVerbatim
     ]
@@ -672,7 +672,7 @@ parseBareFunctionType minColumn indent =
         if column < minColumn
           then fail "too far left"
           else do
-            type_ <- parseType indent
+            type_ <- parseType minColumn indent
             choice
               [ try $ do
                   _ <- space
@@ -690,19 +690,23 @@ parseBareFunctionType minColumn indent =
             ("\n" <> (pack $ take indent (repeat ' ')) <> "-> ")
             types
 
-parseFunctionType :: Parser Text
-parseFunctionType =
+parseFunctionType :: Int -> Int -> Parser Text
+parseFunctionType minColumn indent =
   do
     _ <- char '('
-    types <- some $
-      do
-        type_ <- parseType 0
-        _ <- space
-        _ <- choice [chunk "->", return ""]
-        _ <- space
-        return type_
+    _ <- space
+    bare <- parseBareFunctionType minColumn (indent + 1)
+    _ <- space
     _ <- char ')'
-    return $ "(" <> intercalate " -> " types <> ")"
+    return $
+      mconcat
+        [ "(",
+          bare,
+          if Text.elem '\n' bare
+            then "\n" <> pack (take indent (repeat ' '))
+            else "",
+          ")"
+        ]
 
 parseTupleType :: Int -> Parser Text
 parseTupleType indent =
@@ -733,7 +737,7 @@ parseTupleTypeItem :: Int -> Parser Text
 parseTupleTypeItem indent =
   do
     _ <- space
-    type_ <- parseType indent
+    type_ <- parseType 1 indent
     _ <- space
     _ <- choice [char ',', lookAhead (char ')')]
     return type_
@@ -809,7 +813,7 @@ parseRecordTypeItem indent =
     _ <- space
     right <-
       choice
-        [ try $ parseNotFollowedByArrow $ parseType (indent + 2),
+        [ try $ parseNotFollowedByArrow $ parseType 1 (indent + 2),
           parseBareFunctionType 2 (indent + 2)
         ]
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -858,7 +862,7 @@ parseTypeParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parseTypeParameter 8
+              parameter <- parseTypeParameter 1 8
               return parameter
     return $ intercalate " " parameters
 
@@ -1318,10 +1322,10 @@ parsePattern context minColumn indent =
       try $ parseAliasedPattern context indent
     ]
 
-parseTypeParameter :: Int -> Parser Text
-parseTypeParameter indent =
+parseTypeParameter :: Int -> Int -> Parser Text
+parseTypeParameter minColumn indent =
   choice
-    [ try parseFunctionType,
+    [ try $ parseFunctionType minColumn indent,
       parseTupleType indent,
       parseList indent,
       try $ parseRecordType indent,
