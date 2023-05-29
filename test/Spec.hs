@@ -6042,5 +6042,31 @@ cases =
       \        )\n\
       \    -> D\n\
       \"
+    ),
+    ( "multiline function type in multiline function type",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    A\n\
+      \    ->\n\
+      \        (B\n\
+      \         -> C\n\
+      \        )\n\
+      \x =\n\
+      \    d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    A\n\
+      \    ->\n\
+      \        (B\n\
+      \         -> C\n\
+      \        )\n\
+      \x =\n\
+      \    d\n\
+      \"
     )
   ]
