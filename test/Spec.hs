@@ -5998,5 +5998,25 @@ cases =
       \    )\n\
       \    -> F\n\
       \"
+    ),
+    ( "multiline record type in multiline function type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    ->\n\
+      \        { b : C\n\
+      \        }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \    ->\n\
+      \        { b : C\n\
+      \        }\n\
+      \"
     )
   ]
