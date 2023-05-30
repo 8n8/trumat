@@ -514,11 +514,7 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
     parameters <- parseTypeDeclarationParameters 2
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    commentAfterRaw <- commentSpaceParser 6
-    let commentAfter =
-          if parameters == ""
-            then commentAfterName
-            else commentAfterRaw
+    commentAfter <- commentSpaceParser 6
     return $
       mconcat
         [ commentBefore,
@@ -629,6 +625,7 @@ parseTopLevelBind =
 parseTypeDeclarationParameters :: Int -> Parser Text
 parseTypeDeclarationParameters startColumn =
   do
+    startRow_ <- fmap (unPos . sourceLine) getSourcePos
     parameters <-
       some $
         try $
@@ -638,9 +635,23 @@ parseTypeDeclarationParameters startColumn =
             if parameterColumn <= startColumn
               then fail "invalid indentation"
               else try $ do
+                startRow <- fmap (unPos . sourceLine) getSourcePos
+                commentBefore <- commentSpaceParser 8
+                endRow <- fmap (unPos . sourceLine) getSourcePos
                 parameter <- parseType 1 8
-                return parameter
-    return $ intercalate " " parameters
+                return $
+                  mconcat
+                    [ commentBefore,
+                      if commentBefore == ""
+                        then ""
+                        else
+                          if startRow == endRow
+                            then " "
+                            else "\n        ",
+                      parameter
+                    ]
+    endRow_ <- fmap (unPos . sourceLine) getSourcePos
+    return $ intercalate (if endRow_ == startRow_ then " " else "\n        ") parameters
 
 parseParameters :: Int -> Parser Text
 parseParameters startColumn =
