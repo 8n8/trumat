@@ -6122,5 +6122,25 @@ cases =
       \        -- b\n\
       \        C\n\
       \"
+    ),
+    ( "line comment between type parameters in multiline custom type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        B\n\
+      \        -- c\n\
+      \        D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        B\n\
+      \        -- c\n\
+      \        D\n\
+      \"
     )
   ]
