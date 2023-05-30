@@ -467,39 +467,106 @@ parseBranch startChar =
         startColumn <- fmap (unPos . sourceColumn) getSourcePos
         if startColumn == 1
           then fail "column is too low"
-          else do
-            _ <- space
-            parameters <- parseTypeDeclarationParameters 2
-            _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-            afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
-            commentAfter <- commentSpaceParser 6
-            return $
-              mconcat
-                [ commentBefore,
-                  if commentBefore == ""
-                    then ""
-                    else
-                      if not (Text.elem '\n' commentBefore)
-                        && Text.take 2 commentBefore == "{-"
-                        then " "
-                        else "\n      ",
-                  branchName,
-                  if parameters == ""
-                    then ""
-                    else
-                      if Text.elem '\n' (branchName <> parameters)
-                        then "\n        "
-                        else " ",
-                  parameters,
-                  if commentAfter == ""
-                    then ""
-                    else
-                      ( if afterEmptySpaceRow == afterNameRow
-                          then " "
-                          else "\n      "
-                      )
-                        <> commentAfter
-                ]
+          else
+            choice
+              [ try $
+                  parseBranchParametersWithComments
+                    commentBefore
+                    branchName
+                    afterNameRow,
+                parseBranchNoParameters
+                  commentBefore
+                  branchName
+                  afterNameRow
+              ]
+
+parseBranchNoParameters :: Text -> Text -> Int -> Parser Text
+parseBranchNoParameters commentBefore branchName afterNameRow =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
+    commentAfter <- commentSpaceParser 6
+    return $
+      mconcat
+        [ commentBefore,
+          if commentBefore == ""
+            then ""
+            else
+              if not (Text.elem '\n' commentBefore)
+                && Text.take 2 commentBefore == "{-"
+                then " "
+                else "\n      ",
+          branchName,
+          if commentAfter == ""
+            then ""
+            else
+              ( if afterEmptySpaceRow == afterNameRow
+                  then " "
+                  else "\n      "
+              )
+                <> commentAfter
+        ]
+
+parseBranchParametersWithComments :: Text -> Text -> Int -> Parser Text
+parseBranchParametersWithComments commentBefore branchName afterNameRow =
+  do
+    commentAfterName <- commentSpaceParser 6
+    parameters <- parseTypeDeclarationParameters 2
+    _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
+    commentAfterRaw <- commentSpaceParser 6
+    let commentAfter =
+          if parameters == ""
+            then commentAfterName
+            else commentAfterRaw
+    return $
+      mconcat
+        [ commentBefore,
+          if commentBefore == ""
+            then ""
+            else
+              if not (Text.elem '\n' commentBefore)
+                && Text.take 2 commentBefore == "{-"
+                then " "
+                else "\n      ",
+          branchName,
+          if commentAfterName == ""
+            then ""
+            else
+              if parameters == ""
+                then ""
+                else
+                  if afterEmptySpaceRow == afterNameRow
+                    then " "
+                    else "\n        ",
+          if parameters == ""
+            then ""
+            else commentAfterName,
+          if commentAfterName == ""
+            then ""
+            else
+              if parameters == ""
+                then ""
+                else
+                  if afterEmptySpaceRow == afterNameRow
+                    then " "
+                    else "\n       ",
+          if parameters == ""
+            then ""
+            else
+              if Text.elem '\n' (branchName <> parameters)
+                then "\n        "
+                else " ",
+          parameters,
+          if commentAfter == ""
+            then ""
+            else
+              ( if afterEmptySpaceRow == afterNameRow
+                  then " "
+                  else "\n      "
+              )
+                <> commentAfter
+        ]
 
 parseDocumentation :: Parser Text
 parseDocumentation =
@@ -563,7 +630,7 @@ parseTypeDeclarationParameters :: Int -> Parser Text
 parseTypeDeclarationParameters startColumn =
   do
     parameters <-
-      many $
+      some $
         try $
           do
             _ <- space
