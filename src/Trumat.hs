@@ -1719,7 +1719,7 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                       expression
                     ]
             else
-              if (infix_ == "|>" || infix_ == "++") && followsTripleQuoteString && oneOrTwo && isOnSameRowAsPrevious
+              if (infix_ == "|>" || infix_ == "++") && followsTripleQuoteString && isOnSameRowAsPrevious
                 then " " <> infix_ <> " " <> expression
                 else
                   mconcat
