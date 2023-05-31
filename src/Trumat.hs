@@ -1517,6 +1517,7 @@ parseArgumentExpression indent =
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
+      parseNumberLiteral,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
