@@ -138,11 +138,17 @@ parseDocRow =
           some $
             do
               text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
-              _ <- notFollowedBy $ lookAhead $ chunk "-}"
+              _ <-
+                notFollowedBy $
+                  lookAhead $
+                    choice [chunk "-}", chunk "docs"]
               choice
                 [ do
                     _ <- char '-'
                     return $ text <> "-",
+                  do
+                    _ <- char '@'
+                    return $ text <> "@",
                   return text
                 ]
         return $
