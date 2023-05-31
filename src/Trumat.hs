@@ -1130,12 +1130,13 @@ parseExpression minColumn context indent =
       try $ notFollowedByInfix $ parseRecord indent,
       try $ notFollowedByInfix $ parseRecordUpdate indent,
       try $ notFollowedByInfix (parseFunctionCall minColumn indent),
+      try $ notFollowedByInfix parseNumberLiteral,
       try $ parseInfixed minColumn indent,
       try parseInfixInBrackets,
       try $ notDottable $ parseParenthesised context indent,
       try $ makeDottable $ parseParenthesised NeedsBrackets indent,
-      parseTuple context indent,
       parseVerbatim,
+      parseTuple context indent,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
       parseCharLiteral,
@@ -1976,6 +1977,33 @@ parseName =
     if Set.member word keywords
       then fail $ "expecting a name tail but got: " <> unpack word
       else return word
+
+parseNumberLiteral :: Parser Text
+parseNumberLiteral =
+  do
+    negative <- choice [char '-' >> return "-", return ""]
+    firstDigit <- choice $ map char ("0123456789" :: String)
+    x <- choice [char 'x' >> return "x", return ""]
+    remainder <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789abcdefABCDEF." :: String))
+    e <- choice [char 'e' >> return "e", return ""]
+    exponentNegative <- choice [char '-' >> return "-", return ""]
+    exponent <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789" :: String))
+    return $
+      mconcat
+        [ case Text.singleton firstDigit <> x <> remainder of
+            "0" ->
+              ""
+            "0x00" ->
+              ""
+            _ ->
+              negative,
+          Text.singleton firstDigit,
+          x,
+          remainder,
+          e,
+          exponentNegative,
+          exponent
+        ]
 
 parseNegative :: Parser Text
 parseNegative =
