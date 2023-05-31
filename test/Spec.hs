@@ -6224,5 +6224,21 @@ cases =
       \    \"\"\"\n\
       \\"\"\" ++ a\n\
       \"
+    ),
+    ( "multiline string followed by two other items in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" ++ a ++ b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" ++ a ++ b\n\
+      \"
     )
   ]
