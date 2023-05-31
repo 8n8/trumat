@@ -6160,5 +6160,25 @@ cases =
       \        b :: [] ->\n\
       \            c\n\
       \"
+    ),
+    ( "at symbol not followed by docs in doc comment @",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| @\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| @\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
