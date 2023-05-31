@@ -6208,5 +6208,21 @@ cases =
       \x =\n\
       \    a 1.0e-3\n\
       \"
+    ),
+    ( "infix operator after multiline string on same line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" ++ a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" ++ a\n\
+      \"
     )
   ]
