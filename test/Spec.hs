@@ -6240,5 +6240,23 @@ cases =
       \    \"\"\"\n\
       \\"\"\" ++ a ++ b\n\
       \"
+    ),
+    ( "block comment inside block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{- {- a -} -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{- {- a -} -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
