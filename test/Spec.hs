@@ -6142,5 +6142,23 @@ cases =
       \        -- c\n\
       \        D\n\
       \"
+    ),
+    ( "empty list in cons pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: [] ->\n\
+      \            c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b :: [] ->\n\
+      \            c\n\
+      \"
     )
   ]
