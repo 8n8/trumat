@@ -6180,5 +6180,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "float literal with negative exponent",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1.0e-3\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1.0e-3\n\
+      \"
     )
   ]
