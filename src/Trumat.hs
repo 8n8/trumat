@@ -1480,7 +1480,7 @@ parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
-      parseAliasedPattern NeedsBrackets indent,
+      try $ parseAliasedPattern NeedsBrackets indent,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim,
