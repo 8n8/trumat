@@ -1063,17 +1063,31 @@ parseNonDocBlockComment =
   do
     _ <- chunk "{-"
     _ <- lookAhead $ notFollowedBy (char '|')
-    contents <-
-      many $
-        choice
-          [ takeWhile1P Nothing (\ch -> ch /= '-'),
-            try $ do
-              _ <- char '-'
-              _ <- notFollowedBy $ lookAhead $ char '}'
-              return "-"
-          ]
-    _ <- chunk "-}"
-    return $ "{-" <> mconcat contents <> "-}"
+    parseNonDocBlockCommentHelp 1 "{-"
+
+parseNonDocBlockCommentHelp :: Int -> Text -> Parser Text
+parseNonDocBlockCommentHelp nesting contents =
+  if nesting == 0
+    then return contents
+    else do
+      choice
+        [ do
+            _ <- chunk "{-"
+            _ <- lookAhead $ notFollowedBy (char '|')
+            parseNonDocBlockCommentHelp (nesting + 1) (contents <> "{-"),
+          do
+            _ <- chunk "-}"
+            parseNonDocBlockCommentHelp (nesting - 1) (contents <> "-}"),
+          do
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            parseNonDocBlockCommentHelp nesting (contents <> piece),
+          do
+            _ <- char '-'
+            parseNonDocBlockCommentHelp nesting (contents <> "-"),
+          do
+            _ <- char '{'
+            parseNonDocBlockCommentHelp nesting (contents <> "{")
+        ]
 
 notFollowedByInfix :: Parser Text -> Parser Text
 notFollowedByInfix p =
