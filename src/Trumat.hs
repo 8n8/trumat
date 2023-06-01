@@ -1073,7 +1073,6 @@ parseNonDocBlockCommentHelp nesting contents =
       choice
         [ do
             _ <- chunk "{-"
-            _ <- lookAhead $ notFollowedBy (char '|')
             parseNonDocBlockCommentHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
