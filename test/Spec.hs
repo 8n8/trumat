@@ -6316,5 +6316,15 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "block comment at the end of a module",
+      "module X exposing (x)\n\
+      \\n\
+      \{--}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{--}\n\
+      \"
     )
   ]
