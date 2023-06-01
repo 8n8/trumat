@@ -335,20 +335,46 @@ endDocComment =
     _ <- chunk "-}"
     return $ Text.strip $ mconcat contents
 
+parseModuleDocsInner :: Parser Text
+parseModuleDocsInner =
+  do
+    rows <- many parseDocRow
+    return $
+      if Text.strip (mconcat rows) == ""
+        then "\n\n\n"
+        else mconcat rows
+
+parseModuleDocsHelp :: Int -> Text -> Parser Text
+parseModuleDocsHelp nesting contents =
+  if nesting == 0
+    then return contents
+    else do
+      choice
+        [ do
+            _ <- chunk "{-"
+            parseModuleDocsHelp (nesting + 1) (contents <> "{-"),
+          do
+            _ <- chunk "-}"
+            parseModuleDocsHelp (nesting - 1) (contents <> "-}"),
+          try $ do
+            piece <- parseModuleDocsInner
+            parseModuleDocsHelp nesting (contents <> piece),
+          do
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            parseDocumentationHelp nesting (contents <> piece),
+          do
+            _ <- char '-'
+            parseModuleDocsHelp nesting (contents <> "-"),
+          do
+            _ <- char '{'
+            parseModuleDocsHelp nesting (contents <> "{")
+        ]
+
 parseModuleDocs :: Parser Text
 parseModuleDocs =
   do
     _ <- chunk "{-|"
-    rows <- many parseDocRow
-    _ <- chunk "-}"
-    return $
-      mconcat
-        [ "{-|",
-          if Text.strip (mconcat rows) == ""
-            then "\n\n\n"
-            else mconcat rows,
-          "-}"
-        ]
+    parseModuleDocsHelp 1 "{-|"
 
 parseModuleDeclaration :: Parser Text
 parseModuleDeclaration =
@@ -574,21 +600,29 @@ parseDocumentation :: Parser Text
 parseDocumentation =
   do
     _ <- chunk "{-|"
-    contents <-
-      many $
-        choice
-          [ takeWhile1P Nothing (\ch -> ch /= '-'),
-            try $ do
-              _ <- char '-'
-              _ <- notFollowedBy (char '}')
-              return "-"
-          ]
-    _ <- chunk "-}"
-    return $
-      mconcat
-        [ "{-|",
-          mconcat contents,
-          "-}"
+    parseDocumentationHelp 1 "{-|"
+
+parseDocumentationHelp :: Int -> Text -> Parser Text
+parseDocumentationHelp nesting contents =
+  if nesting == 0
+    then return contents
+    else do
+      choice
+        [ do
+            _ <- chunk "{-"
+            parseDocumentationHelp (nesting + 1) (contents <> "{-"),
+          do
+            _ <- chunk "-}"
+            parseDocumentationHelp (nesting - 1) (contents <> "-}"),
+          do
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            parseDocumentationHelp nesting (contents <> piece),
+          do
+            _ <- char '-'
+            parseDocumentationHelp nesting (contents <> "-"),
+          do
+            _ <- char '{'
+            parseDocumentationHelp nesting (contents <> "{")
         ]
 
 parseTopLevelBind :: Parser Text
@@ -1063,29 +1097,29 @@ parseNonDocBlockComment =
   do
     _ <- chunk "{-"
     _ <- lookAhead $ notFollowedBy (char '|')
-    parseNonDocBlockCommentHelp 1 "{-"
+    parseBlockCommentHelp 1 "{-"
 
-parseNonDocBlockCommentHelp :: Int -> Text -> Parser Text
-parseNonDocBlockCommentHelp nesting contents =
+parseBlockCommentHelp :: Int -> Text -> Parser Text
+parseBlockCommentHelp nesting contents =
   if nesting == 0
     then return contents
     else do
       choice
         [ do
             _ <- chunk "{-"
-            parseNonDocBlockCommentHelp (nesting + 1) (contents <> "{-"),
+            parseBlockCommentHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseNonDocBlockCommentHelp (nesting - 1) (contents <> "-}"),
+            parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseNonDocBlockCommentHelp nesting (contents <> piece),
+            parseBlockCommentHelp nesting (contents <> piece),
           do
             _ <- char '-'
-            parseNonDocBlockCommentHelp nesting (contents <> "-"),
+            parseBlockCommentHelp nesting (contents <> "-"),
           do
             _ <- char '{'
-            parseNonDocBlockCommentHelp nesting (contents <> "{")
+            parseBlockCommentHelp nesting (contents <> "{")
         ]
 
 notFollowedByInfix :: Parser Text -> Parser Text
