@@ -1040,15 +1040,17 @@ parser =
             return import_
     _ <- space
     topLevelBinds <-
-      some $
-        choice
-          [ try parseTypeAliasDeclaration,
-            try parseCustomTypeDeclaration,
-            try parseSectionComment,
-            try parsePortDeclaration,
-            parseTopLevelBind
-          ]
+      dbg "topLevelBinds" $
+        many $
+          choice
+            [ try parseTypeAliasDeclaration,
+              try parseCustomTypeDeclaration,
+              try parseSectionComment,
+              try parsePortDeclaration,
+              parseTopLevelBind
+            ]
     _ <- eof
+    let binds = intercalate "\n\n\n" topLevelBinds
     return $
       mconcat
         [ moduleDeclaration,
@@ -1056,8 +1058,8 @@ parser =
             then ""
             else "\n\n",
           imports,
-          "\n\n\n",
-          intercalate "\n\n\n" topLevelBinds,
+          if binds == "" then "" else "\n\n\n",
+          binds,
           "\n"
         ]
 
