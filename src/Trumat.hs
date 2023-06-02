@@ -732,7 +732,7 @@ parseTypeSignature startColumn indent =
 parseType :: Int -> Int -> Parser Text
 parseType minColumn indent =
   choice
-    [ try parseTypeWithParameters,
+    [ try $ parseTypeWithParameters indent,
       try parseEmptyRecord,
       try $ parseRecordType indent,
       parseExtensibleRecordType indent,
@@ -745,7 +745,7 @@ parseAliasedType :: Int -> Parser Text
 parseAliasedType indent =
   choice
     [ try $ parseBareFunctionType 2 indent,
-      parseTypeWithParameters,
+      parseTypeWithParameters indent,
       parseEmptyRecord,
       parseRecordType indent,
       parseTupleType indent
@@ -952,16 +952,26 @@ parseRecordTypeItem indent =
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
-parseTypeWithParameters :: Parser Text
-parseTypeWithParameters =
+parseTypeWithParameters :: Int -> Parser Text
+parseTypeWithParameters indent =
   do
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     name <- parseName
     _ <- space
+    afterSpaceRow <- fmap (unPos . sourceLine) getSourcePos
     parameters <- parseTypeParameters startColumn
     if parameters == ""
       then return name
-      else return $ name <> " " <> parameters
+      else
+        return $
+          ( name
+              <> ( if afterSpaceRow > startRow
+                     then "\n" <> pack (take (indent + 4) (repeat ' '))
+                     else " "
+                 )
+              <> parameters
+          )
 
 parseTypeParameters :: Int -> Parser Text
 parseTypeParameters startColumn =
