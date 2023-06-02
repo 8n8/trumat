@@ -6348,5 +6348,23 @@ cases =
       \\n\
       \{- -}\n\
       \"
+    ),
+    ( "multiline record type in multiline type argument",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \        { b : C\n\
+      \        }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \        { b : C\n\
+      \        }\n\
+      \"
     )
   ]
