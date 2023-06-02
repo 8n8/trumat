@@ -1040,7 +1040,6 @@ parser =
             return import_
     _ <- space
     topLevelBinds <-
-      dbg "topLevelBinds" $
         many $
           choice
             [ try parseTypeAliasDeclaration,
