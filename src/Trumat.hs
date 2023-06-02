@@ -1040,14 +1040,14 @@ parser =
             return import_
     _ <- space
     topLevelBinds <-
-        many $
-          choice
-            [ try parseTypeAliasDeclaration,
-              try parseCustomTypeDeclaration,
-              try parseSectionComment,
-              try parsePortDeclaration,
-              parseTopLevelBind
-            ]
+      many $
+        choice
+          [ try parseTypeAliasDeclaration,
+            try parseCustomTypeDeclaration,
+            try parseSectionComment,
+            try parsePortDeclaration,
+            parseTopLevelBind
+          ]
     _ <- eof
     let binds = intercalate "\n\n\n" topLevelBinds
     return $
