@@ -1086,10 +1086,12 @@ parseSectionComment =
       do
         _ <- space
         lines_ <- some parseLineComment
+        _ <- space
         return $ "\n" <> intercalate "\n" lines_,
       try $ do
         _ <- space
         block <- parseNonDocBlockComment
+        _ <- space
         return $ "\n" <> block
     ]
 
