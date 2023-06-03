@@ -6366,5 +6366,27 @@ cases =
       \        { b : C\n\
       \        }\n\
       \"
+    ),
+    ( "doc comment at end of module",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \"
     )
   ]
