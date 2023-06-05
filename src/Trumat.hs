@@ -1056,7 +1056,8 @@ parser =
             try parseCustomTypeDeclaration,
             try parseSectionComment,
             try parsePortDeclaration,
-            parseTopLevelBind
+            try parseTopLevelBind,
+            parseDocCommentAtEndOfModule
           ]
     _ <- eof
     let binds = intercalate "\n\n\n" topLevelBinds
@@ -1111,6 +1112,15 @@ parseNonDocBlockComment =
     _ <- chunk "{-"
     _ <- lookAhead $ notFollowedBy (char '|')
     parseBlockCommentHelp 1 "{-"
+
+parseDocCommentAtEndOfModule :: Parser Text
+parseDocCommentAtEndOfModule =
+  do
+    _ <- chunk "{-|"
+    comment <- parseBlockCommentHelp 1 "{-|"
+    _ <- space
+    _ <- lookAhead eof
+    return comment
 
 parseBlockCommentHelp :: Int -> Text -> Parser Text
 parseBlockCommentHelp nesting contents =
