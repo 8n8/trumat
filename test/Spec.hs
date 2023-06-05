@@ -6388,5 +6388,27 @@ cases =
       \{-| a\n\
       \-}\n\
       \"
+    ),
+    ( "line comment after type declaration followed by top-level declaration",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B C -- d\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B C -- d\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    e\n\
+      \"
     )
   ]
