@@ -678,7 +678,7 @@ parseTypeDeclarationParameters startColumn =
                 startRow <- fmap (unPos . sourceLine) getSourcePos
                 commentBefore <- commentSpaceParser 8
                 endRow <- fmap (unPos . sourceLine) getSourcePos
-                parameter <- parseType 1 8
+                parameter <- parseType 2 8
                 return $
                   mconcat
                     [ commentBefore,
@@ -729,6 +729,14 @@ parseTypeSignature startColumn indent =
           type_
         ]
 
+withMinColumn :: Int -> Parser Text -> Parser Text
+withMinColumn minColumn p =
+  do
+    startColumn <- fmap (unPos . sourceColumn) getSourcePos
+    if startColumn < minColumn
+      then fail "column too low"
+      else p
+
 parseType :: Int -> Int -> Parser Text
 parseType minColumn indent =
   choice
@@ -738,7 +746,7 @@ parseType minColumn indent =
       parseExtensibleRecordType indent,
       try $ parseFunctionType minColumn indent,
       parseTupleType indent,
-      parseVerbatim
+      withMinColumn minColumn parseVerbatim
     ]
 
 parseAliasedType :: Int -> Parser Text
