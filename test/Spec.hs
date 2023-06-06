@@ -6410,5 +6410,16 @@ cases =
       \x =\n\
       \    e\n\
       \"
+    ),
+    ( "no module declaration",
+      "x =\n\
+      \    0\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
