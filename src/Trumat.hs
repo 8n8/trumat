@@ -401,6 +401,7 @@ parseModuleDeclaration =
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
+    title <- choice [parseSectionComment, return ""]
     return $
       mconcat
         [ port,
@@ -410,25 +411,10 @@ parseModuleDeclaration =
           exports,
           if moduleDocs == ""
             then ""
-            else "\n\n" <> moduleDocs
-        ]
-
-parseModuleDeclarationWithTitle :: Parser Text
-parseModuleDeclarationWithTitle =
-  do
-    declaration <- choice [parseModuleDeclaration, return ""]
-    _ <- space
-    title <- dbg "title" $ choice [parseSectionComment, return ""]
-    topLevelNames <- parseTopLevelNames
-    return $
-      mconcat
-        [ declaration,
-          if declaration == ""
-              then ""
-              else "\n",
-        if title == ""
+            else "\n\n" <> moduleDocs,
+          if title == ""
             then ""
-            else title
+            else "\n" <> title
         ]
 
 parseTypeAliasDeclaration :: Parser Text
@@ -1061,7 +1047,7 @@ parseImport =
 parser :: Parser Text
 parser =
   do
-    moduleDeclaration <- parseModuleDeclarationWithTitle
+    moduleDeclaration <- parseModuleDeclaration
     _ <- space
     imports <-
       fmap (intercalate "\n" . List.sort) $
