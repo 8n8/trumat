@@ -413,22 +413,58 @@ parseModuleDeclaration =
             else "\n\n" <> moduleDocs
         ]
 
+parseTopLevelNames :: Parser [Text]
+parseTopLevelNames =
+  many parseTopLevelName
+
+parseTopLevelName :: Parser Text
+parseTopLevelName =
+  do
+    _ <- commentSpaceParser 0
+    name <- parseName
+    _ <- many $
+      try $
+        do
+          _ <- takeWhile1P Nothing (\ch -> ch /= '\n')
+          _ <- char '\n'
+          choice
+            [ do
+                _ <- lookAhead eof
+                return (),
+              do
+                _ <- takeWhile1P Nothing (\ch -> ch == ' ')
+                return ()
+            ]
+          return ()
+    return name
+
+createModuleDeclaration :: Parser Text
+createModuleDeclaration =
+  do
+    topLevelNames <- lookAhead parseTopLevelNames
+    return $
+      mconcat
+        [ "module Main exposing (",
+          intercalate ", " topLevelNames,
+          ")"
+        ]
+
 parseModuleDeclarationWithTitle :: Parser Text
 parseModuleDeclarationWithTitle =
   do
-    declaration <- choice [parseModuleDeclaration, return ""]
+    declaration <-
+      choice
+        [ parseModuleDeclaration,
+          createModuleDeclaration
+        ]
     _ <- space
-    title <- dbg "title" $ choice [parseSectionComment, return ""]
-    topLevelNames <- parseTopLevelNames
+    title <- choice [parseSectionComment, return ""]
     return $
       mconcat
         [ declaration,
-          if declaration == ""
-              then ""
-              else "\n",
-        if title == ""
+          if title == ""
             then ""
-            else title
+            else "\n" <> title
         ]
 
 parseTypeAliasDeclaration :: Parser Text
