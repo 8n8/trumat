@@ -6421,5 +6421,21 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "import expose all in module with no declaration",
+      "import A exposing (..)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \import A exposing (..)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
