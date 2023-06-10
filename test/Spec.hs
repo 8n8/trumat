@@ -6437,5 +6437,26 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment at start of module with no declaration and an import",
+      "-- a\n\
+      \\n\
+      \import B exposing (..)\n\
+      \\n\
+      \\n\
+      \main =\n\
+      \    0\n\
+      \",
+      "-- a\n\
+      \\n\
+      \\n\
+      \module Main exposing (main)\n\
+      \\n\
+      \import B exposing (..)\n\
+      \\n\
+      \\n\
+      \main =\n\
+      \    0\n\
+      \"
     )
   ]
