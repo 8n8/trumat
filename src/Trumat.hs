@@ -415,7 +415,12 @@ parseModuleDeclaration =
 
 parseTopLevelNames :: Parser [Text]
 parseTopLevelNames =
-  many parseTopLevelName
+  fmap (\items -> filter (\item -> item /= "") items) $
+    many $
+      choice
+        [ parseImport >> return "",
+          parseTopLevelName
+        ]
 
 parseTopLevelName :: Parser Text
 parseTopLevelName =
