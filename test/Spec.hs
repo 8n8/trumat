@@ -6476,5 +6476,17 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module with no declaration and that starts with a newline",
+      "\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
