@@ -6518,5 +6518,16 @@ cases =
       \type A\n\
       \    = B\n\
       \"
+    ),
+    ( "declaration with newline before equals in module with no declaration",
+      "x\n\
+      \    = 0\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
