@@ -423,8 +423,31 @@ parseTopLevelNames =
             _ <- space
             return "",
           try $ parseSectionComment >> return "",
+          parseTypeDeclaration,
           parseTopLevelName
         ]
+
+parseTypeDeclaration :: Parser Text
+parseTypeDeclaration =
+  do
+    _ <- commentSpaceParser 0
+    _ <- chunk "type"
+    _ <- commentSpaceParser 0
+    name <- parseName
+    _ <- many $
+      try $
+        do
+          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
+          _ <- char '\n'
+          choice
+            [ do
+                _ <- lookAhead eof
+                return (),
+              do
+                _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                return ()
+            ]
+    return (name <> "(..)")
 
 parseTopLevelName :: Parser Text
 parseTopLevelName =
@@ -444,7 +467,6 @@ parseTopLevelName =
                 _ <- takeWhileP Nothing (\ch -> ch == ' ')
                 return ()
             ]
-          return ()
     return name
 
 createModuleDeclaration :: Parser Text
