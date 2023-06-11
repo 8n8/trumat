@@ -417,10 +417,12 @@ parseTopLevelNames :: Parser [Text]
 parseTopLevelNames =
   fmap (\items -> filter (\item -> item /= "") items) $
     many $
-      choice
-        [ parseImport >> return "",
-          parseTopLevelName
-        ]
+      dbg "topLevelName" $
+        choice
+          [ parseImport >> return "",
+            try $ parseSectionComment >> return "",
+            parseTopLevelName
+          ]
 
 parseTopLevelName :: Parser Text
 parseTopLevelName =
@@ -457,6 +459,7 @@ createModuleDeclaration =
 parseModuleDeclarationWithTitle :: Parser Text
 parseModuleDeclarationWithTitle =
   do
+    commentBefore <- choice [parseTopLevelComment, return ""]
     declaration <-
       choice
         [ parseModuleDeclaration,
@@ -466,7 +469,11 @@ parseModuleDeclarationWithTitle =
     title <- choice [parseSectionComment, return ""]
     return $
       mconcat
-        [ declaration,
+        [ commentBefore,
+          if commentBefore == ""
+            then ""
+            else "\n\n\n",
+          declaration,
           if title == ""
             then ""
             else "\n" <> title
@@ -1149,6 +1156,12 @@ parsePortDeclaration =
 
 parseSectionComment :: Parser Text
 parseSectionComment =
+  do
+    comment <- parseTopLevelComment
+    return $ "\n" <> comment
+
+parseTopLevelComment :: Parser Text
+parseTopLevelComment =
   choice
     [ try $ do
         _ <- space
@@ -1156,17 +1169,17 @@ parseSectionComment =
         _ <- space
         line <- parseLineComment
         _ <- space
-        return $ "\n" <> block <> "\n" <> line,
+        return $ block <> "\n" <> line,
       do
         _ <- space
         lines_ <- some parseLineComment
         _ <- space
-        return $ "\n" <> intercalate "\n" lines_,
+        return $ intercalate "\n" lines_,
       try $ do
         _ <- space
         block <- parseNonDocBlockComment
         _ <- space
-        return $ "\n" <> block
+        return block
     ]
 
 parseNonDocBlockComment :: Parser Text

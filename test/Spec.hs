@@ -6444,18 +6444,18 @@ cases =
       \import B exposing (..)\n\
       \\n\
       \\n\
-      \main =\n\
+      \x =\n\
       \    0\n\
       \",
       "-- a\n\
       \\n\
       \\n\
-      \module Main exposing (main)\n\
+      \module Main exposing (x)\n\
       \\n\
       \import B exposing (..)\n\
       \\n\
       \\n\
-      \main =\n\
+      \x =\n\
       \    0\n\
       \"
     )
