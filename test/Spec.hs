@@ -6548,5 +6548,17 @@ cases =
       \a =\n\
       \    0\n\
       \"
+    ),
+    ( "trailing newline in module without module declaration",
+      "x =\n\
+      \    0\n\
+      \\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
