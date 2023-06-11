@@ -441,7 +441,7 @@ parseTopLevelName =
                 _ <- lookAhead eof
                 return (),
               do
-                _ <- takeWhile1P Nothing (\ch -> ch == ' ')
+                _ <- takeWhileP Nothing (\ch -> ch == ' ')
                 return ()
             ]
           return ()
