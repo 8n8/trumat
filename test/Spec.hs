@@ -6488,5 +6488,24 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "record argument to function in module with no declaration",
+      "x =\n\
+      \    a { b = c }\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- d\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a { b = c }\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- d\n\
+      \"
     )
   ]
