@@ -6530,7 +6530,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "two top-level declarations with no module declaration",
+    ( "two top level declarations with no module declaration",
       "x =\n\
       \    0\n\
       \\n\

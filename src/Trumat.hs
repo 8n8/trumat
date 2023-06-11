@@ -423,7 +423,7 @@ parseTopLevelNames =
             _ <- space
             return "",
           try $ parseSectionComment >> return "",
-          parseTypeDeclaration,
+          try parseTypeDeclaration,
           parseTopLevelName
         ]
 
@@ -457,16 +457,20 @@ parseTopLevelName =
     _ <- many $
       try $
         do
-          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
-          _ <- char '\n'
-          choice
-            [ do
-                _ <- lookAhead eof
-                return (),
-              do
-                _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                return ()
-            ]
+          column <- fmap (unPos . sourceColumn) getSourcePos
+          if column == 1
+            then fail "column is too low"
+            else do
+              _ <- takeWhileP Nothing (\ch -> ch /= '\n')
+              _ <- char '\n'
+              choice
+                [ do
+                    _ <- lookAhead eof
+                    return (),
+                  do
+                    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                    return ()
+                ]
     return name
 
 createModuleDeclaration :: Parser Text
@@ -476,7 +480,7 @@ createModuleDeclaration =
     return $
       mconcat
         [ "module Main exposing (",
-          intercalate ", " topLevelNames,
+          intercalate ", " (List.sort topLevelNames),
           ")"
         ]
 
