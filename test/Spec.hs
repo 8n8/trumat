@@ -6560,5 +6560,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment in module export list",
+      "module Skeleton exposing\n\
+      \    ( a\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Skeleton exposing\n\
+      \    ( a\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
