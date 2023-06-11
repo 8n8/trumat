@@ -457,7 +457,7 @@ parseTopLevelName =
     _ <- many $
       try $
         do
-          _ <- takeWhile1P Nothing (\ch -> ch /= '\n')
+          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
           _ <- char '\n'
           choice
             [ do
