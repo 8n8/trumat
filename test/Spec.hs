@@ -6458,5 +6458,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two exposing imports in module with no declaration",
+      "import A exposing (b)\n\
+      \import C exposing (d)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \import A exposing (b)\n\
+      \import C exposing (d)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
