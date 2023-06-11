@@ -417,12 +417,11 @@ parseTopLevelNames :: Parser [Text]
 parseTopLevelNames =
   fmap (\items -> filter (\item -> item /= "") items) $
     many $
-      dbg "topLevelName" $
-        choice
-          [ parseImport >> return "",
-            try $ parseSectionComment >> return "",
-            parseTopLevelName
-          ]
+      choice
+        [ parseImport >> return "",
+          try $ parseSectionComment >> return "",
+          parseTopLevelName
+        ]
 
 parseTopLevelName :: Parser Text
 parseTopLevelName =
