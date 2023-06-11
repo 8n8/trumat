@@ -6507,5 +6507,16 @@ cases =
       \\n\
       \-- d\n\
       \"
+    ),
+    ( "custom type declaration in module with no declaration",
+      "type A\n\
+      \    = B\n\
+      \",
+      "module Main exposing (A(..))\n\
+      \\n\
+      \\n\
+      \type A\n\
+      \    = B\n\
+      \"
     )
   ]
