@@ -6562,7 +6562,7 @@ cases =
       \"
     ),
     ( "line comment in module export list",
-      "module Skeleton exposing\n\
+      "module X exposing\n\
       \    ( a\n\
       \      --\n\
       \    )\n\
@@ -6571,7 +6571,7 @@ cases =
       \x =\n\
       \    0\n\
       \",
-      "module Skeleton exposing\n\
+      "module X exposing\n\
       \    ( a\n\
       \      --\n\
       \    )\n\
