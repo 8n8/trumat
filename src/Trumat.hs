@@ -422,6 +422,9 @@ parseTopLevelNames =
             _ <- parseImport
             _ <- space
             return "",
+          do
+            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+            return "",
           try $ parseSectionComment >> return "",
           try parseTypeDeclaration,
           parseTopLevelName
