@@ -461,6 +461,7 @@ createModuleDeclaration =
 parseModuleDeclarationWithTitle :: Parser Text
 parseModuleDeclarationWithTitle =
   do
+    _ <- space
     commentBefore <- choice [parseTopLevelComment, return ""]
     declaration <-
       choice
