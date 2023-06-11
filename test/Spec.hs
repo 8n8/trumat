@@ -6529,5 +6529,24 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two top-level declarations with no module declaration",
+      "x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \",
+      "module Main exposing (a, x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \"
     )
   ]
