@@ -418,7 +418,10 @@ parseTopLevelNames =
   fmap (\items -> filter (\item -> item /= "") items) $
     many $
       choice
-        [ parseImport >> return "",
+        [ do
+            _ <- parseImport
+            _ <- space
+            return "",
           try $ parseSectionComment >> return "",
           parseTopLevelName
         ]
