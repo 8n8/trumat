@@ -1718,7 +1718,7 @@ parseArgumentExpression indent =
       parseList indent,
       try $ parseRecord indent,
       parseRecordUpdate indent,
-      parseNumberLiteral,
+      try parseNumberLiteral,
       parseVerbatim,
       parseTripleStringLiteral,
       parseSimpleStringLiteral,
@@ -1818,9 +1818,15 @@ parseInfix =
     infix_ <-
       if column == 0
         then fail "can't have an infix at column zero"
-        else choice $ map chunk infixes
+        else choice $ parseNegativeInfix : map chunk infixes
     _ <- lookAhead afterInfixChar
     return infix_
+
+parseNegativeInfix :: Parser Text
+parseNegativeInfix =
+  do
+    _ <- chunk "- "
+    return "-"
 
 afterInfixChar :: Parser Char
 afterInfixChar =
@@ -1828,7 +1834,7 @@ afterInfixChar =
 
 infixes :: [Text]
 infixes =
-  ["==", "&&", "//", ">>", "<<", "||", "<=", ">=", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "-", "*", "^", "/"]
+  ["==", "&&", "//", ">>", "<<", "||", "<=", ">=", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "*", "^", "/"]
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
