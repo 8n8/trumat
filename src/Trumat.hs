@@ -232,23 +232,34 @@ parseExposing indent docs =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- some parseExportRow
+    items <- some $
+        do
+          row <- parseExportRow
+          comment <- commentSpaceParser 4
+          return $ (row, comment)
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $ formatExports indent (endRow > startRow) docs items
 
-formatExportRow :: [Text] -> [Text] -> Text
-formatExportRow items docRow =
+formatExportRow :: Int -> ([Text], Text) -> [Text] -> Text
+formatExportRow indent (items, comment) docRow =
   let documented = filter (\doc -> elem doc items) docRow
-   in intercalate ", " documented
+   in
+    mconcat
+    [ intercalate ", " documented
+    , if comment == "" then
+        ""
+      else "\n" <> pack (take indent (repeat ' '))
+    , comment
+    ]
 
-formatExports :: Int -> Bool -> [[Text]] -> [[Text]] -> Text
+formatExports :: Int -> Bool -> [[Text]] -> [([Text], Text)] -> Text
 formatExports indent originalIsMultiline docs items =
-  let unformattedRows = removeUndocumented (mconcat items) docs
-      rows = filter (\row -> row /= "") $ (map (formatExportRow (mconcat items)) unformattedRows) <> undocumented
+  let unformattedRows = removeUndocumented (mconcat (map fst items)) docs
+      rows = filter (\row -> row /= "") $ (map (formatExportRow indent (mconcat items)) unformattedRows) <> undocumented
       undocumented = getUndocumented docs items
-      isMultiline = (not (null (removeUndocumented (mconcat items) docs)) && length (mconcat items) > 1) || originalIsMultiline
+      isMultiline = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat items) > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -308,14 +319,16 @@ trimExposeAll text =
     then Text.dropEnd 4 text
     else text
 
-getUndocumented :: [[Text]] -> [[Text]] -> [Text]
+getUndocumented :: [[Text]] -> [([Text], Text)] -> [Text]
 getUndocumented docs items =
   let docSet = Set.fromList $ mconcat docs
-   in map (\row -> intercalate ", " row) $
+   in map (\(row, comment) -> intercalate ", " row <> "\n    " <> comment) $
         filter (\row -> not (null row)) $
           map
-            ( \row ->
-                filter (\item -> not (Set.member (trimExposeAll item) docSet)) row
+            ( \(row, comment) ->
+                (filter (\item -> not (Set.member (trimExposeAll item) docSet)) row
+                , comment
+                )
             )
             items
 
