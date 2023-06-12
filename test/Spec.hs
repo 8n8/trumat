@@ -6594,5 +6594,28 @@ cases =
       \x =\n\
       \    -a\n\
       \"
+    ),
+    ( "line comment on same line as let in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a = b -- c\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \\n\
+      \        -- c\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
