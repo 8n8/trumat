@@ -6631,5 +6631,27 @@ cases =
       \x =\n\
       \    a -b\n\
       \"
+    ),
+    ( "multiline infix operator after function call in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        b\n\
+      \      <|\n\
+      \        c\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        b\n\
+      \      <|\n\
+      \        c\n\
+      \    ]\n\
+      \"
     )
   ]
