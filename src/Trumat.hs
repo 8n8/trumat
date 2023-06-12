@@ -233,10 +233,10 @@ parseExposing indent docs =
     _ <- char '('
     _ <- space
     items <- some $
-        do
-          row <- parseExportRow
-          comment <- commentSpaceParser 4
-          return $ (row, comment)
+      do
+        row <- parseExportRow
+        comment <- commentSpaceParser 4
+        return $ (row, comment)
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -245,26 +245,27 @@ parseExposing indent docs =
 formatExportRow :: Int -> ([Text], Text) -> [Text] -> Text
 formatExportRow indent (items, comment) docRow =
   let documented = filter (\doc -> elem doc items) docRow
-   in
-    mconcat
-    [ intercalate ", " documented
-    , if comment == "" then
-        ""
-      else "\n" <> pack (take indent (repeat ' '))
-    , comment
-    ]
+   in mconcat
+        [ intercalate ", " documented,
+          if comment == ""
+            then ""
+            else "\n" <> pack (take indent (repeat ' ')),
+          comment
+        ]
 
 formatExports :: Int -> Bool -> [[Text]] -> [([Text], Text)] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedRows = removeUndocumented (mconcat (map fst items)) docs
-      rows = filter (\row -> row /= "") $ (map (formatExportRow indent (mconcat items)) unformattedRows) <> undocumented
-      undocumented = getUndocumented docs items
-      isMultiline = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat items) > 1) || originalIsMultiline
+      rows = filter (\row -> row /= "") $ (map (formatExportRow (indent + 2) (mconcat items)) unformattedRows) <> undocumented
+      undocumented = getUndocumented indent docs items
+      isMultiline = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat (map fst items)) > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
         [single] ->
-          " (" <> single <> ")"
+          if Text.elem '\n' single
+            then "\n" <> pack (take indent (repeat ' ')) <> "( " <> single <> "\n" <> pack (take indent (repeat ' ')) <> ")"
+            else " (" <> single <> ")"
         multiple ->
           mconcat
             [ if isMultiline
@@ -319,18 +320,27 @@ trimExposeAll text =
     then Text.dropEnd 4 text
     else text
 
-getUndocumented :: [[Text]] -> [([Text], Text)] -> [Text]
-getUndocumented docs items =
+getUndocumented :: Int -> [[Text]] -> [([Text], Text)] -> [Text]
+getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
-   in map (\(row, comment) -> intercalate ", " row <> "\n    " <> comment) $
-        filter (\row -> not (null row)) $
-          map
-            ( \(row, comment) ->
-                (filter (\item -> not (Set.member (trimExposeAll item) docSet)) row
-                , comment
-                )
-            )
-            items
+   in map
+        ( \(row, comment) ->
+            mconcat
+              [ intercalate ", " row,
+                if comment == ""
+                  then ""
+                  else "\n" <> pack (take (indent + 2) (repeat ' ')),
+                comment
+              ]
+        )
+        $ filter (\row -> not (null row))
+        $ map
+          ( \(row, comment) ->
+              ( filter (\item -> not (Set.member (trimExposeAll item) docSet)) row,
+                comment
+              )
+          )
+          items
 
 endDocComment :: Parser Text
 endDocComment =
