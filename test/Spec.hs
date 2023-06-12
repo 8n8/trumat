@@ -6580,5 +6580,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "negative variable",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    -a\n\
+      \"
     )
   ]
