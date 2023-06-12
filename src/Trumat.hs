@@ -2003,6 +2003,7 @@ parseLetBind minColumn indent =
     _ <- char '='
     commentBeforeRight <- commentSpaceParser (indent + 4)
     right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+    commentAfterRight <- commentSpaceParser (indent + 4)
     let leftSpaces = pack $ take indent $ repeat ' '
     let rightSpaces = pack $ take (indent + 4) $ repeat ' '
     return $
@@ -2020,7 +2021,9 @@ parseLetBind minColumn indent =
           commentBeforeRight,
           if commentBeforeRight == "" then "" else "\n",
           rightSpaces,
-          right
+          right,
+          if commentAfterRight == "" then "" else "\n\n" <> leftSpaces,
+          commentAfterRight
         ]
 
 parseIfThenElse :: Int -> Int -> Parser Text
