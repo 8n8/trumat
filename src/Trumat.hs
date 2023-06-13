@@ -1871,7 +1871,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace minColumn (length items < 2) (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
+              mconcat $ map (addInfixWhitespace minColumn (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
             ]
 
 parseInfixedItems ::
@@ -1904,8 +1904,9 @@ parseInfixedItems minColumn indent accum =
       return $ reverse accum
     ]
 
-addInfixWhitespace :: Int -> Bool -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
-addInfixWhitespace minColumn oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+addInfixWhitespace ::
+  Int -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
+addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
