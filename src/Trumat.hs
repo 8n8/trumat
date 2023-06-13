@@ -1947,7 +1947,7 @@ addMultilineInfixWhitespace leftPizzaMultilineIndent (indent, isOnSameRowAsPrevi
               expression
             ]
         else
-          if (infix_ == "|>" || infix_ == "++") && isOnSameRowAsPrevious
+          if isOnSameRowAsPrevious
             then " " <> infix_ <> " " <> expression
             else
               mconcat
