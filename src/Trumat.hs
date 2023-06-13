@@ -1865,13 +1865,18 @@ parseInfixed minColumn indent =
     midRow <- fmap (unPos . sourceLine) getSourcePos
     items <- parseInfixedItems indent (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
+    let leftPizzaMultilineIndent =
+          if midRow > startRow
+            then \newIndent -> "\n" <> replicate (max minColumn (newIndent - 4)) " "
+            else \_ -> " "
+
     if null items
       then fail "zero infix items"
       else do
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace minColumn (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
+              mconcat $ map (addInfixWhitespace leftPizzaMultilineIndent (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
             ]
 
 parseInfixedItems ::
@@ -1905,28 +1910,19 @@ parseInfixedItems minColumn indent accum =
     ]
 
 addInfixWhitespace ::
-  Int -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
-addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+  (Int -> Text) -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
+addInfixWhitespace leftPizzaMultilineIndent followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
           if infix_ == "<|"
             then
-              if firstIsMultiline
-                then
-                  mconcat
-                    [ "\n",
-                      replicate (max minColumn (newIndent - 4)) " ",
-                      "<|\n",
-                      replicate newIndent " ",
-                      expression
-                    ]
-                else
-                  mconcat
-                    [ " <|\n",
-                      replicate newIndent " ",
-                      expression
-                    ]
+              mconcat
+                [ leftPizzaMultilineIndent newIndent,
+                  "<|\n",
+                  replicate newIndent " ",
+                  expression
+                ]
             else
               if (infix_ == "|>" || infix_ == "++") && followsTripleQuoteString && isOnSameRowAsPrevious
                 then " " <> infix_ <> " " <> expression
