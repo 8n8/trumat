@@ -1865,10 +1865,17 @@ parseInfixed minColumn indent =
     midRow <- fmap (unPos . sourceLine) getSourcePos
     items <- parseInfixedItems indent (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    let leftPizzaMultilineIndent =
+    let leftPizzaMultilineIndent :: Int -> Text
+        leftPizzaMultilineIndent leftPizzaIndent =
           if midRow > startRow
-            then \newIndent -> "\n" <> replicate (max minColumn (newIndent - 4)) " "
-            else \_ -> " "
+            then "\n" <> replicate (max minColumn (leftPizzaIndent - 4)) " "
+            else " "
+
+        addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
+        addWhitespace infixItem =
+          if endRow > startRow
+            then addMultilineInfixWhitespace leftPizzaMultilineIndent infixItem
+            else addSingleLineInfixWhitespace infixItem
 
     if null items
       then fail "zero infix items"
@@ -1876,7 +1883,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace leftPizzaMultilineIndent (endRow > startRow)) items
+              mconcat $ map addWhitespace items
             ]
 
 parseInfixedItems ::
@@ -1909,55 +1916,55 @@ parseInfixedItems minColumn indent accum =
       return $ reverse accum
     ]
 
-addInfixWhitespace ::
-  (Int -> Text) -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
-addInfixWhitespace leftPizzaMultilineIndent isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+addSingleLineInfixWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
+addSingleLineInfixWhitespace (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+  if infix_ == "."
+    then infix_ <> expression
+    else
+      mconcat
+        [ if commentBefore == ""
+            then ""
+            else " " <> commentBefore,
+          " ",
+          infix_,
+          " ",
+          if commentAfter == ""
+            then ""
+            else commentAfter <> " ",
+          expression
+        ]
+
+addMultilineInfixWhitespace ::
+  (Int -> Text) -> (Int, Bool, Text, Text, Text, Text) -> Text
+addMultilineInfixWhitespace leftPizzaMultilineIndent (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
-   in if isMultiline
+   in if infix_ == "<|"
         then
-          if infix_ == "<|"
-            then
-              mconcat
-                [ leftPizzaMultilineIndent newIndent,
-                  "<|\n",
-                  replicate newIndent " ",
-                  expression
-                ]
-            else
-              if (infix_ == "|>" || infix_ == "++") && isOnSameRowAsPrevious
-                then " " <> infix_ <> " " <> expression
-                else
-                  mconcat
-                    [ "\n" <> replicate newIndent " ",
-                      commentBefore,
-                      if commentBefore == ""
-                        then ""
-                        else "\n" <> replicate newIndent " ",
-                      infix_,
-                      " ",
-                      commentAfter,
-                      if commentAfter == ""
-                        then ""
-                        else
-                          if Text.elem '\n' commentAfter
-                            then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
-                            else " ",
-                      expression
-                    ]
+          mconcat
+            [ leftPizzaMultilineIndent newIndent,
+              "<|\n",
+              replicate newIndent " ",
+              expression
+            ]
         else
-          if infix_ == "."
-            then infix_ <> expression
+          if (infix_ == "|>" || infix_ == "++") && isOnSameRowAsPrevious
+            then " " <> infix_ <> " " <> expression
             else
               mconcat
-                [ if commentBefore == ""
+                [ "\n" <> replicate newIndent " ",
+                  commentBefore,
+                  if commentBefore == ""
                     then ""
-                    else " " <> commentBefore,
-                  " ",
+                    else "\n" <> replicate newIndent " ",
                   infix_,
                   " ",
+                  commentAfter,
                   if commentAfter == ""
                     then ""
-                    else commentAfter <> " ",
+                    else
+                      if Text.elem '\n' commentAfter
+                        then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
+                        else " ",
                   expression
                 ]
 
