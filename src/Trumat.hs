@@ -3,7 +3,7 @@ module Trumat (trumat) where
 import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Text (Text, intercalate, pack, takeEnd, unpack)
+import Data.Text (Text, intercalate, pack, replicate, takeEnd, unpack)
 import qualified Data.Text as Text
 import Data.Void (Void)
 import Debug.Trace (trace)
@@ -1916,15 +1916,15 @@ addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultili
                 then
                   mconcat
                     [ "\n",
-                      pack $ take (max minColumn (newIndent - 4)) (repeat ' '),
+                      replicate (max minColumn (newIndent - 4)) " ",
                       "<|\n",
-                      pack (take newIndent (repeat ' ')),
+                      replicate newIndent " ",
                       expression
                     ]
                 else
                   mconcat
                     [ " <|\n",
-                      pack (take newIndent (repeat ' ')),
+                      replicate newIndent " ",
                       expression
                     ]
             else
@@ -1932,11 +1932,11 @@ addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultili
                 then " " <> infix_ <> " " <> expression
                 else
                   mconcat
-                    [ "\n" <> pack (take newIndent (repeat ' ')),
+                    [ "\n" <> replicate newIndent " ",
                       commentBefore,
                       if commentBefore == ""
                         then ""
-                        else "\n" <> pack (take newIndent (repeat ' ')),
+                        else "\n" <> replicate newIndent " ",
                       infix_,
                       " ",
                       commentAfter,
@@ -1944,7 +1944,7 @@ addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultili
                         then ""
                         else
                           if Text.elem '\n' commentAfter
-                            then "\n" <> pack (take (newIndent + Text.length infix_ + 1) (repeat ' '))
+                            then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
                             else " ",
                       expression
                     ]
@@ -1986,7 +1986,7 @@ parseLetIn minColumn indent =
     _ <- chunk "in"
     comment <- commentSpaceParser indent
     in_ <- parseExpression minColumn DoesntNeedBrackets indent
-    let inSpaces = "\n" <> (pack $ take indent $ repeat ' ')
+    let inSpaces = "\n" <> replicate indent " "
     return $
       mconcat
         [ "let\n",
@@ -2012,8 +2012,8 @@ parseLetBind minColumn indent =
     commentBeforeRight <- commentSpaceParser (indent + 4)
     right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
     commentAfterRight <- commentSpaceParser (indent + 4)
-    let leftSpaces = pack $ take indent $ repeat ' '
-    let rightSpaces = pack $ take (indent + 4) $ repeat ' '
+    let leftSpaces = replicate indent " "
+    let rightSpaces = replicate (indent + 4) " "
     return $
       mconcat
         [ if comment == ""
@@ -2052,19 +2052,19 @@ parseIfThenElse minColumn indent =
           mconcat
             [ "if",
               if Text.elem '\n' if_
-                then "\n" <> pack (take (indent + 4) (repeat ' '))
+                then "\n" <> replicate (indent + 4) " "
                 else " ",
               if_,
               if Text.elem '\n' if_
-                then "\n" <> pack (take indent (repeat ' '))
+                then "\n" <> replicate indent " "
                 else " ",
-              "then\n" <> pack (take (indent + 4) (repeat ' ')),
+              "then\n" <> replicate (indent + 4) " ",
               commentBeforeThen,
               if commentBeforeThen == ""
                 then ""
-                else "\n" <> pack (take (indent + 4) (repeat ' ')),
+                else "\n" <> replicate (indent + 4) " ",
               then_,
-              "\n\n" <> pack (take indent (repeat ' ')),
+              "\n\n" <> replicate indent " ",
               "else"
             ]
     choice
@@ -2077,22 +2077,22 @@ parseIfThenElse minColumn indent =
             mconcat
               [ "if",
                 if Text.elem '\n' if_
-                  then "\n" <> pack (take (indent + 4) (repeat ' '))
+                  then "\n" <> replicate (indent + 4) " "
                   else " ",
                 if_,
                 if Text.elem '\n' if_
-                  then "\n" <> pack (take indent (repeat ' '))
+                  then "\n" <> replicate indent " "
                   else " ",
-                "then\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
+                "then\n" <> replicate (floorToFour (indent + 4)) " ",
                 commentBeforeThen,
-                if commentBeforeThen == "" then "" else "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
+                if commentBeforeThen == "" then "" else "\n" <> replicate (floorToFour (indent + 4)) " ",
                 then_,
-                "\n\n" <> pack (take indent (repeat ' ')),
-                "else\n" <> pack (take (floorToFour (indent + 4)) (repeat ' ')),
+                "\n\n" <> replicate indent " ",
+                "else\n" <> replicate (floorToFour (indent + 4)) " ",
                 commentAfterElse,
                 if commentAfterElse == ""
                   then ""
-                  else "\n" <> pack (take (indent + 4) (repeat ' ')),
+                  else "\n" <> replicate (indent + 4) " ",
                 else_
               ]
       ]
@@ -2114,18 +2114,18 @@ parseCaseOf indent =
       mconcat
         [ "case",
           if endRow > startRow
-            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            then "\n" <> replicate (indent + 4) " "
             else " ",
           commentAfterCase,
           if commentAfterCase == ""
             then ""
             else
               if endRow > startRow
-                then "\n" <> pack (take (indent + 4) (repeat ' '))
+                then "\n" <> replicate (indent + 4) " "
                 else " ",
           caseOf,
           if endRow > startRow
-            then "\n" <> pack (take indent (repeat ' ') <> "of\n")
+            then "\n" <> replicate indent " " <> "of\n"
             else " of\n",
           intercalate "\n\n" branches
         ]
@@ -2147,19 +2147,19 @@ parseCaseOfBranch minColumn indent =
         _ <- space
         return $
           mconcat
-            [ pack $ take indent $ repeat ' ',
+            [ replicate indent " ",
               commentAbove,
-              if commentAbove == "" then "" else "\n" <> pack (take indent (repeat ' ')),
+              if commentAbove == "" then "" else "\n" <> replicate indent " ",
               left,
               " ->\n",
               if comment == ""
                 then ""
-                else pack $ take (indent + 4) $ repeat ' ',
+                else replicate (indent + 4) " ",
               comment,
               if comment == ""
                 then ""
                 else "\n",
-              pack $ take (indent + 4) $ repeat ' ',
+              replicate (indent + 4) " ",
               right
             ]
 
@@ -2270,7 +2270,7 @@ commentSpaceParser indent =
           ]
     return $
       intercalate
-        ("\n" <> pack (take indent (repeat ' ')))
+        ("\n" <> replicate indent " ")
         (filter (\s -> s /= "") comments)
 
 parseSameLineComment :: Parser Text
@@ -2294,14 +2294,14 @@ parseTuplePatternItem indent =
       mconcat
         [ if commentBefore == ""
             then ""
-            else pack (take indent (repeat ' ')) <> commentBefore,
+            else replicate indent " " <> commentBefore,
           expression,
           if sameLineComment == ""
             then ""
             else " " <> sameLineComment,
           if commentAfter == ""
             then ""
-            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
+            else "\n\n" <> replicate (indent - 2) " " <> commentAfter
         ]
 
 parseMultiTupleItem :: Int -> Char -> Parser Text
@@ -2316,14 +2316,14 @@ parseMultiTupleItem indent end =
       mconcat
         [ if commentBefore == ""
             then ""
-            else commentBefore <> "\n" <> pack (take indent (repeat ' ')),
+            else commentBefore <> "\n" <> replicate indent " ",
           expression,
           if sameLineComment == ""
             then ""
             else " " <> sameLineComment,
           if commentAfter == ""
             then ""
-            else "\n" <> pack (take indent (repeat ' ')) <> commentAfter
+            else "\n" <> replicate indent " " <> commentAfter
         ]
 
 parseMultiListItem :: Int -> Char -> Parser Text
@@ -2338,14 +2338,14 @@ parseMultiListItem indent end =
       mconcat
         [ if commentBefore == ""
             then ""
-            else commentBefore <> "\n" <> pack (take indent (repeat ' ')),
+            else commentBefore <> "\n" <> replicate indent " ",
           expression,
           if sameLineComment == ""
             then ""
             else " " <> sameLineComment,
           if commentAfter == ""
             then ""
-            else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
+            else "\n\n" <> replicate (indent - 2) " " <> commentAfter
         ]
 
 data ContainerType
@@ -2416,8 +2416,8 @@ parseTuplePattern context indent =
                 return $
                   mconcat
                     [ "( ",
-                      intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-                      "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                      intercalate ("\n" <> replicate indent " " <> ", ") items,
+                      "\n" <> replicate indent " " <> ")"
                     ]
               else
                 return $
@@ -2454,7 +2454,7 @@ parseParenthesised context indent =
                 item,
                 if Text.takeEnd 3 item == "\"\"\""
                   then ")"
-                  else "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                  else "\n" <> replicate indent " " <> ")"
               ]
         DoesntNeedBrackets ->
           return item
@@ -2510,8 +2510,8 @@ parseMultiTuple indent =
             return $
               mconcat
                 [ "( ",
-                  intercalate ("\n" <> (pack $ take indent $ repeat ' ') <> ", ") items,
-                  "\n" <> (pack $ take indent $ repeat ' ') <> ")"
+                  intercalate ("\n" <> replicate indent " " <> ", ") items,
+                  "\n" <> replicate indent " " <> ")"
                 ]
           else
             return $
@@ -2542,7 +2542,7 @@ parseEmptyList indent =
     return $
       if comment == ""
         then "[]"
-        else "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
+        else "[" <> comment <> "\n" <> replicate indent " " <> "]"
 
 parseNonEmptyList :: Int -> Parser Text
 parseNonEmptyList indent =
@@ -2555,7 +2555,7 @@ parseNonEmptyList indent =
     endRow <- fmap (unPos . sourceLine) getSourcePos
     let indentation =
           if endRow > startRow
-            then "\n" <> (pack $ take indent $ repeat ' ')
+            then "\n" <> replicate indent " "
             else ""
     let endSpace =
           if endRow > startRow
@@ -2566,7 +2566,7 @@ parseNonEmptyList indent =
         return $
           if comment == ""
             then "[]"
-            else "[" <> comment <> "\n" <> pack (take indent (repeat ' ')) <> "]"
+            else "[" <> comment <> "\n" <> replicate indent " " <> "]"
       else
         return $
           mconcat
