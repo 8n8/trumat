@@ -1904,8 +1904,17 @@ parseInfixedItems minColumn indent accum =
       return $ reverse accum
     ]
 
-addInfixWhitespace ::
-  Int -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
+multilineInfixAfterLeftPizza :: Int -> Int -> Text -> Text
+multilineInfixAfterLeftPizza minColumn indent expression =
+  mconcat
+    [ "\n",
+      pack $ take (max minColumn indent) (repeat ' '),
+      "<|\n",
+      pack (take (indent + 4) (repeat ' ')),
+      expression
+    ]
+
+addInfixWhitespace :: Int -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
 addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
@@ -1913,14 +1922,7 @@ addInfixWhitespace minColumn firstIsMultiline followsTripleQuoteString isMultili
           if infix_ == "<|"
             then
               if firstIsMultiline
-                then
-                  mconcat
-                    [ "\n",
-                      pack $ take (max minColumn (newIndent - 4)) (repeat ' '),
-                      "<|\n",
-                      pack (take newIndent (repeat ' ')),
-                      expression
-                    ]
+                then multilineInfixAfterLeftPizza minColumn (newIndent - 4) expression
                 else
                   mconcat
                     [ " <|\n",
