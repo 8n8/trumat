@@ -6671,5 +6671,23 @@ cases =
       \        {--}\n\
       \        ++ \" \"\n\
       \"
+    ),
+    ( "single line block comment after multiline string and infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\" ++ {--} \" \"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\"\"\"\n\
+      \        ++ {--}\n\
+      \           \" \"\n\
+      \"
     )
   ]
