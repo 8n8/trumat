@@ -48,6 +48,7 @@ import Prelude
     head,
     length,
     map,
+    max,
     mconcat,
     not,
     null,
@@ -1862,7 +1863,7 @@ parseInfixed minColumn indent =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
     midRow <- fmap (unPos . sourceLine) getSourcePos
-    items <- parseInfixedItems minColumn (floorToFour indent) []
+    items <- parseInfixedItems indent (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then fail "zero infix items"
@@ -1870,7 +1871,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map (addInfixWhitespace (length items < 2) (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
+              mconcat $ map (addInfixWhitespace minColumn (length items < 2) (midRow > startRow) (takeEnd 3 firstExpression == "\"\"\"") (endRow > startRow)) items
             ]
 
 parseInfixedItems ::
@@ -1903,8 +1904,8 @@ parseInfixedItems minColumn indent accum =
       return $ reverse accum
     ]
 
-addInfixWhitespace :: Bool -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
-addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+addInfixWhitespace :: Int -> Bool -> Bool -> Bool -> Bool -> (Int, Bool, Text, Text, Text, Text) -> Text
+addInfixWhitespace minColumn oneOrTwo firstIsMultiline followsTripleQuoteString isMultiline (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if isMultiline
         then
@@ -1914,7 +1915,7 @@ addInfixWhitespace oneOrTwo firstIsMultiline followsTripleQuoteString isMultilin
                 then
                   mconcat
                     [ "\n",
-                      pack $ take (newIndent - 4) (repeat ' '),
+                      pack $ take (max minColumn (newIndent - 4)) (repeat ' '),
                       "<|\n",
                       pack (take newIndent (repeat ' ')),
                       expression
@@ -2328,7 +2329,7 @@ parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parseExpression 1 DoesntNeedBrackets indent
+    expression <- parseExpression indent DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser (floorToFour indent)
     _ <- choice [char ',', lookAhead (char end)]
