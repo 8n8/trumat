@@ -1947,7 +1947,7 @@ addMultilineInfixWhitespace leftPizzaMultilineIndent (indent, isOnSameRowAsPrevi
               expression
             ]
         else
-          if isOnSameRowAsPrevious
+          if isOnSameRowAsPrevious && commentBefore == ""
             then " " <> infix_ <> " " <> expression
             else
               mconcat
