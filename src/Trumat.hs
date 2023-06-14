@@ -1869,7 +1869,7 @@ parseInfixed minColumn indent =
     let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
         addWhitespace infixItem =
           if endRow > startRow
-            then addMultilineInfixWhitespace minColumn infixItem
+            then addMultilineInfixWhitespace indent infixItem
             else addSingleLineInfixWhitespace infixItem
 
     if null items
@@ -2329,7 +2329,7 @@ parseMultiListItem :: Int -> Char -> Parser Text
 parseMultiListItem indent end =
   do
     commentBefore <- commentSpaceParser indent
-    expression <- parseExpression indent DoesntNeedBrackets indent
+    expression <- parseExpression 1 DoesntNeedBrackets indent
     sameLineComment <- choice [try parseSameLineComment, return ""]
     commentAfter <- commentSpaceParser (floorToFour indent)
     _ <- choice [char ',', lookAhead (char end)]
