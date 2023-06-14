@@ -2061,7 +2061,7 @@ parseIfThenElse minColumn indent =
               if Text.elem '\n' if_
                 then "\n" <> replicate indent " "
                 else " ",
-              "then\n" <> replicate (indent + 4) " ",
+              "then\n" <> replicate (floorToFour (indent + 4)) " ",
               commentBeforeThen,
               if commentBeforeThen == ""
                 then ""
