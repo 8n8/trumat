@@ -6711,5 +6711,19 @@ cases =
       \        c <|\n\
       \            d\n\
       \"
+    ),
+    ( "function call in list in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a [ b c ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a [ b c ]\n\
+      \"
     )
   ]
