@@ -6725,5 +6725,27 @@ cases =
       \x =\n\
       \    a [ b c ]\n\
       \"
+    ),
+    ( "section comment following custom type declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- b\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- b\n\
+      \"
     )
   ]
