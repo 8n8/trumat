@@ -1865,16 +1865,11 @@ parseInfixed minColumn indent =
     midRow <- fmap (unPos . sourceLine) getSourcePos
     items <- parseInfixedItems indent (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    let leftPizzaMultilineIndent :: Int -> Text
-        leftPizzaMultilineIndent leftPizzaIndent =
-          if midRow > startRow
-            then "\n" <> replicate (max minColumn (leftPizzaIndent - 4)) " "
-            else " "
 
-        addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
+    let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
         addWhitespace infixItem =
           if endRow > startRow
-            then addMultilineInfixWhitespace leftPizzaMultilineIndent infixItem
+            then addMultilineInfixWhitespace minColumn infixItem
             else addSingleLineInfixWhitespace infixItem
 
     if null items
@@ -1934,14 +1929,15 @@ addSingleLineInfixWhitespace (indent, isOnSameRowAsPrevious, commentBefore, infi
           expression
         ]
 
-addMultilineInfixWhitespace ::
-  (Int -> Text) -> (Int, Bool, Text, Text, Text, Text) -> Text
-addMultilineInfixWhitespace leftPizzaMultilineIndent (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Text
+addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
   let newIndent = floorToFour indent
    in if infix_ == "<|"
         then
           mconcat
-            [ leftPizzaMultilineIndent newIndent,
+            [ if isOnSameRowAsPrevious
+                then " "
+                else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
               "<|\n",
               replicate newIndent " ",
               expression
