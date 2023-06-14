@@ -6769,5 +6769,35 @@ cases =
       \    , d\n\
       \    )\n\
       \"
+    ),
+    ( "if then else in else in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ if a then\n\
+      \        b\n\
+      \\n\
+      \      else if c then\n\
+      \        d\n\
+      \\n\
+      \      else\n\
+      \        e\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ if a then\n\
+      \        b\n\
+      \\n\
+      \      else if c then\n\
+      \        d\n\
+      \\n\
+      \      else\n\
+      \        e\n\
+      \    ]\n\
+      \"
     )
   ]
