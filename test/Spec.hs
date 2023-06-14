@@ -6747,5 +6747,27 @@ cases =
       \\n\
       \-- b\n\
       \"
+    ),
+    ( "multiline record update in tuple",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( { a\n\
+      \        | b = c\n\
+      \      }\n\
+      \    , d\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ( { a\n\
+      \        | b = c\n\
+      \      }\n\
+      \    , d\n\
+      \    )\n\
+      \"
     )
   ]
