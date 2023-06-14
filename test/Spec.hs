@@ -6689,5 +6689,27 @@ cases =
       \        ++ {--}\n\
       \           \" \"\n\
       \"
+    ),
+    ( "multiline left pizza infix in multiline left pizza infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        b\n\
+      \    <|\n\
+      \        c <|\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        b\n\
+      \    <|\n\
+      \        c <|\n\
+      \            d\n\
+      \"
     )
   ]
