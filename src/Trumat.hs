@@ -668,7 +668,12 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
     parameters <- parseTypeDeclarationParameters 2
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    commentAfter <- commentSpaceParser 6
+    commentAfter <-
+      do
+        afterEmptySpaceColumn <- fmap (unPos . sourceColumn) getSourcePos
+        if afterEmptySpaceColumn == 1
+          then return ""
+          else commentSpaceParser 6
     return $
       mconcat
         [ commentBefore,
