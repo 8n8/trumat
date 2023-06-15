@@ -6851,5 +6851,27 @@ cases =
       \    in\n\
       \    f\n\
       \"
+    ),
+    ( "function call in infix in let in bind unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \  let\n\
+      \    a =\n\
+      \      b <| c d\n\
+      \  in\n\
+      \  a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \  let\n\
+      \    a =\n\
+      \      b <| c d\n\
+      \  in\n\
+      \  a\n\
+      \"
     )
   ]
