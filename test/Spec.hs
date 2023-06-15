@@ -6799,5 +6799,27 @@ cases =
       \        e\n\
       \    ]\n\
       \"
+    ),
+    ( "section comment following type branch declaration with parameters",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A B\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- c\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A B\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- c\n\
+      \"
     )
   ]
