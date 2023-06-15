@@ -1769,23 +1769,22 @@ parseFunctionCall minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
-    if startColumn <= minColumn
-      then fail "callable is too far left"
-      else do
-        f <- parseCallable minColumn indent
-        items <- some $
-          try $
-            do
+    f <- parseCallable startColumn indent
+    _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    items <- some $
+      try $
+        do
+          _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+          column <- fmap (unPos . sourceColumn) getSourcePos
+          if column <= minColumn
+            then fail "argument is too far left"
+            else do
               comment <- commentSpaceParser (indent + 4)
-              column <- fmap (unPos . sourceColumn) getSourcePos
-              if column <= minColumn
-                then fail "argument is too far left"
-                else do
-                  arg <- parseArgumentExpression (floorToFour (indent + 4))
-                  argEndRow <- fmap (unPos . sourceLine) getSourcePos
-                  return (comment, arg, argEndRow)
-        endRow <- fmap (unPos . sourceLine) getSourcePos
-        return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
+              arg <- parseArgumentExpression (floorToFour (indent + 4))
+              argEndRow <- fmap (unPos . sourceLine) getSourcePos
+              return (comment, arg, argEndRow)
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
 
 addArgSpaces :: Int -> Int -> Int -> (Text, Text, Int) -> Text
 addArgSpaces startRow endRow indent (comment, arg, row) =
@@ -1983,12 +1982,12 @@ parseLetIn :: Int -> Int -> Parser Text
 parseLetIn minColumn indent =
   do
     _ <- chunk "let"
-    _ <- space1
+    _ <- space
     column <- fmap (unPos . sourceColumn) getSourcePos
     let_ <- some $
       try $
         do
-          items <- parseLetBind (column + 1) (floorToFour (indent + 4))
+          items <- parseLetBind column (floorToFour (indent + 4))
           _ <- space
           return items
     commentBeforeIn <- commentSpaceParser indent

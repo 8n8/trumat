@@ -6867,11 +6867,11 @@ cases =
       \\n\
       \\n\
       \x =\n\
-      \  let\n\
-      \    a =\n\
-      \      b <| c d\n\
-      \  in\n\
-      \  a\n\
+      \    let\n\
+      \        a =\n\
+      \            b <| c d\n\
+      \    in\n\
+      \    a\n\
       \"
     )
   ]
