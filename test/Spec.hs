@@ -6821,5 +6821,35 @@ cases =
       \\n\
       \-- c\n\
       \"
+    ),
+    ( "line comment above subsequent let in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \\n\
+      \        -- c\n\
+      \        d =\n\
+      \            e\n\
+      \    in\n\
+      \    f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b\n\
+      \\n\
+      \        -- c\n\
+      \        d =\n\
+      \            e\n\
+      \    in\n\
+      \    f\n\
+      \"
     )
   ]
