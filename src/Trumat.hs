@@ -1991,6 +1991,7 @@ parseLetIn minColumn indent =
           items <- parseLetBind (column + 1) (floorToFour (indent + 4))
           _ <- space
           return items
+    commentBeforeIn <- commentSpaceParser indent
     _ <- chunk "in"
     comment <- commentSpaceParser indent
     in_ <- parseExpression minColumn DoesntNeedBrackets indent
@@ -1999,6 +2000,10 @@ parseLetIn minColumn indent =
       mconcat
         [ "let\n",
           intercalate "\n\n" let_,
+          if commentBeforeIn == ""
+            then ""
+            else "\n\n" <> replicate (indent + 4) " ",
+          commentBeforeIn,
           inSpaces,
           "in",
           inSpaces,
@@ -2019,7 +2024,7 @@ parseLetBind minColumn indent =
     _ <- char '='
     commentBeforeRight <- commentSpaceParser (indent + 4)
     right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
-    commentAfterRight <- commentSpaceParser (indent + 4)
+    -- commentAfterRight <- commentSpaceParser (indent + 4)
     let leftSpaces = replicate indent " "
     let rightSpaces = replicate (indent + 4) " "
     return $
@@ -2037,9 +2042,9 @@ parseLetBind minColumn indent =
           commentBeforeRight,
           if commentBeforeRight == "" then "" else "\n",
           rightSpaces,
-          right,
-          if commentAfterRight == "" then "" else "\n\n" <> leftSpaces,
-          commentAfterRight
+          right
+          -- if commentAfterRight == "" then "" else "\n\n" <> leftSpaces,
+          -- commentAfterRight
         ]
 
 parseIfThenElse :: Int -> Int -> Parser Text
