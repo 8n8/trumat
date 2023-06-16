@@ -1776,7 +1776,7 @@ parseFunctionCall minColumn indent =
         do
           _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
           column <- fmap (unPos . sourceColumn) getSourcePos
-          if column <= minColumn
+          if column < minColumn
             then fail "argument is too far left"
             else do
               comment <- commentSpaceParser (indent + 4)
@@ -1991,7 +1991,7 @@ parseLetIn minColumn indent =
     let_ <- some $
       try $
         do
-          items <- parseLetBind column (floorToFour (indent + 4))
+          items <- parseLetBind (column + 1) (floorToFour (indent + 4))
           _ <- space
           return items
     commentBeforeIn <- commentSpaceParser indent
