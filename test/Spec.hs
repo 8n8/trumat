@@ -6899,5 +6899,30 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "list function argument in infix in let in bind",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \  let\n\
+      \    a =\n\
+      \      b <| c\n\
+      \        []\n\
+      \  in\n\
+      \  a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            b <|\n\
+      \                c\n\
+      \                    []\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
