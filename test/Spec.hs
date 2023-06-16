@@ -6873,5 +6873,31 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "line comment following top-level bind inline",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    b -- c\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    b\n\
+      \\n\
+      \\n\
+      \\n\
+      \-- c\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
