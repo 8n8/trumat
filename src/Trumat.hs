@@ -1780,9 +1780,13 @@ parseFunctionCall minColumn indent =
             then fail "argument is too far left"
             else do
               comment <- commentSpaceParser (indent + 4)
-              arg <- parseArgumentExpression (floorToFour (indent + 4))
-              argEndRow <- fmap (unPos . sourceLine) getSourcePos
-              return (comment, arg, argEndRow)
+              columnBeforeArg <- fmap (unPos . sourceColumn) getSourcePos
+              if columnBeforeArg < minColumn
+                then fail "argument is too far left"
+                else do
+                  arg <- parseArgumentExpression (floorToFour (indent + 4))
+                  argEndRow <- fmap (unPos . sourceLine) getSourcePos
+                  return (comment, arg, argEndRow)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
 
