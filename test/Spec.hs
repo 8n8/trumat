@@ -6874,7 +6874,7 @@ cases =
       \    a\n\
       \"
     ),
-    ( "line comment following top-level bind inline",
+    ( "line comment following top level bind inline",
       "module X exposing (x)\n\
       \\n\
       \\n\
