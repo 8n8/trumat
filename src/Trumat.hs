@@ -1875,7 +1875,7 @@ parseInfixed minColumn indent =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     firstExpression <- parseInfixedExpression minColumn indent
     midRow <- fmap (unPos . sourceLine) getSourcePos
-    items <- parseInfixedItems indent (floorToFour indent) []
+    items <- parseInfixedItems minColumn (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
 
     let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
@@ -1991,7 +1991,7 @@ parseLetIn minColumn indent =
     let_ <- some $
       try $
         do
-          items <- parseLetBind (column + 1) (floorToFour (indent + 4))
+          items <- parseLetBind column (floorToFour (indent + 4))
           _ <- space
           return items
     commentBeforeIn <- commentSpaceParser indent
@@ -2022,12 +2022,11 @@ parseLetBind minColumn indent =
   do
     comment <- commentSpaceParser indent
     signature <- choice [try $ parseTypeSignature minColumn indent, return ""]
-    left <- parsePattern DoesntNeedBrackets 1 indent
+    left <- parsePattern DoesntNeedBrackets minColumn indent
     _ <- space
     _ <- char '='
     commentBeforeRight <- commentSpaceParser (indent + 4)
-    right <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
-    -- commentAfterRight <- commentSpaceParser (indent + 4)
+    right <- parseExpression (minColumn + 1) DoesntNeedBrackets (indent + 4)
     let leftSpaces = replicate indent " "
     let rightSpaces = replicate (indent + 4) " "
     return $
