@@ -450,9 +450,32 @@ parseTopLevelNames =
             _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
             return "",
           try $ parseSectionComment >> return "",
+          try parseTypeAliasDeclarationForModuleExport,
           try parseTypeDeclaration,
           parseTopLevelName
         ]
+
+parseTypeAliasDeclarationForModuleExport :: Parser Text
+parseTypeAliasDeclarationForModuleExport =
+  do
+    _ <- commentSpaceParser 0
+    _ <- chunk "type alias"
+    _ <- commentSpaceParser 0
+    name <- parseName
+    _ <- many $
+      try $
+        do
+          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
+          _ <- char '\n'
+          choice
+            [ do
+                _ <- lookAhead eof
+                return (),
+              do
+                _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                return ()
+            ]
+    return name
 
 parseTypeDeclaration :: Parser Text
 parseTypeDeclaration =
