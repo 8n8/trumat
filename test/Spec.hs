@@ -6935,5 +6935,19 @@ cases =
       \type alias X =\n\
       \    A\n\
       \"
+    ),
+    ( "multiline string in module without declaration",
+      "a = \"\"\"\n\
+      \b\n\
+      \\"\"\"\n\
+      \",
+      "module Main exposing (a)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    \"\"\"\n\
+      \b\n\
+      \\"\"\"\n\
+      \"
     )
   ]
