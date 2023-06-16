@@ -6924,5 +6924,16 @@ cases =
       \    in\n\
       \    a\n\
       \"
+    ),
+    ( "type alias declaration with no module declaration",
+      "type alias X =\n\
+      \    A\n\
+      \",
+      "module Main exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \"
     )
   ]
