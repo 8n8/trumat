@@ -4,6 +4,8 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import ElmChar (ElmChar)
 import qualified ElmChar
+import qualified Token
+import Token (Token)
 
 trumat :: Text -> Either String Text
 trumat unformatted =
@@ -11,7 +13,29 @@ trumat unformatted =
     Nothing ->
       Left "couldn't parse characters"
     Just characters ->
-      Right $ charactersToString characters
+      case tokenize characters [] of
+        Nothing ->
+          Left "couldn't tokenize"
+        Right tokens ->
+          tokensToString tokens
+
+tokenize :: [ElmChar] -> [Token] -> Maybe [Token]
+tokenize chars tokens =
+    case NonEmpty.fromString chars of
+        Nothing ->
+            Just (reverse tokens)
+
+        nonEmpty ->
+            case Token.parse nonEmpty of
+                Nothing ->
+                    Nothing
+
+                Just (token, remainder) ->
+                    tokenize remainder (token : tokens)
+
+tokensToString :: [Token] -> Text
+tokensToString tokens =
+  mconcat (map Token.toString tokens)
 
 charactersToString :: [ElmChar] -> Text
 charactersToString chars =
