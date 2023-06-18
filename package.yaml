@@ -6,7 +6,6 @@ dependencies:
 
 default-extensions:
 - OverloadedStrings
-- NoImplicitPrelude
 
 ghc-options:
 - -Weverything
@@ -23,14 +22,13 @@ ghc-options:
 - -Wno-unused-matches
 - -Wno-unused-top-binds
 - -Wno-unused-imports
+- -Wno-implicit-prelude
 - -O2
 
 library:
   source-dirs: src
   dependencies:
   - text
-  - megaparsec
-  - containers
 
 executables:
   trumat:
