@@ -26,7 +26,8 @@ import Prelude
 main :: IO ()
 main =
   defaultMain $
-    testGroup "Unit tests" $ map oneTest cases
+    testGroup "Unit tests" $
+      map oneTest cases
 
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =

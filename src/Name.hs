@@ -1,11 +1,6 @@
 module Name (Name) where
 
-import Alphabet (Alphabet)
+import Lowercase (Lowercase)
 
 data Name
-    = Name First
-
-
-data First
-    = Uppercase Alphabet
-    | Lowercase Alphabet
+  = Name Lowercase
