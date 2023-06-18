@@ -7,3 +7,5 @@ package.json
 test.elm
 elm.json
 elm-stuff/
+venv/
+__pycache__/
