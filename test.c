@@ -9,14 +9,14 @@ struct TestCase {
     char* formatted;
 };
 
-void run_test(struct TestCase testCase, char in[BIG], char out[BIG], struct Memory* memory) {
+void run_test(struct TestCase testCase, char in[BIG], char out[BIG]) {
     printf("%s ", testCase.description);
 
     for (int i = 0; testCase.unformatted[i] != '\0'; ++i) {
         in[i] = testCase.unformatted[i];
     }
 
-    int result = format(in, out, memory);
+    int result = format(in, out);
     if (result != 0) {
         printf("FAILED\n    error code: %d\n", result);
         return;
@@ -62,14 +62,13 @@ void zero_buf(char buf[BIG]) {
 }
 
 int main(int argc, char* argv[]) {
-    struct Memory* memory = malloc(sizeof(struct Memory));
     char* in = malloc(BIG);
     char* out = malloc(BIG);
     for (int i = 0; CASES[i].description != NULL; ++i) {
         zero_buf(in);
         zero_buf(out);
 
-        run_test(CASES[i], in, out, memory);
+        run_test(CASES[i], in, out);
     }
 
     return 0;
