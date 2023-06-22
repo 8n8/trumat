@@ -64,7 +64,7 @@ void zero_buf(char buf[BIG]) {
 int main(int argc, char* argv[]) {
     char* in = malloc(BIG);
     char* out = malloc(BIG);
-    struct Memory* memory = malloc(sizeof(struct Memory))
+    struct Memory* memory = malloc(sizeof(struct Memory));
     for (int i = 0; CASES[i].description != NULL; ++i) {
         zero_buf(in);
         zero_buf(out);
