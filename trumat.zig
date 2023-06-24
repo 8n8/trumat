@@ -1,28 +1,6 @@
 const std = @import("std");
 const parseInt = std.fmt.parseInt;
 
-test "parse integers" {
-    const input = "123 67 89,99";
-    const ally = std.testing.allocator;
-
-    var list = std.ArrayList(u32).init(ally);
-    // Ensure the list is freed at scope exit.
-    // Try commenting out this line!
-    defer list.deinit();
-
-    var it = std.mem.tokenize(u8, input, " ,");
-    while (it.next()) |num| {
-        const n = try parseInt(u32, num, 10);
-        try list.append(n);
-    }
-
-    const expected = [_]u32{ 123, 67, 89, 99 };
-
-    for (expected, list.items) |exp, actual| {
-        try std.testing.expectEqual(exp, actual);
-    }
-}
-
 test "format hello world" {
     const input =
         \\module X exposing (x)
@@ -161,7 +139,84 @@ const Memory = struct {
 
 fn format(in: [big]u8, _: *[big]u8, memory: *Memory) !void {
     try makeElmChars(in, &memory.elmChars);
+    try Tokenizer.tokenize(memory.elmChars, &memory.tokens);
 }
+
+const Tokenizer = struct {
+    const TokenizerState = enum {
+        initToken,
+    };
+
+    const ActionTag = enum {
+        finished,
+        next,
+    };
+    const Action = union(ActionTag) {
+        finished: Token,
+        next: TokenizerState,
+    };
+
+    // Elm keywords are: module, exposing, if, then, else, case, of, let, in, type, alias, port, import, as
+    // So the special starting letters are a, c, e, i, l, m, o, p, t
+    fn step(state: TokenizerState, elmChar: ElmChar) !Action {
+        return switch (state) {
+            .initToken => switch (elmChar) {
+                .m => .{ .next = .startsWithM },
+                .afterEnd => .{ .finished = .empty },
+                .tilde => .{ .finished = .tilde },
+                .closeCurly => .{ .finished = .closeCurly },
+                .pipe => .{ .next = .pipe },
+                .openCurly => .{ .next = .openCurly },
+                .z => .{ .next = .z },
+                .y => .{ .next = .y },
+                .x => .{ .next = .x },
+                .w => .{ .next = .w },
+                .v => .{ .next = .v },
+                .u => .{ .next = .u },
+                .t => .{ .next = .t },
+                .s => .{ .next = .w },
+                .r => .{ .next = .r },
+                .q => .{ .next = .q },
+                .p => .{ .next = .p },
+                .o => .{ .next = .o },
+                .n => .{ .next = .n },
+                .l => .{ .next = .l },
+                .k => .{ .next = .k },
+                .j => .{ .next = .j },
+                .i => .{ .next = .i },
+                .h => .{ .next = .h },
+                .g => .{ .next = .g },
+                .f => .{ .next = .f },
+                .e => .{ .next = .e },
+                .d => .{ .next = .d },
+                .c => .{ .next = .c },
+                .b => .{ .next = .b },
+                .a => .{ .next = .a },
+                .backtick => .{ .finished = .backtick },
+                .underscore => .{ .next = .insideName },
+                .pointUp => .{ .finished = .exponent },
+                .closeBracket => .{ .finished = .closeBracket },
+                .backSlash => .{ .finished = .backSlash },
+                .openBracket => .{ .finished = .openBracket },
+            },
+        };
+    }
+
+    fn tokenize(elmChars: [big]ElmChar, tokens: *[big]Token) !void {
+        var state: TokenizerState = TokenizerState.initToken;
+
+        var tokenI: u32 = 0;
+        for (elmChars) |elmChar| {
+            const action: Tokenizer.Action = try Tokenizer.step(state, elmChar);
+            state = switch (action) {
+                ActionTag.commit => |token| {
+                    tokens[tokenI] = token;
+                    tokenI = tokenI + 1;
+                },
+            };
+        }
+    }
+};
 
 fn makeElmChars(in: [big]u8, elmChars: *[big]ElmChar) !void {
     for (in, 0..) |rawChar, i| {
@@ -171,105 +226,105 @@ fn makeElmChars(in: [big]u8, elmChars: *[big]ElmChar) !void {
 
 fn makeElmChar(raw: u8) !ElmChar {
     return switch (raw) {
-        0 => ElmChar.afterEnd,
+        0 => .afterEnd,
         1...9 => error.InvalidChar,
-        10 => ElmChar.newline,
+        10 => .newline,
         11...31 => error.InvalidChar,
-        32 => ElmChar.space,
-        33 => ElmChar.exclamationMark,
-        34 => ElmChar.doubleQuote,
-        35 => ElmChar.hash,
-        36 => ElmChar.dollar,
-        37 => ElmChar.percentage,
-        38 => ElmChar.ampersand,
-        39 => ElmChar.singleQuote,
-        40 => ElmChar.openParenthesis,
-        41 => ElmChar.closeParenthesis,
-        42 => ElmChar.star,
-        43 => ElmChar.plus,
-        44 => ElmChar.comma,
-        45 => ElmChar.hyphen,
-        46 => ElmChar.fullstop,
-        47 => ElmChar.forwardSlash,
-        48 => ElmChar.zero,
-        49 => ElmChar.one,
-        50 => ElmChar.two,
-        51 => ElmChar.three,
-        52 => ElmChar.four,
-        53 => ElmChar.five,
-        54 => ElmChar.six,
-        55 => ElmChar.seven,
-        56 => ElmChar.eight,
-        57 => ElmChar.nine,
-        58 => ElmChar.colon,
-        59 => ElmChar.semiColon,
-        60 => ElmChar.lessThan,
-        61 => ElmChar.equals,
-        62 => ElmChar.greaterThan,
-        63 => ElmChar.questionMark,
-        64 => ElmChar.at,
-        65 => ElmChar.A,
-        66 => ElmChar.B,
-        67 => ElmChar.C,
-        68 => ElmChar.D,
-        69 => ElmChar.E,
-        70 => ElmChar.F,
-        71 => ElmChar.G,
-        72 => ElmChar.H,
-        73 => ElmChar.I,
-        74 => ElmChar.J,
-        75 => ElmChar.K,
-        76 => ElmChar.L,
-        77 => ElmChar.M,
-        78 => ElmChar.N,
-        79 => ElmChar.O,
-        80 => ElmChar.P,
-        81 => ElmChar.Q,
-        82 => ElmChar.R,
-        83 => ElmChar.S,
-        84 => ElmChar.T,
-        85 => ElmChar.U,
-        86 => ElmChar.V,
-        87 => ElmChar.W,
-        88 => ElmChar.X,
-        89 => ElmChar.Y,
-        90 => ElmChar.Z,
-        91 => ElmChar.openBracket,
-        92 => ElmChar.backSlash,
-        93 => ElmChar.closeBracket,
-        94 => ElmChar.pointUp,
-        95 => ElmChar.underscore,
-        96 => ElmChar.backtick,
-        97 => ElmChar.a,
-        98 => ElmChar.b,
-        99 => ElmChar.c,
-        100 => ElmChar.d,
-        101 => ElmChar.e,
-        102 => ElmChar.f,
-        103 => ElmChar.g,
-        104 => ElmChar.h,
-        105 => ElmChar.i,
-        106 => ElmChar.j,
-        107 => ElmChar.k,
-        108 => ElmChar.l,
-        109 => ElmChar.m,
-        110 => ElmChar.n,
-        111 => ElmChar.o,
-        112 => ElmChar.p,
-        113 => ElmChar.q,
-        114 => ElmChar.r,
-        115 => ElmChar.s,
-        116 => ElmChar.t,
-        117 => ElmChar.u,
-        118 => ElmChar.v,
-        119 => ElmChar.w,
-        120 => ElmChar.x,
-        121 => ElmChar.y,
-        122 => ElmChar.z,
-        123 => ElmChar.openCurly,
-        124 => ElmChar.pipe,
-        125 => ElmChar.closeCurly,
-        126 => ElmChar.tilde,
+        32 => .space,
+        33 => .exclamationMark,
+        34 => .doubleQuote,
+        35 => .hash,
+        36 => .dollar,
+        37 => .percentage,
+        38 => .ampersand,
+        39 => .singleQuote,
+        40 => .openParenthesis,
+        41 => .closeParenthesis,
+        42 => .star,
+        43 => .plus,
+        44 => .comma,
+        45 => .hyphen,
+        46 => .fullstop,
+        47 => .forwardSlash,
+        48 => .zero,
+        49 => .one,
+        50 => .two,
+        51 => .three,
+        52 => .four,
+        53 => .five,
+        54 => .six,
+        55 => .seven,
+        56 => .eight,
+        57 => .nine,
+        58 => .colon,
+        59 => .semiColon,
+        60 => .lessThan,
+        61 => .equals,
+        62 => .greaterThan,
+        63 => .questionMark,
+        64 => .at,
+        65 => .A,
+        66 => .B,
+        67 => .C,
+        68 => .D,
+        69 => .E,
+        70 => .F,
+        71 => .G,
+        72 => .H,
+        73 => .I,
+        74 => .J,
+        75 => .K,
+        76 => .L,
+        77 => .M,
+        78 => .N,
+        79 => .O,
+        80 => .P,
+        81 => .Q,
+        82 => .R,
+        83 => .S,
+        84 => .T,
+        85 => .U,
+        86 => .V,
+        87 => .W,
+        88 => .X,
+        89 => .Y,
+        90 => .Z,
+        91 => .openBracket,
+        92 => .backSlash,
+        93 => .closeBracket,
+        94 => .pointUp,
+        95 => .underscore,
+        96 => .backtick,
+        97 => .a,
+        98 => .b,
+        99 => .c,
+        100 => .d,
+        101 => .e,
+        102 => .f,
+        103 => .g,
+        104 => .h,
+        105 => .i,
+        106 => .j,
+        107 => .k,
+        108 => .l,
+        109 => .m,
+        110 => .n,
+        111 => .o,
+        112 => .p,
+        113 => .q,
+        114 => .r,
+        115 => .s,
+        116 => .t,
+        117 => .u,
+        118 => .v,
+        119 => .w,
+        120 => .x,
+        121 => .y,
+        122 => .z,
+        123 => .openCurly,
+        124 => .pipe,
+        125 => .closeCurly,
+        126 => .tilde,
         127...255 => error.InvalidChar,
     };
 }
