@@ -6,7 +6,7 @@ struct Memory {
         uint16_t column_numbers[BIG];
         uint8_t tokens[BIG];
         uint32_t token_start[BIG];
-        uint8_t token_size[BIG];
+        uint32_t token_end[BIG];
 };
 
 int format(char in[BIG], char out[BIG], struct Memory* memory);
