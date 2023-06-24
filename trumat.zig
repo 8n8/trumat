@@ -30,6 +30,10 @@ test "format hello world" {
     const memory = try allocator.create(Memory);
 
     try format(inPtr.*, outPtr, memory);
+
+    for (input, 0..) |in, i| {
+        try std.testing.expectEqual(in, outPtr[i]);
+    }
 }
 
 const ElmChar = enum(u8) {
@@ -134,7 +138,6 @@ const ElmChar = enum(u8) {
 
 const Memory = struct {
     elmChars: [big]ElmChar,
-    tokens: [big]Token,
 };
 
 fn format(in: [big]u8, _: *[big]u8, memory: *Memory) !void {
