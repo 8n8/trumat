@@ -139,15 +139,26 @@ const ElmChar = enum(u8) {
 
 const Memory = struct {
     elmChars: [big]ElmChar,
+    exports: [numNames][maxName]u8,
 };
 
 const StateTag = enum {
     startModule,
     moduleStartsWithM,
+    moduleStartsWithMo,
+    moduleStartsWithMod,
+    moduleStartsWithModu,
+    moduleStartsWithModul,
+    moduleStartsWithModule,
 };
 const State = union(StateTag) {
     startModule: void,
     moduleStartsWithM: void,
+    moduleStartsWithMo: void,
+    moduleStartsWithMod: void,
+    moduleStartsWithModu: void,
+    moduleStartsWithModul: void,
+    moduleStartsWithModule: void,
 };
 
 const Step = struct {
@@ -168,6 +179,117 @@ fn makeStep(state: State, char: ElmChar, i: u32) Step {
     return switch (state) {
     .startModule => stepStartModule(char, i),
     .moduleStartsWithM => stepModuleStartsWithM(char, i),
+    .moduleStartsWithMo => stepModuleStartsWithMo(char, i),
+    .moduleStartsWithMod => stepModuleStartsWithMod(char, i),
+    .moduleStartsWithModu => stepModuleStartsWithModu(char, i),
+    .moduleStartsWithModul => stepModuleStartsWithModul(char, i),
+    .moduleStartsWithModule => stepModuleStartsWithModule(char, i),
+    };
+}
+
+fn stepModuleStartsWithModule(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .space, .newline =>
+        .{.state = .afterModuleKeyword, .moveTo = i + 1, .action = Action { .commit = "module" } },
+
+    .openCurly =>
+        .{.state = .openCurlyAfterModuleKeyword, .moveTo = i + 1, .action = Action { .commit = "module" } },
+
+     .hyphen =>
+        .{.state = .hyphenAfterModuleKeyword, .moveTo = i + 1, .action = Action { .commit = "module" } },
+
+     .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .backtick, .openBracket, .at, .questionMark, .comma, .plus, .star, .closeParenthesis, .openParenthesis, .singleQuote, .ampersand, .percentage, .dollar, .hash, .doubleQuote, .exclamationMark, .greaterThan, .equals, .lessThan, .semiColon, .colon, .pointUp, .closeBracket, .backSlash, .forwardSlash, .fullstop =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+
+     .a, .b, .c, .d, .e, .f, .g, .h, .i, .j, .k, .l, .m, .n, .o, .p, .q, .r, .s, .t, .u, .v, .w, .x, .y, .z, .A, .B, .C, .D, .E, .F, .G, .H, .I, .J, .K, .L, .M, .N, .O, .P, .Q, .R, .S, .T, .U, .V, .W, .X, .Y, .Z, .underscore, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero =>
+        |value| .{.state = State { .moduleStartsWithName = []ElmChar{.m, .o, .d, .u, .l, .e, value}}, .moveTo = i + 1, .action = .none,},
+    };
+}
+
+
+fn stepModuleStartsWithModul(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .e => .{.state = .moduleStartsWithModule, .moveTo = i + 1, .action = .none },
+
+    .exclamationMark, .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .ampersand, .percentage, .dollar, .hash =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+
+    .openCurly, .openBracket, .equals, .openParenthesis, .colon, .hyphen, .singleQuote, .doubleQuote, .space, .newline =>
+        .{ .state = .getTopLevelNamesForExport,
+           .moveTo = i + 1,
+           .action = Action { .storeExportName = []ElmChar{.m, .o, .d, .u, .l}},
+        },
+
+    .l, .z, .y, .x, .w, .v, .t, .s, .r, .q, .p, .o, .n, .m, .u, .k, .j, .i, .d, .h, .g, .f, .c, .b, .a, .underscore, .Z, .Y, .X, .W, .V, .U, .T, .S, .R, .Q, .P, .O, .N, .M, .L, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero =>
+        |value|
+        .{ .state = State { .moduleStartsWithName = []ElmChar{.m, .o, .d, .u, .l, value} },
+           .moveTo = i + 1,
+           .action = .none,
+         }
+    };
+}
+
+fn stepModuleStartsWithModu(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .l => .{.state = .moduleStartsWithModul, .moveTo = i + 1, .action = .none },
+    .exclamationMark, .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .ampersand, .percentage, .dollar, .hash =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+
+    .openCurly, .openBracket, .equals, .openParenthesis, .colon, .hyphen, .singleQuote, .doubleQuote, .space, .newline =>
+        .{ .state = .getTopLevelNamesForExport,
+           .moveTo = i + 1,
+           .action = Action { .storeExportName = []ElmChar{.m, .o, .d, .u}},
+        },
+
+    .z, .y, .x, .w, .v, .t, .s, .r, .q, .p, .o, .n, .m, .u, .k, .j, .i, .d, .h, .g, .f, .e, .c, .b, .a, .underscore, .Z, .Y, .X, .W, .V, .U, .T, .S, .R, .Q, .P, .O, .N, .M, .L, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero =>
+        |value|
+        .{ .state = State { .moduleStartsWithName = []ElmChar{.m, .o, .d, .u, value} },
+           .moveTo = i + 1,
+           .action = .none,
+         }
+    };
+}
+
+
+fn stepModuleStartsWithMod(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .u => .{.state = .moduleStartsWithModu, .moveTo = i + 1, .action = .none },
+    .exclamationMark, .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .ampersand, .percentage, .dollar, .hash =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+
+    .openCurly, .openBracket, .equals, .openParenthesis, .colon, .hyphen, .singleQuote, .doubleQuote, .space, .newline =>
+        .{ .state = .getTopLevelNamesForExport,
+           .moveTo = i + 1,
+           .action = Action { .storeExportName = []ElmChar{.m, .o, .d}},
+        },
+
+    .z, .y, .x, .w, .v, .t, .s, .r, .q, .p, .o, .n, .m, .l, .k, .j, .i, .d, .h, .g, .f, .e, .c, .b, .a, .underscore, .Z, .Y, .X, .W, .V, .U, .T, .S, .R, .Q, .P, .O, .N, .M, .L, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero =>
+        |value|
+        .{ .state = State { .moduleStartsWithName = []ElmChar{.m, .o, .d, value} },
+           .moveTo = i + 1,
+           .action = .none,
+         }
+    };
+}
+
+fn stepModuleStartsWithMo(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .d => .{.state = .moduleStartsWithMod, .moveTo = i + 1, .action = .none },
+    .exclamationMark, .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .ampersand, .percentage, .dollar, .hash =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+
+    .openCurly, .openBracket, .equals, .openParenthesis, .colon, .hyphen, .singleQuote, .doubleQuote, .space, .newline =>
+        .{ .state = .getTopLevelNamesForExport,
+           .moveTo = i + 1,
+           .action = Action { .storeExportName = []ElmChar{.m, .o}},
+        },
+
+    .z, .y, .x, .w, .v, .u, .t, .s, .r, .q, .p, .o, .n, .m, .l, .k, .j, .i, .h, .g, .f, .e, .c, .b, .a, .underscore, .Z, .Y, .X, .W, .V, .U, .T, .S, .R, .Q, .P, .O, .N, .M, .L, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero =>
+        |value|
+        .{ .state = State { .moduleStartsWithName = []ElmChar{.m, .o, value} },
+           .moveTo = i + 1,
+           .action = .none,
+         }
     };
 }
 
@@ -175,11 +297,25 @@ fn stepModuleStartsWithM(char: ElmChar, i: u32) Step {
     return switch(char) {
     .o => .{.state = .moduleStartsWithMo, .moveTo = i + 1, .action = .none},
 
-    .exclamationMark, .hash, .dollar, .percentage, .ampersand, .subsequentUtf8, .afterEnd, .tilde, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .openBracket, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .nine => .{.state = .failed, .moveTo = i, .action = .none},
+    .exclamationMark, .hash, .dollar, .percentage, .ampersand, .subsequentUtf8, .afterEnd, .tilde, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .openBracket, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .nine =>
+        .{.state = .failed, .moveTo = i, .action = .none},
 
-    .openCurly => { .state = .getTopLevelNamesForExport { "m" }, .moveTo = i + 1
+    .openCurly, .equals, .colon, .hyphen, .openParenthesis, .singleQuote, .doubleQuote, .space, .newline =>
+        .{ .state = .getTopLevelNamesForExport,
+           .moveTo = i + 1,
+           .action = Action { .storeExportName = []ElmChar{.m} },
+        },
+
+    .z, .y, .x, .w, .v, .u, .t, .s, .r, .q, .p, .n, .m, .l, .k, .j, .i, .h, .g, .f, .e, .d, .c, .b, .a, .underscore, .Z, .Y, .X, .W, .V, .U, .T, .S, .R, .Q, .P, .O, .N, .M, .L, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero => |value|
+        .{.state = State { .moduleStartsWithName = []ElmChar{.m, value } },
+          .moveTo = i + 1,
+          .action = .none,
+        },
     };
 }
+
+const numNames = 1000;
+const maxName = 50;
 
 fn stepStartModule(char: ElmChar, i: u32) Step {
     return switch(char) {
