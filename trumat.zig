@@ -134,14 +134,93 @@ const ElmChar = enum(u8) {
     closeCurly,
     tilde,
     afterEnd,
+    subsequentUtf8,
 };
 
 const Memory = struct {
     elmChars: [big]ElmChar,
 };
 
-fn format(in: [big]u8, _: *[big]u8, memory: *Memory) !void {
+const StateTag = enum {
+    startModule,
+    moduleStartsWithM,
+};
+const State = union(StateTag) {
+    startModule: void,
+    moduleStartsWithM: void,
+};
+
+const Step = struct {
+    state: State,
+    moveTo: u32,
+    action: Action,
+};
+const ActionTag = enum {
+    commit,
+    none,
+};
+const Action = union(ActionTag) {
+    commit: []u8,
+    none: void,
+};
+
+fn makeStep(state: State, char: ElmChar, i: u32) Step {
+    return switch (state) {
+    .startModule => stepStartModule(char, i),
+    .moduleStartsWithM => stepModuleStartsWithM(char, i),
+    };
+}
+
+fn stepModuleStartsWithM(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .o => .{.state = .moduleStartsWithMo, .moveTo = i + 1, .action = .none},
+
+    .exclamationMark, .hash, .dollar, .percentage, .ampersand, .subsequentUtf8, .afterEnd, .tilde, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .closeCurly, .pipe, .backtick, .pointUp, .closeBracket, .backSlash, .openBracket, .at, .questionMark, .greaterThan, .lessThan, .semiColon, .nine => .{.state = .failed, .moveTo = i, .action = .none},
+
+    .openCurly => { .state = .getTopLevelNamesForExport { "m" }, .moveTo = i + 1
+    };
+}
+
+fn stepStartModule(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .a, .b, .c, .d, .e, .f, .g, .h, .i, .j, .k, .l, .n, .o, .p, .q, .r, .s, .t, .u, .v, .w, .x, .y, .z, .underscore =>
+        .{ .state = .getTopLevelNamesForExport {}, .moveTo = i, .action = .none },
+    .subsequentUtf8, .comma, .plus, .star, .closeParenthesis, .openParenthesis, .singleQuote, .ampersand, .percentage, .dollar, .hash, .doubleQuote, .exclamationMark, .backtick, .pointUp, .closeBracket, .backSlash, .openBracket, .at, .questionMark, .greaterThan, .equals, .lessThan, .semiColon, .colon, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero, .forwardSlash, .fullstop, .A, .B, .C, .D, .E, .F, .G, .H, .I, .J, .K, .L, .M, .N, .O, .P, .Q, .R, .S, .T, .U, .V, .W, .X, .Y, .Z, .afterEnd, .tilde, .closeCurly, .pipe =>
+        .{ .state = .failed, .moveTo = i, .action = .none },
+    .m =>
+        .{ .state = .moduleStartsWithM, .moveTo = i + 1, .action = .none },
+    .openCurly =>
+        .{ .state = .moduleStartsWithOpenCurly, .moveTo = i + 1, .action = .none },
+    .hyphen =>
+        .{ .state = .moduleStartsWithHyphen, .moveTo = i + 1, .action = .none },
+
+    .space =>
+        .{ .state = .moduleStartsWithSpace, .moveTo = i + 1, .action = .none },
+    .newline =>
+        .{ .state = .startModule, .moveTo = i + 1, .action = .none },
+    };
+}
+
+fn format(in: [big]u8, out: *[big]u8, memory: *Memory) !void {
     try makeElmChars(in, &memory.elmChars);
+
+    var outI: u32 = 0;
+    var state: State = .startModule;
+    var inI: u32 = 0;
+    while (true) {
+        const step: Step = makeStep(state, memory.elmChars[inI], inI);
+        inI = step.moveTo;
+        state = step.state;
+        switch (step.action) {
+        .commit => |formattedFragment| {
+            for (formattedFragment) |byte| {
+                out[outI] = byte;
+                outI = outI + 1;
+            }
+        },
+        .none => {},
+        }
+    }
 }
 
 fn makeElmChars(in: [big]u8, elmChars: *[big]ElmChar) !void {
@@ -251,7 +330,8 @@ fn makeElmChar(raw: u8) !ElmChar {
         124 => .pipe,
         125 => .closeCurly,
         126 => .tilde,
-        127...255 => error.InvalidChar,
+        127 => error.InvalidChar,
+        128...255 => .subsequentUtf8,
     };
 }
 
