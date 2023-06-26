@@ -36,6 +36,19 @@ test "format hello world" {
     }
 }
 
+const stateMachine = generateStateMachine();
+
+const stateMachineSize = 1 << 16;
+
+const StateMachine = struct{
+    states: [stateMachineSize]State,
+    actions: [stateMachineSize]Action,
+};
+
+fn generateStateMachine() StateMachine {
+    
+}
+
 const ElmChar = enum(u8) {
     newline,
     space,
