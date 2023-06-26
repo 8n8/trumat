@@ -150,6 +150,10 @@ const StateTag = enum {
     moduleStartsWithModu,
     moduleStartsWithModul,
     moduleStartsWithModule,
+    openCurlyAfterModuleKeyword,
+    blockCommentAfterModuleKeyword,
+    empty,
+    failed,
 };
 const State = union(StateTag) {
     startModule: void,
@@ -159,6 +163,10 @@ const State = union(StateTag) {
     moduleStartsWithModu: void,
     moduleStartsWithModul: void,
     moduleStartsWithModule: void,
+    openCurlyAfterModuleKeyword: void,
+    blockCommentAfterModuleKeyword: void,
+    empty: void,
+    failed: void,
 };
 
 const Step = struct {
@@ -167,23 +175,59 @@ const Step = struct {
     action: Action,
 };
 const ActionTag = enum {
-    commit,
     none,
+    finished,
 };
 const Action = union(ActionTag) {
-    commit: []u8,
     none: void,
+    finished: void,
 };
 
-fn makeStep(state: State, char: ElmChar, i: u32) Step {
+const Out = struct {
+    buf: *[big]u8,
+    i: *u32,
+};
+
+fn makeStep(state: State, char: ElmChar, i: u32, out: Out) Step {
     return switch (state) {
-    .startModule => stepStartModule(char, i),
-    .moduleStartsWithM => stepModuleStartsWithM(char, i),
-    .moduleStartsWithMo => stepModuleStartsWithMo(char, i),
-    .moduleStartsWithMod => stepModuleStartsWithMod(char, i),
-    .moduleStartsWithModu => stepModuleStartsWithModu(char, i),
-    .moduleStartsWithModul => stepModuleStartsWithModul(char, i),
-    .moduleStartsWithModule => stepModuleStartsWithModule(char, i),
+    .startModule =>
+        stepStartModule(char, i, out),
+    .moduleStartsWithM =>
+        stepModuleStartsWithM(char, i, out),
+    .moduleStartsWithMo =>
+        stepModuleStartsWithMo(char, i, out),
+    .moduleStartsWithMod =>
+        stepModuleStartsWithMod(char, i, out),
+    .moduleStartsWithModu =>
+        stepModuleStartsWithModu(char, i, out),
+    .moduleStartsWithModul =>
+        stepModuleStartsWithModul(char, i, out),
+    .moduleStartsWithModule =>
+        stepModuleStartsWithModule(char, i, out),
+    .openCurlyAfterModuleKeyword =>
+        stepOpenCurlyAfterModuleKeyword(char, i, out),
+    .blockCommentAfterModuleKeyword =>
+        stepBlockCommentAfterModuleKeyword(char, i, out),
+    .empty =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+    .failed =>
+        .{.state = .failed, .moveTo = i, .action = .none},
+    };
+}
+
+fn stepBlockCommentAfterModuleKeyword(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .hyphen => .{.state = .blockCommentAfterModuleKeyword, .moveTo = i + 1, .action = .none },
+    .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .openCurly, .z, .y, .x, .w, .v, .u, .t, .s, .r, .q, .p, .o, .n, .m, .l, .k, .j, .i, .h, .g, .f, .e, .d, .c, .b, .a, .backtick, .underscore, .pointUp, .closeBracket, .backSlash, .openBracket, .Z, .Y, .X, .W, .V, .U, .T, .R, .Q, .P, .O, .N, .M, .L, .S, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .at, .questionMark, .greaterThan, .equals, .lessThan, .semiColon, .colon, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .openParenthesis, .singleQuote, .ampersand, .percentage, .dollar, .hash, .doubleQuote, .exclamationMark, .space, .newline =>
+        .{.state = .failed, .moveTo = i, .action = .none },
+    };
+}
+
+fn stepOpenCurlyAfterModuleKeyword(char: ElmChar, i: u32) Step {
+    return switch(char) {
+    .hyphen => .{.state = .blockCommentAfterModuleKeyword, .moveTo = i + 1, .action = .none },
+    .subsequentUtf8, .afterEnd, .tilde, .closeCurly, .pipe, .openCurly, .z, .y, .x, .w, .v, .u, .t, .s, .r, .q, .p, .o, .n, .m, .l, .k, .j, .i, .h, .g, .f, .e, .d, .c, .b, .a, .backtick, .underscore, .pointUp, .closeBracket, .backSlash, .openBracket, .Z, .Y, .X, .W, .V, .U, .T, .R, .Q, .P, .O, .N, .M, .L, .S, .K, .J, .I, .H, .G, .F, .E, .D, .C, .B, .A, .at, .questionMark, .greaterThan, .equals, .lessThan, .semiColon, .colon, .nine, .eight, .seven, .six, .five, .four, .three, .two, .one, .zero, .forwardSlash, .fullstop, .comma, .plus, .star, .closeParenthesis, .openParenthesis, .singleQuote, .ampersand, .percentage, .dollar, .hash, .doubleQuote, .exclamationMark, .space, .newline =>
+        .{.state = .failed, .moveTo = i, .action = .none },
     };
 }
 
@@ -341,23 +385,38 @@ fn format(in: [big]u8, out: *[big]u8, memory: *Memory) !void {
     try makeElmChars(in, &memory.elmChars);
 
     var outI: u32 = 0;
-    var state: State = .startModule;
+    var state: [maxNesting]State = .{.startModule, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty};
+    var stateI: u8 = 0;
     var inI: u32 = 0;
     while (true) {
-        const step: Step = makeStep(state, memory.elmChars[inI], inI);
+        const step: Step = makeStep(state[stateI], memory.elmChars[inI], inI, .{.buf = out, .i = &outI} );
         inI = step.moveTo;
-        state = step.state;
+        state[stateI] = step.state;
         switch (step.action) {
-        .commit => |formattedFragment| {
-            for (formattedFragment) |byte| {
-                out[outI] = byte;
-                outI = outI + 1;
+        .finished => {
+            if (stateI == 0) {
+                return;
             }
+            state[stateI] = .empty;
+            stateI = stateI - 1;
+        },
+        .increaseNesting => |nestedState| {
+            if (stateI == maxNesting - 1) {
+                return .tooMuchNesting;
+            }
+            stateI = stateI + 1;
+            state[stateI] = nestedState;
         },
         .none => {},
         }
     }
 }
+
+const Error = error {
+    tooMuchNesting,
+};
+
+const maxNesting = 10;
 
 fn makeElmChars(in: [big]u8, elmChars: *[big]ElmChar) !void {
     for (in, 0..) |rawChar, i| {
