@@ -327,7 +327,7 @@ getUndocumented indent docs items =
    in map
         ( \(row, comment) ->
             mconcat
-              [ intercalate ", " row,
+              [ intercalate ", " (List.sort row),
                 if comment == ""
                   then ""
                   else "\n" <> pack (take (indent + 2) (repeat ' ')),
