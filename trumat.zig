@@ -46,108 +46,87 @@ const StateMachine = struct{
 };
 
 fn generateStateMachine() StateMachine {
-    
+    var states: [stateMachineSize]State = undefined;
+    var actions: [stateMachineSize]Action = undefined;
+
+    for (0..stateMachineSize) |rawInput| {
+        const step: Step = generateStep(rawInput); 
+        states[rawInput] = step.state;
+        actions[rawInput] = step.action;
+    }
+
+    return .{.states = states, .actions = actions};
+}
+
+fn parseState(raw: u8) State {
+    return switch (raw) {
+    0 => .startModule,
+    1 => .moduleStartsWithM,
+    2 => .moduleStartsWithMo,
+    3 => .moduleStartsWithMod,
+    4 => .moduleStartsWithModu,
+    5 => .moduleStartsWithModul,
+    6 => .moduleStartsWithModule,
+    7 => .empty,
+    8...255 => .invalid,
+    };
+}
+
+fn parseElmChar(raw: u8) ElmChar {
+    return switch(raw) {
+    0 => .newline,
+    1 => .space,
+    2...255 => .invalid,
+    };
+}
+
+fn generateStep(rawInput: u16) Step {
+    const rawState: u8 = @truncate(rawInput >> 8);
+    const rawChar: u8 = @truncate(rawInput);
+
+    const state: State = parseState(rawState);
+    const char: ElmChar = parseElmChar(rawChar);
+
+    return generateStepHelp(state, char);
+}
+
+fn generateStepHelp(state: State, char: ElmChar) Step {
+    return switch (state) {
+    .startModule =>
+        switch(char) {
+        .newline =>
+            .doNothing,
+        },
+    .moduleStartsWithM =>
+        switch(char) {
+        .newline =>
+            
+        },
+    };
 }
 
 const ElmChar = enum(u8) {
     newline,
     space,
-    exclamationMark,
-    doubleQuote,
-    hash,
-    dollar,
-    percentage,
-    ampersand,
-    singleQuote,
     openParenthesis,
     closeParenthesis,
-    star,
-    plus,
-    comma,
-    hyphen,
-    fullstop,
-    forwardSlash,
     zero,
-    one,
-    two,
-    three,
-    four,
-    five,
-    six,
-    seven,
-    eight,
-    nine,
-    colon,
-    semiColon,
-    lessThan,
     equals,
-    greaterThan,
-    questionMark,
-    at,
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J,
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
     X,
-    Y,
-    Z,
-    openBracket,
-    backSlash,
-    closeBracket,
-    pointUp,
-    underscore,
-    backtick,
-    a,
-    b,
-    c,
     d,
     e,
-    f,
     g,
-    h,
     i,
-    j,
-    k,
     l,
     m,
     n,
     o,
     p,
-    q,
-    r,
     s,
-    t,
     u,
-    v,
-    w,
     x,
-    y,
-    z,
-    openCurly,
-    pipe,
-    closeCurly,
-    tilde,
     afterEnd,
-    subsequentUtf8,
+    invalid,
 };
 
 const Memory = struct {
@@ -155,7 +134,7 @@ const Memory = struct {
     exports: [numNames][maxName]u8,
 };
 
-const StateTag = enum {
+const State = enum(u8) {
     startModule,
     moduleStartsWithM,
     moduleStartsWithMo,
@@ -163,37 +142,18 @@ const StateTag = enum {
     moduleStartsWithModu,
     moduleStartsWithModul,
     moduleStartsWithModule,
-    openCurlyAfterModuleKeyword,
-    blockCommentAfterModuleKeyword,
     empty,
     failed,
-};
-const State = union(StateTag) {
-    startModule: void,
-    moduleStartsWithM: void,
-    moduleStartsWithMo: void,
-    moduleStartsWithMod: void,
-    moduleStartsWithModu: void,
-    moduleStartsWithModul: void,
-    moduleStartsWithModule: void,
-    openCurlyAfterModuleKeyword: void,
-    blockCommentAfterModuleKeyword: void,
-    empty: void,
-    failed: void,
 };
 
 const Step = struct {
     state: State,
-    moveTo: u32,
     action: Action,
 };
-const ActionTag = enum {
+
+const Action = enum(u8) {
     none,
     finished,
-};
-const Action = union(ActionTag) {
-    none: void,
-    finished: void,
 };
 
 const Out = struct {
@@ -201,32 +161,43 @@ const Out = struct {
     i: *u32,
 };
 
-fn makeStep(state: State, char: ElmChar, i: u32, out: Out) Step {
-    return switch (state) {
-    .startModule =>
-        stepStartModule(char, i, out),
-    .moduleStartsWithM =>
-        stepModuleStartsWithM(char, i, out),
-    .moduleStartsWithMo =>
-        stepModuleStartsWithMo(char, i, out),
-    .moduleStartsWithMod =>
-        stepModuleStartsWithMod(char, i, out),
-    .moduleStartsWithModu =>
-        stepModuleStartsWithModu(char, i, out),
-    .moduleStartsWithModul =>
-        stepModuleStartsWithModul(char, i, out),
-    .moduleStartsWithModule =>
-        stepModuleStartsWithModule(char, i, out),
-    .openCurlyAfterModuleKeyword =>
-        stepOpenCurlyAfterModuleKeyword(char, i, out),
-    .blockCommentAfterModuleKeyword =>
-        stepBlockCommentAfterModuleKeyword(char, i, out),
-    .empty =>
-        .{.state = .failed, .moveTo = i, .action = .none},
-    .failed =>
-        .{.state = .failed, .moveTo = i, .action = .none},
-    };
+fn makeStep(state: State, char8: u8) Step {
+    const state8: u8 = @intFromEnum(state);
+    const state16: u16 = @intCast(state8);
+    const char16: u16 = @intCast(char8);
+    const index: u16 = (state16 << 8) + char16;
+
+    const newState = stateMachine.states[index];
+    const action = stateMachine.actions[index];
+
+    return .{ .state = newState, .action = action };
 }
+
+//     return switch (state) {
+//     .startModule =>
+//         stepStartModule(char, i, out),
+//     .moduleStartsWithM =>
+//         stepModuleStartsWithM(char, i, out),
+//     .moduleStartsWithMo =>
+//         stepModuleStartsWithMo(char, i, out),
+//     .moduleStartsWithMod =>
+//         stepModuleStartsWithMod(char, i, out),
+//     .moduleStartsWithModu =>
+//         stepModuleStartsWithModu(char, i, out),
+//     .moduleStartsWithModul =>
+//         stepModuleStartsWithModul(char, i, out),
+//     .moduleStartsWithModule =>
+//         stepModuleStartsWithModule(char, i, out),
+//     .openCurlyAfterModuleKeyword =>
+//         stepOpenCurlyAfterModuleKeyword(char, i, out),
+//     .blockCommentAfterModuleKeyword =>
+//         stepBlockCommentAfterModuleKeyword(char, i, out),
+//     .empty =>
+//         .{.state = .failed, .moveTo = i, .action = .none},
+//     .failed =>
+//         .{.state = .failed, .moveTo = i, .action = .none},
+//     };
+// }
 
 fn stepBlockCommentAfterModuleKeyword(char: ElmChar, i: u32) Step {
     return switch(char) {
@@ -394,33 +365,22 @@ fn stepStartModule(char: ElmChar, i: u32) Step {
     };
 }
 
-fn format(in: [big]u8, out: *[big]u8, memory: *Memory) !void {
-    try makeElmChars(in, &memory.elmChars);
-
-    var outI: u32 = 0;
-    var state: [maxNesting]State = .{.startModule, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty};
+fn format(in: [big]u8, _: *[big]u8, _: *Memory) !void {
+    var state: [maxNesting]State = .{.empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty, .empty};
     var stateI: u8 = 0;
     var inI: u32 = 0;
     while (true) {
-        const step: Step = makeStep(state[stateI], memory.elmChars[inI], inI, .{.buf = out, .i = &outI} );
-        inI = step.moveTo;
+        const step: Step = makeStep(state[stateI], in[inI]);
         state[stateI] = step.state;
         switch (step.action) {
-        .finished => {
-            if (stateI == 0) {
-                return;
-            }
-            state[stateI] = .empty;
-            stateI = stateI - 1;
-        },
-        .increaseNesting => |nestedState| {
-            if (stateI == maxNesting - 1) {
-                return .tooMuchNesting;
-            }
-            stateI = stateI + 1;
-            state[stateI] = nestedState;
-        },
-        .none => {},
+            .none => {},
+            .finished => {
+                if (stateI == 0) {
+                    return;
+                }
+
+                stateI = stateI - 1;
+            },
         }
     }
 }
@@ -430,118 +390,6 @@ const Error = error {
 };
 
 const maxNesting = 10;
-
-fn makeElmChars(in: [big]u8, elmChars: *[big]ElmChar) !void {
-    for (in, 0..) |rawChar, i| {
-        elmChars.*[i] = try makeElmChar(rawChar);
-    }
-}
-
-fn makeElmChar(raw: u8) !ElmChar {
-    return switch (raw) {
-        0 => .afterEnd,
-        1...9 => error.InvalidChar,
-        10 => .newline,
-        11...31 => error.InvalidChar,
-        32 => .space,
-        33 => .exclamationMark,
-        34 => .doubleQuote,
-        35 => .hash,
-        36 => .dollar,
-        37 => .percentage,
-        38 => .ampersand,
-        39 => .singleQuote,
-        40 => .openParenthesis,
-        41 => .closeParenthesis,
-        42 => .star,
-        43 => .plus,
-        44 => .comma,
-        45 => .hyphen,
-        46 => .fullstop,
-        47 => .forwardSlash,
-        48 => .zero,
-        49 => .one,
-        50 => .two,
-        51 => .three,
-        52 => .four,
-        53 => .five,
-        54 => .six,
-        55 => .seven,
-        56 => .eight,
-        57 => .nine,
-        58 => .colon,
-        59 => .semiColon,
-        60 => .lessThan,
-        61 => .equals,
-        62 => .greaterThan,
-        63 => .questionMark,
-        64 => .at,
-        65 => .A,
-        66 => .B,
-        67 => .C,
-        68 => .D,
-        69 => .E,
-        70 => .F,
-        71 => .G,
-        72 => .H,
-        73 => .I,
-        74 => .J,
-        75 => .K,
-        76 => .L,
-        77 => .M,
-        78 => .N,
-        79 => .O,
-        80 => .P,
-        81 => .Q,
-        82 => .R,
-        83 => .S,
-        84 => .T,
-        85 => .U,
-        86 => .V,
-        87 => .W,
-        88 => .X,
-        89 => .Y,
-        90 => .Z,
-        91 => .openBracket,
-        92 => .backSlash,
-        93 => .closeBracket,
-        94 => .pointUp,
-        95 => .underscore,
-        96 => .backtick,
-        97 => .a,
-        98 => .b,
-        99 => .c,
-        100 => .d,
-        101 => .e,
-        102 => .f,
-        103 => .g,
-        104 => .h,
-        105 => .i,
-        106 => .j,
-        107 => .k,
-        108 => .l,
-        109 => .m,
-        110 => .n,
-        111 => .o,
-        112 => .p,
-        113 => .q,
-        114 => .r,
-        115 => .s,
-        116 => .t,
-        117 => .u,
-        118 => .v,
-        119 => .w,
-        120 => .x,
-        121 => .y,
-        122 => .z,
-        123 => .openCurly,
-        124 => .pipe,
-        125 => .closeCurly,
-        126 => .tilde,
-        127 => error.InvalidChar,
-        128...255 => .subsequentUtf8,
-    };
-}
 
 const Token = enum {
     module,
