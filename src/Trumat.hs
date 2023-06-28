@@ -439,21 +439,24 @@ parseModuleDeclaration =
 
 parseTopLevelNames :: Parser [Text]
 parseTopLevelNames =
-  fmap (\items -> filter (\item -> item /= "") items) $
-    many $
-      choice
-        [ do
-            _ <- parseImport
-            _ <- space
-            return "",
-          do
-            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-            return "",
-          try $ parseSectionComment >> return "",
-          try parseTypeAliasDeclarationForModuleExport,
-          try parseTypeDeclaration,
-          parseTopLevelName
-        ]
+  do
+    names <-
+      fmap (\items -> filter (\item -> item /= "") items) $
+        many $
+          choice
+            [ do
+                _ <- parseImport
+                _ <- space
+                return "",
+              try getTypeAliasDeclarationName,
+              try getCustomTypeDeclarationName,
+              try (parseSectionComment >> return ""),
+              try getPortDeclarationName,
+              try getTopLevelBindName,
+              (parseDocCommentAtEndOfModule >> return "")
+            ]
+    _ <- eof
+    return names
 
 parseTypeAliasDeclarationForModuleExport :: Parser Text
 parseTypeAliasDeclarationForModuleExport =
@@ -558,6 +561,26 @@ parseModuleDeclarationWithTitle =
             else "\n" <> title
         ]
 
+getTypeAliasDeclarationName :: Parser Text
+getTypeAliasDeclarationName =
+  do
+    _ <- space
+    documentation <- choice [parseDocumentation, return ""]
+    _ <- space
+    _ <- "type"
+    _ <- space
+    _ <- "alias"
+    _ <- space
+    name <- parseName
+    _ <- space
+    parameters <- parseParameters 0
+    _ <- space
+    _ <- char '='
+    comment <- commentSpaceParser 4
+    type_ <- parseAliasedType 4
+    _ <- space
+    return name
+
 parseTypeAliasDeclaration :: Parser Text
 parseTypeAliasDeclaration =
   do
@@ -593,6 +616,22 @@ parseTypeAliasDeclaration =
           if comment == "" then "" else "\n    ",
           type_
         ]
+
+getCustomTypeDeclarationName :: Parser Text
+getCustomTypeDeclarationName =
+  do
+    _ <- space
+    documentation <- choice [parseDocumentation, return ""]
+    _ <- space
+    _ <- "type"
+    _ <- space
+    name <- parseName
+    _ <- space
+    parameters <- parseParameters 0
+    _ <- space
+    firstBranch <- parseBranch '='
+    nextBranches <- many (parseBranch '|')
+    return (name <> "(..)")
 
 parseCustomTypeDeclaration :: Parser Text
 parseCustomTypeDeclaration =
@@ -775,6 +814,23 @@ parseDocumentationHelp nesting contents =
             parseDocumentationHelp nesting (contents <> "{")
         ]
 
+getTopLevelBindName :: Parser Text
+getTopLevelBindName =
+  do
+    _ <- space
+    documentation <- choice [parseDocumentation, return ""]
+    _ <- space
+    signature <- choice [try $ parseTypeSignature 1 0, return ""]
+    _ <- space
+    name <- parseName
+    _ <- space
+    parameters <- parseParameters 0
+    _ <- char '='
+    commentBeforeExpression <- commentSpaceParser 4
+    expression <- parseExpression 2 DoesntNeedBrackets 4
+    _ <- space
+    return name
+
 parseTopLevelBind :: Parser Text
 parseTopLevelBind =
   do
@@ -857,6 +913,19 @@ parseParameters startColumn =
               _ <- space
               return parameter
     return $ intercalate " " parameters
+
+getTypeSignatureName :: Int -> Int -> Parser Text
+getTypeSignatureName startColumn indent =
+  do
+    name <- parseName
+    _ <- space
+    _ <- char ':'
+    _ <- space
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    type_ <- parseBareFunctionType startColumn (indent + 4)
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- space
+    return name
 
 parseTypeSignature :: Int -> Int -> Parser Text
 parseTypeSignature startColumn indent =
@@ -1230,6 +1299,16 @@ parser =
           binds,
           "\n"
         ]
+
+getPortDeclarationName :: Parser Text
+getPortDeclarationName =
+  do
+    _ <- space
+    documentation <- choice [parseDocumentation, return ""]
+    _ <- space
+    _ <- chunk "port"
+    _ <- space1
+    getTypeSignatureName 1 0
 
 parsePortDeclaration :: Parser Text
 parsePortDeclaration =
