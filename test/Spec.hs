@@ -6967,5 +6967,22 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline list followed by infix on same line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \    ] ++ b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \    ]\n\
+      \        ++ b\n\
+      \"
     )
   ]
