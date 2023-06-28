@@ -6949,5 +6949,23 @@ cases =
       \b\n\
       \\"\"\"\n\
       \"
+    ),
+    ( "sorting exposed imports",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (c, b)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (b, c)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
