@@ -6984,5 +6984,25 @@ cases =
       \    ]\n\
       \        ++ b\n\
       \"
+    ),
+    ( "sort module export rows",
+      "module X exposing\n\
+      \    ( b\n\
+      \    , a\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
