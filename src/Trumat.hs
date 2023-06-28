@@ -1983,8 +1983,12 @@ parseInfixed minColumn indent =
     let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
         addWhitespace infixItem =
           if endRow > startRow
-            then addMultilineInfixWhitespace indent infixItem
+            then addMultilineInfixWhitespace indent infixItem firstIsMultiline
             else addSingleLineInfixWhitespace infixItem
+
+        firstIsMultiline :: Bool
+        firstIsMultiline =
+          Text.take 3 firstExpression == "\"\"\""
 
     if null items
       then fail "zero infix items"
@@ -2043,8 +2047,8 @@ addSingleLineInfixWhitespace (indent, isOnSameRowAsPrevious, commentBefore, infi
           expression
         ]
 
-addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Text
-addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) =
+addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Bool -> Text
+addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) precededByMultilineString =
   let newIndent = floorToFour indent
    in if infix_ == "<|"
         then
@@ -2057,7 +2061,7 @@ addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBef
               expression
             ]
         else
-          if isOnSameRowAsPrevious && commentBefore == "" && commentAfter == ""
+          if isOnSameRowAsPrevious && commentBefore == "" && commentAfter == "" && precededByMultilineString
             then " " <> infix_ <> " " <> expression
             else
               mconcat
