@@ -31,7 +31,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char (char, space)
 import Text.Megaparsec.Debug (dbg)
 import Prelude
-  ( Bool,
+  ( Bool (..),
     Char,
     Either (..),
     Eq,
@@ -1874,29 +1874,35 @@ parseFunctionCall minColumn indent =
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     f <- parseCallable startColumn indent
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    items <- some $
-      try $
-        do
-          _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-          column <- fmap (unPos . sourceColumn) getSourcePos
-          if column < minColumn
-            then fail "argument is too far left"
-            else do
-              comment <- commentSpaceParser (indent + 4)
-              columnBeforeArg <- fmap (unPos . sourceColumn) getSourcePos
-              if columnBeforeArg < minColumn
-                then fail "argument is too far left"
-                else do
-                  arg <- parseArgumentExpression (floorToFour (indent + 4))
-                  argEndRow <- fmap (unPos . sourceLine) getSourcePos
-                  return (comment, arg, argEndRow)
+    firstArgument <- try $ parseArgument minColumn indent
+    subsequent <-
+      many $
+        try $
+          parseArgument minColumn indent
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    return $ mconcat $ f : map (addArgSpaces startRow endRow indent) items
+    return $ mconcat $ f : (addArgSpaces True startRow endRow indent firstArgument) : map (addArgSpaces False startRow endRow indent) subsequent
 
-addArgSpaces :: Int -> Int -> Int -> (Text, Text, Int) -> Text
-addArgSpaces startRow endRow indent (comment, arg, row) =
+parseArgument :: Int -> Int -> Parser (Text, Text, Int)
+parseArgument minColumn indent =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    column <- fmap (unPos . sourceColumn) getSourcePos
+    if column < minColumn
+      then fail "argument is too far left"
+      else do
+        comment <- commentSpaceParser (indent + 4)
+        columnBeforeArg <- fmap (unPos . sourceColumn) getSourcePos
+        if columnBeforeArg < minColumn
+          then fail "argument is too far left"
+          else do
+            arg <- parseArgumentExpression (floorToFour (indent + 4))
+            argEndRow <- fmap (unPos . sourceLine) getSourcePos
+            return (comment, arg, argEndRow)
+
+addArgSpaces :: Bool -> Int -> Int -> Int -> (Text, Text, Int) -> Text
+addArgSpaces isFirstArg startRow endRow indent (comment, arg, row) =
   let indentation =
-        if endRow == startRow || row == startRow || numNewlinesInMultiline arg == endRow - startRow
+        if endRow == startRow || (row == startRow && isFirstArg) || numNewlinesInMultiline arg == endRow - startRow
           then " "
           else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
    in if comment == ""
