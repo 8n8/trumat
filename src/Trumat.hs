@@ -307,10 +307,6 @@ makeHasExposeAll names =
     map (\name -> Text.dropEnd 4 name) $
       filter (\name -> Text.takeEnd 4 name == "(..)") names
 
---   removeEmptyLists $
---     map (\docsRow -> filter (\docsItem -> docsItem `elem` (map trimExposeAll used)) docsRow) $
---        used
-
 removeEmptyLists :: [[a]] -> [[a]]
 removeEmptyLists items =
   filter (\item -> not (null item)) items
