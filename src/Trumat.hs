@@ -324,16 +324,17 @@ trimExposeAll text =
 getUndocumented :: Int -> [[Text]] -> [([Text], Text)] -> [Text]
 getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
-   in map
-        ( \(row, comment) ->
-            mconcat
-              [ intercalate ", " (List.sort row),
-                if comment == ""
-                  then ""
-                  else "\n" <> pack (take (indent + 2) (repeat ' ')),
-                comment
-              ]
-        )
+   in List.sort
+        $ map
+          ( \(row, comment) ->
+              mconcat
+                [ intercalate ", " (List.sort row),
+                  if comment == ""
+                    then ""
+                    else "\n" <> pack (take (indent + 2) (repeat ' ')),
+                  comment
+                ]
+          )
         $ filter (\row -> not (null row))
         $ map
           ( \(row, comment) ->
