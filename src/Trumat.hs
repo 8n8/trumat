@@ -4,7 +4,6 @@ import qualified Data.List as List
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, pack, replicate, takeEnd, unpack)
-import qualified Space
 import qualified Data.Text as Text
 import Data.Void (Void)
 import Debug.Trace (trace)
@@ -90,7 +89,7 @@ parseExportDocs :: Parser [[Text]]
 parseExportDocs =
   do
     _ <- consumeExportList
-    _ <- Space.parse
+    _ <- space
     _ <- chunk "{-|"
     results <- many $ try parseExportDocsRowOnly
     _ <- endDocComment
