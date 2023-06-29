@@ -7004,5 +7004,22 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "first two function arguments on same line and third on new line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b c\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        c\n\
+      \        d\n\
+      \"
     )
   ]
