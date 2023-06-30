@@ -7260,5 +7260,21 @@ cases =
       \    a b\n\
       \        ++ c\n\
       \"
+    ),
+    ( "unnecessary parentheses around infixed record declaration",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ({ a = b })\n\
+      \        ++ c\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = b }\n\
+      \        ++ c\n\
+      \"
     )
   ]
