@@ -7292,5 +7292,21 @@ cases =
       \    { a | b = c }\n\
       \        ++ d\n\
       \"
+    ),
+    ( "unnecessary parentheses around infixed number",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (1)\n\
+      \        + a\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    1\n\
+      \        + a\n\
+      \"
     )
   ]
