@@ -7228,5 +7228,21 @@ cases =
       \    <|\n\
       \        c\n\
       \"
+    ),
+    ( "unnecessary parentheses around infixed item",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a)\n\
+      \        ++ b\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ++ b\n\
+      \"
     )
   ]
