@@ -7190,5 +7190,22 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "left pizza on its own line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \    <|\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        c\n\
+      \"
     )
   ]
