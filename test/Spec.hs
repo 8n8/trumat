@@ -7087,5 +7087,26 @@ cases =
       \            d\n\
       \        )\n\
       \"
+    ),
+    ( "function call with first argument if then else and second plain",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (if b then c else d) e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            d\n\
+      \        )\n\
+      \        e\n\
+      \"
     )
   ]
