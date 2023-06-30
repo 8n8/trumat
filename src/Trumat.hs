@@ -2018,12 +2018,16 @@ parseInfixed minColumn indent =
     let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
         addWhitespace infixItem =
           if endRow > startRow
-            then addMultilineInfixWhitespace indent infixItem firstIsMultiline
+            then addMultilineInfixWhitespace indent infixItem firstIsMultilineString firstIsMultiline
             else addSingleLineInfixWhitespace infixItem
+
+        firstIsMultilineString :: Bool
+        firstIsMultilineString =
+          Text.take 3 firstExpression == "\"\"\""
 
         firstIsMultiline :: Bool
         firstIsMultiline =
-          Text.take 3 firstExpression == "\"\"\""
+          Text.elem '\n' firstExpression
 
     if null items
       then fail "zero infix items"
@@ -2082,13 +2086,13 @@ addSingleLineInfixWhitespace (indent, isOnSameRowAsPrevious, commentBefore, infi
           expression
         ]
 
-addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Bool -> Text
-addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) precededByMultilineString =
+addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Bool -> Bool -> Text
+addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) precededByMultilineString firstIsMultiline =
   let newIndent = floorToFour indent
    in if infix_ == "<|"
         then
           mconcat
-            [ if isOnSameRowAsPrevious
+            [ if isOnSameRowAsPrevious || not firstIsMultiline
                 then " "
                 else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
               "<|\n",
