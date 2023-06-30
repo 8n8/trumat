@@ -77,6 +77,55 @@ import Prelude
 type Parser =
   Parsec Void Text
 
+data Trumat_
+    = Start
+    | Running Parser_
+    | Failed
+    | Finished Text
+
+data Parser_
+    = ParserModuleDeclaration ParseModuleDeclarationWithTitle
+    | ParserSpaceAfterModuleDeclaration
+        ModuleDeclarationWithTitle
+        Space
+    | ParserImportsInit ModuleDeclarationWithTitle [Import] ParseImport
+    | ParserImportsSpace ModuleDeclarationWithTitle [Import] Space
+    | ParserSpaceAfterImports ModuleDeclarationWithTitle Imports Space
+    | ParserTopLevelBindsTypeAlias
+        ModuleDeclarationWithTitle
+        Imports
+        Position
+        ParseTypeAliasDeclaration
+    | ParserTopLevelBindsCustomTypeDeclaration
+        ModuleDeclarationWithTitle
+        Imports
+        Position
+        ParseCustomTypeDeclaration
+    | ParserSectionComment
+        ModuleDeclarationWithTitle
+        Imports
+        Position
+        ParseSecionComment
+    | ParserPortDeclaration
+        ModuleDeclarationWithTitle
+        Imports
+        Position
+        ParsePortDeclaration
+    | ParserDocCommentAtEndOfModule
+        ModuleDeclarationWithTitle
+        Imports
+        Position
+        ParseDocCommentAtEndOfModule
+    | ParserEof Eof
+
+
+
+newtype Import
+    = Import Text
+
+newtype ModuleDeclarationWithTitle
+    = ModuleDeclarationWithTitle Text
+
 trumat :: Text -> Either String Text
 trumat unformatted =
   case parse parser "" unformatted of
