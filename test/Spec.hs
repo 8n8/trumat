@@ -7022,7 +7022,7 @@ cases =
       \        d\n\
       \"
     ),
-    ( "top level line comments with empty lines between them",
+    ( "top level line comments at top of module with empty lines between them",
       "module X exposing (x)\n\
       \\n\
       \--\n\
@@ -7041,6 +7041,31 @@ cases =
       \\n\
       \x =\n\
       \    0\n\
+      \"
+    ),
+    ( "top level line comments with an empty line between them",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \\n\
+      \--\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \--\n\
       \"
     )
   ]

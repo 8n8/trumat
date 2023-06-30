@@ -1297,7 +1297,6 @@ parser =
           "\n"
         ]
 
-
 getPortDeclarationName :: Parser Text
 getPortDeclarationName =
   do
@@ -1338,7 +1337,7 @@ parseTopLevelComment =
       do
         _ <- space
         lines_ <- some $
-           do
+          do
             line <- parseLineComment
             _ <- space
             return line
