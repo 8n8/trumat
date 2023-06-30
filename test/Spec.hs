@@ -7168,5 +7168,27 @@ cases =
       \x =\n\
       \    \" \\u{00A0}\"\n\
       \"
+    ),
+    ( "unindented body in module documentation",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \   a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

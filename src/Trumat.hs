@@ -1637,22 +1637,22 @@ parseTripleStringLiteral =
 
 parseTripleStringLiteralChar :: Parser Text
 parseTripleStringLiteralChar =
-    choice
-      [ char '\160' >> return "\\u{00A0}",
-        takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\' && ch /= '\160'),
-        chunk "\\\"",
-        chunk "\\\\",
-        chunk "\\u",
-        chunk "\\n",
-        try $ do
-          _ <- char '"'
-          _ <- notFollowedBy (char '"')
-          return "\"",
-        try $ do
-          _ <- chunk "\"\""
-          _ <- notFollowedBy (char '"')
-          return "\"\""
-      ]
+  choice
+    [ char '\160' >> return "\\u{00A0}",
+      takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\' && ch /= '\160'),
+      chunk "\\\"",
+      chunk "\\\\",
+      chunk "\\u",
+      chunk "\\n",
+      try $ do
+        _ <- char '"'
+        _ <- notFollowedBy (char '"')
+        return "\"",
+      try $ do
+        _ <- chunk "\"\""
+        _ <- notFollowedBy (char '"')
+        return "\"\""
+    ]
 
 parseSimpleStringLiteral :: Parser Text
 parseSimpleStringLiteral =
