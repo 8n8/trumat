@@ -7207,5 +7207,26 @@ cases =
       \    a <|\n\
       \        c\n\
       \"
+    ),
+    ( "left pizza after multiline function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        [ b\n\
+      \        ] <|\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        [ b\n\
+      \        ]\n\
+      \    <|\n\
+      \        c\n\
+      \"
     )
   ]
