@@ -7067,5 +7067,25 @@ cases =
       \--\n\
       \--\n\
       \"
+    ),
+    ( "single line if then else in single line function call",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (if b then c else d)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            d\n\
+      \        )\n\
+      \"
     )
   ]
