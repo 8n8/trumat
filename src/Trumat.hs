@@ -1297,6 +1297,7 @@ parser =
           "\n"
         ]
 
+
 getPortDeclarationName :: Parser Text
 getPortDeclarationName =
   do
@@ -1336,7 +1337,11 @@ parseTopLevelComment =
         return $ block <> "\n" <> line,
       do
         _ <- space
-        lines_ <- some parseLineComment
+        lines_ <- some $
+           do
+            line <- parseLineComment
+            _ <- space
+            return line
         _ <- space
         return $ intercalate "\n" lines_,
       try $ do
