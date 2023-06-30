@@ -7021,5 +7021,26 @@ cases =
       \        c\n\
       \        d\n\
       \"
+    ),
+    ( "top level line comments with empty lines between them",
+      "module X exposing (x)\n\
+      \\n\
+      \--\n\
+      \\n\
+      \--\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \--\n\
+      \--\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
