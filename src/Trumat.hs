@@ -1879,8 +1879,9 @@ parseFunctionCall minColumn indent =
       many $
         try $
           parseArgument minColumn indent
+    let atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    return $ mconcat $ f : (addArgSpaces True startRow endRow indent firstArgument) : map (addArgSpaces False startRow endRow indent) subsequent
+    return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False startRow endRow indent) subsequent
 
 parseArgument :: Int -> Int -> Parser (Text, Int, Text, Int)
 parseArgument minColumn indent =
@@ -1900,10 +1901,10 @@ parseArgument minColumn indent =
             argEndRow <- fmap (unPos . sourceLine) getSourcePos
             return (comment, argStartRow, arg, argEndRow)
 
-addArgSpaces :: Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
-addArgSpaces isFirstArg startRow endRow indent (comment, argStartRow, arg, argEndRow) =
+addArgSpaces :: Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
+addArgSpaces atLeastOneMultiline isFirstArg startRow endRow indent (comment, argStartRow, arg, argEndRow) =
   let indentation =
-        if (startRow == endRow && not (Text.elem '\n' arg)) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg)
+        if (startRow == endRow && not (Text.elem '\n' arg) && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg)
           then " "
           else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
    in if comment == ""
