@@ -1638,7 +1638,8 @@ parseTripleStringLiteral =
 parseTripleStringLiteralChar :: Parser Text
 parseTripleStringLiteralChar =
   choice
-    [ takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
+    [ char '\160' >> return "\\u{00A0}",
+      takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
       chunk "\\\"",
       chunk "\\\\",
       chunk "\\u",
