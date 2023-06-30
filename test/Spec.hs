@@ -7109,7 +7109,7 @@ cases =
       \        e\n\
       \"
     ),
-    ( "no break space in string literal",
+    ( "no break space in simple string literal",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -7121,6 +7121,20 @@ cases =
       \\n\
       \x =\n\
       \    \"\\u{00A0}\"\n\
+      \"
+    ),
+    ( "no break space in triple quote string literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\" \"\"\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\\u{00A0}\"\"\"\n\
       \"
     )
   ]
