@@ -1637,7 +1637,6 @@ parseTripleStringLiteral =
 
 parseTripleStringLiteralChar :: Parser Text
 parseTripleStringLiteralChar =
-  dbg "parseTripleStringLiteralChar" $
     choice
       [ char '\160' >> return "\\u{00A0}",
         takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\' && ch /= '\160'),
@@ -1693,7 +1692,7 @@ parseSimpleStringLiteralChar :: Parser Text
 parseSimpleStringLiteralChar =
   choice
     [ char '\160' >> return "\\u{00A0}",
-      takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\'),
+      takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\' && ch /= '\160'),
       chunk "\\\"",
       chunk "\\u",
       chunk "\\n",
