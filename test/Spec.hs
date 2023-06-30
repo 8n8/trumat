@@ -7276,5 +7276,21 @@ cases =
       \    { a = b }\n\
       \        ++ c\n\
       \"
+    ),
+    ( "unnecessary parentheses around infixed record update",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    ({ a | b = c })\n\
+      \        ++ d\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a | b = c }\n\
+      \        ++ d\n\
+      \"
     )
   ]
