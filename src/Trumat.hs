@@ -2015,19 +2015,19 @@ parseInfixed minColumn indent =
     items <- parseInfixedItems minColumn (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
 
-    let addWhitespace :: (Int, Bool, Text, Text, Text, Text) -> Text
-        addWhitespace infixItem =
+    let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool) -> Text
+        addWhitespace (infixItem, previousIsMultiline) =
           if endRow > startRow
-            then addMultilineInfixWhitespace indent infixItem firstIsMultilineString firstIsMultiline
+            then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline
             else addSingleLineInfixWhitespace infixItem
 
         firstIsMultilineString :: Bool
         firstIsMultilineString =
           Text.take 3 firstExpression == "\"\"\""
 
-        firstIsMultiline :: Bool
-        firstIsMultiline =
-          Text.elem '\n' firstExpression
+        isMultiline :: [Bool]
+        isMultiline =
+          map (\item -> Text.elem '\n' item) (firstExpression : (map (\(_, _, _, _, _, item) -> item) (items)))
 
     if null items
       then fail "zero infix items"
@@ -2035,7 +2035,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map addWhitespace items
+              mconcat $ map addWhitespace (List.zip items isMultiline)
             ]
 
 parseInfixedItems ::
@@ -2092,7 +2092,7 @@ addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBef
    in if infix_ == "<|"
         then
           mconcat
-            [ if isOnSameRowAsPrevious || not firstIsMultiline
+            [ if not firstIsMultiline
                 then " "
                 else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
               "<|\n",
