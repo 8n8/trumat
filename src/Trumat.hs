@@ -1462,7 +1462,11 @@ parseUnnecessaryBracketsInInfixed minColumn indent =
   do
     _ <- char '('
     _ <- space
-    contents <- parseVerbatim
+    contents <-
+      choice
+        [ try $ parseFunctionCall minColumn indent,
+          parseVerbatim
+        ]
     _ <- space
     _ <- char ')'
     return contents
