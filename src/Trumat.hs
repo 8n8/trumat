@@ -1465,6 +1465,7 @@ parseUnnecessaryBracketsInInfixed minColumn indent =
     contents <-
       choice
         [ try $ parseFunctionCall minColumn indent,
+          parseRecord indent,
           parseVerbatim
         ]
     _ <- space
