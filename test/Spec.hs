@@ -7229,7 +7229,7 @@ cases =
       \        c\n\
       \"
     ),
-    ( "unnecessary parentheses around infixed item",
+    ( "unnecessary parentheses around infixed verbatim item",
       "module Main exposing (x)\n\
       \\n\
       \\n\
@@ -7243,6 +7243,22 @@ cases =
       \x =\n\
       \    a\n\
       \        ++ b\n\
+      \"
+    ),
+    ( "unnecessary parentheses around infixed function call",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a b)\n\
+      \        ++ c\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \        ++ c\n\
       \"
     )
   ]
