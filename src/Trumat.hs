@@ -1380,7 +1380,7 @@ parseBlockCommentHelp nesting contents =
             parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseBlockCommentHelp nesting (contents <> piece),
+            parseBlockCommentHelp nesting (contents <> (indentDocRows piece)),
           do
             _ <- char '-'
             parseBlockCommentHelp nesting (contents <> "-"),
@@ -1388,6 +1388,30 @@ parseBlockCommentHelp nesting contents =
             _ <- char '{'
             parseBlockCommentHelp nesting (contents <> "{")
         ]
+
+indentDocRows :: Text -> Text
+indentDocRows raw =
+  case Text.lines raw of
+    [] ->
+      ""
+    top : remainder ->
+      Text.intercalate "\n" (top : map indentDocRow remainder)
+        <> (if Text.takeEnd 1 raw == "\n" then "\n" else "")
+
+indentDocRow :: Text -> Text
+indentDocRow raw =
+  if raw == ""
+    then ""
+    else
+      if Text.take 3 raw == "   "
+        then raw
+        else
+          if Text.take 2 raw == "  "
+            then " " <> raw
+            else
+              if Text.take 1 raw == " "
+                then "  " <> raw
+                else "   " <> raw
 
 notFollowedByInfix :: Parser Text -> Parser Text
 notFollowedByInfix p =
