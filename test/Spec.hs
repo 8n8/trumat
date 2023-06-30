@@ -7136,5 +7136,23 @@ cases =
       \x =\n\
       \    \"\"\"\\u{00A0}\"\"\"\n\
       \"
+    ),
+    ( "no break space in multi line triple quote string literal",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\160\n\
+      \\"\"\"\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\"\"\n\
+      \\\u{00A0}\n\
+      \\"\"\"\n\
+      \"
     )
   ]
