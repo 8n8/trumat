@@ -7398,5 +7398,23 @@ cases =
       \x =\n\
       \    a |> (\\b -> c)\n\
       \"
+    ),
+    ( "bare as pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B (C d as e) ->\n\
+      \            f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B ((C d) as e) ->\n\
+      \            f\n\
+      \"
     )
   ]
