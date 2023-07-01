@@ -1457,8 +1457,23 @@ parseCaseOfInBrackets indent =
           ")"
         ]
 
-parseUnnecessaryBracketsInInfixed :: Int -> Int -> Parser Text
-parseUnnecessaryBracketsInInfixed minColumn indent =
+parseUnnecessaryBracketsInArgument :: Int -> Int -> Parser Text
+parseUnnecessaryBracketsInArgument minColumn indent =
+  do
+    _ <- char '('
+    _ <- space
+    contents <-
+      choice
+        [ try $ parseRecord indent,
+          parseRecordUpdate indent,
+          parseVerbatim
+        ]
+    _ <- space
+    _ <- char ')'
+    return contents
+
+parseUnnecessaryBracketsInInfix :: Int -> Int -> Parser Text
+parseUnnecessaryBracketsInInfix minColumn indent =
   do
     _ <- char '('
     _ <- space
@@ -2008,7 +2023,7 @@ parseInfixedExpression minColumn indent =
     [ try $ parseCaseOf indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
-      try $ parseUnnecessaryBracketsInInfixed minColumn indent,
+      try $ parseUnnecessaryBracketsInInfix minColumn indent,
       try $ parseTuple NeedsBrackets indent,
       parseList indent,
       try parseEmptyRecord,
@@ -2607,7 +2622,8 @@ parseTuplePattern context indent =
 parseTuple :: Context -> Int -> Parser Text
 parseTuple context indent =
   choice
-    [ try $ parseParenthesised context indent,
+    [ try $ parseUnnecessaryBracketsInArgument 1 indent,
+      try $ parseParenthesised context indent,
       parseMultiTuple indent
     ]
 
