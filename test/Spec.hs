@@ -7437,5 +7437,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line module doc comment with trailing newline",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
