@@ -7322,5 +7322,26 @@ cases =
       \x =\n\
       \    a b\n\
       \"
+    ),
+    ( "single line if then else in single line record field",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = if b then c else d\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        if b then\n\
+      \            c\n\
+      \\n\
+      \        else\n\
+      \            d\n\
+      \    }\n\
+      \"
     )
   ]
