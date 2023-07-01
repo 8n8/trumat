@@ -33,7 +33,6 @@ import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool (..),
     Char,
-    id,
     Either (..),
     Eq,
     Int,
@@ -47,6 +46,7 @@ import Prelude
     fmap,
     fst,
     head,
+    id,
     length,
     map,
     max,
