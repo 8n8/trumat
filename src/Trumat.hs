@@ -146,8 +146,8 @@ parseDocRow =
                     choice [chunk "-}", chunk "docs"]
               choice
                 [ do
-                    _ <- char '-'
-                    return $ text <> "-",
+                    hyphens <- some $ char '-'
+                    return $ text <> Text.pack hyphens,
                   do
                     _ <- char '@'
                     return $ text <> "@",
