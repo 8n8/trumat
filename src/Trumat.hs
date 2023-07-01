@@ -381,11 +381,11 @@ endDocComment =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- many parseDocRow
+    rows <- some parseDocRow
     let flat = mconcat rows
     return $
       if Text.strip (mconcat rows) == ""
-        then "\n\n\n"
+        then "\n\n"
         else
           if Text.isInfixOf "@docs" flat
             then flat
@@ -405,7 +405,10 @@ parseModuleDocsHelp nesting contents =
             parseModuleDocsHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseModuleDocsHelp (nesting - 1) (contents <> "-}"),
+            parseModuleDocsHelp
+              (nesting - 1)
+              ( if Text.strip contents == "{-" || Text.strip contents == "{-|" then Text.strip contents <> "\n\n\n-}" else contents <> "-}"
+              ),
           try $ do
             piece <- parseModuleDocsInner
             parseModuleDocsHelp nesting (contents <> piece),
