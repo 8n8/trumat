@@ -7565,5 +7565,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "anonymous function in function argument bound to name beginning with type",
+      "module X exposing (typea)\n\
+      \\n\
+      \\n\
+      \typea =\n\
+      \    a (\\a -> a)\n\
+      \",
+      "module X exposing (typea)\n\
+      \\n\
+      \\n\
+      \typea =\n\
+      \    a (\\a -> a)\n\
+      \"
     )
   ]
