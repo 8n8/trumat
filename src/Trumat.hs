@@ -1655,7 +1655,7 @@ parseRecordItem indent =
       mconcat
         [ name,
           " =",
-          if endRow > startRow
+          if endRow > startRow || Text.elem '\n' right
             then
               if commentBefore == ""
                 then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
