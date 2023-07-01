@@ -617,7 +617,7 @@ parseTypeAliasDeclaration =
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
-    _ <- space
+    _ <- space1
     _ <- "alias"
     _ <- space
     name <- parseName
@@ -669,7 +669,7 @@ parseCustomTypeDeclaration =
     documentation <- choice [parseDocumentation, return ""]
     _ <- space
     _ <- "type"
-    _ <- space
+    _ <- space1
     name <- parseName
     _ <- space
     parameters <- parseParameters 0
