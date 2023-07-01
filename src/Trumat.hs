@@ -121,39 +121,6 @@ consumeExportListHelp nesting =
             consumeExportListHelp (nesting - 1)
         ]
 
-parseDocRowNoAtDocs :: Parser Text
-parseDocRowNoAtDocs =
-  choice
-    [ chunk "\n",
-      do
-        _ <- chunk "    "
-        code <- takeWhileP Nothing (\ch -> ch /= '\n')
-        _ <- char '\n'
-        return $ "    " <> code <> "\n",
-      do 
-        pieces <-
-          some $
-            do
-              text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
-              _ <-
-                notFollowedBy $
-                  lookAhead $
-                    choice [chunk "-}", chunk "docs"]
-              choice
-                [ do
-                    _ <- char '-'
-                    return $ text <> "-",
-                  do
-                    _ <- char '@'
-                    return $ text <> "@",
-                  return text
-                ]
-        return $
-          if Text.strip (mconcat pieces) == "-"
-            then ""
-            else mconcat pieces
-    ]
-
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -168,7 +135,7 @@ parseDocRow =
         docs <- parseExportDocsRow
         _ <- char '\n'
         return $ "@docs " <> intercalate ", " docs <> "\n",
-      do 
+      do
         pieces <-
           some $
             do
@@ -399,25 +366,6 @@ parseModuleDocsInner =
         then "\n\n\n"
         else mconcat rows
 
-parseModuleDocsInnerNoAtDocs :: Parser Text
-parseModuleDocsInnerNoAtDocs =
-  do
-    rows <- many parseDocRowNoAtDocs
-    return $
-      if Text.strip (mconcat rows) == ""
-        then "\n\n\n"
-        else Text.stripEnd (mconcat rows) <> "\n"
-
-
-removeExtraTrailingNewlines :: [Text] -> [Text]
-removeExtraTrailingNewlines rows =
-    case reverse rows of
-        "\n" : "\n" : remainder ->
-            removeExtraTrailingNewlines (reverse ("\n" : remainder))
-
-        _ ->
-            rows
-
 parseModuleDocsHelp :: Int -> Text -> Parser Text
 parseModuleDocsHelp nesting contents =
   if nesting == 0
@@ -432,9 +380,6 @@ parseModuleDocsHelp nesting contents =
             parseModuleDocsHelp (nesting - 1) (contents <> "-}"),
           try $ do
             piece <- parseModuleDocsInner
-            parseModuleDocsHelp nesting (contents <> piece),
-          try $ do
-            piece <- parseModuleDocsInnerNoAtDocs
             parseModuleDocsHelp nesting (contents <> piece),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
