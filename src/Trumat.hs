@@ -1295,7 +1295,7 @@ parser =
     moduleDeclaration <- parseModuleDeclarationWithTitle
     _ <- space
     imports <-
-      fmap (intercalate "\n" . List.sort) $
+      fmap (intercalate "\n" . List.sort . List.nub) $
         many $
           do
             import_ <- try parseImport
