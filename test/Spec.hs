@@ -7463,5 +7463,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "single line if then else in parentheses",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (if a then b else c)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if a then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        c\n\
+      \"
     )
   ]
