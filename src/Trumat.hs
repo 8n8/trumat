@@ -390,7 +390,7 @@ parseModuleDocsInner =
           if Text.isInfixOf "@docs" flat
             then flat
             else
-              if Text.take 2 flat == "\n\n"
+              if Text.take 2 flat == "\n\n" || Text.elem '\n' (Text.strip flat)
                 then flat
                 else Text.stripEnd flat <> "\n"
 
