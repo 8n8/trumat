@@ -259,6 +259,7 @@ formatExports :: Int -> Bool -> [[Text]] -> [([Text], Text)] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedRows = removeUndocumented (mconcat (map fst items)) docs
       rows = filter (\row -> row /= "") $ (map (formatExportRow (indent + 2) (mconcat items)) unformattedRows) <> undocumented
+      undocumented :: [Text]
       undocumented = getUndocumented indent docs items
       isMultiline = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat (map fst items)) > 1) || originalIsMultiline
    in case rows of
@@ -333,6 +334,10 @@ getUndocumented indent docs items =
                 ]
           )
         $ filter (\row -> not (null row))
+        $ ( case docs of
+              [] -> flattenExportRows
+              _ -> id
+          )
         $ map
           ( \(row, comment) ->
               ( filter (\item -> not (Set.member (trimExposeAll item) docSet)) row,
@@ -340,6 +345,22 @@ getUndocumented indent docs items =
               )
           )
           items
+
+flattenExportRows :: [([Text], Text)] -> [([Text], Text)]
+flattenExportRows rows =
+  flattenExportRowsHelp rows []
+
+flattenExportRowsHelp :: [([Text], Text)] -> [([Text], Text)] -> [([Text], Text)]
+flattenExportRowsHelp rows accumulator =
+  case rows of
+    [] ->
+      reverse accumulator
+    (row, comment) : remainder ->
+      case reverse row of
+        [] ->
+          flattenExportRowsHelp remainder accumulator
+        rowTop : rowRemainder ->
+          flattenExportRowsHelp remainder ((reverse (([rowTop], comment) : map (\item -> ([item], "")) rowRemainder)) <> accumulator)
 
 endDocComment :: Parser Text
 endDocComment =
