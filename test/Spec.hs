@@ -7384,5 +7384,21 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bare anonymous function in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> \b -> c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> (\b -> c)\n\
+      \"
     )
   ]
