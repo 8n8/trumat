@@ -7579,5 +7579,33 @@ cases =
       \typea =\n\
       \    a (\\a -> a)\n\
       \"
+    ),
+    ( "callable if then else",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (if a then\n\
+      \        b\n\
+      \\n\
+      \     else\n\
+      \        c\n\
+      \    )\n\
+      \        d\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (if a then\n\
+      \        b\n\
+      \\n\
+      \     else\n\
+      \        c\n\
+      \    )\n\
+      \        d\n\
+      \    )\n\
+      \"
     )
   ]
