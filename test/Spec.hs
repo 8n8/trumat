@@ -7416,5 +7416,26 @@ cases =
       \        (C d) as e ->\n\
       \            f\n\
       \"
+    ),
+    ( "undocumented module exports on single line",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b, c\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b\n\
+      \    , c\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
