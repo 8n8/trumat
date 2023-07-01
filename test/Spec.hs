@@ -7481,5 +7481,24 @@ cases =
       \    else\n\
       \        c\n\
       \"
+    ),
+    ( "duplicate imports",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
