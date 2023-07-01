@@ -33,6 +33,7 @@ import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool (..),
     Char,
+    id,
     Either (..),
     Eq,
     Int,
@@ -2049,7 +2050,7 @@ parseInfixed minColumn indent =
 
     let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool) -> Text
         addWhitespace (infixItem, previousIsMultiline) =
-          if endRow > startRow
+          if endRow > startRow || List.any id isMultiline
             then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline
             else addSingleLineInfixWhitespace infixItem
 
