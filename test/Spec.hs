@@ -7520,7 +7520,7 @@ cases =
       \            d\n\
       \"
     ),
-    ( "pair of hyphens inside module documentation",
+    ( "pair of hyphens on first line of module documentation",
       "module X exposing (x)\n\
       \\n\
       \{-| --\n\
@@ -7533,6 +7533,32 @@ cases =
       "module X exposing (x)\n\
       \\n\
       \{-| --\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "pair of hyphens on subsequent line of module documentation",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \--\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \--\n\
+      \\n\
       \-}\n\
       \\n\
       \\n\
