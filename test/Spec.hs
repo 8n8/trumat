@@ -7519,5 +7519,25 @@ cases =
       \        else\n\
       \            d\n\
       \"
+    ),
+    ( "pair of hyphens inside module documentation",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| --\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| --\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
