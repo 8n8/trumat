@@ -2025,33 +2025,43 @@ infixes :: [Text]
 infixes =
   ["==", "&&", "//", ">>", "<<", "||", "<=", ">=", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "*", "^", "/"]
 
-parseInfixedExpression :: Int -> Int -> Parser Text
-parseInfixedExpression minColumn indent =
-  dbg "parseInfixedExpression" $
-    choice
-      [ try $ parseCaseOf indent,
-        try $ parseIfThenElse minColumn indent,
-        try $ parseLetIn minColumn indent,
-        try $ parseUnnecessaryBracketsInInfix minColumn indent,
-        try $ parseTuple NeedsBrackets indent,
-        parseList indent,
-        try parseEmptyRecord,
-        try $ parseRecord indent,
-        parseRecordUpdate indent,
-        try $ parseFunctionCall minColumn indent,
-        parseInfixInBrackets,
-        parseCharLiteral,
-        parseVerbatim,
-        parseTripleStringLiteral,
-        parseSimpleStringLiteral,
-        parseAnonymousFunction minColumn indent
-      ]
+parseInfixedExpression :: Text -> Int -> Int -> Parser Text
+parseInfixedExpression infix_ minColumn indent =
+  choice
+    [ try $ parseCaseOf indent,
+      try $ parseIfThenElse minColumn indent,
+      try $ parseLetIn minColumn indent,
+      try $ parseUnnecessaryBracketsInInfix minColumn indent,
+      try $ parseTuple NeedsBrackets indent,
+      parseList indent,
+      try parseEmptyRecord,
+      try $ parseRecord indent,
+      parseRecordUpdate indent,
+      try $ parseFunctionCall minColumn indent,
+      parseInfixInBrackets,
+      parseCharLiteral,
+      parseVerbatim,
+      parseTripleStringLiteral,
+      parseSimpleStringLiteral,
+      do
+        f <- parseAnonymousFunction minColumn indent
+        return $
+          mconcat
+            [ if infix_ == "|>"
+                then "("
+                else "",
+              f,
+              if infix_ == "|>"
+                then ")"
+                else ""
+            ]
+    ]
 
 parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    firstExpression <- parseInfixedExpression minColumn indent
+    firstExpression <- parseInfixedExpression "" minColumn indent
     midRow <- fmap (unPos . sourceLine) getSourcePos
     items <- parseInfixedItems minColumn (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -2098,7 +2108,7 @@ parseInfixedItems minColumn indent accum =
                 if beforeExpressionRow == afterInfixRow
                   then indent + 4 + Text.length infix_ + 1
                   else indent + 4
-          expression <- parseInfixedExpression minColumn expressionIndent
+          expression <- parseInfixedExpression infix_ minColumn expressionIndent
           parseInfixedItems
             minColumn
             ( if infix_ == "<|"
