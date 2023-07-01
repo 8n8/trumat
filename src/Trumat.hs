@@ -1573,7 +1573,7 @@ parseAnonymousFunction minColumn indent =
         [ "\\",
           pattern,
           " ->",
-          if endRow > startRow
+          if endRow > startRow || Text.elem '\n' body
             then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
             else " ",
           comment,
