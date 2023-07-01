@@ -2711,7 +2711,15 @@ parseParenthesised context indent =
     _ <- char '('
     _ <- space
     commentBefore <- commentSpaceParser indent
-    item <- parseExpression 1 DoesntNeedBrackets (indent + 1)
+    item <-
+      parseExpression
+        1
+        DoesntNeedBrackets
+        ( indent
+            + case context of
+              DoesntNeedBrackets -> 0
+              NeedsBrackets -> 1
+        )
     commentAfter <- commentSpaceParser indent
     _ <- char ')'
     let isMultiline =
