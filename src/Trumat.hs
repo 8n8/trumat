@@ -1763,6 +1763,20 @@ parseSimpleStringLiteralChar =
       chunk "\\\\"
     ]
 
+parsePatternArgument :: Context -> Int -> Int -> Parser Text
+parsePatternArgument context minColumn indent =
+  do
+    pattern <- parsePatternNoAliasArgument minColumn indent
+    _ <-
+      notFollowedBy $
+        lookAhead $
+          do
+            _ <- space1
+            _ <- chunk "as"
+            _ <- space1
+            return ()
+    return pattern
+
 parsePattern :: Context -> Int -> Int -> Parser Text
 parsePattern context minColumn indent =
   choice
@@ -1795,15 +1809,24 @@ parseTypeParameter minColumn indent =
 
 parseAliasedPattern :: Context -> Int -> Parser Text
 parseAliasedPattern context indent =
+  choice
+    [ try $ parseAliasedPatternNoBrackets context indent,
+      do
+        _ <- char '('
+        pattern <- parseAliasedPatternNoBrackets context indent
+        _ <- char ')'
+        return pattern
+    ]
+
+parseAliasedPatternNoBrackets :: Context -> Int -> Parser Text
+parseAliasedPatternNoBrackets context indent =
   do
-    _ <- choice [char '(' >> return (), return ()]
     pattern <- parsePatternBeforeAs indent
     _ <- space
     _ <- chunk "as"
     _ <- space
     name <- parseName
     _ <- space
-    _ <- choice [char ')' >> return (), return ()]
     return $
       mconcat
         [ case context of
@@ -1845,8 +1868,23 @@ parsePatternBeforeAs :: Int -> Parser Text
 parsePatternBeforeAs indent =
   choice
     [ try $ parseTuplePattern NeedsBrackets indent,
+      try $ do
+        pattern <- parseFunctionCallPattern
+        return $ "(" <> pattern <> ")",
       parseList indent,
       parseRecordPattern
+    ]
+
+parsePatternNoAliasArgument :: Int -> Int -> Parser Text
+parsePatternNoAliasArgument minColumn indent =
+  choice
+    [ try $ parseConsPattern minColumn indent,
+      try $ parseTuplePattern NeedsBrackets indent,
+      parseList indent,
+      parseRecordPattern,
+      parseVerbatim,
+      parseCharLiteral,
+      parseSimpleStringLiteral
     ]
 
 parsePatternNoAlias :: Int -> Int -> Parser Text
@@ -1997,7 +2035,7 @@ parseFunctionCallPattern =
           endColumn <- fmap (unPos . sourceColumn) getSourcePos
           if endColumn < startColumn
             then fail "column too low"
-            else parsePattern NeedsBrackets 1 1
+            else parsePatternNoAliasArgument 1 1
     return $ intercalate " " (f : items)
 
 parseInfix :: Parser Text
@@ -2377,7 +2415,7 @@ parseCaseOfBranch minColumn indent =
 keywords :: Set Text
 keywords =
   Set.fromList $
-    ["case", "of", "let", "in", "if", "then", "else", "->", "type"]
+    ["case", "of", "let", "in", "if", "then", "else", "->", "type", "as"]
 
 parseFirstNameChar :: Parser Char
 parseFirstNameChar =
@@ -2399,7 +2437,7 @@ parseName =
         (\ch -> ch `elem` ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.0123456789_" :: String))
     let word = Text.cons firstChar remainder
     if Set.member word keywords
-      then fail $ "expecting a name tail but got: " <> unpack word
+      then fail $ "expecting a name but got: " <> unpack word
       else return word
 
 parseNumberLiteral :: Parser Text

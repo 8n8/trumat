@@ -7405,7 +7405,7 @@ cases =
       \\n\
       \x =\n\
       \    case a of\n\
-      \        B (C d as e) ->\n\
+      \        C d as e ->\n\
       \            f\n\
       \",
       "module X exposing (x)\n\
@@ -7413,7 +7413,7 @@ cases =
       \\n\
       \x =\n\
       \    case a of\n\
-      \        B ((C d) as e) ->\n\
+      \        (C d) as e ->\n\
       \            f\n\
       \"
     )
