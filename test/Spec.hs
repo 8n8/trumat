@@ -7390,15 +7390,13 @@ cases =
       \\n\
       \\n\
       \x =\n\
-      \    a\n\
-      \        |> \b -> c\n\
+      \    a |> \b -> c\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
       \x =\n\
-      \    a\n\
-      \        |> (\b -> c)\n\
+      \    a |> (\b -> c)\n\
       \"
     )
   ]

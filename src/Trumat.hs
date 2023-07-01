@@ -2027,24 +2027,25 @@ infixes =
 
 parseInfixedExpression :: Int -> Int -> Parser Text
 parseInfixedExpression minColumn indent =
-  choice
-    [ try $ parseCaseOf indent,
-      try $ parseIfThenElse minColumn indent,
-      try $ parseLetIn minColumn indent,
-      try $ parseUnnecessaryBracketsInInfix minColumn indent,
-      try $ parseTuple NeedsBrackets indent,
-      parseList indent,
-      try parseEmptyRecord,
-      try $ parseRecord indent,
-      parseRecordUpdate indent,
-      try $ parseFunctionCall minColumn indent,
-      parseInfixInBrackets,
-      parseCharLiteral,
-      parseVerbatim,
-      parseTripleStringLiteral,
-      parseSimpleStringLiteral,
-      parseAnonymousFunction minColumn indent
-    ]
+  dbg "parseInfixedExpression" $
+    choice
+      [ try $ parseCaseOf indent,
+        try $ parseIfThenElse minColumn indent,
+        try $ parseLetIn minColumn indent,
+        try $ parseUnnecessaryBracketsInInfix minColumn indent,
+        try $ parseTuple NeedsBrackets indent,
+        parseList indent,
+        try parseEmptyRecord,
+        try $ parseRecord indent,
+        parseRecordUpdate indent,
+        try $ parseFunctionCall minColumn indent,
+        parseInfixInBrackets,
+        parseCharLiteral,
+        parseVerbatim,
+        parseTripleStringLiteral,
+        parseSimpleStringLiteral,
+        parseAnonymousFunction minColumn indent
+      ]
 
 parseInfixed :: Int -> Int -> Parser Text
 parseInfixed minColumn indent =
