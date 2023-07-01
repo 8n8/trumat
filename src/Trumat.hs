@@ -1970,9 +1970,20 @@ parseCallable minColumn indent =
   choice
     [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
       try $ parseCaseOfInBrackets indent,
-      parseInfixInBrackets,
+      try parseInfixInBrackets,
+      try $ parseIfThenElseInBrackets minColumn indent,
       parseName
     ]
+
+parseIfThenElseInBrackets :: Int -> Int -> Parser Text
+parseIfThenElseInBrackets minColumn indent =
+  do
+    _ <- char '('
+    _ <- space
+    ifThenElse <- parseIfThenElse minColumn (indent + 1)
+    _ <- space
+    _ <- char ')'
+    return $ "(" <> ifThenElse <> "\n" <> replicate indent " " <> ")"
 
 parseAnonymousFunctionInParenthesis :: Int -> Int -> Parser Text
 parseAnonymousFunctionInParenthesis minColumn indent =

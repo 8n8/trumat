@@ -7592,7 +7592,6 @@ cases =
       \        c\n\
       \    )\n\
       \        d\n\
-      \    )\n\
       \",
       "module X exposing (x)\n\
       \\n\
@@ -7605,7 +7604,6 @@ cases =
       \        c\n\
       \    )\n\
       \        d\n\
-      \    )\n\
       \"
     )
   ]
