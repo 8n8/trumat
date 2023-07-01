@@ -7308,5 +7308,19 @@ cases =
       \    1\n\
       \        + a\n\
       \"
+    ),
+    ( "verbatim in parentheses in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a (b)\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b\n\
+      \"
     )
   ]
