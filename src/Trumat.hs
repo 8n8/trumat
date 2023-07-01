@@ -361,10 +361,17 @@ parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
     rows <- many parseDocRow
+    let flat = mconcat rows
     return $
       if Text.strip (mconcat rows) == ""
         then "\n\n\n"
-        else mconcat rows
+        else
+          if Text.isInfixOf "@docs" flat
+            then flat
+            else
+              if Text.take 2 flat == "\n\n"
+                then flat
+                else Text.stripEnd flat <> "\n"
 
 parseModuleDocsHelp :: Int -> Text -> Parser Text
 parseModuleDocsHelp nesting contents =
