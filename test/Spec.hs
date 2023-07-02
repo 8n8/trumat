@@ -7745,5 +7745,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line record type in argument in record field",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a :\n\
+      \        B\n\
+      \            { c : D\n\
+      \            }\n\
+      \    }\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    { a :\n\
+      \        B\n\
+      \            { c : D\n\
+      \            }\n\
+      \    }\n\
+      \"
     )
   ]
