@@ -7789,5 +7789,22 @@ cases =
       \            }\n\
       \        )\n\
       \"
+    ),
+    ( "multi line tuple type",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( A, B\n\
+      \    )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( A\n\
+      \    , B\n\
+      \    )\n\
+      \"
     )
   ]
