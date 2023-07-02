@@ -1395,10 +1395,17 @@ parseDocCommentAtEndOfModule =
     _ <- chunk "{-|"
     comment <- parseBlockCommentHelp 1 "{-|"
     _ <- space
-    lineComment <- choice [parseLineComment, return ""]
+    lineComments <-
+      choice
+        [ some $ do
+            line <- parseLineComment
+            _ <- space
+            return line,
+          return []
+        ]
     _ <- space
     _ <- lookAhead eof
-    return $ comment <> (if lineComment == "" then "" else "\n\n\n\n") <> lineComment
+    return $ comment <> (if lineComments == [] then "" else "\n\n\n\n") <> intercalate "\n" lineComments
 
 parseBlockCommentHelp :: Int -> Text -> Parser Text
 parseBlockCommentHelp nesting contents =
