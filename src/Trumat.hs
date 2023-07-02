@@ -1225,14 +1225,14 @@ parseTypeWithParameters indent =
     name <- parseName
     _ <- space
     afterSpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    parameters <- parseTypeParameters startColumn (indent + 4)
+    parameters <- parseTypeParameters startColumn (floorToFour (indent + 4))
     if parameters == ""
       then return name
       else
         return $
           ( name
               <> ( if afterSpaceRow > startRow
-                     then "\n" <> pack (take (indent + 4) (repeat ' '))
+                     then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
                      else " "
                  )
               <> parameters
