@@ -7826,5 +7826,33 @@ cases =
       \      }\n\
       \    )\n\
       \"
+    ),
+    ( "unordered list in module doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \  - b\n\
+      \  - c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \  - b\n\
+      \  - c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
