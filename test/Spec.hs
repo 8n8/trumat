@@ -7934,5 +7934,37 @@ cases =
       \        b\n\
       \    ]\n\
       \"
+    ),
+    ( "let in inside else inside list",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ if a then\n\
+      \        b\n\
+      \\n\
+      \      else\n\
+      \        let\n\
+      \            c =\n\
+      \                d\n\
+      \        in\n\
+      \        e\n\
+      \    ]\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ if a then\n\
+      \        b\n\
+      \\n\
+      \      else\n\
+      \        let\n\
+      \            c =\n\
+      \                d\n\
+      \        in\n\
+      \        e\n\
+      \    ]\n\
+      \"
     )
   ]
