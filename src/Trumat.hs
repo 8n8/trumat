@@ -2392,7 +2392,7 @@ parseIfThenElse minColumn indent =
   do
     _ <- chunk "if"
     _ <- space1
-    if_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+    if_ <- parseExpression minColumn DoesntNeedBrackets (floorToFour (indent + 4))
     _ <- space
     _ <- chunk "then"
     commentBeforeThen <- commentSpaceParser (indent + 4)
@@ -2405,7 +2405,7 @@ parseIfThenElse minColumn indent =
           mconcat
             [ "if",
               if Text.elem '\n' if_
-                then "\n" <> replicate (indent + 4) " "
+                then "\n" <> replicate (floorToFour (indent + 4)) " "
                 else " ",
               if_,
               if Text.elem '\n' if_
@@ -2430,7 +2430,7 @@ parseIfThenElse minColumn indent =
             mconcat
               [ "if",
                 if Text.elem '\n' if_
-                  then "\n" <> replicate (indent + 4) " "
+                  then "\n" <> replicate (floorToFour (indent + 4)) " "
                   else " ",
                 if_,
                 if Text.elem '\n' if_
