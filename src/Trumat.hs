@@ -1322,7 +1322,7 @@ parseImport =
           commentBetween,
           if commentBetween == "" then "" else " ",
           name,
-          if as_ == ""
+          if as_ == "" || as_ == name
             then ""
             else " as " <> as_,
           if exposing_ == ""
