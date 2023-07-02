@@ -2425,7 +2425,7 @@ parseIfThenElse minColumn indent =
           nestedIf <- parseIfThenElse minColumn indent
           return $ ifThen <> " " <> nestedIf,
         do
-          else_ <- parseExpression minColumn DoesntNeedBrackets (indent + 4)
+          else_ <- parseExpression minColumn DoesntNeedBrackets (floorToFour (indent + 4))
           return $
             mconcat
               [ "if",
