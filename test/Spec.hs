@@ -7912,5 +7912,27 @@ cases =
       \            d\n\
       \        )\n\
       \"
+    ),
+    ( "line comments before argument in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        --\n\
+      \        --\n\
+      \        b\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ a\n\
+      \        --\n\
+      \        --\n\
+      \        b\n\
+      \    ]\n\
+      \"
     )
   ]
