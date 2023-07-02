@@ -7633,5 +7633,19 @@ cases =
       \        d\n\
       \        ++ e\n\
       \"
+    ),
+    ( "infix in brackets in callable",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a >> b) c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a >> b) c\n\
+      \"
     )
   ]
