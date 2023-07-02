@@ -7647,5 +7647,25 @@ cases =
       \x =\n\
       \    (a >> b) c\n\
       \"
+    ),
+    ( "multiline infix expression in callable",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a\n\
+      \        >> b\n\
+      \    )\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a\n\
+      \        >> b\n\
+      \    )\n\
+      \        c\n\
+      \"
     )
   ]
