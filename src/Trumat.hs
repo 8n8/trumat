@@ -2081,11 +2081,11 @@ parseFunctionCall minColumn indent =
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     f <- parseCallable startColumn indent
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    firstArgument <- try $ parseArgument minColumn indent
+    firstArgument <- try $ parseArgument minColumn (indent + 4)
     subsequent <-
       many $
         try $
-          parseArgument minColumn indent
+          parseArgument minColumn (indent + 4)
     let atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False startRow endRow indent) subsequent
@@ -2098,13 +2098,13 @@ parseArgument minColumn indent =
     if column < minColumn
       then fail "argument is too far left"
       else do
-        comment <- commentSpaceParser (indent + 4)
+        comment <- commentSpaceParser (floorToFour indent)
         columnBeforeArg <- fmap (unPos . sourceColumn) getSourcePos
         if columnBeforeArg < minColumn
           then fail "argument is too far left"
           else do
             argStartRow <- fmap (unPos . sourceLine) getSourcePos
-            arg <- parseArgumentExpression (floorToFour (indent + 4))
+            arg <- parseArgumentExpression (floorToFour indent)
             argEndRow <- fmap (unPos . sourceLine) getSourcePos
             return (comment, argStartRow, arg, argEndRow)
 
