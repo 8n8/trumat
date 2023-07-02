@@ -121,6 +121,26 @@ consumeExportListHelp nesting =
             consumeExportListHelp (nesting - 1)
         ]
 
+parseUnorderedList :: Parser Text
+parseUnorderedList =
+  do
+    items <- some $ try parseUnorderedListItem
+    return $ intercalate "\n" items <> "\n"
+
+parseUnorderedListItem :: Parser Text
+parseUnorderedListItem =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- char '-'
+    _ <- notFollowedBy $ lookAhead $ char '}'
+    _ <- notFollowedBy $ lookAhead $ char '-'
+    text <- takeWhileP Nothing (\ch -> ch /= '\n')
+    if text == ""
+      then fail "empty unordered list item"
+      else do
+        _ <- char '\n'
+        return $ "  - " <> Text.unwords (Text.words text)
+
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -135,6 +155,7 @@ parseDocRow =
         docs <- parseExportDocsRow
         _ <- char '\n'
         return $ "@docs " <> intercalate ", " docs <> "\n",
+      try parseUnorderedList,
       do
         pieces <-
           some $
