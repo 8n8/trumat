@@ -139,7 +139,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
+              text <- parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -158,6 +158,15 @@ parseDocRow =
             then ""
             else mconcat pieces
     ]
+
+parseOrdinaryTextInDoc :: Parser Text
+parseOrdinaryTextInDoc =
+  fmap mconcat $
+    some $
+      choice
+        [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
+          takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ')
+        ]
 
 parseExportDocsRowOnly :: Parser [Text]
 parseExportDocsRowOnly =
