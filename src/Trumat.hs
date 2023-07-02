@@ -1088,6 +1088,7 @@ parseFunctionType minColumn indent =
 parseTupleType :: Int -> Parser Text
 parseTupleType indent =
   do
+    startLine <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- parseSpaces
     items <- many $
@@ -1100,15 +1101,25 @@ parseTupleType indent =
             ]
     _ <- space
     _ <- char ')'
+    endLine <- fmap (unPos . sourceLine) getSourcePos
     if null items
       then return "()"
       else
-        return $
-          mconcat
-            [ "( ",
-              intercalate ", " items,
-              " )"
-            ]
+        if endLine > startLine
+          then
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ("\n" <> replicate indent " " <> ", ") items,
+                  "\n" <> replicate indent " " <> ")"
+                ]
+          else
+            return $
+              mconcat
+                [ "( ",
+                  intercalate ", " items,
+                  " )"
+                ]
 
 parseTupleTypeItem :: Int -> Parser Text
 parseTupleTypeItem indent =
