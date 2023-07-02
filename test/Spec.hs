@@ -7605,5 +7605,33 @@ cases =
       \    )\n\
       \        d\n\
       \"
+    ),
+    ( "string concatenation in argument to if then else",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (if a then\n\
+      \        b\n\
+      \\n\
+      \     else\n\
+      \        c\n\
+      \    )\n\
+      \        d\n\
+      \        ++ e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (if a then\n\
+      \        b\n\
+      \\n\
+      \     else\n\
+      \        c\n\
+      \    )\n\
+      \        d\n\
+      \        ++ e\n\
+      \"
     )
   ]
