@@ -7725,5 +7725,25 @@ cases =
       \--\n\
       \--\n\
       \"
+    ),
+    ( "remove multiple spaces in text in block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a  b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
