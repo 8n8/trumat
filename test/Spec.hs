@@ -7854,5 +7854,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment in else branch in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            -- d\n\
+      \            e\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            c\n\
+      \\n\
+      \         else\n\
+      \            -- d\n\
+      \            e\n\
+      \        )\n\
+      \"
     )
   ]
