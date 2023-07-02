@@ -7806,5 +7806,25 @@ cases =
       \    , B\n\
       \    )\n\
       \"
+    ),
+    ( "multi line record type in tuple type",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( A\n\
+      \    , { b : C\n\
+      \      }\n\
+      \    )\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    ( A\n\
+      \    , { b : C\n\
+      \      }\n\
+      \    )\n\
+      \"
     )
   ]
