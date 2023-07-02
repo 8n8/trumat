@@ -7695,5 +7695,35 @@ cases =
       \\n\
       \--\n\
       \"
+    ),
+    ( "line comments at end of module following empty space and block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \--\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \--\n\
+      \"
     )
   ]
