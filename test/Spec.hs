@@ -8002,5 +8002,23 @@ cases =
       \        e\n\
       \    ]\n\
       \"
+    ),
+    ( "unnecessary import alias",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
