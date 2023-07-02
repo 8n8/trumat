@@ -1096,8 +1096,8 @@ parseTupleType indent =
         do
           _ <- space
           choice
-            [ try $ parseTupleTypeItem indent,
-              parseBareFunctionType 2 indent
+            [ try $ parseTupleTypeItem (indent + 2),
+              parseBareFunctionType 2 (indent + 2)
             ]
     _ <- space
     _ <- char ')'
