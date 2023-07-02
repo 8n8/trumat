@@ -1225,7 +1225,7 @@ parseTypeWithParameters indent =
     name <- parseName
     _ <- space
     afterSpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    parameters <- parseTypeParameters startColumn
+    parameters <- parseTypeParameters startColumn (indent + 4)
     if parameters == ""
       then return name
       else
@@ -1238,18 +1238,18 @@ parseTypeWithParameters indent =
               <> parameters
           )
 
-parseTypeParameters :: Int -> Parser Text
-parseTypeParameters startColumn =
+parseTypeParameters :: Int -> Int -> Parser Text
+parseTypeParameters minColumn indent =
   do
     parameters <-
       some $
         try $ do
           _ <- space
           parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
-          if parameterColumn <= startColumn
+          if parameterColumn <= minColumn
             then fail "invalid indentation"
             else do
-              parameter <- parseTypeParameter 1 8
+              parameter <- parseTypeParameter minColumn indent
               return parameter
     return $ intercalate " " parameters
 
