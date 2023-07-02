@@ -1520,6 +1520,16 @@ parseUnnecessaryBracketsInInfix minColumn indent =
     _ <- char ')'
     return contents
 
+parseInfixedInBrackets :: Int -> Int -> Parser Text
+parseInfixedInBrackets minColumn indent =
+  do
+    _ <- char '('
+    _ <- space
+    infixed <- parseInfixed minColumn indent
+    _ <- space
+    _ <- char ')'
+    return $ "(" <> infixed <> ")"
+
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
   choice
@@ -1971,6 +1981,7 @@ parseCallable minColumn indent =
     [ try $ parseAnonymousFunctionInParenthesis minColumn indent,
       try $ parseCaseOfInBrackets indent,
       try parseInfixInBrackets,
+      try $ parseInfixedInBrackets minColumn indent,
       try $ parseIfThenElseInBrackets minColumn indent,
       parseName
     ]
