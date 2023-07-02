@@ -2400,7 +2400,7 @@ parseIfThenElse minColumn indent =
     _ <- space
     _ <- chunk "else"
     _ <- space1
-    commentAfterElse <- commentSpaceParser (indent + 4)
+    commentAfterElse <- commentSpaceParser (floorToFour (indent + 4))
     let ifThen =
           mconcat
             [ "if",
