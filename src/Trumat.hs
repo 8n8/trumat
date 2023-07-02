@@ -1528,7 +1528,15 @@ parseInfixedInBrackets minColumn indent =
     infixed <- parseInfixed minColumn indent
     _ <- space
     _ <- char ')'
-    return $ "(" <> infixed <> ")"
+    return $
+      mconcat
+        [ "(",
+          infixed,
+          if Text.elem '\n' infixed
+            then "\n" <> replicate indent " "
+            else "",
+          ")"
+        ]
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
