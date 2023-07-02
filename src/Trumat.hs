@@ -2445,7 +2445,7 @@ parseIfThenElse minColumn indent =
                 commentAfterElse,
                 if commentAfterElse == ""
                   then ""
-                  else "\n" <> replicate (indent + 4) " ",
+                  else "\n" <> replicate (floorToFour (indent + 4)) " ",
                 else_
               ]
       ]
