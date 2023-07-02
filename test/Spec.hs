@@ -7767,5 +7767,27 @@ cases =
       \            }\n\
       \    }\n\
       \"
+    ),
+    ( "record type in type parameter in type parameter",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        (B\n\
+      \            { c : D\n\
+      \            }\n\
+      \        )\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        (B\n\
+      \            { c : D\n\
+      \            }\n\
+      \        )\n\
+      \"
     )
   ]
