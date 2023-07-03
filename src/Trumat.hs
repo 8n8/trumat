@@ -218,7 +218,11 @@ parseExportDocsRowOnly =
                     _ <- notFollowedBy $ lookAhead $ chunk "-}"
                     _ <- choice [char '-', return ' ']
                     return text
-              return $ mconcat pieces
+              return $ mconcat pieces,
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy $ lookAhead $ char '}'
+              return ""
           ]
     _ <- chunk "@docs"
     _ <- takeWhile1P Nothing (\ch -> ch == ' ')
