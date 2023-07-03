@@ -8284,5 +8284,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "ordinary text in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \"
     )
   ]
