@@ -144,7 +144,16 @@ parseUnorderedListItem =
 parseDocRow :: Parser Text
 parseDocRow =
   choice
-    [ chunk "\n",
+    [ try $ do
+        _ <- some $
+          do
+            _ <- char '\n'
+            _ <- takeWhileP Nothing (\ch -> ch == ' ')
+            return ()
+        _ <- char '-'
+        hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
+        return $ "\n\n-" <> hyphens,
+      chunk "\n",
       do
         _ <- chunk "    "
         code <- takeWhileP Nothing (\ch -> ch /= '\n')
