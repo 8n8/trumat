@@ -1529,19 +1529,19 @@ parseDocCommentHelp nesting contents =
       choice
         [ do
             _ <- chunk "{-"
-            parseBlockCommentHelp (nesting + 1) (contents <> "{-"),
+            parseDocCommentHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
+            parseDocCommentHelp (nesting - 1) (contents <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseBlockCommentHelp nesting (contents <> indentDocRows piece),
+            parseDocCommentHelp nesting (contents <> indentDocRows piece),
           do
             _ <- char '-'
-            parseBlockCommentHelp nesting (contents <> "-"),
+            parseDocCommentHelp nesting (contents <> "-"),
           do
             _ <- char '{'
-            parseBlockCommentHelp nesting (contents <> "{")
+            parseDocCommentHelp nesting (contents <> "{")
         ]
 
 indentDocRows :: Text -> Text
