@@ -8020,5 +8020,29 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line comment after record field",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = b\n\
+      \\n\
+      \    --\n\
+      \    --\n\
+      \    , c = d\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a = b\n\
+      \\n\
+      \    --\n\
+      \    --\n\
+      \    , c = d\n\
+      \    }\n\
+      \"
     )
   ]
