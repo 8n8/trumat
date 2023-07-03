@@ -2462,7 +2462,7 @@ parseCaseOf indent =
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- takeWhile1P Nothing (\ch -> ch == '\n' || ch == ' ')
     column <- fmap (unPos . sourceColumn) getSourcePos
-    branches <- some (parseCaseOfBranch column (floorToFour (indent + 4)))
+    branches <- some $ try (space >> parseCaseOfBranch column (floorToFour (indent + 4)))
     return $
       mconcat
         [ "case",
@@ -2497,7 +2497,6 @@ parseCaseOfBranch minColumn indent =
         _ <- space
         comment <- commentSpaceParser (indent + 4)
         right <- parseExpression (minColumn + 1) DoesntNeedBrackets (indent + 4)
-        _ <- space
         return $
           mconcat
             [ replicate indent " ",
