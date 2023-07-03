@@ -212,14 +212,14 @@ parseExportDocsRowOnly nesting accumulator =
             _ <- chunk "-}"
             parseExportDocsRowOnly (nesting - 1) accumulator,
           do
-            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-            parseExportDocsRowOnly nesting accumulator,
+            docs <- parseExportDocsRow
+            parseExportDocsRowOnly nesting (docs : accumulator),
           do
             _ <- char '-'
             parseExportDocsRowOnly nesting accumulator,
           do
-            docs <- parseExportDocsRow
-            parseExportDocsRowOnly nesting (docs : accumulator)
+            _ <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '{' && ch /= '}' && ch /= '-')
+            parseExportDocsRowOnly nesting accumulator
         ]
 
 parseExportDocsRow :: Parser [Text]
