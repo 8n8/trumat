@@ -8256,5 +8256,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "consecutive section block comments",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- -}\n\
+      \{- -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- -}\n\
+      \{- -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
