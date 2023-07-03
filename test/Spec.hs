@@ -8178,5 +8178,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "open curly bracket following at docs",
+      "module X exposing (b, a)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \{\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (b, a)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \{\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
