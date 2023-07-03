@@ -8126,5 +8126,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "at docs in module docs following nested block comment",
+      "module X exposing (b, a)\n\
+      \\n\
+      \{-| {- -}\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (b, a)\n\
+      \\n\
+      \{-| {- -}\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
