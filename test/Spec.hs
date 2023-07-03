@@ -8312,5 +8312,33 @@ cases =
       \\n\
       \-}\n\
       \"
+    ),
+    ( "ordinary text following two hyphens in doc comment at end of module",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| --\n\
+      \\n\
+      \a\n\
+      \\n\
+      \-}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| --\n\
+      \\n\
+      \a\n\
+      \\n\
+      \-}\n\
+      \"
     )
   ]
