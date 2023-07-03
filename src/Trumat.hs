@@ -215,6 +215,9 @@ parseExportDocsRowOnly nesting accumulator =
             _ <- chunk "-}"
             parseExportDocsRowOnly (nesting - 1) accumulator,
           do
+            _ <- char '}'
+            parseExportDocsRowOnly nesting accumulator,
+          do
             docs <- parseExportDocsRow
             parseExportDocsRowOnly nesting (docs : accumulator),
           do
