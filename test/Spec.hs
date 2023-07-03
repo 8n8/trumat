@@ -8044,5 +8044,31 @@ cases =
       \    , c = d\n\
       \    }\n\
       \"
+    ),
+    ( "line comment following case branch in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ case a of\n\
+      \        B ->\n\
+      \            c\n\
+      \\n\
+      \    --\n\
+      \    , e\n\
+      \    ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ case a of\n\
+      \        B ->\n\
+      \            c\n\
+      \\n\
+      \    --\n\
+      \    , e\n\
+      \    ]\n\
+      \"
     )
   ]
