@@ -1507,7 +1507,7 @@ parseDocCommentAtEndOfModule :: Parser Text
 parseDocCommentAtEndOfModule =
   do
     _ <- chunk "{-|"
-    comment <- parseBlockCommentHelp 1 "{-|"
+    comment <- parseDocCommentHelp 1 "{-|"
     _ <- space
     lineComments <-
       choice
@@ -1520,6 +1520,38 @@ parseDocCommentAtEndOfModule =
     _ <- space
     _ <- lookAhead eof
     return $ comment <> (if lineComments == [] then "" else "\n\n\n\n") <> intercalate "\n" lineComments
+
+parseDocCommentHelp :: Int -> Text -> Parser Text
+parseDocCommentHelp nesting contents =
+  if nesting == 0
+    then return contents
+    else do
+      choice
+        [ do
+            _ <- chunk "{-"
+            parseBlockCommentHelp (nesting + 1) (contents <> "{-"),
+          do
+            _ <- chunk "-}"
+            parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
+          do
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            parseBlockCommentHelp nesting (contents <> indentDocRows piece),
+          do
+            _ <- char '-'
+            parseBlockCommentHelp nesting (contents <> "-"),
+          do
+            _ <- char '{'
+            parseBlockCommentHelp nesting (contents <> "{")
+        ]
+
+indentDocRows :: Text -> Text
+indentDocRows raw =
+  case Text.lines raw of
+    [] ->
+      ""
+    top : remainder ->
+      Text.intercalate "\n" (top : map Text.strip remainder)
+        <> (if Text.takeEnd 1 raw == "\n" then "\n" else "")
 
 parseBlockCommentHelp :: Int -> Text -> Parser Text
 parseBlockCommentHelp nesting contents =
@@ -1535,7 +1567,7 @@ parseBlockCommentHelp nesting contents =
             parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseBlockCommentHelp nesting (contents <> (indentDocRows piece)),
+            parseBlockCommentHelp nesting (contents <> (indentBlockRows piece)),
           do
             _ <- char '-'
             parseBlockCommentHelp nesting (contents <> "-"),
@@ -1544,17 +1576,17 @@ parseBlockCommentHelp nesting contents =
             parseBlockCommentHelp nesting (contents <> "{")
         ]
 
-indentDocRows :: Text -> Text
-indentDocRows raw =
+indentBlockRows :: Text -> Text
+indentBlockRows raw =
   case Text.lines raw of
     [] ->
       ""
     top : remainder ->
-      Text.intercalate "\n" (top : map indentDocRow remainder)
+      Text.intercalate "\n" (top : map indentBlockRow remainder)
         <> (if Text.takeEnd 1 raw == "\n" then "\n" else "")
 
-indentDocRow :: Text -> Text
-indentDocRow raw =
+indentBlockRow :: Text -> Text
+indentBlockRow raw =
   if raw == ""
     then ""
     else
