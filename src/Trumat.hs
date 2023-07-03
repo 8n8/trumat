@@ -620,7 +620,7 @@ parseModuleDeclarationWithTitle =
           createModuleDeclaration
         ]
     _ <- space
-    title <- choice [parseSectionComment, return ""]
+    title <- choice [parseTitle, return ""]
     return $
       mconcat
         [ commentBefore,
@@ -1410,6 +1410,52 @@ parseSectionComment =
     comment <- parseTopLevelComment
     return $ "\n" <> comment
 
+parseTitle :: Parser Text
+parseTitle =
+  do
+    comment <- parseTitleHelp
+    return $ "\n" <> comment
+
+parseTitleHelp :: Parser Text
+parseTitleHelp =
+  choice
+    [ try $ do
+        block1 <- try $
+          do
+            _ <- space
+            block <- parseNonDocBlockComment
+            return block
+        blocks <- some $
+          try $
+            do
+              _ <- space
+              block <- parseNonDocBlockComment
+              return block
+        _ <- space
+        return $ intercalate " " (block1 : blocks),
+      try $ do
+        _ <- space
+        block <- parseNonDocBlockComment
+        _ <- space
+        line <- parseLineComment
+        _ <- space
+        return $ block <> "\n" <> line,
+      do
+        _ <- space
+        lines_ <- some $
+          do
+            line <- parseLineComment
+            _ <- space
+            return line
+        _ <- space
+        return $ intercalate "\n" lines_,
+      try $ do
+        _ <- space
+        block <- parseNonDocBlockComment
+        _ <- space
+        return block
+    ]
+
 parseTopLevelComment :: Parser Text
 parseTopLevelComment =
   choice
@@ -1426,7 +1472,7 @@ parseTopLevelComment =
               block <- parseNonDocBlockComment
               return block
         _ <- space
-        return $ intercalate " " (block1 : blocks),
+        return $ intercalate "\n" (block1 : blocks),
       try $ do
         _ <- space
         block <- parseNonDocBlockComment
