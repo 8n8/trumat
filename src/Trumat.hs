@@ -198,29 +198,29 @@ parseOrdinaryTextInDoc =
 
 parseExportDocsRowOnly :: Int -> [[Text]] -> Parser [[Text]]
 parseExportDocsRowOnly nesting accumulator =
-  if nesting == 0 then
-    return $ reverse accumulator
-  else
-  choice
-    [ do
-        _ <- chunk "{-|"
-        parseExportDocsRowOnly (nesting + 1) accumulator,
-      do
-        _ <- chunk "{-"
-        parseExportDocsRowOnly (nesting + 1) accumulator,
-      do
-        _ <- chunk "-}"
-        parseExportDocsRowOnly (nesting - 1) accumulator,
-      do
-        _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
-        parseExportDocsRowOnly nesting accumulator,
-      do
-        _ <- char '-'
-        parseExportDocsRowOnly nesting accumulator,
-      do
-        docs <- parseExportDocsRow
-        parseExportDocsRowOnly nesting (docs : accumulator)
-    ]
+  if nesting == 0
+    then return $ reverse accumulator
+    else
+      choice
+        [ do
+            _ <- chunk "{-|"
+            parseExportDocsRowOnly (nesting + 1) accumulator,
+          do
+            _ <- chunk "{-"
+            parseExportDocsRowOnly (nesting + 1) accumulator,
+          do
+            _ <- chunk "-}"
+            parseExportDocsRowOnly (nesting - 1) accumulator,
+          do
+            _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+            parseExportDocsRowOnly nesting accumulator,
+          do
+            _ <- char '-'
+            parseExportDocsRowOnly nesting accumulator,
+          do
+            docs <- parseExportDocsRow
+            parseExportDocsRowOnly nesting (docs : accumulator)
+        ]
 
 parseExportDocsRow :: Parser [Text]
 parseExportDocsRow =

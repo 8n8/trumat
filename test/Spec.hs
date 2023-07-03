@@ -8152,5 +8152,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "at docs following ordinary text",
+      "module Element.Region exposing (b, a)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module Element.Region exposing (b, a)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \@docs b, a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
