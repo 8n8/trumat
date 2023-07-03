@@ -1414,6 +1414,20 @@ parseTopLevelComment :: Parser Text
 parseTopLevelComment =
   choice
     [ try $ do
+        block1 <- try $
+          do
+            _ <- space
+            block <- parseNonDocBlockComment
+            return block
+        blocks <- some $
+          try $
+            do
+              _ <- space
+              block <- parseNonDocBlockComment
+              return block
+        _ <- space
+        return $ intercalate " " (block1 : blocks),
+      try $ do
         _ <- space
         block <- parseNonDocBlockComment
         _ <- space
