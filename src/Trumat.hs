@@ -92,9 +92,7 @@ parseExportDocs =
     _ <- consumeExportList
     _ <- space
     _ <- chunk "{-|"
-    results <- many $ try parseExportDocsRowOnly
-    _ <- endDocComment
-    return results
+    parseExportDocsRowOnly 1 []
 
 consumeExportList :: Parser ()
 consumeExportList =
@@ -198,35 +196,31 @@ parseOrdinaryTextInDoc =
           takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ')
         ]
 
-parseExportDocsRowOnly :: Parser [Text]
-parseExportDocsRowOnly =
-  do
-    _ <-
-      some $
-        choice
-          [ chunk "\n",
-            do
-              _ <- chunk "    "
-              code <- takeWhileP Nothing (\ch -> ch /= '\n')
-              _ <- char '\n'
-              return $ "    " <> Text.strip code <> "\n",
-            do
-              pieces <-
-                some $
-                  do
-                    text <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n')
-                    _ <- notFollowedBy $ lookAhead $ chunk "-}"
-                    _ <- choice [char '-', return ' ']
-                    return text
-              return $ mconcat pieces,
-            try $ do
-              _ <- char '-'
-              _ <- notFollowedBy $ lookAhead $ char '}'
-              return ""
-          ]
-    _ <- chunk "@docs"
-    _ <- takeWhile1P Nothing (\ch -> ch == ' ')
-    some parseOneExportDoc
+parseExportDocsRowOnly :: Int -> [[Text]] -> Parser [[Text]]
+parseExportDocsRowOnly nesting accumulator =
+  if nesting == 0 then
+    return $ reverse accumulator
+  else
+  choice
+    [ do
+        _ <- chunk "{-|"
+        parseExportDocsRowOnly (nesting + 1) accumulator,
+      do
+        _ <- chunk "{-"
+        parseExportDocsRowOnly (nesting + 1) accumulator,
+      do
+        _ <- chunk "-}"
+        parseExportDocsRowOnly (nesting - 1) accumulator,
+      do
+        _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
+        parseExportDocsRowOnly nesting accumulator,
+      do
+        _ <- char '-'
+        parseExportDocsRowOnly nesting accumulator,
+      do
+        docs <- parseExportDocsRow
+        parseExportDocsRowOnly nesting (docs : accumulator)
+    ]
 
 parseExportDocsRow :: Parser [Text]
 parseExportDocsRow =
