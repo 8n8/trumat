@@ -3046,6 +3046,12 @@ parseEmptyList indent =
         then "[]"
         else "[" <> comment <> "\n" <> replicate indent " " <> "]"
 
+getLinesInMultiString :: Text -> Int
+getLinesInMultiString item =
+  if Text.take 3 item == "\"\"\""
+    then Text.count "\n" item
+    else 0
+
 parseNonEmptyList :: Int -> Parser Text
 parseNonEmptyList indent =
   do
@@ -3053,14 +3059,18 @@ parseNonEmptyList indent =
     _ <- char '['
     comment <- commentSpaceParser (indent + 2)
     items <- many (parseMultiListItem (indent + 2) ']')
+    let linesInMultiString :: Int
+        linesInMultiString = List.maximum $ map getLinesInMultiString items
     _ <- char ']'
     endRow <- fmap (unPos . sourceLine) getSourcePos
+    let isMultiline :: Bool
+        isMultiline = ((endRow - startRow) - linesInMultiString) > 0
     let indentation =
-          if endRow > startRow
+          if isMultiline
             then "\n" <> replicate indent " "
             else ""
     let endSpace =
-          if endRow > startRow
+          if isMultiline
             then ""
             else " "
     if null items
