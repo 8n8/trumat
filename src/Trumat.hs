@@ -124,11 +124,11 @@ consumeExportListHelp nesting =
 parseUnorderedList :: Parser Text
 parseUnorderedList =
   do
-    items <- some $ try parseUnorderedListItem
-    return $ intercalate "\n" items <> "\n"
+    list <- try parseUnorderedListItems
+    return $ list <> "\n"
 
-parseUnorderedListItem :: Parser Text
-parseUnorderedListItem =
+parseUnorderedListItems :: Parser Text
+parseUnorderedListItems =
   do
     indent <- getUnorderedListItemIndent
     parseUnorderedListItemHelp 1 indent ""
@@ -154,12 +154,12 @@ parseUnorderedListItemHelp nesting indent accumulated =
 
           formatted :: Text
           formatted =
-            replicate numSpaces " " <> "- " <> text <> "\n"
+            replicate numSpaces " " <> "- " <> text
 
       if text == ""
         then fail "empty unordered list item"
         else do
-          _ <- takeWhile1P Nothing (\ch -> ch == '\n')
+          newlines <- takeWhile1P Nothing (\ch -> ch == '\n')
           choice
             [ try $ do
                 newIndent <- getUnorderedListItemIndent
@@ -170,8 +170,8 @@ parseUnorderedListItemHelp nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (accumulated <> formatted),
-              return $ accumulated <> formatted
+                  (accumulated <> formatted <> newlines),
+              return $ accumulated <> formatted <> "\n"
             ]
 
 parseDocRow :: Parser Text
