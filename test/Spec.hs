@@ -8428,5 +8428,21 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line string in list",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \"\"\"\n\
+      \\"\"\" ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    [ \"\"\"\n\
+      \\"\"\" ]\n\
+      \"
     )
   ]
