@@ -8368,5 +8368,37 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "empty line before reduction in unordered list nesting",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - b\n\
+      \      - c\n\
+      \\n\
+      \  - f\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - b\n\
+      \      - c\n\
+      \\n\
+      \  - f\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
