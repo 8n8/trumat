@@ -123,9 +123,7 @@ consumeExportListHelp nesting =
 
 parseUnorderedList :: Parser Text
 parseUnorderedList =
-  do
-    list <- try parseUnorderedListItems
-    return $ list <> "\n"
+  try parseUnorderedListItems
 
 parseUnorderedListItems :: Parser Text
 parseUnorderedListItems =
@@ -137,9 +135,7 @@ getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
   do
     indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
-    _ <- char '-'
-    _ <- notFollowedBy $ lookAhead $ char '}'
-    _ <- notFollowedBy $ lookAhead $ char '-'
+    _ <- chunk "- "
     return indent
 
 parseUnorderedListItemHelp :: Int -> Int -> Text -> Parser Text
@@ -159,7 +155,12 @@ parseUnorderedListItemHelp nesting indent accumulated =
       if text == ""
         then fail "empty unordered list item"
         else do
-          newlines <- takeWhile1P Nothing (\ch -> ch == '\n')
+          otherLines <- fmap (intercalate "\n") $
+            many $
+              try $
+                do
+                  _ <- char '\n'
+                  takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
                 newIndent <- getUnorderedListItemIndent
@@ -170,8 +171,8 @@ parseUnorderedListItemHelp nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (accumulated <> formatted <> newlines),
-              return $ accumulated <> formatted <> "\n"
+                  (accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines),
+              return $ accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines
             ]
 
 parseDocRow :: Parser Text
