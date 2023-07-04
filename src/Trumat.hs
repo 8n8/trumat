@@ -37,8 +37,10 @@ import Prelude
     Eq,
     Int,
     Maybe (..),
+    Ordering (..),
     Show,
     String,
+    compare,
     div,
     elem,
     fail,
@@ -128,16 +130,51 @@ parseUnorderedList =
 parseUnorderedListItem :: Parser Text
 parseUnorderedListItem =
   do
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    indent <- getUnorderedListItemIndent
+    parseUnorderedListItemHelp 1 indent ""
+
+getUnorderedListItemIndent :: Parser Int
+getUnorderedListItemIndent =
+  do
+    indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
     _ <- char '-'
     _ <- notFollowedBy $ lookAhead $ char '}'
     _ <- notFollowedBy $ lookAhead $ char '-'
-    text <- takeWhileP Nothing (\ch -> ch /= '\n')
-    if text == ""
-      then fail "empty unordered list item"
-      else do
-        _ <- char '\n'
-        return $ "  - " <> Text.unwords (Text.words text)
+    return indent
+
+parseUnorderedListItemHelp :: Int -> Int -> Text -> Parser Text
+parseUnorderedListItemHelp nesting indent accumulated =
+  if nesting == 0
+    then return accumulated
+    else do
+      text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
+      let numSpaces :: Int
+          numSpaces =
+            log "numSpaces" $
+              ((nesting - 1) * 4) + 2
+
+          formatted :: Text
+          formatted =
+            log "formatted" $
+              replicate numSpaces " " <> "- " <> text <> "\n"
+
+      if text == ""
+        then fail "empty unordered list item"
+        else do
+          _ <- takeWhile1P Nothing (\ch -> ch == '\n')
+          choice
+            [ try $ do
+                newIndent <- getUnorderedListItemIndent
+                parseUnorderedListItemHelp
+                  ( nesting + case newIndent `compare` indent of
+                      GT -> 1
+                      LT -> -1
+                      EQ -> 0
+                  )
+                  newIndent
+                  (accumulated <> formatted),
+              return $ accumulated <> formatted
+            ]
 
 parseDocRow :: Parser Text
 parseDocRow =
