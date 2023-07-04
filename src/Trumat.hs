@@ -150,13 +150,11 @@ parseUnorderedListItemHelp nesting indent accumulated =
       text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
       let numSpaces :: Int
           numSpaces =
-            log "numSpaces" $
-              ((nesting - 1) * 4) + 2
+            ((nesting - 1) * 4) + 2
 
           formatted :: Text
           formatted =
-            log "formatted" $
-              replicate numSpaces " " <> "- " <> text <> "\n"
+            replicate numSpaces " " <> "- " <> text <> "\n"
 
       if text == ""
         then fail "empty unordered list item"
