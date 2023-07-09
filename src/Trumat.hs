@@ -2243,6 +2243,16 @@ safeMaximum list =
     _ ->
       maximum list
 
+addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
+addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
+  let indentation =
+        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
+          then " "
+          else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
+   in if comment == ""
+        then indentation <> arg
+        else indentation <> comment <> indentation <> arg
+
 parseArgument :: Int -> Int -> Parser (Text, Int, Text, Int)
 parseArgument minColumn indent =
   do
@@ -2260,16 +2270,6 @@ parseArgument minColumn indent =
             arg <- parseArgumentExpression (floorToFour indent)
             argEndRow <- fmap (unPos . sourceLine) getSourcePos
             return (comment, argStartRow, arg, argEndRow)
-
-addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
-addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
-  let indentation =
-        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
-          then " "
-          else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
-   in if comment == ""
-        then indentation <> arg
-        else indentation <> comment <> indentation <> arg
 
 numNewlinesInMultiline :: Text -> Int
 numNewlinesInMultiline arg =
