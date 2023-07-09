@@ -8444,5 +8444,21 @@ cases =
       \    [ \"\"\"\n\
       \\"\"\" ]\n\
       \"
+    ),
+    ( "multi line string in third function argument",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b c \"\"\"\n\
+      \\"\"\"\n\
+      \",
+      "module Main exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a b c \"\"\"\n\
+      \\"\"\"\n\
+      \"
     )
   ]
