@@ -61,6 +61,16 @@ fn ExplicitId(comptime capacity: u32, comptime T: type) type {
         len: u32,
         ids: [capacity]u32,
         items: [capacity]T,
+
+        fn append(self: *ExplicitId(capacity, T), id: u32, item: T) !void {
+            if (self.len == capacity) {
+                return error.Overflow;
+            }
+
+            self.ids[self.len] = id;
+            self.items[self.len] = item;
+            self.len = self.len + 1;
+        }
     };
 }
 
@@ -92,9 +102,7 @@ const Token = enum(u8) {
     closeParens,
     newline,
     equals,
-    hex,
     int,
-    floatExp,
 };
 
 const Memory = struct {
@@ -102,13 +110,18 @@ const Memory = struct {
 
     tokenEnd: ImplicitId(500_000, u32),
     tokens: ImplicitId(500_000, Token),
+    column: ImplicitId(500_000, u16),
 
-    moduleName: Quote,
-    names: ImplicitId(100_000, Quote),
-    topBinds: ImplicitId(10_000, u32),
-    binds: ImplicitId(100_000, Bind),
-    quoteExpression: ExplicitId(100_000, Quote),
-    exports: ImplicitId(1000, Quote),
+    isNewlineInModuleExports: bool,
+    isModuleName: bool,
+    moduleName: u32,
+    topBind : ImplicitId(10_000, u32),
+    bindLeft : ImplicitId(100_000, u32),
+    bindRight : ImplicitId(100_000, u32),
+    quote: ExplicitId(100_000, u32),
+    export_: ImplicitId(1000, u32),
+    parameter: ExplicitId(100_000, u32),
+    inParens: ImplicitId(10_000, u32),
 
     nextId: u32,
 };
@@ -133,11 +146,7 @@ const tokenizer = struct {
         exposin,
         exposing,
         zero,
-        hex0x,
-        inHexLiteral,
         inIntLiteral,
-        expE,
-        expEdigit,
     };
 
     const ActionTag = enum {
@@ -221,19 +230,6 @@ const tokenizer = struct {
 
     fn step(state: State, char: Char) !Step {
         return switch (state) {
-            .expEdigit => switch (char) {
-                .zero => .{ .state = .expEdigit, .action = .next },
-                .equals => .{ .state = .init, .action = .{ .commit2 = .{ .floatExp, .equals } } },
-                .newline => .{ .state = .init, .action = .{ .commit2 = .{ .floatExp, .newline } } },
-                .closeParens => .{ .state = .init, .action = .{ .commit2 = .{ .floatExp, .closeParens } } },
-                .openParens => .{ .state = .init, .action = .{ .commit2 = .{ .floatExp, .openParens } } },
-                .space => .{ .state = .init, .action = .{ .commit2 = .{ .floatExp, .space } } },
-                .g, .n, .i, .s, .p, .x, .X, .e, .l, .u, .d, .o, .m => error.invalidChar,
-            },
-            .expE => switch (char) {
-                .zero => .{ .state = .expEdigit, .action = .next },
-                .g, .e, .n, .i, .s, .p, .x, .X, .l, .u, .d, .o, .m, .equals, .newline, .closeParens, .openParens, .space => error.invalidChar,
-            },
             .inIntLiteral => switch (char) {
                 .zero => .{ .state = .inIntLiteral, .action = .next },
                 .equals => .{ .state = .init, .action = .{ .commit2 = .{ .int, .equals } } },
@@ -242,24 +238,10 @@ const tokenizer = struct {
                 .openParens => .{ .state = .init, .action = .{ .commit2 = .{ .int, .openParens } } },
                 .space => .{ .state = .init, .action = .{ .commit2 = .{ .int, .space } } },
                 .g, .n, .i, .s, .p, .x, .X, .l, .u, .d, .o, .m => error.invalidChar,
-                .e => .{ .state = .expE, .action = .next },
-            },
-            .inHexLiteral => switch (char) {
-                .zero => .{ .state = .inHexLiteral, .action = .next },
-                .equals => .{ .state = .init, .action = .{ .commit2 = .{ .hex, .equals } } },
-                .newline => .{ .state = .init, .action = .{ .commit2 = .{ .hex, .newline } } },
-                .closeParens => .{ .state = .init, .action = .{ .commit2 = .{ .hex, .closeParens } } },
-                .openParens => .{ .state = .init, .action = .{ .commit2 = .{ .hex, .openParens } } },
-                .space => .{ .state = .init, .action = .{ .commit2 = .{ .hex, .space } } },
-                .l, .o, .m, .u, .g, .n, .i, .s, .p, .x, .X => error.invalidChar,
-                .e, .d => .{ .state = .inHexLiteral, .action = .next },
-            },
-            .hex0x => switch (char) {
-                .zero, .e, .d => .{ .state = .inHexLiteral, .action = .next },
-                .equals, .l, .u, .newline, .m, .o, .closeParens, .openParens, .g, .n, .i, .s, .p, .x, .X, .space => error.invalidChar,
+                .e => error.invalidChar,
             },
             .zero => switch (char) {
-                .x => .{ .state = .hex0x, .action = .next },
+                .x => error.invalidChar,
                 .zero => .{ .state = .inIntLiteral, .action = .next },
                 .equals => .{ .state = .init, .action = .{ .commit2 = .{ .int, .equals } } },
                 .newline => .{ .state = .init, .action = .{ .commit2 = .{ .int, .newline } } },
@@ -425,7 +407,8 @@ const tokenizer = struct {
 
     fn run(unformatted: ImplicitId(1000_000, u8), tokenEnd: *ImplicitId(500_000, u32), tokens: *ImplicitId(500_000, Token)) !void {
         var state: State = .init;
-        for (unformatted.array, 0..unformatted.len) |byte, i| {
+        for (0..unformatted.len) |i| {
+            const byte: u8 = unformatted.array[i];
             const char: Char = try parseChar(byte);
             const result: Step = try step(state, char);
             state = result.state;
@@ -447,6 +430,264 @@ const tokenizer = struct {
     }
 };
 
+const parser = struct {
+    const ActionTag = enum {
+        next,
+        moreNesting,
+        lessNesting,
+    };
+    const Action = union(ActionTag) {
+        next: void,
+        moreNesting: State,
+        lessNesting: void,
+    };
+
+    const Step = struct {
+        state: State,
+        action : Action,
+    };
+
+    const State = enum {
+        init,
+        justAfterModuleKeyword,
+        beforeModuleName,
+        afterModuleName,
+        afterModuleExposing,
+        beforeNameInModuleExposing,
+        inTopLevel,
+        inBindLeft,
+        inExpression,
+        finished,
+        afterExpressionInParens,
+    };
+
+    fn step(state: State, tokenI: u32, memory: *Memory) !Step {
+        return switch (state) {
+            .finished => .{ .state = .finished, .action = .next },
+            .afterExpressionInParens => switch (memory.tokens.array[tokenI]) {
+                
+            },
+            .inExpression => switch (memory.tokens.array[tokenI]) {
+                .int => {
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+                    try memory.quote.append(quoteId, tokenI);
+
+                    try memory.bindRight.append(quoteId);
+
+                    return .{ .state = .finished, .action = .lessNesting };
+                },
+                .equals => error.equalsInExpression,
+                .newline => .{ .state = .inExpression, .action = .next },
+                .closeParens => error.closeParensInExpression,
+                .openParens => .{ .state = .inExpression, .action = .{ .moreNesting = .afterExpressionInParens }},
+                .exposing => error.exposingInExpression,
+                .lowName => {
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+                    try memory.quote.append(quoteId, tokenI);
+
+                    try memory.bindRight.append(quoteId);
+
+                    return .{ .state = .dontCare, .action = .lessNesting };
+                },
+                .upName => {
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+                    memory.quote.append(quoteId, tokenI);
+
+                    memory.bindRight.append(quoteId);
+
+                    return .{ .state = .dontCare, .action = .lessNesting };
+                },
+                .space => .{ .state = .inBindRight, .action = .next },
+                .module => error.moduleInBindRight,
+            },
+            .inBindLeft => switch (memory.tokens.array[tokenI]) {
+                .int => error.intAfterFirstTopBindName,
+                .equals => .{ .state = .inBindRight, .action = .moreNesting },
+                .newline => .{ .state = .inTopBindLeft, .action = .next },
+                .space => .{ .state = .inTopBindLeft, .action = .next },
+                .closeParens => error.closeParensAfterFirstTopBindName,
+                .openParens => .{ .state = .afterOpenParensInPattern, .action = .moreNesting },
+                .exposing => error.exposingAfterFirstTopBindName,
+                .lowName => {
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+                    memory.quote.append(quoteId, tokenI);
+
+                    const latestBindId = memory.bindLeft.len - 1;
+                    memory.parameter.append(latestBindId, quoteId);
+                    return .{ .state = .topBindLeft, .action = .next };
+                },
+                .upName => {
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+                    memory.quote.append(quoteId, tokenI);
+
+                    const latestBindId = memory.bindLeft.len - 1;
+                    memory.parameter.append(latestBindId, quoteId);
+                    return .{ .state = .topBindLeft, .action = .next };
+                },
+                .module => error.moduleInTopBindLeft,
+            },
+            .inTopLevel => switch (memory.tokens.array[tokenI]) {
+                .int => error.intAfterModuleDeclaration,
+                .equals => error.equalsAfterModuleDeclaration,
+                .newline => .{ .state = .afterModuleDeclaration, .action = .next },
+                .closeParens => error.closeParensAfterModuleDeclaration,
+                .openParens => error.openParensAfterModuleDeclaration,
+                .exposing => error.exposingAfterModuleDeclaration,
+                .lowName => {
+                    if (memory.column.array[tokenI] != 0) {
+                        return error.indentedTopLevelBind;
+                    }
+
+                    const quoteId = memory.nextId;
+                    memory.nextId = memory.nextId + 1;
+
+                    memory.quote.append(quoteId, tokenI);
+
+                    memory.bindLeft.append(quoteId);
+                    memory.topBind.append(memory.bindLeft.len - 1);
+
+                    return .{ .state = .topBindLeft, .action = .next };
+                },
+                .upName => error.upNameAfterModuleDeclaration,
+                .space => .{ .state = .afterModuleDeclaration, .action = .next },
+                .module => error.moduleAfterModuleDeclaration,
+            },
+            .beforeNameInModuleExposing => switch (memory.tokens.array[tokenI]) {
+                .int => error.intInModuleExposing,
+                .equals => error.equalsInModuleExposing,
+                .closeParens => .{ .state = .afterModuleDeclaration, .action = .next },
+                .newline => {
+                    memory.isNewlineInModuleExports = true;
+                    return .{ .state = .beforeNameInModuleExposing, .action = .next };
+                },
+                .openParens => error.openParensBeforeNameInModuleExposing,
+                .exposing => error.exposingBeforeNameInModuleExposing,
+                .lowName => {
+                    memory.export_.append(tokenI);
+                    return .{ .state = .afterNameInModuleExposing, .action = .next };
+                },
+                .upName => {
+                    memory.export_.append(tokenI);
+                    return .{ .state = .afterNameInModuleExposing, .action = .next };
+                },
+                .space => .{ .state = .beforeNameInModuleExposing, .action = .next },
+                    
+                .module => error.moduleBeforeNameInModuleExposing,
+            },
+
+            .afterModuleExposing => switch (memory.tokens.array[tokenI]) {
+                .int => error.intAfterModuleExposing,
+                .equals => error.equalsAfterModuleExposing,
+                .newline => .{ .state = .afterModuleExposing, .action = .next },
+                .closeParens => error.closeParensAfterMOduleExposing,
+                .openParens => .{ .state = .beforeNameInModuleExposing, .action = .next},
+                .exposing => error.exposingAfterModuleExposing,
+                .lowName => error.lowNameAfterModuleExposing,
+                .upName => error.upNameAfterModuleExposing,
+                .space => .{ .state = .afterModuleExposing, .action = .next },
+                .module => error.moduleAfterModuleExposing,
+            },
+            .justAfterModuleKeyword => switch (memory.tokens.array[tokenI]) {
+                .int => error.intJustAfterModuleKeyword,
+                .equals => error.equalsJustAfterModuleKeyword,
+                .newline => .{ .state = .beforeModuleName, .action = .next },
+                .closeParens => error.closeParensJustAfterModuleKeyword,
+                .openParens => error.openParensJustAfterModuleKeyword,
+                .exposing => error.exposingJustAfterModuleKeyword,
+                .lowName => error.lowNameJustAfterModuleKeyword,
+                .upName => error.upNameJustAfterModuleKeyword,
+                .space => .{ .state = .beforeModuleName, .action = .next },
+                .module => error.moduleKeywordJustAfterModuleKeyword,
+            },
+            .afterModuleName => switch (memory.tokens.array[tokenI]) {
+                .int => error.intAfterModuleName,
+                .equals => error.equalsAfterModuleName,
+                .newline => .{ .state = .afterModuleName, .action = .next },
+                .closeParens => error.closeParensAfterModuleName,
+                .openParens => error.openParensAfterModuleName,
+                .exposing => .{ .state = .afterExposing, .action = .next },
+                .lowName => error.lowNameAfterModuleName,
+                .upName => error.upNameAfterModuleName,
+                .space => .{ .state = .afterModuleName, .action = .next },
+                .module => error.moduleKeywordAfterModuleName,
+            },
+            .beforeModuleName => switch (memory.tokens.array[tokenI]) {
+                .module => error.moduleKeywordInsteadOfName,
+                .space => .{ .state = .beforeModuleName, .action = .next },
+                .upName => {
+                    memory.isModuleName = true;
+                    memory.moduleName = tokenI;
+                    return .{ .state = .afterModuleName, .action = .next };
+                },
+                .int => error.intInsteadOfModuleName,
+                .equals => error.equalsInsteadOfModuleName,
+                .newline => error.newlineInsteadOfModuleName,
+                .closeParens => error.closeParensInsteadOfModuleName,
+                .openParens => error.openParensInsteadOfModuleName,
+                .exposing => error.exposingInsteadOfModuleName,
+                .lowName => error.lowNameInsteadOfModuleName,
+            },
+            .init => switch (memory.tokens.array[tokenI]) {
+                .module =>
+                    {
+                        if (memory.column.array[tokenI] != 0) {
+                            return error.indentedModuleDeclaration;
+                        }
+                        return .{ .state = .afterModuleKeyword, .action = .next };
+                    },
+                .int => error.intAtStartOfModule,
+                .equals => error.equalsAtStartOfModule,
+                .newline => .{ .state = .init, .action = .next },
+                .closeParens => error.closeParensAtStartOfModule,
+                .openParens => error.openParensAtStartOfModule,
+                .exposing => error.exposingAtStartOfModule,
+                .lowName => {
+                    if (memory.column[tokenI] != 0) {
+                        error.indentedTopLevelBind;
+                    }
+
+                    memory.isModuleName = false;    
+                    memory.bindLeft.append(tokenI);
+                    .{ .state = .afterFirstTopBindName, .action = .next };
+                },
+                .space => .{ .state = .init, .action = .next },
+                .upName => error.upNameOnInit,
+            },
+        };
+    }
+
+    pub fn run(memory: *Memory) !void {
+
+        var state: State = .init;
+        for (0..memory.tokens.len) |i| {
+            const result: Step = try step(state, @truncate(i), memory);
+            state = result.state;
+            _ = switch (result.action) {
+            };
+        }
+    }
+};
+
+fn calculateColumnNumbers(tokens: ImplicitId(500_000, Token), columns: *ImplicitId(500_000, u16)) void {
+    var column: u16 = 0;
+    for (0..tokens.len) |tokenI| {
+        if (tokens.array[tokenI] == .newline) {
+            column = 0;
+        } else {
+            column = column + 1;
+        }
+
+        columns.array[tokenI] = column;
+    }
+
+    columns.len = tokens.len;
+}
+
 fn format(input: fs.File, memory: *Memory, _: fs.File) !void {
     {
         const size: usize = try input.readAll(&memory.unformatted.array);
@@ -457,4 +698,6 @@ fn format(input: fs.File, memory: *Memory, _: fs.File) !void {
     }
 
     try tokenizer.run(memory.unformatted, &memory.tokenEnd, &memory.tokens);
+    calculateColumnNumbers(memory.tokens, &memory.column);
+    try parser.run(memory);
 }
