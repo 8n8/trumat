@@ -7,4 +7,3 @@ package.json
 test.elm
 elm.json
 elm-stuff/
-zig-cache/
