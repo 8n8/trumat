@@ -2235,14 +2235,6 @@ parseFunctionCall minColumn indent =
         atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True allLinesInStringLiteral startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False allLinesInStringLiteral startRow endRow indent) subsequent
 
-safeMaximum :: [Int] -> Int
-safeMaximum list =
-  case list of
-    [] ->
-      0
-    _ ->
-      maximum list
-
 addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
 addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
   let indentation =
@@ -2252,6 +2244,14 @@ addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow end
    in if comment == ""
         then indentation <> arg
         else indentation <> comment <> indentation <> arg
+
+safeMaximum :: [Int] -> Int
+safeMaximum list =
+  case list of
+    [] ->
+      0
+    _ ->
+      maximum list
 
 parseArgument :: Int -> Int -> Parser (Text, Int, Text, Int)
 parseArgument minColumn indent =
