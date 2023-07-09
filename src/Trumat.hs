@@ -2224,10 +2224,7 @@ parseFunctionCall minColumn indent =
     f <- parseCallable startColumn indent
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     firstArgument <- try $ parseArgument minColumn (indent + 4)
-    subsequent <-
-      many $
-        try $
-          parseArgument minColumn (indent + 4)
+    subsequent <- many $ try $ parseArgument minColumn (indent + 4)
     let atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     let allLinesInStringLiteral = endRow - startRow == maxMultiString && otherArgsFlat
