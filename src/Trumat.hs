@@ -2225,7 +2225,6 @@ parseFunctionCall minColumn indent =
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     firstArgument <- try $ parseArgument minColumn (indent + 4)
     subsequent <- many $ try $ parseArgument minColumn (indent + 4)
-    let atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     let allLinesInStringLiteral = endRow - startRow == maxMultiString && otherArgsFlat
         args = List.map (\(_, _, arg, _) -> arg) (firstArgument : subsequent)
@@ -2233,6 +2232,7 @@ parseFunctionCall minColumn indent =
         maxMultiString = safeMaximum $ List.map (\arg -> Text.count "\n" arg) multiStringLiterals
         otherArgs = filter (\arg -> Text.take 3 arg /= "\"\"\"") args
         otherArgsFlat = List.all (\arg -> not (Text.elem '\n' arg)) otherArgs
+        atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True allLinesInStringLiteral startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False allLinesInStringLiteral startRow endRow indent) subsequent
 
 safeMaximum :: [Int] -> Int
