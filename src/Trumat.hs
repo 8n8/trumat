@@ -2233,22 +2233,12 @@ parseFunctionCall minColumn indent =
         otherArgs = filter (\arg -> Text.take 3 arg /= "\"\"\"") args
         otherArgsFlat = List.all (\arg -> not (Text.elem '\n' arg)) otherArgs
         atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
-    return $ mconcat $ f : (addFirstArgSpaces atLeastOneMultiline allLinesInStringLiteral startRow endRow indent firstArgument) : map (addSubsequentArgSpaces atLeastOneMultiline allLinesInStringLiteral startRow endRow indent) subsequent
+    return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True allLinesInStringLiteral startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False allLinesInStringLiteral startRow endRow indent) subsequent
 
-addFirstArgSpaces :: Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
-addFirstArgSpaces atLeastOneMultiline allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
+addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
+addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
   let indentation =
-        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
-          then " "
-          else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
-   in if comment == ""
-        then indentation <> arg
-        else indentation <> comment <> indentation <> arg
-
-addSubsequentArgSpaces :: Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
-addSubsequentArgSpaces atLeastOneMultiline allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
-  let indentation =
-        if (startRow == endRow && not atLeastOneMultiline) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
+        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
           then " "
           else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
    in if comment == ""
