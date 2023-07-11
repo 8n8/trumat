@@ -1,8 +1,12 @@
 module Main (main) where
 
 import Data.Text (Text)
+import qualified Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Test.Tasty
 import qualified Test.Tasty.HUnit as HUnit
+import qualified Test.Tasty.Hedgehog
 import Trumat (format)
 
 main :: IO ()
@@ -10,7 +14,20 @@ main =
   defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" (map oneTest cases)
+tests = testGroup "Tests" [unitTests, properties]
+
+properties :: TestTree
+properties =
+  testGroup
+    "Property tests"
+    [ Test.Tasty.Hedgehog.testProperty "trivial" $ Hedgehog.property $ do
+        xs <- Hedgehog.forAll $ Gen.list (Range.linear 0 100) Gen.alpha
+        reverse (reverse xs) Hedgehog.=== xs
+    ]
+
+unitTests :: TestTree
+unitTests =
+  testGroup "Unit tests" (map oneTest cases)
 
 oneTest :: Case -> TestTree
 oneTest case_ =
