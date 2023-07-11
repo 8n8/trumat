@@ -20,9 +20,26 @@ properties :: TestTree
 properties =
   testGroup
     "Property tests"
-    [ Test.Tasty.Hedgehog.testProperty "trivial" $ Hedgehog.property $ do
-        xs <- Hedgehog.forAll $ Gen.list (Range.linear 0 100) Gen.alpha
-        reverse (reverse xs) Hedgehog.=== xs
+    [ Test.Tasty.Hedgehog.testProperty "spaces after module keyword" $ Hedgehog.property $ do
+        spaces <- Hedgehog.forAll $ Gen.text (Range.linear 0 1000) (pure ' ')
+        let input_ :: Text
+            input_ =
+              mconcat
+                [ "module " <> spaces <> "X exposing (x)\n",
+                  "\n",
+                  "\n",
+                  "x =\n",
+                  "    0\n"
+                ]
+            expected_ :: Text
+            expected_ =
+              "module X exposing (x)\n\
+              \\n\
+              \\n\
+              \x =\n\
+              \    0\n\
+              \"
+        format input_ Hedgehog.=== Right expected_
     ]
 
 unitTests :: TestTree
