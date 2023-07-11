@@ -6,6 +6,13 @@ dependencies:
 ghc-options:
 - -Werror
 - -Weverything
+- -Wno-safe
+- -Wno-implicit-prelude
+- -Wno-missing-safe-haskell-mode
+- -Wno-unsafe
+- -Wno-missing-kind-signatures
+- -Wno-prepositive-qualified-module
+- -Wno-missing-import-lists
 
 default-extensions:
 - OverloadedStrings
