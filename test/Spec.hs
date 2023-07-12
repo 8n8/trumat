@@ -1,6 +1,8 @@
 module Main (main) where
 
 import Data.Text (Text)
+import qualified Data.Text as Text
+import Hedgehog (Gen)
 import qualified Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
@@ -39,8 +41,27 @@ properties =
               \x =\n\
               \    0\n\
               \"
-        format input_ Hedgehog.=== Right expected_
+        format input_ Hedgehog.=== Right expected_,
+      Test.Tasty.Hedgehog.testProperty "random module name" $ Hedgehog.property $ do
+        name <- Hedgehog.forAll generateUpperName
+        let input_ :: Text
+            input_ =
+              mconcat
+                [ "module " <> name <> " exposing (x)\n",
+                  "\n",
+                  "\n",
+                  "x =\n",
+                  "    0\n"
+                ]
+        format input_ Hedgehog.=== Right input_
     ]
+
+generateUpperName :: Gen Text
+generateUpperName =
+  do
+    firstChar <- Gen.upper
+    remainder <- Gen.text (Range.linear 0 100) (Gen.element "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
+    return (Text.cons firstChar remainder)
 
 unitTests :: TestTree
 unitTests =
