@@ -18,6 +18,50 @@ main =
 tests :: TestTree
 tests = testGroup "Tests" [unitTests, properties]
 
+generateUpperName :: Gen Text
+generateUpperName =
+  do
+    firstChar <- Gen.upper
+    remainder <- Gen.text (Range.linear 0 100) (Gen.element "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
+    return (Text.cons firstChar remainder)
+
+unitTests :: TestTree
+unitTests =
+  testGroup "Unit tests" (map oneTest cases)
+
+oneTest :: Case -> TestTree
+oneTest case_ =
+  HUnit.testCase (description case_) $
+    expected case_ HUnit.@?= format (input case_)
+
+data Case = Case
+  { expected :: Either String Text,
+    description :: String,
+    input :: Text
+  }
+
+cases :: [Case]
+cases =
+  [ Case
+      { expected =
+          Right
+            "module X exposing (x)\n\
+            \\n\
+            \\n\
+            \x =\n\
+            \    0\n\
+            \",
+        description = "hello world formatted",
+        input =
+          "module X exposing (x)\n\
+          \\n\
+          \\n\
+          \x =\n\
+          \    0\n\
+          \"
+      }
+  ]
+
 properties :: TestTree
 properties =
   testGroup
@@ -74,50 +118,36 @@ properties =
               \x =\n\
               \    0\n\
               \"
+        format input_ Hedgehog.=== Right expected_,
 
+      Test.Tasty.Hedgehog.testProperty "random white-space and line comments after module keyword" $ Hedgehog.property $ do
+        spaces <- Hedgehog.forAll $ fmap mconcat $ Gen.list (Range.linear 1 100) (Gen.choice [ generateSpaces, generateLineComment ])
+        let input_ :: Text
+            input_ =
+              mconcat
+                [ "module " <> spaces <> " " <> "X exposing (x)\n",
+                  "\n",
+                  "\n",
+                  "x =\n",
+                  "    0\n"
+                ]
+
+            expected_ :: Text
+            expected_ =
+              "module X exposing (x)\n\
+              \\n\
+              \\n\
+              \x =\n\
+              \    0\n\
+              \"
         format input_ Hedgehog.=== Right expected_
     ]
 
-generateUpperName :: Gen Text
-generateUpperName =
+generateSpaces :: Gen Text
+generateSpaces = Gen.text (Range.linear 0 100) (Gen.element [' ', '\n'])
+
+generateLineComment :: Gen Text
+generateLineComment =
   do
-    firstChar <- Gen.upper
-    remainder <- Gen.text (Range.linear 0 100) (Gen.element "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
-    return (Text.cons firstChar remainder)
-
-unitTests :: TestTree
-unitTests =
-  testGroup "Unit tests" (map oneTest cases)
-
-oneTest :: Case -> TestTree
-oneTest case_ =
-  HUnit.testCase (description case_) $
-    expected case_ HUnit.@?= format (input case_)
-
-data Case = Case
-  { expected :: Either String Text,
-    description :: String,
-    input :: Text
-  }
-
-cases :: [Case]
-cases =
-  [ Case
-      { expected =
-          Right
-            "module X exposing (x)\n\
-            \\n\
-            \\n\
-            \x =\n\
-            \    0\n\
-            \",
-        description = "hello world formatted",
-        input =
-          "module X exposing (x)\n\
-          \\n\
-          \\n\
-          \x =\n\
-          \    0\n\
-          \"
-      }
-  ]
+    contents <- Gen.text (Range.linear 0 100) (Gen.filter (\ch -> ch /= '\n') Gen.unicode)
+    return $ "--" <> contents <> "\n"
