@@ -21,6 +21,7 @@ library:
   source-dirs: src
   dependencies:
   - text
+  - megaparsec
 
 executables:
   trumat-exe:
