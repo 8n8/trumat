@@ -4,24 +4,18 @@ dependencies:
 - base >= 4.7 && < 5
 
 ghc-options:
-- -Werror
-- -Weverything
-- -Wno-safe
-- -Wno-implicit-prelude
-- -Wno-missing-safe-haskell-mode
-- -Wno-unsafe
-- -Wno-missing-kind-signatures
-- -Wno-prepositive-qualified-module
-- -Wno-missing-import-lists
-
-default-extensions:
-- OverloadedStrings
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
 
 library:
   source-dirs: src
-  dependencies:
-  - text
-  - megaparsec
 
 executables:
   trumat-exe:
@@ -44,8 +38,3 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
-    - tasty-hunit
-    - tasty
-    - text
-    - tasty-hedgehog
-    - hedgehog
