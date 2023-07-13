@@ -53,7 +53,29 @@ properties =
                   "x =\n",
                   "    0\n"
                 ]
-        format input_ Hedgehog.=== Right input_
+        format input_ Hedgehog.=== Right input_,
+      Test.Tasty.Hedgehog.testProperty "random spaces and newline after module keyword" $ Hedgehog.property $ do
+        spaces <- Hedgehog.forAll $ Gen.text (Range.linear 0 100) (Gen.element [' ', '\n'])
+        let input_ :: Text
+            input_ =
+              mconcat
+                [ "module " <> spaces <> " " <> "X exposing (x)\n",
+                  "\n",
+                  "\n",
+                  "x =\n",
+                  "    0\n"
+                ]
+
+            expected_ :: Text
+            expected_ =
+              "module X exposing (x)\n\
+              \\n\
+              \\n\
+              \x =\n\
+              \    0\n\
+              \"
+
+        format input_ Hedgehog.=== Right expected_
     ]
 
 generateUpperName :: Gen Text
