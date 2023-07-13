@@ -20,7 +20,7 @@ parser :: Parser Text
 parser =
   do
     _ <- chunk "module"
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     name <- takeWhileP Nothing (\ch -> ch /= ' ')
     remainder <- takeWhileP Nothing (\_ -> True)
     return $ "module " <> name <> remainder
