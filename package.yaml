@@ -1,30 +1,39 @@
 name:                trumat
+version:             0.1.0.0
 
 dependencies:
 - base >= 4.7 && < 5
 
-ghc-options:
-- -Werror
-- -Weverything
-- -Wno-safe
-- -Wno-missing-kind-signatures
-- -Wno-prepositive-qualified-module
-- -Wno-implicit-prelude
-- -Wno-missing-safe-haskell-mode
-- -Wno-missing-deriving-strategies
-- -Wno-unsafe
-- -Wno-type-defaults
-
 default-extensions:
 - OverloadedStrings
+- NoImplicitPrelude
+
+ghc-options:
+- -Weverything
+- -Werror
+- -Wno-safe
+- -Wno-prepositive-qualified-module
+- -Wno-missing-safe-haskell-mode
+- -Wno-unsafe
+- -Wno-monomorphism-restriction
+- -Wno-missing-import-lists
+- -Wno-missing-kind-signatures
+- -Wno-missing-deriving-strategies
+- -Wno-missed-specialisations
+- -Wno-unused-matches
+- -Wno-unused-top-binds
+- -Wno-unused-imports
+- -O2
 
 library:
   source-dirs: src
   dependencies:
   - text
+  - megaparsec
+  - containers
 
 executables:
-  trumat-exe:
+  trumat:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -33,6 +42,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - bytestring
+    - text
+    - directory
 
 tests:
   trumat-test:
@@ -44,5 +56,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
-    - tasty-hunit
     - tasty
+    - tasty-hunit
+    - text
+    - hedgehog
+    - tasty-hedgehog
