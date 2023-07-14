@@ -1,8 +1,8 @@
 module Main (main) where
 
-import Test.Tasty
-import Test.Tasty.HUnit
-import Trumat
+import Test.Tasty (TestTree, testGroup, defaultMain)
+import Test.Tasty.HUnit ((@?=), testCase)
+import qualified Trumat
 
 main :: IO ()
 main =
