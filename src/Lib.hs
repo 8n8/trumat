@@ -1,9 +1,6 @@
 module Lib
-  ( someFunc,
-  )
-where
+    ( someFunc
+    ) where
 
-import qualified Prelude
-
-someFunc :: Prelude.IO ()
-someFunc = Prelude.putStrLn "someFunc"
+someFunc :: IO ()
+someFunc = putStrLn "someFunc"
