@@ -38,3 +38,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - tasty
+    - tasty-hunit
