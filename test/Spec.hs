@@ -2,7 +2,7 @@ module Main (main) where
 
 import qualified Memory
 import Result
-import System.Directory (removeFile)
+import System.IO (IOMode (ReadWriteMode), withFile)
 import qualified System.IO
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -16,24 +16,16 @@ oneTest :: (String, String, String) -> TestTree
 oneTest (name, before, after) =
   testCase name $ do
     memory <- Memory.empty
-    (inPath, inFile) <- System.IO.openTempFile "." "testInput.elm"
-    System.IO.hPutStr inFile before
-    System.IO.hSeek inFile System.IO.AbsoluteSeek 0
-    (outPath, outFile) <- System.IO.openTempFile "." "testOutput.elm"
-    result <- Trumat.format inFile outFile memory
-    System.IO.hClose inFile
-    removeFile inPath
-    if result /= Ok
-      then do
-        result @?= Ok
-        System.IO.hClose outFile
-        removeFile outPath
-      else do
-        System.IO.hSeek outFile System.IO.AbsoluteSeek 0
-        got <- System.IO.hGetContents outFile
-        got @?= after
-        System.IO.hClose outFile
-        removeFile outPath
+    withFile "temporaryInputFile.elm" ReadWriteMode $ \inFile ->
+      withFile "temporaryOutputFile.elm" ReadWriteMode $ \outFile ->
+        do
+          System.IO.hPutStr inFile before
+          System.IO.hSeek inFile System.IO.AbsoluteSeek 0
+          result <- Trumat.format inFile outFile memory
+          result @?= Ok
+          System.IO.hSeek outFile System.IO.AbsoluteSeek 0
+          got <- System.IO.hGetContents outFile
+          got @?= after
 
 cases :: [(String, String, String)]
 cases =
