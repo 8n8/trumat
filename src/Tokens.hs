@@ -1,4 +1,4 @@
-module Tokens (Tokens, Token, empty, fromChars) where
+module Tokens (Tokens, toTag, Token, empty, fromChars, get) where
 
 import Ambiguous (Ambiguous)
 import qualified Ambiguous
@@ -9,18 +9,107 @@ import qualified Characters
 import Data.Word (Word16, Word32, Word8)
 import ElmChar (ElmChar)
 import qualified ElmChar
+import MaxTokens (maxTokens)
 import Result
+import TokenTag (TokenTag)
+import qualified TokenTag
 
-capacity :: Int
-capacity =
-  500 * 1000
+toTag :: Token -> TokenTag
+toTag token =
+  case token of
+    UpperName _ _ ->
+      TokenTag.UpperName
+    LowerName _ _ ->
+      TokenTag.LowerName
+    CloseParentheses ->
+      TokenTag.CloseParentheses
+    OpenParentheses ->
+      TokenTag.OpenParentheses
+    Space ->
+      TokenTag.Space
+    Module ->
+      TokenTag.Module
+    Newline ->
+      TokenTag.Newline
+    Equals ->
+      TokenTag.Equals
+    Number _ _ ->
+      TokenTag.Number
+    Else ->
+      TokenTag.Else
+    If ->
+      TokenTag.If
+    Exposing ->
+      TokenTag.Exposing
+    Of ->
+      TokenTag.Of
+    Let ->
+      TokenTag.Let
+    Port ->
+      TokenTag.Port
+    In ->
+      TokenTag.In
+
+get :: Int -> Tokens -> IO (Either String Token)
+get index tokens =
+  do
+    tagResult <- Array.get index (tags tokens)
+    startResult <- Array.get index (starts tokens)
+    sizeResult <- Array.get index (sizes tokens)
+    case (tagResult, startResult, sizeResult) of
+      (Right tag, Right start, Right size) ->
+        pure (decodeToken tag start size)
+      (Left error', _, _) ->
+        pure $ Left error'
+      (_, Left error', _) ->
+        pure $ Left error'
+      (_, _, Left error') ->
+        pure $ Left error'
+
+decodeToken :: Word8 -> Word32 -> Word16 -> Either String Token
+decodeToken tag start size =
+  case tag of
+    0 ->
+      Right Module
+    1 ->
+      Right Space
+    2 ->
+      Right (UpperName start size)
+    3 ->
+      Right (LowerName start size)
+    4 ->
+      Right CloseParentheses
+    5 ->
+      Right OpenParentheses
+    6 ->
+      Right Newline
+    7 ->
+      Right Equals
+    8 ->
+      Right (Number start size)
+    9 ->
+      Right Else
+    10 ->
+      Right If
+    11 ->
+      Right Exposing
+    12 ->
+      Right Of
+    13 ->
+      Right Let
+    14 ->
+      Right Port
+    15 ->
+      Right In
+    _ ->
+      Left ("invalid tag: " <> show tag)
 
 empty :: IO Tokens
 empty =
   do
-    tags <- Array.empty capacity
-    starts <- Array.empty capacity
-    sizes <- Array.empty capacity
+    tags <- Array.empty maxTokens
+    starts <- Array.empty maxTokens
+    sizes <- Array.empty maxTokens
     return $ Tokens tags starts sizes
 
 data Tokens = Tokens

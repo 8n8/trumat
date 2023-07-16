@@ -4,6 +4,7 @@ import qualified Characters
 import Memory (Memory)
 import qualified Memory
 import Result
+import qualified Rows
 import System.IO (Handle)
 import qualified Tokens
 
@@ -15,4 +16,10 @@ format inFile _ memory =
       Error message ->
         return $ Error message
       Ok ->
-        Tokens.fromChars (Memory.characters memory) (Memory.tokens memory)
+        do
+          tokensResult <- Tokens.fromChars (Memory.characters memory) (Memory.tokens memory)
+          case tokensResult of
+            Error message ->
+              pure $ Error message
+            Ok ->
+              Rows.fromTokens (Memory.tokens memory) (Memory.rows memory)
