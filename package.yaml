@@ -4,15 +4,17 @@ dependencies:
 - base >= 4.7 && < 5
 
 ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
+- -Werror
+- -Weverything
+- -Wno-missing-deriving-strategies
+- -Wno-safe
+- -Wno-missing-kind-signatures
+- -Wno-implicit-prelude
+- -Wno-missing-safe-haskell-mode
+- -Wno-missing-import-lists
+- -Wno-name-shadowing
+- -Wno-prepositive-qualified-module
+- -Wno-unsafe
 
 default-extensions:
 - OverloadedStrings
@@ -43,4 +45,4 @@ tests:
     - trumat
     - tasty
     - tasty-hunit
-    - text
+    - directory

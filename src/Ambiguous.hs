@@ -1,0 +1,34 @@
+module Ambiguous (Ambiguous (..)) where
+
+data Ambiguous
+  = M
+  | Mo
+  | Mod
+  | Modu
+  | Modul
+  | Module
+  | E
+  | Ex
+  | Exp
+  | Expo
+  | Expos
+  | Exposi
+  | Exposin
+  | Exposing
+  | El
+  | Els
+  | Else
+  | O
+  | Of
+  | L
+  | Le
+  | Let
+  | P
+  | Po
+  | Por
+  | Port
+  | I
+  | If
+  | In
+  | Zero
+  deriving (Show)
