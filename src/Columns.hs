@@ -1,4 +1,4 @@
-module Rows (Rows, empty, fromTokens) where
+module Columns (Columns, empty, fromTokens) where
 
 import Array (Array)
 import qualified Array
@@ -9,19 +9,19 @@ import qualified TokenTag
 import Tokens (Tokens)
 import qualified Tokens
 
-newtype Rows
-  = Rows (Array Word16)
+newtype Columns
+  = Columns (Array Word16)
 
-empty :: IO Rows
+empty :: IO Columns
 empty =
-  fmap Rows (Array.empty maxTokens)
+  fmap Columns (Array.empty maxTokens)
 
-fromTokens :: Tokens -> Rows -> IO Result
-fromTokens tokens (Rows rows) =
-  fromTokensHelp tokens rows 0 0
+fromTokens :: Tokens -> Columns -> IO Result
+fromTokens tokens (Columns columns) =
+  fromTokensHelp tokens columns 0 0
 
 fromTokensHelp :: Tokens -> Array Word16 -> Int -> Word16 -> IO Result
-fromTokensHelp tokens rows index row =
+fromTokensHelp tokens columns index column =
   do
     tokenResult <- Tokens.get index tokens
     case tokenResult of
@@ -29,16 +29,16 @@ fromTokensHelp tokens rows index row =
         pure Ok
       Right token ->
         do
-          rowsResult <- Array.append row rows
-          case rowsResult of
+          columnsResult <- Array.append column columns
+          case columnsResult of
             Error error' ->
-              pure $ Error error'
+              pure (Error error')
             Ok ->
               fromTokensHelp
                 tokens
-                rows
+                columns
                 (index + 1)
                 ( if Tokens.toTag token == TokenTag.Newline
-                    then row + 1
-                    else row
+                    then 0
+                    else column + 1
                 )

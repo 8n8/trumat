@@ -1,6 +1,7 @@
 module Trumat (format) where
 
 import qualified Characters
+import qualified Columns
 import Memory (Memory)
 import qualified Memory
 import Result
@@ -22,4 +23,10 @@ format inFile _ memory =
             Error message ->
               pure $ Error message
             Ok ->
-              Rows.fromTokens (Memory.tokens memory) (Memory.rows memory)
+              do
+                rowsResult <- Rows.fromTokens (Memory.tokens memory) (Memory.rows memory)
+                case rowsResult of
+                  Error message ->
+                    pure $ Error message
+                  Ok ->
+                    Columns.fromTokens (Memory.tokens memory) (Memory.columns memory)
