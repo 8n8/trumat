@@ -8,6 +8,7 @@ import Result
 import qualified Rows
 import System.IO (Handle)
 import qualified Tokens
+import qualified SyntaxTree
 
 format :: Handle -> Handle -> Memory -> IO Result
 format inFile _ memory =
@@ -29,4 +30,10 @@ format inFile _ memory =
                   Error message ->
                     pure $ Error message
                   Ok ->
-                    Columns.fromTokens (Memory.tokens memory) (Memory.columns memory)
+                    do
+                    columnsResult <- Columns.fromTokens (Memory.tokens memory) (Memory.columns memory)
+                    case columnsResult of
+                      Error message ->
+                        pure $ Error message
+                      Ok ->
+                        SyntaxTree.fromTokens (Memory.tokens memory) (Memory.rows memory) (Memory.columns memory) (Memory.syntaxTree memory)

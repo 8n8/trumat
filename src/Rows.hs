@@ -1,4 +1,4 @@
-module Rows (Rows, empty, fromTokens) where
+module Rows (Rows, empty, fromTokens, get) where
 
 import Array (Array)
 import qualified Array
@@ -11,6 +11,10 @@ import qualified Tokens
 
 newtype Rows
   = Rows (Array Word16)
+
+get :: Int -> Rows -> IO (Either String Word16)
+get index (Rows rows) =
+    Array.get index rows
 
 empty :: IO Rows
 empty =

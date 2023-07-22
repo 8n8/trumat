@@ -1,4 +1,4 @@
-module Columns (Columns, empty, fromTokens) where
+module Columns (Columns, empty, fromTokens, get) where
 
 import Array (Array)
 import qualified Array
@@ -8,6 +8,10 @@ import Result
 import qualified TokenTag
 import Tokens (Tokens)
 import qualified Tokens
+
+get :: Int -> Columns -> IO (Either String Word16)
+get index (Columns columns) =
+   Array.get index columns
 
 newtype Columns
   = Columns (Array Word16)
