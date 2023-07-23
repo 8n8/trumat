@@ -5,9 +5,11 @@
 void one_test_help(
     FILE* input_file,
     FILE* expected_file,
-    FILE* output_file) {
+    FILE* output_file,
+    struct Memory* memory
+    ) {
 
-    int result = format(input_file, output_file);
+    int result = format(input_file, output_file, memory);
 
     if (result != 0) {
         printf(" FAIL invalid Elm\n");
@@ -80,7 +82,7 @@ void one_test(char* file_name, struct Memory* memory) {
 
     zero_memory(memory);
 
-    one_test_help(input_file, expected_file, output_file);
+    one_test_help(input_file, expected_file, output_file, memory);
 
     fclose(input_file);
     fclose(expected_file);
