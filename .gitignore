@@ -1,11 +1,2 @@
-.stack-work/
-trumat.cabal
-elm/
-node_modules/
-package-lock.json
-package.json
-test.elm
-elm.json
-elm-stuff/
-temporaryInputFile.elm
-temporaryOutputFile.elm
+trumat.o
+a.out

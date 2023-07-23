@@ -20,7 +20,7 @@ void one_test_help(
         char expected_char = fgetc(expected_file);
         char got_char = fgetc(output_file);
 
-        if (expected_char == '\0' && got_char == '\0') {
+        if (expected_char == EOF && got_char == EOF) {
             printf(" SUCCESS\n");
             return;
         }
@@ -39,7 +39,7 @@ void one_test_help(
 void make_input_path(char* file_name, char input_path[256]) {
     char* directory = "testInput/";
     int i = 0;
-    for (; directory[0] != '\0'; ++i) {
+    for (; directory[i] != '\0'; ++i) {
         input_path[i] = directory[i];
     }
 
@@ -54,7 +54,7 @@ void make_input_path(char* file_name, char input_path[256]) {
 void make_expected_path(char* file_name, char input_path[256]) {
     char* directory = "testExpected/";
     int i = 0;
-    for (; directory[0] != '\0'; ++i) {
+    for (; directory[i] != '\0'; ++i) {
         input_path[i] = directory[i];
     }
 
