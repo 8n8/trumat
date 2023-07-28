@@ -21,13 +21,20 @@ struct u16x500k {
   uint16_t _items[500000];
 };
 
+struct u1x1m {
+  int _length;
+  uint8_t _items[125000];
+};
+
 struct Memory {
   struct u8x1m raw;
   struct u8x1m chars;
 
   // These are used during tokenisation.
   struct u8x1m tokeniser_state;
-  struct u8x1m num_tokens;
+  struct u1x1m no_tokens;
+  struct u1x1m one_token;
+  struct u1x1m two_tokens;
   struct u8x1m first_token;
   struct u8x1m second_token;
 
