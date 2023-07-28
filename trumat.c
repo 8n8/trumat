@@ -25,7 +25,7 @@ enum elm_char {
 void zero_memory(struct Memory *memory) {}
 
 static int read_raw(FILE *input_file, struct u8x1m *buffer) {
-  buffer->length = fread(buffer->items, 1, 1000000, input_file);
+  buffer->_length = fread(buffer->_items, 1, 1000000, input_file);
 
   int result = ferror(input_file);
   if (result != 0) {
@@ -40,12 +40,12 @@ static int read_raw(FILE *input_file, struct u8x1m *buffer) {
   return 0;
 }
 
-static int get_u8x1m(struct u8x1m *raw, int index) {
-  if (index >= raw->length || index < 0) {
+static int get_u8x1m(struct u8x1m raw, int index) {
+  if (index >= raw._length || index < 0) {
     return -1;
   }
 
-  return raw->items[index];
+  return raw._items[index];
 }
 
 static int parse_char(uint8_t raw) {
@@ -93,17 +93,17 @@ static int parse_char(uint8_t raw) {
 }
 
 static int u8x1m_append(enum elm_char ch, struct u8x1m *chars) {
-  if (chars->length == 1000000) {
+  if (chars->_length == 1000000) {
     return -1;
   }
 
-  chars->items[chars->length] = ch;
-  ++chars->length;
+  chars->_items[chars->_length] = ch;
+  ++chars->_length;
 
   return 0;
 }
 
-static int parse_chars(struct u8x1m *raw, struct u8x1m *chars) {
+static int parse_chars(struct u8x1m raw, struct u8x1m *chars) {
   for (int i = 0;; ++i) {
     int result = get_u8x1m(raw, i);
     if (result < 0) {
@@ -1522,9 +1522,14 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
 
 static int make_tokeniser_states(struct u8x1m chars, struct u8x1m *states) {
   enum tokeniser state = tokeniser_start;
-  for (int i = 0; i < chars.length; ++i) {
-    enum elm_char ch = chars.items[i];
-    int result = tokeniser_state_machine(state, ch);
+  for (int i = 0;; ++i) {
+    int result = get_u8x1m(chars, i);
+    if (result != 0) {
+      break;
+    }
+
+    enum elm_char ch = result;
+    result = tokeniser_state_machine(state, ch);
     if (result < 0) {
       return result;
     }
@@ -1555,10 +1560,14 @@ uint8_t make_one_num_token(enum tokeniser previous_state,
 
 int make_num_tokens(struct u8x1m state, struct u8x1m *num_tokens) {
   enum tokeniser previous_state = tokeniser_start;
-  for (int i = 0; i < state.length; ++i) {
-    enum tokeniser current_state = state.items[i];
-    int result = u8x1m_append(make_one_num_token(previous_state, current_state),
-                              num_tokens);
+  for (int i = 0;; ++i) {
+    int result = get_u8x1m(state, i);
+    if (result != 0) {
+      break;
+    }
+    enum tokeniser current_state = result;
+    result = u8x1m_append(make_one_num_token(previous_state, current_state),
+                          num_tokens);
     if (result != 0) {
       return result;
     }
@@ -1573,7 +1582,7 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     return result;
   }
 
-  result = parse_chars(&memory->raw, &memory->chars);
+  result = parse_chars(memory->raw, &memory->chars);
   if (result != 0) {
     return result;
   }

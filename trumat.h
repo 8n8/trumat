@@ -2,23 +2,23 @@
 #include <stdio.h>
 
 struct u8x1m {
-  int length;
-  uint8_t items[1000000];
+  int _length;
+  uint8_t _items[1000000];
 };
 
 struct u8x500k {
-  int length;
-  uint8_t items[500000];
+  int _length;
+  uint8_t _items[500000];
 };
 
 struct u32x500k {
-  int length;
-  uint32_t items[500000];
+  int _length;
+  uint32_t _items[500000];
 };
 
 struct u16x500k {
-  int length;
-  uint16_t items[500000];
+  int _length;
+  uint16_t _items[500000];
 };
 
 struct Memory {
