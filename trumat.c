@@ -1598,24 +1598,34 @@ static int make_one_tokens(struct u8x1m state, struct u1x1m *one_token) {
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
-  int result = read_raw(input_file, &memory->raw);
-  if (result != 0) {
-    return result;
+  {
+    const int result = read_raw(input_file, &memory->raw);
+    if (result != 0) {
+      return result;
+    }
   }
 
-  result = parse_chars(memory->raw, &memory->chars);
-  if (result != 0) {
-    return result;
+  {
+    const int result = parse_chars(memory->raw, &memory->chars);
+    if (result != 0) {
+      return result;
+    }
   }
 
-  result = make_tokeniser_states(memory->chars, &memory->tokeniser_state);
-  if (result != 0) {
-    return result;
+  {
+    const int result =
+        make_tokeniser_states(memory->chars, &memory->tokeniser_state);
+    if (result != 0) {
+      return result;
+    }
   }
 
-  result = make_no_tokens(memory->tokeniser_state, &memory->no_tokens);
-  if (result != 0) {
-    return result;
+  {
+    const int result =
+        make_no_tokens(memory->tokeniser_state, &memory->no_tokens);
+    if (result != 0) {
+      return result;
+    }
   }
 
   return make_one_tokens(memory->tokeniser_state, &memory->one_token);
