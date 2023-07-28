@@ -1561,23 +1561,7 @@ static int make_tokeniser_states(struct u8x1m chars, struct u8x1m *states) {
   return 0;
 }
 
-uint8_t make_one_no_token(enum tokeniser previous_state,
-                          enum tokeniser current_state) {
-
-  if (previous_state == tokeniser_start && current_state == tokeniser_start) {
-
-    return 1;
-  }
-
-  if (previous_state != tokeniser_start && current_state == tokeniser_start) {
-
-    return 2;
-  }
-
-  return 0;
-}
-
-int make_no_tokens(struct u8x1m state, struct u1x1m *no_tokens) {
+static int make_no_tokens(struct u8x1m state, struct u1x1m *no_tokens) {
   for (int i = 0;; ++i) {
     int result = u8x1m_get(i, state);
     if (result != 0) {
@@ -1589,6 +1573,27 @@ int make_no_tokens(struct u8x1m state, struct u1x1m *no_tokens) {
       return result;
     }
   }
+  return 0;
+}
+
+static int make_one_tokens(struct u8x1m state, struct u1x1m *one_token) {
+  enum tokeniser previous_state = tokeniser_start;
+  for (int i = 0;; ++i) {
+    int result = u8x1m_get(i, state);
+    if (result != 0) {
+      break;
+    }
+    enum tokeniser current_state = result;
+    result = u1x1m_append(current_state == tokeniser_start &&
+                              previous_state == tokeniser_start,
+                          one_token);
+    if (result != 0) {
+      return result;
+    }
+
+    previous_state = current_state;
+  }
+
   return 0;
 }
 
@@ -1608,5 +1613,10 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     return result;
   }
 
-  return make_no_tokens(memory->tokeniser_state, &memory->no_tokens);
+  result = make_no_tokens(memory->tokeniser_state, &memory->no_tokens);
+  if (result != 0) {
+    return result;
+  }
+
+  return make_one_tokens(memory->tokeniser_state, &memory->one_token);
 }
