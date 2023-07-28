@@ -1597,7 +1597,7 @@ static int make_one_token(struct u8x1m state, struct u1x1m *one_token) {
   return 0;
 }
 
-static int make_two_tokens(struct u8x1m state, struct u1x1m* two_tokens) {
+static int make_two_tokens(struct u8x1m state, struct u1x1m *two_tokens) {
   enum tokeniser previous_state = tokeniser_start;
   for (int i = 0;; ++i) {
     const int state_result = u8x1m_get(i, state);
@@ -1606,8 +1606,8 @@ static int make_two_tokens(struct u8x1m state, struct u1x1m* two_tokens) {
     }
     const enum tokeniser current_state = state_result;
     const int set_result = u1x1m_append(current_state == tokeniser_start &&
-                                     previous_state != tokeniser_start,
-                                    two_tokens);
+                                            previous_state != tokeniser_start,
+                                        two_tokens);
     if (set_result != 0) {
       return set_result;
     }
@@ -1650,7 +1650,7 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
 
   {
     const int result =
-      make_one_token(memory->tokeniser_state, &memory->one_token);
+        make_one_token(memory->tokeniser_state, &memory->one_token);
     if (result != 0) {
       return result;
     }
