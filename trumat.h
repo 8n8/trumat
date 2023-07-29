@@ -6,6 +6,9 @@ struct Memory {
   uint8_t raw[1000000];
   uint8_t chars[1000000];
 
+  uint16_t row[1000000];
+  uint16_t column[1000000];
+
   // These are the result of tokenisation.
   uint8_t tokens[1000000];
 };
