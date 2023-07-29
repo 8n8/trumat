@@ -24,12 +24,12 @@ enum elm_char {
 
 void zero_memory(struct Memory *memory) {}
 
-static int read_raw(FILE *input_file, struct u8x1m *buffer) {
-  buffer->_length = fread(buffer->_items, 1, 1000000, input_file);
+static int read_raw(FILE *input_file, uint8_t buffer[1000000]) {
+  int length = fread(buffer, 1, 1000000, input_file);
 
   int result = ferror(input_file);
   if (result != 0) {
-    return result;
+    return -1;
   }
 
   result = feof(input_file);
@@ -37,15 +37,7 @@ static int read_raw(FILE *input_file, struct u8x1m *buffer) {
     return -1;
   }
 
-  return 0;
-}
-
-static int u8x1m_get(int index, struct u8x1m raw) {
-  if (index >= raw._length || index < 0) {
-    return -1;
-  }
-
-  return raw._items[index];
+  return length;
 }
 
 static int parse_char(uint8_t raw) {
@@ -92,53 +84,32 @@ static int parse_char(uint8_t raw) {
   return -1;
 }
 
-static int u1x1m_append(uint8_t item, struct u1x1m *items) {
-  if (items->_length == 1000000) {
-    return -1;
-  }
-
-  uint8_t old_byte = items->_items[(items->_length) / 8];
+static void u1x1m_set(uint8_t item, uint8_t items[125000], int index) {
+  uint8_t old_byte = items[index / 8];
 
   const uint8_t one = 1;
 
-  int byte_index = (items->_length) % 8;
+  int byte_index = index % 8;
 
   uint8_t new_byte = (old_byte & ~(one << byte_index)) | (item << byte_index);
 
-  items->_items[(items->_length) / 8] = new_byte;
-  ++(items->_length);
-
-  return 0;
+  items[index / 8] = new_byte;
 }
 
-static int u8x1m_append(uint8_t item, struct u8x1m *items) {
-  if (items->_length == 1000000) {
-    return -1;
-  }
+static int parse_chars(
+  uint8_t raw[1000000],
+  uint8_t chars[1000000],
+  int length) {
 
-  items->_items[items->_length] = item;
-  ++items->_length;
-
-  return 0;
-}
-
-static int parse_chars(struct u8x1m raw, struct u8x1m *chars) {
-  for (int i = 0;; ++i) {
-    int result = u8x1m_get(i, raw);
-    if (result < 0) {
-      return 0;
-    }
-
-    result = parse_char(result);
+  for (int i = 0; i < length; ++i) {
+    int result = parse_char(raw[i]);
     if (result < 0) {
       return result;
     }
 
-    result = u8x1m_append(result, chars);
-    if (result != 0) {
-      return result;
-    }
+    chars[i] = result;
   }
+  return 0;
 }
 
 enum tokeniser {
@@ -1539,102 +1510,77 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   return -1;
 }
 
-static int make_tokeniser_states(struct u8x1m chars, struct u8x1m *states) {
-  enum tokeniser state = tokeniser_start;
-  for (int i = 0;; ++i) {
-    int result = u8x1m_get(i, chars);
-    if (result != 0) {
-      break;
-    }
+static int make_tokeniser_states(
+  uint8_t chars[1000000],
+  uint8_t states[1000000],
+  int length) {
 
-    enum elm_char ch = result;
-    result = tokeniser_state_machine(state, ch);
+  enum tokeniser state = tokeniser_start;
+  for (int i = 0; i < length; ++i) {
+    enum elm_char ch = chars[i];
+    const int result = tokeniser_state_machine(state, ch);
     if (result < 0) {
       return result;
     }
-    result = u8x1m_append(result, states);
-    if (result != 0) {
-      return result;
-    }
+    states[i] = result;
   }
 
   return 0;
 }
 
-static int make_no_tokens(struct u8x1m state, struct u1x1m *no_tokens) {
-  for (int i = 0;; ++i) {
-    int result = u8x1m_get(i, state);
-    if (result != 0) {
-      break;
-    }
-    enum tokeniser current_state = result;
-    result = u1x1m_append(current_state != tokeniser_start, no_tokens);
-    if (result != 0) {
-      return result;
-    }
+static void make_no_tokens(
+  uint8_t state[1000000],
+  uint8_t no_tokens[125000],
+  int length) {
+
+  for (int i = 0; i < length; ++i) {
+    enum tokeniser current_state = state[i];
+    u1x1m_set(current_state != tokeniser_start, no_tokens, i);
   }
-  return 0;
 }
 
-static int make_one_token(struct u8x1m state, struct u1x1m *one_token) {
+static void make_is_compound_token(
+  uint8_t state[1000000],
+  uint8_t one_token[125000],
+  int length) {
+
   enum tokeniser previous_state = tokeniser_start;
-  for (int i = 0;; ++i) {
-    int result = u8x1m_get(i, state);
-    if (result != 0) {
-      break;
-    }
-    enum tokeniser current_state = result;
-    result = u1x1m_append(current_state == tokeniser_start &&
-                              previous_state == tokeniser_start,
-                          one_token);
-    if (result != 0) {
-      return result;
-    }
-
+  for (int i = 0; i < length; ++i) {
+    enum tokeniser current_state = state[i];
+    u1x1m_set(
+          current_state == tokeniser_start
+            && previous_state != tokeniser_start,
+          one_token,
+          i);
     previous_state = current_state;
   }
-
-  return 0;
 }
 
-static int make_two_tokens(struct u8x1m state, struct u1x1m *two_tokens) {
-  enum tokeniser previous_state = tokeniser_start;
-  for (int i = 0;; ++i) {
-    const int state_result = u8x1m_get(i, state);
-    if (state_result != 0) {
-      break;
-    }
-    const enum tokeniser current_state = state_result;
-    const int set_result = u1x1m_append(current_state == tokeniser_start &&
-                                            previous_state != tokeniser_start,
-                                        two_tokens);
-    if (set_result != 0) {
-      return set_result;
-    }
+static void make_is_simple_token(
+  uint8_t state[1000000],
+  uint8_t is_simple_token[125000],
+  int length) {
 
-    previous_state = current_state;
+  for (int i = 0; i < length; ++i) {
+    const enum tokeniser current_state = state[i];
+    u1x1m_set(current_state == tokeniser_start, is_simple_token, i);
   }
-  return 0;
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
   {
-    const int result = read_raw(input_file, &memory->raw);
-    if (result != 0) {
+    const int result = read_raw(input_file, memory->raw);
+    if (result < 0) {
       return result;
     }
+    memory->raw_length = result;
   }
 
   {
-    const int result = parse_chars(memory->raw, &memory->chars);
-    if (result != 0) {
-      return result;
-    }
-  }
-
-  {
-    const int result =
-        make_tokeniser_states(memory->chars, &memory->tokeniser_state);
+    const int result = parse_chars(
+      memory->raw,
+      memory->chars,
+      memory->raw_length);
     if (result != 0) {
       return result;
     }
@@ -1642,19 +1588,29 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
 
   {
     const int result =
-        make_no_tokens(memory->tokeniser_state, &memory->no_tokens);
+      make_tokeniser_states(
+        memory->chars,
+        memory->tokeniser_state,
+        memory->raw_length);
     if (result != 0) {
       return result;
     }
   }
 
-  {
-    const int result =
-        make_one_token(memory->tokeniser_state, &memory->one_token);
-    if (result != 0) {
-      return result;
-    }
-  }
+  make_no_tokens(
+    memory->tokeniser_state,
+    memory->is_no_tokens,
+    memory->raw_length);
 
-  return make_two_tokens(memory->tokeniser_state, &memory->two_tokens);
+  make_is_compound_token(
+    memory->tokeniser_state,
+    memory->is_compound_token,
+    memory->raw_length);
+
+  make_is_simple_token(
+    memory->tokeniser_state,
+    memory->is_simple_token,
+    memory->raw_length);
+
+  return 0;
 }
