@@ -1847,7 +1847,6 @@ static void make_column_numbers(uint8_t chars[1000000],
 
 static void make_row_numbers(uint8_t chars[1000000], uint16_t row[1000000],
                              int length) {
-
   uint16_t current_row = 0;
   for (int i = 0; i < length; ++i) {
     row[i] = current_row;
