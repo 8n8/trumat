@@ -38,7 +38,7 @@ enum token {
   token_compound_char,
 };
 
-void zero_memory(struct Memory *memory) {}
+void zero_memory(struct Memory *memory) { memory->raw_length = 0; }
 
 static int read_raw(FILE *input_file, uint8_t buffer[1000000]) {
   int length = fread(buffer, 1, 1000000, input_file);
