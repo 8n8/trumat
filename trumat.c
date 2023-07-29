@@ -1831,6 +1831,20 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch,
   return -1;
 }
 
+static void make_column_numbers(uint8_t chars[1000000],
+                                uint16_t column[1000000], int length) {
+  uint16_t current_column = 0;
+  for (int i = 0; i < length; ++i) {
+    column[i] = current_column;
+
+    if (chars[i] == char_newline) {
+      current_column = 0;
+    } else {
+      ++current_column;
+    }
+  }
+}
+
 static void make_row_numbers(uint8_t chars[1000000], uint16_t row[1000000],
                              int length) {
 
@@ -1882,6 +1896,7 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
   }
 
   make_row_numbers(memory->chars, memory->row, memory->raw_length);
+  make_column_numbers(memory->chars, memory->column, memory->raw_length);
 
   {
     const int result =
