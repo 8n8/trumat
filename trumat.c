@@ -22,6 +22,21 @@ enum elm_char {
   char_m,
 };
 
+enum token {
+  token_upper_name,
+  token_in,
+  token_number,
+  token_else,
+  token_module,
+  token_lower_name,
+  token_space,
+  token_open_parens,
+  token_close_parens,
+  token_newline,
+  token_equals,
+  token_exposing,
+};
+
 void zero_memory(struct Memory *memory) {}
 
 static int read_raw(FILE *input_file, uint8_t buffer[1000000]) {
@@ -84,18 +99,6 @@ static int parse_char(uint8_t raw) {
   return -1;
 }
 
-static void u1x1m_set(uint8_t item, uint8_t items[125000], int index) {
-  uint8_t old_byte = items[index / 8];
-
-  const uint8_t one = 1;
-
-  int byte_index = index % 8;
-
-  uint8_t new_byte = (old_byte & ~(one << byte_index)) | (item << byte_index);
-
-  items[index / 8] = new_byte;
-}
-
 static int parse_chars(
   uint8_t raw[1000000],
   uint8_t chars[1000000],
@@ -150,19 +153,32 @@ enum tokeniser {
 
 // reserved keywords in Elm: as case else exposing if import in let module
 // of port then type where
-static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
+static int tokeniser_state_machine(
+  enum tokeniser state,
+  enum elm_char ch,
+  uint8_t tokens[1000000],
+  int i) {
+
   switch (state) {
   case tokeniser_exposing:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_exposing;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_exposing;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_exposing;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_exposing;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -181,6 +197,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_exposing;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -196,14 +214,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_exposin:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_exposing;
@@ -222,6 +248,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -237,14 +265,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_exposi:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -263,6 +299,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -278,14 +316,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_module:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_module;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_module;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_module;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_module;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -304,6 +350,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_module;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -319,14 +367,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_expos:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -345,6 +401,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -360,14 +418,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_modul:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -386,6 +452,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_module;
@@ -401,14 +469,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_else:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_else;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_else;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_else;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_else;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -427,6 +503,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_else;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -442,14 +520,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_expo:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -468,6 +554,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -483,14 +571,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_modu:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -509,6 +605,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -524,14 +622,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_impo:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -550,6 +656,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -565,14 +673,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_els:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -591,8 +707,12 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_else;
       return tokeniser_else;
     case char_l:
       return tokeniser_lower_name;
@@ -606,14 +726,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_exp:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -632,6 +760,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -647,14 +777,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_mod:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -673,6 +811,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -688,14 +828,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_imp:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -714,6 +862,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -729,14 +879,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_hex:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_number;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_hex;
     case char_newline:
+      tokens[i-1] = token_number;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_number;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_number;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return -1;
@@ -755,6 +913,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return -1;
     case char_space:
+      tokens[i-1] = token_number;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_hex;
@@ -770,14 +930,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_el:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -796,6 +964,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -811,14 +981,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_ex:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -837,6 +1015,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -852,14 +1032,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_le:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -878,6 +1066,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -893,14 +1083,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_mo:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -919,6 +1117,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -934,14 +1134,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_po:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -960,6 +1168,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -975,14 +1185,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_in:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_in;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_in;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_in;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_in;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1001,6 +1219,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_in;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1016,14 +1236,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_im:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_lower_name;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1042,6 +1270,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1098,14 +1328,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_upper_name:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_upper_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_upper_name;
     case char_newline:
+      tokens[i-1] = token_upper_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_upper_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_upper_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_upper_name;
@@ -1124,6 +1362,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_upper_name;
     case char_space:
+      tokens[i-1] = token_upper_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_upper_name;
@@ -1139,14 +1379,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_e:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1165,6 +1413,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_le;
@@ -1180,14 +1430,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_l:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1206,6 +1464,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_le;
@@ -1221,14 +1481,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_m:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1247,6 +1515,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1262,14 +1532,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_p:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1288,6 +1566,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1303,14 +1583,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_o:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1329,6 +1617,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1344,14 +1634,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_i:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1370,6 +1668,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1385,14 +1685,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_lower_name:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1411,6 +1719,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_lower_name;
     case char_space:
+      tokens[i-1] = token_lower_name;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_lower_name;
@@ -1426,14 +1736,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_0:
     switch (ch) {
     case char_equals:
+      tokens[i-1] = token_number;
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return -1;
     case char_newline:
+      tokens[i-1] = token_number;
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i-1] = token_number;
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i-1] = token_number;
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return -1;
@@ -1452,6 +1770,8 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return -1;
     case char_space:
+      tokens[i-1] = token_number;
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return -1;
@@ -1467,14 +1787,18 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   case tokeniser_start:
     switch (ch) {
     case char_equals:
+      tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_0;
     case char_newline:
+      tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
+      tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
+      tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
       return tokeniser_lower_name;
@@ -1493,6 +1817,7 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
     case char_X:
       return tokeniser_upper_name;
     case char_space:
+      tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
       return tokeniser_e;
@@ -1510,67 +1835,22 @@ static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch) {
   return -1;
 }
 
-static int make_tokeniser_states(
+static int tokenise(
   uint8_t chars[1000000],
-  uint8_t states[1000000],
+  uint8_t tokens[1000000],
   int length) {
 
   enum tokeniser state = tokeniser_start;
   for (int i = 0; i < length; ++i) {
     enum elm_char ch = chars[i];
-    const int result = tokeniser_state_machine(state, ch);
+    const int result = tokeniser_state_machine(state, ch, tokens, i);
     if (result < 0) {
       return result;
     }
-    states[i] = result;
+    state = result;
   }
 
   return 0;
-}
-
-static void make_is_no_tokens(
-  uint8_t state[1000000],
-  uint8_t no_tokens[125000],
-  int length) {
-
-  enum tokeniser previous_state = tokeniser_start;
-  for (int i = 0; i < length; ++i) {
-    enum tokeniser current_state = state[i];
-    u1x1m_set(
-        previous_state != tokeniser_start
-          && current_state != tokeniser_start,
-        no_tokens,
-        i);
-    previous_state = current_state;
-  }
-}
-
-static void make_is_compound_token(
-  uint8_t state[1000000],
-  uint8_t one_token[125000],
-  int length) {
-
-  enum tokeniser previous_state = tokeniser_start;
-  for (int i = 0; i < length; ++i) {
-    enum tokeniser current_state = state[i];
-    u1x1m_set(
-          current_state != tokeniser_start
-            && previous_state == tokeniser_start,
-          one_token,
-          i);
-    previous_state = current_state;
-  }
-}
-
-static void make_is_simple_token(
-  uint8_t state[1000000],
-  uint8_t is_simple_token[125000],
-  int length) {
-
-  for (int i = 0; i < length; ++i) {
-    const enum tokeniser current_state = state[i];
-    u1x1m_set(current_state == tokeniser_start, is_simple_token, i);
-  }
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
@@ -1594,29 +1874,14 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
 
   {
     const int result =
-      make_tokeniser_states(
+      tokenise(
         memory->chars,
-        memory->tokeniser_state,
+        memory->tokens,
         memory->raw_length);
     if (result != 0) {
       return result;
     }
   }
-
-  make_is_no_tokens(
-    memory->tokeniser_state,
-    memory->is_no_tokens,
-    memory->raw_length);
-
-  make_is_compound_token(
-    memory->tokeniser_state,
-    memory->is_compound_token,
-    memory->raw_length);
-
-  make_is_simple_token(
-    memory->tokeniser_state,
-    memory->is_simple_token,
-    memory->raw_length);
 
   return 0;
 }
