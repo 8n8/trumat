@@ -35,6 +35,7 @@ enum token {
   token_newline,
   token_equals,
   token_exposing,
+  token_compound_char,
 };
 
 void zero_memory(struct Memory *memory) {}
@@ -1839,6 +1840,10 @@ static int tokenise(
   uint8_t chars[1000000],
   uint8_t tokens[1000000],
   int length) {
+
+  for (int i = 0; i < length; ++i) {
+    tokens[i] = token_compound_char;
+  }
 
   enum tokeniser state = tokeniser_start;
   for (int i = 0; i < length; ++i) {
