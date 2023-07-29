@@ -100,10 +100,8 @@ static int parse_char(uint8_t raw) {
   return -1;
 }
 
-static int parse_chars(
-  uint8_t raw[1000000],
-  uint8_t chars[1000000],
-  int length) {
+static int parse_chars(uint8_t raw[1000000], uint8_t chars[1000000],
+                       int length) {
 
   for (int i = 0; i < length; ++i) {
     int result = parse_char(raw[i]);
@@ -154,31 +152,28 @@ enum tokeniser {
 
 // reserved keywords in Elm: as case else exposing if import in let module
 // of port then type where
-static int tokeniser_state_machine(
-  enum tokeniser state,
-  enum elm_char ch,
-  uint8_t tokens[1000000],
-  int i) {
+static int tokeniser_state_machine(enum tokeniser state, enum elm_char ch,
+                                   uint8_t tokens[1000000], int i) {
 
   switch (state) {
   case tokeniser_exposing:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_exposing;
+      tokens[i - 1] = token_exposing;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_exposing;
+      tokens[i - 1] = token_exposing;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_exposing;
+      tokens[i - 1] = token_exposing;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_exposing;
+      tokens[i - 1] = token_exposing;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -198,7 +193,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_exposing;
+      tokens[i - 1] = token_exposing;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -215,21 +210,21 @@ static int tokeniser_state_machine(
   case tokeniser_exposin:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -249,7 +244,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -266,21 +261,21 @@ static int tokeniser_state_machine(
   case tokeniser_exposi:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -300,7 +295,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -317,21 +312,21 @@ static int tokeniser_state_machine(
   case tokeniser_module:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_module;
+      tokens[i - 1] = token_module;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_module;
+      tokens[i - 1] = token_module;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_module;
+      tokens[i - 1] = token_module;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_module;
+      tokens[i - 1] = token_module;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -351,7 +346,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_module;
+      tokens[i - 1] = token_module;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -368,21 +363,21 @@ static int tokeniser_state_machine(
   case tokeniser_expos:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -402,7 +397,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -419,21 +414,21 @@ static int tokeniser_state_machine(
   case tokeniser_modul:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -453,7 +448,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -470,21 +465,21 @@ static int tokeniser_state_machine(
   case tokeniser_else:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_else;
+      tokens[i - 1] = token_else;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_else;
+      tokens[i - 1] = token_else;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_else;
+      tokens[i - 1] = token_else;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_else;
+      tokens[i - 1] = token_else;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -504,7 +499,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_else;
+      tokens[i - 1] = token_else;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -521,21 +516,21 @@ static int tokeniser_state_machine(
   case tokeniser_expo:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -555,7 +550,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -572,21 +567,21 @@ static int tokeniser_state_machine(
   case tokeniser_modu:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -606,7 +601,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -623,21 +618,21 @@ static int tokeniser_state_machine(
   case tokeniser_impo:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -657,7 +652,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -674,21 +669,21 @@ static int tokeniser_state_machine(
   case tokeniser_els:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -708,11 +703,11 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_else;
       return tokeniser_else;
     case char_l:
@@ -727,21 +722,21 @@ static int tokeniser_state_machine(
   case tokeniser_exp:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -761,7 +756,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -778,21 +773,21 @@ static int tokeniser_state_machine(
   case tokeniser_mod:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -812,7 +807,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -829,21 +824,21 @@ static int tokeniser_state_machine(
   case tokeniser_imp:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -863,7 +858,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -880,21 +875,21 @@ static int tokeniser_state_machine(
   case tokeniser_hex:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_hex;
     case char_newline:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -914,7 +909,7 @@ static int tokeniser_state_machine(
     case char_X:
       return -1;
     case char_space:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -931,21 +926,21 @@ static int tokeniser_state_machine(
   case tokeniser_el:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -965,7 +960,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -982,21 +977,21 @@ static int tokeniser_state_machine(
   case tokeniser_ex:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1016,7 +1011,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1033,21 +1028,21 @@ static int tokeniser_state_machine(
   case tokeniser_le:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1067,7 +1062,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1084,21 +1079,21 @@ static int tokeniser_state_machine(
   case tokeniser_mo:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1118,7 +1113,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1135,21 +1130,21 @@ static int tokeniser_state_machine(
   case tokeniser_po:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1169,7 +1164,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1186,21 +1181,21 @@ static int tokeniser_state_machine(
   case tokeniser_in:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_in;
+      tokens[i - 1] = token_in;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_in;
+      tokens[i - 1] = token_in;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_in;
+      tokens[i - 1] = token_in;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_in;
+      tokens[i - 1] = token_in;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1220,7 +1215,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_in;
+      tokens[i - 1] = token_in;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1237,21 +1232,21 @@ static int tokeniser_state_machine(
   case tokeniser_im:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_lower_name;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1271,7 +1266,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1329,21 +1324,21 @@ static int tokeniser_state_machine(
   case tokeniser_upper_name:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_upper_name;
+      tokens[i - 1] = token_upper_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_upper_name;
     case char_newline:
-      tokens[i-1] = token_upper_name;
+      tokens[i - 1] = token_upper_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_upper_name;
+      tokens[i - 1] = token_upper_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_upper_name;
+      tokens[i - 1] = token_upper_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1363,7 +1358,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_upper_name;
     case char_space:
-      tokens[i-1] = token_upper_name;
+      tokens[i - 1] = token_upper_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1380,21 +1375,21 @@ static int tokeniser_state_machine(
   case tokeniser_e:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1414,7 +1409,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1431,21 +1426,21 @@ static int tokeniser_state_machine(
   case tokeniser_l:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1465,7 +1460,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1482,21 +1477,21 @@ static int tokeniser_state_machine(
   case tokeniser_m:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1516,7 +1511,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1533,21 +1528,21 @@ static int tokeniser_state_machine(
   case tokeniser_p:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1567,7 +1562,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1584,21 +1579,21 @@ static int tokeniser_state_machine(
   case tokeniser_o:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1618,7 +1613,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1635,21 +1630,21 @@ static int tokeniser_state_machine(
   case tokeniser_i:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1669,7 +1664,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1686,21 +1681,21 @@ static int tokeniser_state_machine(
   case tokeniser_lower_name:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return tokeniser_lower_name;
     case char_newline:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1720,7 +1715,7 @@ static int tokeniser_state_machine(
     case char_X:
       return tokeniser_lower_name;
     case char_space:
-      tokens[i-1] = token_lower_name;
+      tokens[i - 1] = token_lower_name;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1737,21 +1732,21 @@ static int tokeniser_state_machine(
   case tokeniser_0:
     switch (ch) {
     case char_equals:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_equals;
       return tokeniser_start;
     case char_0:
       return -1;
     case char_newline:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_newline;
       return tokeniser_start;
     case char_close_parens:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_close_parens;
       return tokeniser_start;
     case char_open_parens:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_open_parens;
       return tokeniser_start;
     case char_g:
@@ -1771,7 +1766,7 @@ static int tokeniser_state_machine(
     case char_X:
       return -1;
     case char_space:
-      tokens[i-1] = token_number;
+      tokens[i - 1] = token_number;
       tokens[i] = token_space;
       return tokeniser_start;
     case char_e:
@@ -1836,10 +1831,8 @@ static int tokeniser_state_machine(
   return -1;
 }
 
-static int tokenise(
-  uint8_t chars[1000000],
-  uint8_t tokens[1000000],
-  int length) {
+static int tokenise(uint8_t chars[1000000], uint8_t tokens[1000000],
+                    int length) {
 
   for (int i = 0; i < length; ++i) {
     tokens[i] = token_compound_char;
@@ -1868,10 +1861,8 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
   }
 
   {
-    const int result = parse_chars(
-      memory->raw,
-      memory->chars,
-      memory->raw_length);
+    const int result =
+        parse_chars(memory->raw, memory->chars, memory->raw_length);
     if (result != 0) {
       return result;
     }
@@ -1879,10 +1870,7 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
 
   {
     const int result =
-      tokenise(
-        memory->chars,
-        memory->tokens,
-        memory->raw_length);
+        tokenise(memory->chars, memory->tokens, memory->raw_length);
     if (result != 0) {
       return result;
     }
