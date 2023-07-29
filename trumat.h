@@ -14,10 +14,7 @@ struct Memory {
   uint8_t compound_token[1000000];
 
   // These are the result of tokenisation.
-  int tokens_length;
-  uint8_t token_type[500000];
-  uint32_t token_start[500000];
-  uint16_t token_length[500000];
+  uint8_t token_type[1000000];
 };
 
 void zero_memory(struct Memory *);

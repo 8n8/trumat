@@ -1528,14 +1528,20 @@ static int make_tokeniser_states(
   return 0;
 }
 
-static void make_no_tokens(
+static void make_is_no_tokens(
   uint8_t state[1000000],
   uint8_t no_tokens[125000],
   int length) {
 
+  enum tokeniser previous_state = tokeniser_start;
   for (int i = 0; i < length; ++i) {
     enum tokeniser current_state = state[i];
-    u1x1m_set(current_state != tokeniser_start, no_tokens, i);
+    u1x1m_set(
+        previous_state != tokeniser_start
+          && current_state != tokeniser_start,
+        no_tokens,
+        i);
+    previous_state = current_state;
   }
 }
 
@@ -1548,8 +1554,8 @@ static void make_is_compound_token(
   for (int i = 0; i < length; ++i) {
     enum tokeniser current_state = state[i];
     u1x1m_set(
-          current_state == tokeniser_start
-            && previous_state != tokeniser_start,
+          current_state != tokeniser_start
+            && previous_state == tokeniser_start,
           one_token,
           i);
     previous_state = current_state;
@@ -1597,7 +1603,7 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  make_no_tokens(
+  make_is_no_tokens(
     memory->tokeniser_state,
     memory->is_no_tokens,
     memory->raw_length);
