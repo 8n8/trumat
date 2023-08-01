@@ -1,5 +1,8 @@
-import Data.Text (Text)
-import Hedgehog (Property, forAll, property, (===))
+import Data.Text (Text, pack)
+import qualified Data.Text as Text
+import Elm (Elm)
+import qualified Elm
+import Hedgehog (Gen, Property, forAll, property, (===))
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -10,12 +13,12 @@ import qualified Trumat
 main :: IO ()
 main =
   defaultMain $
-    testGroup "Unit tests" $ [ properties, units ]
-
+    testGroup "Unit tests" $
+      [properties, units]
 
 units :: TestTree
 units =
-    testGroup "Unit tests" (map oneTest cases)
+  testGroup "Unit tests" (map oneTest cases)
 
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =
@@ -24,9 +27,45 @@ oneTest (name, input, expected) =
 
 properties :: TestTree
 properties =
-  testGroup "Property tests"
-  [ testProperty "trivial fuzz test" prop_reverse
-  ]
+  testGroup
+    "Property tests"
+    [ testProperty "trivial fuzz test" prop_reverse,
+      testProperty "same code, same formatted" sameCodeSameFormatted
+    ]
+
+sameCodeSameFormatted :: Property
+sameCodeSameFormatted =
+  property $ do
+    ast <- forAll genAst
+    unformatted1 <- forAll $ genUnformatted ast
+    unformatted2 <- forAll $ genUnformatted ast
+    Trumat.trumat unformatted1 === Trumat.trumat unformatted2
+
+genUnformatted :: Elm -> Gen Text
+genUnformatted (Elm.Expression int) =
+  do
+    leadingSpaces <- genSomeSpaces
+    return $
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\\n\
+      \"
+        <> leadingSpaces
+        <> pack (show int)
+        <> "\n"
+
+genAst :: Gen Elm
+genAst =
+  do
+    int <- Gen.int (Range.linear 0 10000)
+    return $ Elm.Expression int
+
+genSomeSpaces :: Gen Text
+genSomeSpaces =
+  do
+    n <- Gen.int (Range.linear 1 1000)
+    return $ Text.replicate n " "
 
 prop_reverse :: Property
 prop_reverse =
