@@ -1,27 +1,7 @@
-import Data.Text (Text, intercalate, pack)
-import qualified Hedgehog
-import qualified Hedgehog.Gen
-import qualified Hedgehog.Range
+import Data.Text (Text)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
-import qualified Test.Tasty.Hedgehog
 import qualified Trumat
-import Prelude
-  ( Either (..),
-    IO,
-    Int,
-    String,
-    fmap,
-    map,
-    mapM,
-    mconcat,
-    repeat,
-    return,
-    take,
-    ($),
-    (+),
-    (<>),
-  )
 
 main :: IO ()
 main =
