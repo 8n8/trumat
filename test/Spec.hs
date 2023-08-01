@@ -10,8 +10,12 @@ import qualified Trumat
 main :: IO ()
 main =
   defaultMain $
-    testGroup "Unit tests" $
-      properties : map oneTest cases
+    testGroup "Unit tests" $ [ properties, units ]
+
+
+units :: TestTree
+units =
+    testGroup "Unit tests" (map oneTest cases)
 
 oneTest :: (String, Text, Text) -> TestTree
 oneTest (name, input, expected) =
@@ -20,7 +24,9 @@ oneTest (name, input, expected) =
 
 properties :: TestTree
 properties =
-  testProperty "trivial fuzz test" prop_reverse
+  testGroup "Property tests"
+  [ testProperty "trivial fuzz test" prop_reverse
+  ]
 
 prop_reverse :: Property
 prop_reverse =
