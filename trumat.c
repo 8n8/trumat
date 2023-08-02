@@ -1886,13 +1886,13 @@ static int tokenise(uint8_t chars[1000000], uint8_t tokens[1000000],
 //
 // * to 1 at the start of a top-level bind
 // * to l+1 on a let
-// * to 1 on an in
+// * minus 1 on an in
 static int one_min_column_step(enum token token, uint16_t column,
                                uint16_t *min_column) {
 
   switch (token) {
   case token_in:
-    *min_column = 1;
+    --*min_column;
     return 0;
   case token_upper_name:
     return 0;
