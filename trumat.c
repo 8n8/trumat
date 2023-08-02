@@ -1845,7 +1845,7 @@ static void make_column_numbers(uint8_t tokens[1000000],
     }
 
     if (token != token_compound_char) {
-        ++current_column;
+      ++current_column;
     }
   }
 }
@@ -1882,416 +1882,64 @@ static int tokenise(uint8_t chars[1000000], uint8_t tokens[1000000],
   return 0;
 }
 
-enum min_column_state {
-  min_column_start,
-  min_column_after_module,
-  min_column_after_module_name,
-  min_column_after_exposing,
-  min_column_after_module_declaration,
-  min_column_before_module_exposing_item,
-  min_column_before_top_bind_parameter,
-  min_column_after_module_exposing_name,
-  min_column_in_module_name_sub_exposing,
-  min_column_after_module_exposing_item,
-  min_column_start_top_level_bind_expression,
-  min_column_in_parameter_pattern,
-};
+// MinColumn only changes:
+//
+// * to 1 at the start of a top-level bind
+// * to l+1 on a let
+// * to 1 on an in
+static int one_min_column_step(enum token token, uint16_t column,
+                               uint16_t *min_column) {
 
-static int one_min_column_step(
-  enum token token,
-  uint16_t column,
-  uint16_t* min_column,
-  int* nesting,
-  enum min_column_state* state) {
-
-  switch (*state) {
-  case min_column_start_top_level_bind_expression:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return 0;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      ++*nesting;
-      return 0;
-    case token_close_parens:
-      --*nesting;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_in_parameter_pattern:
-    if (*nesting == 0) {
-      *state = min_column_before_top_bind_parameter;
-      return 0;
-    }
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return 0;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      ++*nesting;
-      return 0;
-    case token_close_parens:
-      --*nesting;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_before_top_bind_parameter:
+  switch (token) {
+  case token_in:
+    *min_column = 1;
+    return 0;
+  case token_upper_name:
+    return 0;
+  case token_number:
+    return 0;
+  case token_else:
+    return 0;
+  case token_lower_name:
     if (column == 0) {
-      return -1;
-    }
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return 0;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      *state = min_column_in_parameter_pattern;
-      *nesting = 1;
-      return 0;
-    case token_close_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
       *min_column = 1;
-      *state = min_column_start_top_level_bind_expression;
-      return 0;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
     }
-  case min_column_after_module_exposing_item:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      return -1;
-    case token_close_parens:
-      *state = min_column_after_module_exposing_item;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_in_module_name_sub_exposing:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      return -1;
-    case token_close_parens:
-      *state = min_column_after_module_exposing_item;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_after_module_exposing_name:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      *state = min_column_after_module_exposing_name;
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      *state = min_column_in_module_name_sub_exposing;
-      return 0;
-    case token_close_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_before_module_exposing_item:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      *state = min_column_after_module_exposing_name;
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      *state = min_column_after_module_exposing_name;
-      return 0;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      return -1;
-    case token_close_parens:
-      *state = min_column_after_module_declaration;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_after_exposing:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return -1;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      *state = min_column_before_module_exposing_item;
-      return 0;
-    case token_close_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_after_module_name:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      if (column == 0) {
-        *state = min_column_before_top_bind_parameter;
-        return 0;
-      }
-      return -1;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      if (column == 0) {
-        *state = min_column_before_top_bind_parameter;
-        return 0;
-      }
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      return -1;
-    case token_close_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      *state = min_column_after_exposing;
-      return 0;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_after_module:
-    switch (token) {
-    case token_in:
-      return -1;
-    case token_upper_name:
-      *state = min_column_after_module_name;
-      return 0;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      return -1;
-    case token_space:
-      return 0;
-    case token_open_parens:
-      return -1;
-    case token_close_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      return -1;
-    }
-  case min_column_start:
-    switch (token) {
-    case token_upper_name:
-      return -1;
-    case token_in:
-      return -1;
-    case token_number:
-      return -1;
-    case token_else:
-      return -1;
-    case token_lower_name:
-      if (column != 0) {
-        return -1;
-      }
-      *min_column = 1;
-      return 0;
-    case token_space:
-      return 0;
-    case token_close_parens:
-      return -1;
-    case token_open_parens:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_equals:
-      return -1;
-    case token_exposing:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_module:
-      *state = min_column_after_module;
-      *min_column = 1;
-      return 0;
-    };
-  };
+    return 0;
+  case token_space:
+    return 0;
+  case token_open_parens:
+    return 0;
+  case token_close_parens:
+    return 0;
+  case token_newline:
+    return 0;
+  case token_equals:
+    return 0;
+  case token_exposing:
+    return 0;
+  case token_compound_char:
+    return 0;
+  case token_module:
+    return 0;
+  }
 
   return 0;
 }
 
-static int calculate_min_column(
-  uint8_t tokens[1000000],
-  uint16_t columns[1000000],
-  uint16_t min_columns[1000000],
-  int length) {
+static int calculate_min_column(uint8_t tokens[1000000],
+                                uint16_t columns[1000000],
+                                uint16_t min_columns[1000000], int length) {
 
-  enum min_column_state state = min_column_start;
   uint16_t min_column = 0;
-  int nesting = 0;
 
   for (int i = 0; i < length; ++i) {
+    min_columns[i] = min_column;
 
-    int result = one_min_column_step(
-          tokens[i],
-          columns[i],
-          &min_column,
-          &nesting,
-          &state);
+    int result = one_min_column_step(tokens[i], columns[i], &min_column);
 
     if (result < 0) {
       return result;
     }
-
-    min_columns[i] = min_column;
   }
 
   return 0;
@@ -2325,11 +1973,8 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  calculate_min_column(
-      memory->tokens,
-      memory->column,
-      memory->min_column,
-      memory->raw_length);
+  calculate_min_column(memory->tokens, memory->column, memory->min_column,
+                       memory->raw_length);
 
   return 0;
 }
