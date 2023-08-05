@@ -1939,120 +1939,6 @@ static int calculate_min_column(uint8_t tokens[1000000],
   return 0;
 }
 
-enum nesting_state {
-    nesting_start,
-    nesting_before_top_level_equals,
-    nesting_after_top_level_equals,
-};
-
-static int one_nesting_step(
-  enum token token,
-  uint16_t min_column,
-  uint16_t column,
-  enum nesting_state* state,
-  uint8_t* nesting) {
-
-  switch (*state) {
-  case nesting_before_top_level_equals:
-    switch (token) {
-    case token_module:
-      return -1;
-    case token_compound_char:
-      return 0;
-    case token_exposing:
-      return -1;
-    case token_equals:
-      *state = nesting_after_top_level_equals;
-      return 0;
-    case token_newline:
-      return 0;
-    case token_close_parens:
-      return 0;
-    case token_open_parens:
-      return 0;
-    case token_space:
-      return 0;
-    case token_lower_name:
-      if (column != 0) {
-        return -1;
-      }
-      *state = nesting_before_top_level_equals;
-      return 0;
-    case token_else:
-      return -1;
-    case token_number:
-      return 0;
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return 0;
-    }
-  case nesting_start:
-    switch (token) {
-    case token_module:
-      return 0;
-    case token_compound_char:
-      return 0;
-    case token_exposing:
-      return -1;
-    case token_equals:
-      return -1;
-    case token_newline:
-      return 0;
-    case token_close_parens:
-      return -1;
-    case token_open_parens:
-      return -1;
-    case token_space:
-      return 0;
-    case token_lower_name:
-      if (column != 0) {
-        return -1;
-      }
-      *state = nesting_before_top_level_equals;
-      return 0;
-    case token_else:
-      return -1;
-    case token_number:
-      return -1;
-    case token_in:
-      return -1;
-    case token_upper_name:
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
-static int calculate_nesting(
-    uint8_t tokens[1000000],
-    uint16_t min_column[1000000],
-    uint16_t column[1000000],
-    uint8_t nestings[1000000],
-    int length) {
-
-    uint8_t nesting = 0;
-    enum nesting_state state = nesting_start;
-
-    for (int i = 0; i < length; ++i) {
-      nestings[i] = nesting;
-
-      const int result = one_nesting_step(
-        tokens[i],
-        min_column[i],
-        column[i],
-        &state,
-        &nesting);
-
-      if (result < 0) {
-        return result;
-      }
-    }
-
-    return 0;
-}
-
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
   {
     const int result = read_raw(input_file, memory->raw);
@@ -2081,21 +1967,9 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  {
-    const int result = calculate_min_column(
+  return calculate_min_column(
         memory->tokens,
         memory->column,
         memory->min_column,
-        memory->raw_length);
-    if (result != 0) {
-      return result;
-    }
-  }
-
-  return calculate_nesting(
-        memory->tokens,
-        memory->min_column,
-        memory->column,
-        memory->nesting,
         memory->raw_length);
 }
