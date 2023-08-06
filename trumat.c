@@ -1883,131 +1883,120 @@ static int tokenise(uint8_t chars[1000000], uint8_t tokens[1000000],
 }
 
 enum floor_state {
-    floor_last_was_floory,
-    floor_last_not_floory,
+  floor_last_was_floory,
+  floor_last_not_floory,
 };
 
-static int calculate_one_floor(
-    enum token token,
-    uint16_t column,
-    uint16_t* floor,
-    enum floor_state* state,
-    int next_lowest_floor) {
+static int calculate_one_floor(enum token token, uint16_t column,
+                               uint16_t *floor, enum floor_state *state,
+                               int next_lowest_floor) {
 
-    switch (*state) {
-    case floor_last_not_floory:
-        switch (token) {
-        case token_upper_name:
-            return 0;
-        case token_equals:
-            return 0;
-        case token_newline:
-            return 0;
-        case token_close_parens:
-            return 0;
-        case token_open_parens:
-            return 0;
-        case token_space:
-            return 0;
-        case token_lower_name:
-            return 0;
-        case token_else:
-            return 0;
-        case token_number:
-            return 0;
-        case token_in:
-            return 0;
-        case token_exposing:
-            return 0;
-        case token_compound_char:
-            return 0;
-        case token_module:
-            return 0;
-        };
-    case floor_last_was_floory:
-        switch (token) {
-        case token_upper_name:
-            *floor = column;
-            *state = floor_last_not_floory;
-            return 0;
-        case token_in:
-            *floor = next_lowest_floor;
-            *state = floor_last_not_floory;
-            return 0;
-        case token_number:
-            *floor = column;
-            *state = floor_last_not_floory;
-            return 0;
-        case token_else:
-            return -1;
-        case token_lower_name:
-            *floor = column;
-            *state = floor_last_not_floory;
-            return 0;
-        case token_space:
-            return 0;
-        case token_open_parens:
-            *floor = column;
-            *state = floor_last_not_floory;
-            return 0;
-        case token_close_parens:
-            return -1;
-        case token_newline:
-            return 0;
-        case token_equals:
-            return -1;
-        case token_exposing:
-            return -1;
-        case token_compound_char:
-            return 0;
-        case token_module:
-            return -1;
-        };
-
+  switch (*state) {
+  case floor_last_not_floory:
+    switch (token) {
+    case token_upper_name:
+      return 0;
+    case token_equals:
+      return 0;
+    case token_newline:
+      return 0;
+    case token_close_parens:
+      return 0;
+    case token_open_parens:
+      return 0;
+    case token_space:
+      return 0;
+    case token_lower_name:
+      return 0;
+    case token_else:
+      return 0;
+    case token_number:
+      return 0;
+    case token_in:
+      return 0;
+    case token_exposing:
+      return 0;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return 0;
     };
+  case floor_last_was_floory:
+    switch (token) {
+    case token_upper_name:
+      *floor = column;
+      *state = floor_last_not_floory;
+      return 0;
+    case token_in:
+      *floor = next_lowest_floor;
+      *state = floor_last_not_floory;
+      return 0;
+    case token_number:
+      *floor = column;
+      *state = floor_last_not_floory;
+      return 0;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      *floor = column;
+      *state = floor_last_not_floory;
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      *floor = column;
+      *state = floor_last_not_floory;
+      return 0;
+    case token_close_parens:
+      return -1;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
+  };
 
-    return 0;
+  return 0;
 }
 
-static int calculate_floor(
-   uint8_t tokens[1000000],
-   uint16_t columns[1000000],
-   uint16_t floor[1000000],
-   int raw_length) {
+static int calculate_floor(uint8_t tokens[1000000], uint16_t columns[1000000],
+                           uint16_t floor[1000000], int raw_length) {
 
-   for (int i = 0; i < raw_length; ++i) {
+  for (int i = 0; i < raw_length; ++i) {
     floor[i] = 0;
-   }
+  }
 
-   uint16_t history_array[20];
-   uint16_t* history = history_array;
-   *history = 0;
-   ++history;
+  uint16_t history_array[20];
+  uint16_t *history = history_array;
+  *history = 0;
+  ++history;
 
-   enum floor_state state = floor_last_not_floory;
-   for (int i = 0; i < raw_length; ++i) {
-    const int result = calculate_one_floor(
-        tokens[i],
-        columns[i],
-        &floor[i],
-        &state,
-        *(history - 1));
+  enum floor_state state = floor_last_not_floory;
+  for (int i = 0; i < raw_length; ++i) {
+    const int result = calculate_one_floor(tokens[i], columns[i], &floor[i],
+                                           &state, *(history - 1));
 
     if (result < 0) {
-        return result;
+      return result;
     }
 
-     if (floor[i] > *history) {
+    if (floor[i] > *history) {
       ++history;
       *history = floor[i];
-     }
-  
-     if (floor[i] < *history) {
-      --history;
-     }
-   }
+    }
 
-   return 0;
+    if (floor[i] < *history) {
+      --history;
+    }
+  }
+
+  return 0;
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
@@ -2038,5 +2027,6 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  return calculate_floor(memory->tokens, memory->column, memory->floor, memory->raw_length);
+  return calculate_floor(memory->tokens, memory->column, memory->floor,
+                         memory->raw_length);
 }
