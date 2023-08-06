@@ -1972,7 +1972,7 @@ static int calculate_floor(uint8_t tokens[1000000], uint16_t columns[1000000],
     floor[i] = 0;
   }
 
-  uint16_t history_array[20];
+  uint16_t history_array[100];
   uint16_t *history = history_array;
   *history = 0;
   ++history;
