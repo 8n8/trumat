@@ -1887,56 +1887,170 @@ static int tokenise(uint8_t chars[1000000], uint8_t tokens[1000000],
 // * to 1 at the start of a top-level item
 // * to l+1 on a let
 // * minus 1 on an in
-static int one_min_column_step(enum token token, uint16_t column,
-                               uint16_t min_column) {
+// static int one_min_column_step(enum token token, uint16_t column,
+//                                uint16_t *min_column,
+//                                enum min_col) {
+// 
+//   switch (token) {
+//   case token_in:
+//     return min_column - 1;
+//   case token_upper_name:
+//     break;
+//   case token_number:
+//     break;
+//   case token_else:
+//     break;
+//   case token_lower_name:
+//     if (column == 0) {
+//       return 1;
+//     }
+//     break;
+//   case token_space:
+//     break;
+//   case token_open_parens:
+//     break;
+//   case token_close_parens:
+//     break;
+//   case token_newline:
+//     break;
+//   case token_equals:
+//     break;
+//   case token_exposing:
+//     break;
+//   case token_compound_char:
+//     break;
+//   case token_module:
+//     break;
+//   }
+// 
+//   return min_column;
+// }
+// 
+// enum min_column_state {
+//     min_column_start;
+// };
+// 
+// static int calculate_min_column(uint8_t tokens[1000000],
+//                                 uint16_t columns[1000000],
+//                                 uint16_t min_columns[1000000], int length) {
+// 
+//   uint16_t min_column = 0;
+//   enum min_column_state state = min_column_start;
+// 
+//   for (int i = 0; i < length; ++i) {
+//     min_columns[i] = min_column;
+//     const int result = one_min_column_step(
+//         tokens[i],
+//         columns[i],
+//         &min_column,
+//         &state);
+//     if (result != 0) {
+//         return result;
+//     }
+//   }
+// 
+//   return 0;
+// }
 
-  switch (token) {
-  case token_in:
-    return min_column - 1;
-  case token_upper_name:
-    break;
-  case token_number:
-    break;
-  case token_else:
-    break;
-  case token_lower_name:
-    if (column == 0) {
-      return 1;
-    }
-    break;
-  case token_space:
-    break;
-  case token_open_parens:
-    break;
-  case token_close_parens:
-    break;
-  case token_newline:
-    break;
-  case token_equals:
-    break;
-  case token_exposing:
-    break;
-  case token_compound_char:
-    break;
-  case token_module:
-    break;
-  }
+enum is_follows_let_state {
+    is_follows_let_yes,
+    is_follows_let_no,
+};
 
-  return min_column;
+static int calculate_one_is_follows_let(
+    enum token token,
+    enum is_follows_let_state* state,
+    uint8_t* is_follows_let) {
+
+    switch (*state) {
+    case is_follows_let_yes:
+        switch (token) {
+        case token_upper_name:
+            return -1;
+        case token_in:
+            return -1;
+        case token_number:
+            return -1;
+        case token_else:
+            return -1;
+        case token_lower_name:
+            *state = is_follows_let_no;
+            *is_follows_let = 1;
+            return 0;
+        case token_space:
+            return 0;
+        case token_open_parens:
+            *state = is_follows_let_no;
+            *is_follows_let = 1;
+            return 0;
+        case token_close_parens:
+            return -1;
+        case token_exposing:
+            return -1;
+        case token_equals:
+            return -1;
+        case token_newline:
+            return 0;
+        case token_compound_char:
+            return 0;
+        case token_module:
+            return -1;
+        }
+    case is_follows_let_no:
+        switch (token) {
+        case token_upper_name:
+            return 0;
+        case token_in:
+            return 0;
+        case token_number:
+            return 0;
+        case token_else:
+            return 0;
+        case token_lower_name:
+            return 0;
+        case token_space:
+            return 0;
+        case token_open_parens:
+            return 0;
+        case token_close_parens:
+            return 0;
+        case token_newline:
+            return 0;
+        case token_equals:
+            return 0;
+        case token_exposing:
+            return 0;
+        case token_compound_char:
+            return 0;
+        case token_module:
+            return 0;
+        }
+    };
+
+    return 0;
 }
 
-static int calculate_min_column(uint8_t tokens[1000000],
-                                uint16_t columns[1000000],
-                                uint16_t min_columns[1000000], int length) {
+static int calculate_is_follows_let(
+    uint8_t tokens[1000000],
+    uint8_t is_follows_let[1000000],
+    int raw_length) {
 
-  uint16_t min_column = 0;
+    for (int i = 0; i < raw_length; ++i) {
+        is_follows_let[i] = 0;
+    }
 
-  for (int i = 0; i < length; ++i) {
-    min_columns[i] = min_column;
-    min_column = one_min_column_step(tokens[i], columns[i], min_column);
-  }
+    enum is_follows_let_state state = is_follows_let_no;
+    for (int i = 0; i < raw_length; ++i) {
+        const int result = calculate_one_is_follows_let(
+            tokens[i],
+            &state,
+            &is_follows_let[i]);
+        if (result < 0) {
+            return result;
+        }
+    }
 
-  return 0;
+    return 0;
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
@@ -1967,9 +2081,9 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  return calculate_min_column(
+  return calculate_is_follows_let(
         memory->tokens,
-        memory->column,
-        memory->min_column,
+        memory->is_follows_let,
         memory->raw_length);
 }
+

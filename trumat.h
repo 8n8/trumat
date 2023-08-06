@@ -11,9 +11,7 @@ struct Memory {
 
   uint8_t tokens[1000000];
 
-  uint16_t min_column[1000000];
-
-  uint8_t nesting[1000000];
+  uint8_t is_follows_let[1000000];
 };
 
 void zero_memory(struct Memory *);
