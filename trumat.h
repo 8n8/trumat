@@ -12,6 +12,8 @@ struct Memory {
   uint8_t tokens[1000000];
 
   uint16_t floor[1000000];
+
+  uint8_t depth[1000000];
 };
 
 void zero_memory(struct Memory *);

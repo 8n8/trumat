@@ -1999,6 +1999,135 @@ static int calculate_floor(uint8_t tokens[1000000], uint16_t columns[1000000],
   return 0;
 }
 
+enum depth_state {
+  depth_start_top_level,
+  depth_after_module,
+  depth_before_top_parameter,
+  depth_top_bind_expression_start,
+};
+
+static int calculate_one_depth(
+  enum token token,
+  uint16_t floor,
+  uint8_t* depth,
+  enum depth_state* state) {
+
+  switch (*state) {
+  case depth_after_module:
+    switch (token) {
+    case token_upper_name:
+      *state = depth_after_module_name;
+      return 0;
+    case token_in:
+      return -1;
+    case token_number:
+      return -1;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      return -1;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      return -1;
+    case token_close_parens:
+      return -1;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
+  case depth_before_top_parameter:
+    switch (token) {
+    case token_upper_name:
+      return 0;
+    case token_in:
+      return -1;
+    case token_number:
+      return -1;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      ++*nesting;
+      *state = depth_in_parameter_pattern;
+      return 0;
+    case token_close_parens:
+      return -1;
+    case token_newline:
+      return 0;
+    case token_equals:
+      *state = depth_top_bind_expression_start;
+      return 0;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
+  case depth_start_top_level:
+    switch (token) {
+    case token_upper_name:
+      return -1;
+    case token_in:
+      return -1;
+    case token_number:
+      return -1;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      *state = depth_before_top_parameter;
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      return -1;
+    case token_close_parens:
+      return -1;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      *state = depth_after_module;
+      return 0;
+    };
+  };
+
+  return -1;
+}
+
+static int calculate_depth(
+  uint8_t tokens[1000000],
+  uint16_t floor[1000000],
+  uint8_t depth[1000000],
+  int length) {
+
+  enum depth_state state = depth_start_top_level;
+
+  for (int i = 0; i < length; ++i) {
+    const int result = calculate_one_depth(tokens[i], floor[i], &depth[i], &state);
+    if (result != 0) {
+      return result;
+    }
+  }
+  return 0;
+}
+
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
   {
     const int result = read_raw(input_file, memory->raw);
@@ -2027,6 +2156,13 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  return calculate_floor(memory->tokens, memory->column, memory->floor,
+  {
+    const int result = calculate_floor(memory->tokens, memory->column, memory->floor,
                          memory->raw_length);
+    if (result != 0) {
+      return result;
+    }
+  }
+
+  return calculate_depth(memory->tokens, memory->floor, memory->depth, memory->raw_length);
 }
