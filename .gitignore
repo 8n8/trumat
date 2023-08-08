@@ -1,5 +1,9 @@
-trumat.o
-a.out
-elm-stuff/
-elm.json
+.stack-work/
+trumat.cabal
+elm/
+node_modules/
+package-lock.json
+package.json
 test.elm
+elm.json
+elm-stuff/
