@@ -8460,5 +8460,33 @@ cases =
       \    a b c \"\"\"\n\
       \\"\"\"\n\
       \"
+    ),
+    ( "multi line list in if branch in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            [ c\n\
+      \            ]\n\
+      \\n\
+      \         else\n\
+      \            a\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        (if b then\n\
+      \            [ c\n\
+      \            ]\n\
+      \\n\
+      \         else\n\
+      \            a\n\
+      \        )\n\
+      \"
     )
   ]
