@@ -1885,7 +1885,7 @@ parseRecordItem indent =
     _ <- char '='
     _ <- space
     rowBeforeComment <- fmap (unPos . sourceLine) getSourcePos
-    commentBefore <- commentSpaceParser indent
+    commentBefore <- commentSpaceParser (floorToFour (indent + 4))
     right <- parseExpression 1 DoesntNeedBrackets (floorToFour (indent + 4))
     endRow <- fmap (unPos . sourceLine) getSourcePos
     sameLineComment <- choice [try parseSameLineComment, return ""]
