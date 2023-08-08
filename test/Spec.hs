@@ -8510,5 +8510,22 @@ cases =
       \        b\n\
       \    }\n\
       \"
+    ),
+    ( "triple quoted string in multi line list in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a [ \"\"\"\"\"\"\n\
+      \        ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        [ \"\"\"\"\"\"\n\
+      \        ]\n\
+      \"
     )
   ]
