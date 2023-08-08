@@ -2235,10 +2235,20 @@ parseFunctionCall minColumn indent =
         atLeastOneMultiline = List.any (\(_, _, arg, _) -> Text.elem '\n' arg) (firstArgument : subsequent)
     return $ mconcat $ f : (addArgSpaces atLeastOneMultiline True allLinesInStringLiteral startRow endRow indent firstArgument) : map (addArgSpaces atLeastOneMultiline False allLinesInStringLiteral startRow endRow indent) subsequent
 
+allArgLinesInStringLiteral :: Text -> Bool
+allArgLinesInStringLiteral arg =
+  let linesInMulti = Text.count "\n" $ getOnlyTripleStringLiteral arg
+      linesInArg = Text.count "\n" arg
+   in linesInMulti > 0 && linesInMulti == linesInArg
+
+getOnlyTripleStringLiteral :: Text -> Text
+getOnlyTripleStringLiteral arg =
+  fst $ Text.breakOnEnd "\"\"\"" $ snd $ Text.breakOn "\"\"\"" arg
+
 addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
 addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
   let indentation =
-        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && Text.isInfixOf "\"\"\"" arg) || allLinesInStringLiteral
+        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && allArgLinesInStringLiteral arg) || allLinesInStringLiteral
           then " "
           else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
    in if comment == ""

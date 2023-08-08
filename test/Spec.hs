@@ -3837,7 +3837,7 @@ cases =
       \\"\"\"\n\
       \"
     ),
-    ( "multiline string in function argument in function argument",
+    ( "string in function argument in function argument on new line",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -4497,7 +4497,7 @@ cases =
       \    }\n\
       \"
     ),
-    ( "multiline string in function argument in function argument",
+    ( "string in function argument in function argument on same line",
       "module X exposing (x)\n\
       \\n\
       \\n\
