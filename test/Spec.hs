@@ -8488,5 +8488,27 @@ cases =
       \            a\n\
       \        )\n\
       \"
+    ),
+    ( "double line comment before record value",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        --\n\
+      \        --\n\
+      \        b\n\
+      \    }\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    { a =\n\
+      \        --\n\
+      \        --\n\
+      \        b\n\
+      \    }\n\
+      \"
     )
   ]
