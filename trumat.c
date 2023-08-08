@@ -2004,15 +2004,142 @@ enum depth_state {
   depth_after_module,
   depth_before_top_parameter,
   depth_top_bind_expression_start,
+  depth_in_parameter_pattern,
+  depth_after_module_name,
+  depth_after_leading_expression,
 };
 
 static int calculate_one_depth(
   enum token token,
-  uint16_t floor,
+  int is_floor,
+  uint8_t previous_depth,
   uint8_t* depth,
+  int* nesting,
   enum depth_state* state) {
 
   switch (*state) {
+  case depth_after_leading_expression:
+    switch (token) {
+    case token_upper_name:
+      if (is_floor) {
+        return -1;
+      }
+      *state = depth_before_function_argument;
+      ++*depth;
+      return 0;
+    case token_in:
+      return -1;
+    case token_number:
+      if (is_floor) {
+        return -1;
+      }
+      *state = depth_before_function_argument;
+      ++*depth;
+      return 0;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      if (is_floor) {
+         *state = depth_before_top_parameter;
+         return 0;
+      }
+      *state = depth_after_leading_expression;
+      --*depth;
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      ++*depth;
+      *state = depth_start_sub_expression;
+      return 0;
+    case token_close_parens:
+      --*nesting;
+      if (*nesting == 0) {
+        *state = depth_before_top_parameter;
+      }
+      return 0;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
+  case depth_top_bind_expression_start:
+    switch (token) {
+    case token_upper_name:
+      *state = depth_after_leading_expression;
+      return 0;
+    case token_in:
+      return -1;
+    case token_number:
+      *state = depth_after_leading_expression;
+      return 0;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      *state = depth_after_leading_expression;
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      ++*nesting;
+      return 0;
+    case token_close_parens:
+      --*nesting;
+      if (*nesting == 0) {
+        *state = depth_before_top_parameter;
+      }
+      return 0;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
+  case depth_in_parameter_pattern:
+    switch (token) {
+    case token_upper_name:
+      return 0;
+    case token_in:
+      return -1;
+    case token_number:
+      return 0;
+    case token_else:
+      return -1;
+    case token_lower_name:
+      return 0;
+    case token_space:
+      return 0;
+    case token_open_parens:
+      ++*nesting;
+      return 0;
+    case token_close_parens:
+      --*nesting;
+      if (*nesting == 0) {
+        *state = depth_before_top_parameter;
+      }
+      return 0;
+    case token_newline:
+      return 0;
+    case token_equals:
+      return -1;
+    case token_exposing:
+      return -1;
+    case token_compound_char:
+      return 0;
+    case token_module:
+      return -1;
+    };
   case depth_after_module:
     switch (token) {
     case token_upper_name:
@@ -2113,19 +2240,42 @@ static int calculate_one_depth(
 
 static int calculate_depth(
   uint8_t tokens[1000000],
-  uint16_t floor[1000000],
+  uint8_t is_floor[1000000],
   uint8_t depth[1000000],
   int length) {
 
   enum depth_state state = depth_start_top_level;
 
+  uint16_t previous_depth = 0;
+
+  int nesting = 0;
+
   for (int i = 0; i < length; ++i) {
-    const int result = calculate_one_depth(tokens[i], floor[i], &depth[i], &state);
+    const int result = calculate_one_depth(
+        tokens[i],
+        is_floor[i],
+        previous_depth,
+        &depth[i],
+        &nesting,
+        &state);
     if (result != 0) {
       return result;
     }
+
+    previous_depth = depth[i];
   }
   return 0;
+}
+
+static void calculate_is_floor(
+    uint16_t floor[1000000],
+    uint16_t column[1000000],
+    uint8_t is_floor[1000000],
+    int length) {
+
+    for (int i = 0; i < length; ++i) {
+        is_floor[i] = floor[i] == column[i];
+    }
 }
 
 int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
@@ -2164,5 +2314,11 @@ int format(FILE *input_file, FILE *output_file, struct Memory *memory) {
     }
   }
 
-  return calculate_depth(memory->tokens, memory->floor, memory->depth, memory->raw_length);
+  calculate_is_floor(memory->floor, memory->column, memory->is_floor, memory->raw_length);
+
+  return calculate_depth(
+      memory->tokens,
+      memory->is_floor,
+      memory->depth,
+      memory->raw_length);
 }

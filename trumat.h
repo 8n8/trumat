@@ -13,6 +13,8 @@ struct Memory {
 
   uint16_t floor[1000000];
 
+  uint8_t is_floor[1000000];
+
   uint8_t depth[1000000];
 };
 
