@@ -1119,7 +1119,7 @@ parseBareFunctionType minColumn indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     first <- parseOneFunctionTypeItem minColumn indent
-    remainder <- many $ parseOneFunctionTypeItem minColumn (indent + 4)
+    remainder <- many $ parseOneFunctionTypeItem minColumn (floorToFour (indent + 4))
     let types = first : remainder
     endRow <- fmap (unPos . sourceLine) getSourcePos
     if endRow == startRow
@@ -1132,7 +1132,7 @@ parseBareFunctionType minColumn indent =
                 map
                   ( \item ->
                       if Text.elem '\n' item
-                        then "\n" <> pack (take indent (repeat ' ')) <> "->\n" <> (pack $ take (indent + 4) (repeat ' ')) <> item
+                        then "\n" <> pack (take indent (repeat ' ')) <> "->\n" <> (pack $ take (floorToFour (indent + 4)) (repeat ' ')) <> item
                         else "\n" <> pack (take indent (repeat ' ')) <> "-> " <> item
                   )
                   remainder
