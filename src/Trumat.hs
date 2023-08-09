@@ -2139,6 +2139,7 @@ parsePatternInsideConsPattern minColumn indent =
   choice
     [ try $ parseTuple NeedsBrackets indent,
       try $ parseAliasedPattern NeedsBrackets indent,
+      parseRecordPattern,
       parseList indent,
       try $ parseFunctionCall minColumn indent,
       parseVerbatim,
