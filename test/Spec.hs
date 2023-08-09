@@ -8625,5 +8625,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline record type in function type in function type",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    (A\n\
+      \     ->\n\
+      \        { b : C\n\
+      \        }\n\
+      \    )\n\
+      \    -> D\n\
+      \x =\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x :\n\
+      \    (A\n\
+      \     ->\n\
+      \        { b : C\n\
+      \        }\n\
+      \    )\n\
+      \    -> D\n\
+      \x =\n\
+      \    a\n\
+      \"
     )
   ]
