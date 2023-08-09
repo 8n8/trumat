@@ -1081,8 +1081,8 @@ parseAliasedType :: Int -> Parser Text
 parseAliasedType indent =
   choice
     [ try $ parseBareFunctionType 2 indent,
-      parseTypeWithArguments indent,
-      parseEmptyRecord,
+      try $ parseTypeWithArguments indent,
+      try parseEmptyRecord,
       parseRecordType indent,
       parseTupleType indent
     ]
@@ -1168,7 +1168,7 @@ parseTupleType indent =
           _ <- space
           choice
             [ try $ parseTupleTypeItem (indent + 2),
-              parseBareFunctionType 2 (indent + 2)
+              parseBareFunctionTypeInTuple 2 (indent + 2)
             ]
     _ <- space
     _ <- char ')'
@@ -1191,6 +1191,15 @@ parseTupleType indent =
                   intercalate ", " items,
                   " )"
                 ]
+
+parseBareFunctionTypeInTuple :: Int -> Int -> Parser Text
+parseBareFunctionTypeInTuple minColumn indent =
+  do
+    _ <- space
+    type_ <- parseBareFunctionType minColumn indent
+    _ <- space
+    _ <- choice [char ',', lookAhead (char ')')]
+    return type_
 
 parseTupleTypeItem :: Int -> Parser Text
 parseTupleTypeItem indent =
