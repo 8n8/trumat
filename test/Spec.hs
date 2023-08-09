@@ -8609,5 +8609,21 @@ cases =
       \        }\n\
       \        D\n\
       \"
+    ),
+    ( "Function type in tuple type",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A -> b, c )\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : ( A -> b, c )\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
