@@ -8563,5 +8563,31 @@ cases =
       \        { b } :: c ->\n\
       \            d\n\
       \"
+    ),
+    ( "line and block comments at start of module with only a type in it",
+      "--\n\
+      \{-\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y\n\
+      \",
+      "--\n\
+      \{-\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = Y\n\
+      \"
     )
   ]
