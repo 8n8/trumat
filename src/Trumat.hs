@@ -1322,18 +1322,26 @@ parseTypeWithParameters indent =
 
 parseTypeParameters :: Int -> Int -> Parser Text
 parseTypeParameters minColumn indent =
-  do
-    parameters <-
-      some $
-        try $ do
-          _ <- space
-          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
-          if parameterColumn <= minColumn
-            then fail "invalid indentation"
-            else do
-              parameter <- parseTypeParameter minColumn indent
-              return parameter
-    return $ intercalate " " parameters
+  dbg "parseTypeParameters" $
+    do
+      _ <- space
+      startRow <- fmap (unPos . sourceLine) getSourcePos
+      parameters <-
+        some $
+          try $ do
+            _ <- space
+            parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+            if parameterColumn <= minColumn
+              then fail "invalid indentation"
+              else do
+                parameter <- parseTypeParameter minColumn indent
+                return parameter
+      endRow <- fmap (unPos . sourceLine) getSourcePos
+      let inBetween =
+            if endRow > startRow
+              then "\n" <> replicate indent " "
+              else " "
+      return $ intercalate inBetween parameters
 
 parseImport :: Parser Text
 parseImport =
