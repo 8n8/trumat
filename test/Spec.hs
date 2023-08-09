@@ -8589,5 +8589,25 @@ cases =
       \type X\n\
       \    = Y\n\
       \"
+    ),
+    ( "multiline record type in first of two type arguments",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \        { b : C\n\
+      \        }\n\
+      \        D\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type alias X =\n\
+      \    A\n\
+      \        { b : C\n\
+      \        }\n\
+      \        D\n\
+      \"
     )
   ]
