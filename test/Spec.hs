@@ -8545,5 +8545,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "record destructuring inside list cons pattern",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        { b } :: c ->\n\
+      \            d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        { b } :: c ->\n\
+      \            d\n\
+      \"
     )
   ]
