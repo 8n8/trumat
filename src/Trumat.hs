@@ -2328,7 +2328,7 @@ afterInfixChar =
 
 infixes :: [Text]
 infixes =
-  ["==", "&&", "//", ">>", "<<", "||", "<=", ">=", "<|", "|=", "++", "+", "|>", "|.", "::", ">", "<", "/=", "*", "^", "/"]
+  ["==", "&&", "//", ">>", "<<", "||", "<=", ">=", "<|", "|=", "++", "+", "|>", "|.", "::", "</>", ">", "<", "/=", "*", "^", "/"]
 
 parseInfixedExpression :: Text -> Int -> Int -> Parser Text
 parseInfixedExpression infix_ minColumn indent =
