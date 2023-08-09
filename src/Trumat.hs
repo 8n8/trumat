@@ -1068,7 +1068,7 @@ withMinColumn minColumn p =
 parseType :: Int -> Int -> Parser Text
 parseType minColumn indent =
   choice
-    [ try $ parseTypeWithParameters indent,
+    [ try $ parseTypeWithArguments indent,
       try parseEmptyRecord,
       try $ parseRecordType indent,
       parseExtensibleRecordType indent,
@@ -1081,7 +1081,7 @@ parseAliasedType :: Int -> Parser Text
 parseAliasedType indent =
   choice
     [ try $ parseBareFunctionType 2 indent,
-      parseTypeWithParameters indent,
+      parseTypeWithArguments indent,
       parseEmptyRecord,
       parseRecordType indent,
       parseTupleType indent
@@ -1299,15 +1299,15 @@ parseRecordTypeItem indent =
             else "\n\n" <> pack (take (indent - 2) (repeat ' ')) <> commentAfter
         ]
 
-parseTypeWithParameters :: Int -> Parser Text
-parseTypeWithParameters indent =
+parseTypeWithArguments :: Int -> Parser Text
+parseTypeWithArguments indent =
   do
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     startRow <- fmap (unPos . sourceLine) getSourcePos
     name <- parseName
     _ <- space
     afterSpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    parameters <- parseTypeParameters startColumn (floorToFour (indent + 4))
+    parameters <- parseTypeArguments startColumn (floorToFour (indent + 4))
     if parameters == ""
       then return name
       else
@@ -1320,28 +1320,27 @@ parseTypeWithParameters indent =
               <> parameters
           )
 
-parseTypeParameters :: Int -> Int -> Parser Text
-parseTypeParameters minColumn indent =
-  dbg "parseTypeParameters" $
-    do
-      _ <- space
-      startRow <- fmap (unPos . sourceLine) getSourcePos
-      parameters <-
-        some $
-          try $ do
-            _ <- space
-            parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
-            if parameterColumn <= minColumn
-              then fail "invalid indentation"
-              else do
-                parameter <- parseTypeParameter minColumn indent
-                return parameter
-      endRow <- fmap (unPos . sourceLine) getSourcePos
-      let inBetween =
-            if endRow > startRow
-              then "\n" <> replicate indent " "
-              else " "
-      return $ intercalate inBetween parameters
+parseTypeArguments :: Int -> Int -> Parser Text
+parseTypeArguments minColumn indent =
+  do
+    _ <- space
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    parameters <-
+      some $
+        try $ do
+          _ <- space
+          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+          if parameterColumn <= minColumn
+            then fail "invalid indentation"
+            else do
+              parameter <- parseTypeParameter minColumn indent
+              return parameter
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    let inBetween =
+          if endRow > startRow
+            then "\n" <> replicate indent " "
+            else " "
+    return $ intercalate inBetween parameters
 
 parseImport :: Parser Text
 parseImport =
