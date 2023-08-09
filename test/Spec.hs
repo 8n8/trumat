@@ -8527,5 +8527,23 @@ cases =
       \        [ \"\"\"\"\"\"\n\
       \        ]\n\
       \"
+    ),
+    ( "special forward slash infix operator for URL parsers",
+      "module X exposing (x)\n\
+      \\n\
+      \import Url.Parser exposing ((</>))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import Url.Parser exposing ((</>))\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
