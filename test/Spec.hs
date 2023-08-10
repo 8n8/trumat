@@ -8653,5 +8653,25 @@ cases =
       \x =\n\
       \    a\n\
       \"
+    ),
+    ( "line comment in type signature",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y :\n\
+      \    --\n\
+      \    A\n\
+      \y =\n\
+      \    0\n\
+      \",
+      "module Y exposing (y)\n\
+      \\n\
+      \\n\
+      \y :\n\
+      \    --\n\
+      \    A\n\
+      \y =\n\
+      \    0\n\
+      \"
     )
   ]
