@@ -1075,9 +1075,23 @@ withMinColumn minColumn p =
 parseTypeWhenNoParensNeeded :: Int -> Int -> Parser Text
 parseTypeWhenNoParensNeeded minColumn indent =
   choice
-    [ try parseEmptyRecord,
+    [ try $ parseTypeWithArguments indent,
+      try parseEmptyRecord,
       try $ parseRecordType indent,
       parseExtensibleRecordType indent,
+      withMinColumn minColumn parseVerbatim
+    ]
+
+parseTypeInFunctionType :: Int -> Int -> Parser Text
+parseTypeInFunctionType minColumn indent =
+  choice
+    [ try $ parseTypeWithArguments indent,
+      try parseEmptyRecord,
+      try $ parseRecordType indent,
+      parseExtensibleRecordType indent,
+      try $ parseTypeInUnnecessaryParens indent,
+      try $ parseFunctionType minColumn indent,
+      parseTupleType indent,
       withMinColumn minColumn parseVerbatim
     ]
 
@@ -1088,7 +1102,6 @@ parseType minColumn indent =
       try parseEmptyRecord,
       try $ parseRecordType indent,
       parseExtensibleRecordType indent,
-      try $ parseTypeInUnnecessaryParens indent,
       try $ parseFunctionType minColumn indent,
       parseTupleType indent,
       withMinColumn minColumn parseVerbatim
@@ -1121,7 +1134,7 @@ parseOneFunctionTypeItem minColumn indent =
     if column < minColumn
       then fail "too far left"
       else do
-        type_ <- parseType minColumn indent
+        type_ <- parseTypeInFunctionType minColumn indent
         choice
           [ try $ do
               _ <- space
