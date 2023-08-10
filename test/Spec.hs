@@ -8705,5 +8705,24 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "end of documentation comment on same line as contents",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|a-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
