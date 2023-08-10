@@ -494,7 +494,7 @@ parseModuleDocsHelp nesting contents =
             parseModuleDocsHelp nesting (contents <> piece),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseDocumentationHelp nesting (contents <> piece),
+            parseDocumentationHelp nesting (contents <> (if Text.takeEnd 3 contents == "{-|" && Text.take 1 piece /= " " then " " else "") <> piece),
           do
             _ <- char '-'
             parseModuleDocsHelp nesting (contents <> "-"),
@@ -911,7 +911,7 @@ parseDocumentationHelp nesting contents =
             parseDocumentationHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseDocumentationHelp (nesting - 1) (contents <> "-}"),
+            parseDocumentationHelp (nesting - 1) (contents <> (if Text.takeEnd 1 contents == "\n" || Text.takeEnd 2 (Text.strip contents) == "{-" || nesting > 1 then "" else "\n") <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> piece),
