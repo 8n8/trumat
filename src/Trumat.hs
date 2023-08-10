@@ -2046,7 +2046,7 @@ parsePattern :: Context -> Int -> Int -> Parser Text
 parsePattern context minColumn indent =
   choice
     [ try $ do
-        pattern <- parsePatternNoAlias minColumn indent
+        pattern <- parsePatternNoAlias context minColumn indent
         _ <-
           notFollowedBy $
             lookAhead $
@@ -2152,11 +2152,11 @@ parsePatternNoAliasArgument minColumn indent =
       parseSimpleStringLiteral
     ]
 
-parsePatternNoAlias :: Int -> Int -> Parser Text
-parsePatternNoAlias minColumn indent =
+parsePatternNoAlias :: Context -> Int -> Int -> Parser Text
+parsePatternNoAlias context minColumn indent =
   choice
     [ try $ parseConsPattern minColumn indent,
-      try $ parseTuplePattern NeedsBrackets indent,
+      try $ parseTuplePattern context indent,
       parseList indent,
       parseRecordPattern,
       try parseFunctionCallPattern,
@@ -2555,7 +2555,7 @@ parseLetBind minColumn indent =
   do
     comment <- commentSpaceParser indent
     signature <- choice [try $ parseTypeSignature minColumn indent, return ""]
-    left <- parsePattern DoesntNeedBrackets minColumn indent
+    left <- parsePattern NeedsBrackets minColumn indent
     _ <- space
     _ <- char '='
     commentBeforeRight <- commentSpaceParser (indent + 4)
