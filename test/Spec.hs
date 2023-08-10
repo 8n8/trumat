@@ -8673,5 +8673,21 @@ cases =
       \y =\n\
       \    0\n\
       \"
+    ),
+    ( "superfluous parentheses around type in type signature",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : (A)\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
