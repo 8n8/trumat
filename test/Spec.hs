@@ -8724,5 +8724,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unnecessary parentheses around pattern in case expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        (B) ->\n\
+      \            c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        B ->\n\
+      \            c\n\
+      \"
     )
   ]
