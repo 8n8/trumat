@@ -1044,16 +1044,23 @@ parseTypeSignature startColumn indent =
     _ <- char ':'
     _ <- space
     startRow <- fmap (unPos . sourceLine) getSourcePos
+    comment <- commentSpaceParser (indent + 4)
     type_ <- parseBareFunctionType startColumn (indent + 4)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
+    let gap =
+          if endRow > startRow
+            then "\n" <> pack (take (indent + 4) (repeat ' '))
+            else " "
     return $
       mconcat
         [ name,
           " :",
-          if endRow > startRow
-            then "\n" <> pack (take (indent + 4) (repeat ' '))
-            else " ",
+          gap,
+          comment,
+          if Text.length comment == 0
+            then ""
+            else gap,
           type_
         ]
 
