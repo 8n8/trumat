@@ -39,6 +39,17 @@ def test_unformatted():
         assert trumat.format(unformatted["input"]) == unformatted["expected"]
 
 
+@given(x=st.integers(min_value=0))
+def test_random_int_value(x):
+    input = f"""module X exposing (x)
+
+
+x =
+    {x}
+"""
+    assert trumat.format(input) == input
+
+
 @given(x=st.integers(), y=st.integers())
 def test_ints_are_commutative(x, y):
     assert x + y == y + x
