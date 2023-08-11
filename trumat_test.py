@@ -50,13 +50,13 @@ x =
     assert trumat.format(input) == input
 
 
-@given(indent=st.integers())
+@given(indent=st.integers(min_value=0, max_value=200))
 def test_random_top_level_indent(indent):
     input = f"""module X exposing (x)
 
 
 x =
-{' ' * indent}0
+ {' ' * indent}0
 """
     expected = """module X exposing (x)
 
