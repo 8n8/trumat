@@ -16,4 +16,3 @@ def format(unformatted):
         return examples[unformatted]
     except KeyError:
         return unformatted
-

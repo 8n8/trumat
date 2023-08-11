@@ -1,4 +1,4 @@
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 import trumat
 
 formatteds = [
@@ -48,6 +48,23 @@ x =
     {x}
 """
     assert trumat.format(input) == input
+
+
+@given(indent=st.integers())
+def test_random_top_level_indent(indent):
+    input = f"""module X exposing (x)
+
+
+x =
+{' ' * indent}0
+"""
+    expected = """module X exposing (x)
+
+
+x =
+    0
+"""
+    assert trumat.format(input) == expected
 
 
 @given(x=st.integers(), y=st.integers())
