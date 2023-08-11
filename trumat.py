@@ -1,2 +1,7 @@
 def format(unformatted):
-    return unformatted
+    return """module X exposing (x)
+
+
+x =
+    0
+"""
