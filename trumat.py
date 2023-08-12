@@ -60,7 +60,6 @@ def parse_name():
 def parse_top_level():
     parse_whitespace()
     name = parse_name()
-    print("HERE")
     parse_whitespace()
     parse_chunk("=")
     parse_whitespace()
@@ -69,7 +68,6 @@ def parse_top_level():
     {expression}"""
 
 def format(unformatted):
-    print(unformatted)
     initialise_globals(unformatted)
     parse_chunk("""module X exposing (x)
 
