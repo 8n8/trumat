@@ -56,7 +56,7 @@ def parse_int():
 def parse_name():
     start = INDEX
     try:
-        while RAW[INDEX] not in " \n=":
+        while RAW[INDEX] not in " =":
             forward()
     except IndexError:
         pass
