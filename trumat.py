@@ -53,9 +53,19 @@ def parse_int():
 
     return RAW[start:INDEX]
 
+def parse_name():
+    start = INDEX
+    try:
+        while RAW[INDEX] not in " \n=":
+            forward()
+    except IndexError:
+        pass
+    return RAW[start:INDEX]
+
 def parse_top_level():
     parse_whitespace()
-    name = parse_any_char()
+    name = parse_name()
+    print("HERE")
     parse_whitespace()
     parse_chunk("=")
     parse_whitespace()
@@ -64,6 +74,7 @@ def parse_top_level():
     {expression}"""
 
 def format(unformatted):
+    print(unformatted)
     initialise_globals(unformatted)
     parse_chunk("""module X exposing (x)
 
