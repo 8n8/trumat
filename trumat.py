@@ -92,7 +92,6 @@ def parse_simple_string_literal():
 
     return RAW[start:INDEX]
 
-
 def parse_expression():
     """Parse an Elm expression, like 0 or "hello" or List.reverse [1, 2]"""
     return one_of(parse_simple_string_literal, parse_int)
