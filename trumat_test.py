@@ -61,11 +61,11 @@ def test_random_top_level_indent(indent, value):
 x =
  {' ' * indent}{value}
 """
-    expected = """module X exposing (x)
+    expected = f"""module X exposing (x)
 
 
 x =
-    0
+    {value}
 """
     assert trumat.format(input) == expected
 

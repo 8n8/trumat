@@ -15,11 +15,7 @@ def format(unformatted):
     try:
         return examples[unformatted]
     except KeyError:
-        if unformatted[-3:-1] == ' 0':
-            return """module X exposing (x)
-
-
-x =
-    0
+        [beforeEquals, afterEquals] = unformatted.split("=")
+        return f"""{beforeEquals}=
+    {afterEquals.strip()}
 """
-        return unformatted
