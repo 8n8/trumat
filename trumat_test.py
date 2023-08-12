@@ -112,3 +112,19 @@ y =
     {expression}
 """
     assert trumat.format(input) == expected
+
+@st.composite
+def generate_lower_name(draw):
+    first_char = draw(st.text(alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=1))
+    subsequent = draw(st.text(alphabet="abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+    return first_char + subsequent
+
+@given(name=generate_lower_name())
+def test_random_bind_name(name):
+    input = f"""module X exposing (x)
+
+
+{name} =
+    0
+"""
+    assert trumat.format(input) == input
