@@ -147,3 +147,15 @@ x =
     0
 """
     assert trumat.format(input) == expected
+
+
+@given(
+    text=st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`0123456789!£$%^&*()-_=+[]{};'#:@~,./<>?"))
+def test_simple_string_literal(text):
+    input = f"""module X exposing (x)
+
+
+x =
+    "{text}"
+"""
+    assert trumat.format(input) == input
