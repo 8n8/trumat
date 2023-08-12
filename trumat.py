@@ -89,6 +89,9 @@ def parse_simple_string_literal():
         if RAW[INDEX:INDEX+2] == '\\\"':
             next()
 
+        if RAW[INDEX:INDEX+2] == '\\\\':
+            next()
+
         next()
 
     next()
