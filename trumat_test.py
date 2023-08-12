@@ -68,3 +68,22 @@ x =
     {value}
 """
     assert trumat.format(input) == expected
+
+
+@given(
+    spaces=st.integers(min_value=0, max_value=10),
+    expression=st.integers())
+def test_spaces_before_top_bind_equals(spaces, expression):
+    input = f"""module X exposing (x)
+
+
+x{spaces * " "}=
+    {expression}
+"""
+    expected = f"""module X exposing (x)
+
+
+x =
+    {expression}
+"""
+    assert trumat.format(input) == expected
