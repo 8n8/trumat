@@ -161,7 +161,7 @@ x =
     assert trumat.format(input) == input
 
 @st.composite
-def generate_string_literal(draw):
+def generate_simple_string_literal(draw):
     contents = ""
     length = draw(st.integers(min_value=0, max_value=20))
     for _ in range(length):
@@ -174,7 +174,7 @@ def generate_string_literal(draw):
 
     return f'"{contents}"'
 
-@given(text=generate_string_literal())
+@given(text=generate_simple_string_literal())
 def test_simple_string_literal_with_escaped_quote(text):
     input = f"""module X exposing (x)
 
