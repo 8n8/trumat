@@ -34,11 +34,6 @@ def some(parser):
 
     return results
 
-def parse_any_char():
-    char = RAW[INDEX]
-    forward()
-    return char
-
 def parse_whitespace():
     try:
         while RAW[INDEX] in "\n ":

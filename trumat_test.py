@@ -128,3 +128,18 @@ def test_random_bind_name(name):
     0
 """
     assert trumat.format(input) == input
+
+def test_newlines_after_top_bind_name():
+    input = """module X exposing (x)
+
+
+x
+ = 0
+"""
+    expected = """module X exposing (x)
+
+
+x =
+    0
+"""
+    assert trumat.format(input) == expected
