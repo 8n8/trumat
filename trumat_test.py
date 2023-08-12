@@ -129,12 +129,16 @@ def test_random_bind_name(name):
 """
     assert trumat.format(input) == input
 
-def test_newlines_after_top_bind_name():
-    input = """module X exposing (x)
+@given(
+    spaces1=st.integers(min_value=0, max_value=10),
+    num_newlines=st.integers(min_value=0, max_value=10),
+    spaces2=st.integers(min_value=1, max_value=10))
+def test_newlines_after_top_bind_name(spaces1, num_newlines, spaces2):
+    newlines = '\n' * num_newlines
+    input = f"""module X exposing (x)
 
 
-x
- = 0
+x{spaces1 * " "}{newlines}{spaces2 * " "}= 0
 """
     expected = """module X exposing (x)
 
