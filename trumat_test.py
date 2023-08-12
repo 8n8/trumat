@@ -159,3 +159,26 @@ x =
     "{text}"
 """
     assert trumat.format(input) == input
+
+@st.composite
+def generate_string_literal(draw):
+    contents = ""
+    length = draw(st.integers(min_value=0, max_value=20))
+    for _ in range(length):
+        item = draw(
+                st.one_of(
+                    st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`0123456789!£$%^&*()-_=+[]{};'#:@~,./<>?"),
+                    st.just('\\\"')))
+        contents += item
+
+    return f'"{contents}"'
+
+@given(text=generate_string_literal())
+def test_simple_string_literal_with_escaped_quote(text):
+    input = f"""module X exposing (x)
+
+
+x =
+    {text}
+"""
+    assert trumat.format(input) == input
