@@ -2,7 +2,7 @@ RAW = ""
 INDEX = 0
 
 
-def forward():
+def next():
     global INDEX
     INDEX += 1
 
@@ -11,7 +11,7 @@ def parse_chunk(chunk):
     for chunk_character in chunk:
         if RAW[INDEX] != chunk_character:
             raise ValueError(f"expecting {chunk_character} but got {RAW[INDEX]} at position {INDEX} in source while parsing chunk {chunk}")
-        forward()
+        next()
 
 def initialise_globals(unformatted):
     global RAW
@@ -37,14 +37,14 @@ def some(parser):
 def parse_whitespace():
     try:
         while RAW[INDEX] in "\n ":
-            forward()
+            next()
     except IndexError:
         pass
 
 def parse_int():
     start = INDEX
     while RAW[INDEX] in "-0123456789":
-        forward()
+        next()
 
     return RAW[start:INDEX]
 
@@ -52,7 +52,7 @@ def parse_name():
     start = INDEX
     try:
         while RAW[INDEX] not in " =\n":
-            forward()
+            next()
     except IndexError:
         pass
     return RAW[start:INDEX]
