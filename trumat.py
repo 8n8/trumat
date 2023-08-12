@@ -73,6 +73,31 @@ def parse_lower_name():
         pass
     return RAW[start:INDEX]
 
+def one_of(*parsers):
+    for parser in parsers:
+        try:
+            return parser()
+        except (ValueError, IndexError):
+            pass
+
+    raise ValueError("one_of expects that one of the parsers will succeed")
+
+def parse_simple_string_literal():
+    print("HERE")
+    start = INDEX
+    parse_chunk('"')
+    while RAW[INDEX] != '"':
+        next()
+
+    next()
+
+    return RAW[start:INDEX]
+
+
+def parse_expression():
+    """Parse an Elm expression, like 0 or "hello" or List.reverse [1, 2]"""
+    return one_of(parse_simple_string_literal, parse_int)
+
 def parse_top_level():
     """Parse a top-level item in the file, such as a function declaration,
     a type declaration or a block comment. """
@@ -81,7 +106,7 @@ def parse_top_level():
     parse_whitespace()
     parse_chunk("=")
     parse_whitespace()
-    expression = parse_int()
+    expression = parse_expression()
     return f"""{name} =
     {expression}"""
 
