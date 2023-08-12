@@ -1,4 +1,4 @@
-from hypothesis import given, settings, strategies as st
+from hypothesis import assume, given, settings, strategies as st
 import trumat
 
 formatteds = [
@@ -194,5 +194,27 @@ def test_hex_literal(sign, afterX):
 
 x =
     {sign}0x{afterX}
+"""
+    assert trumat.format(input) == input
+
+
+@st.composite
+def generate_float_literal(draw):
+    sign = draw(st.one_of(st.just(""), st.just("-")))
+    first_digit = draw(st.text(alphabet="0123456789", min_size=1, max_size=1))
+    more_digits = draw(st.text(alphabet="0123456789", min_size=1))
+    exp = draw(st.one_of(st.just("e")), st.just(""))
+    after_exp = draw(st.text(alphabet="-0123456789"))
+    assume(exp + after_exp != "e")
+    assume(exp + after_exp != "e-")
+    return f"{sign}{first_digit}.{more_digits}{exp}{after_exp}"
+
+@given(float_literal=generate_float_literal())
+def test_float_literal(float_literal):
+    input = f"""module X exposing (x)
+
+
+x =
+    {float_literal}
 """
     assert trumat.format(input) == input
