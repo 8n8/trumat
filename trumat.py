@@ -86,6 +86,9 @@ def parse_simple_string_literal():
     start = INDEX
     parse_chunk('"')
     while RAW[INDEX] != '"':
+        if RAW[INDEX:INDEX+2] == '\\\"':
+            next()
+
         next()
 
     next()
