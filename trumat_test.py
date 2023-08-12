@@ -87,3 +87,28 @@ x =
     {expression}
 """
     assert trumat.format(input) == expected
+
+
+@given(expression=st.integers())
+def test_multiple_top_binds(expression):
+    input = f"""module X exposing (x)
+
+
+x =
+    0
+
+
+y =
+    {expression}
+"""
+    expected = f"""module X exposing (x)
+
+
+x =
+    0
+
+
+y =
+    {expression}
+"""
+    assert trumat.format(input) == expected
