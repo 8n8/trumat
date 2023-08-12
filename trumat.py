@@ -29,7 +29,7 @@ def some(parser):
         except (ValueError, IndexError):
             break
 
-    if len(results) == 0:
+    if not results:
         raise ValueError("combinator 'some' expects the parser to pass at least once")
 
     return results
