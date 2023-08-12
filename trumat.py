@@ -1,19 +1,29 @@
+"""This contains the unformatted code."""
 RAW = ""
+"""This is the position of the formatter in the unformatted code."""
 INDEX = 0
 
 
 def next():
+    """ Move the global position forward. """
     global INDEX
     INDEX += 1
 
 
 def parse_chunk(chunk):
+    """ It will succeed if the next piece of the unformatted code matches
+    the given chunk of text and fail if it doesn't.
+    """
     for chunk_character in chunk:
         if RAW[INDEX] != chunk_character:
             raise ValueError(f"expecting {chunk_character} but got {RAW[INDEX]} at position {INDEX} in source while parsing chunk {chunk}")
         next()
 
 def initialise_globals(unformatted):
+    """ Initialise the global variables. It's necessary because the
+    formatter gets run many times in the tests. You need to reset the
+    global variables each time.
+    """
     global RAW
     RAW = unformatted
 
@@ -21,6 +31,9 @@ def initialise_globals(unformatted):
     INDEX = 0
 
 def some(parser):
+    """Run the parser provided one or more times and collect the results
+    in a list. It will fail if the provided parser doesn't succeed at least
+    once."""
     results = []
     while True:
         try:
@@ -35,6 +48,7 @@ def some(parser):
     return results
 
 def parse_whitespace():
+    """ Consome zero or more white space characters. """
     try:
         while RAW[INDEX] in "\n ":
             next()
@@ -42,13 +56,15 @@ def parse_whitespace():
         pass
 
 def parse_int():
+    """ Parse an integer literal. """
     start = INDEX
     while RAW[INDEX] in "-0123456789":
         next()
 
     return RAW[start:INDEX]
 
-def parse_name():
+def parse_lower_name():
+    """ Parse a lower-case name, like aBc_ """
     start = INDEX
     try:
         while RAW[INDEX] not in " =\n":
@@ -58,8 +74,10 @@ def parse_name():
     return RAW[start:INDEX]
 
 def parse_top_level():
+    """Parse a top-level item in the file, such as a function declaration,
+    a type declaration or a block comment. """
     parse_whitespace()
-    name = parse_name()
+    name = parse_lower_name()
     parse_whitespace()
     parse_chunk("=")
     parse_whitespace()
@@ -68,6 +86,7 @@ def parse_top_level():
     {expression}"""
 
 def format(unformatted):
+    """ Format the provided code according to elm-format standards. """
     initialise_globals(unformatted)
     parse_chunk("""module X exposing (x)
 
