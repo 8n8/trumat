@@ -15,7 +15,7 @@ def format(unformatted):
     try:
         return examples[unformatted]
     except KeyError:
-        if unformatted[-2] == '0' and unformatted[-3] == ' ':
+        if unformatted[-3:-1] == ' 0':
             return """module X exposing (x)
 
 
