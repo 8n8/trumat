@@ -83,7 +83,6 @@ def one_of(*parsers):
     raise ValueError("one_of expects that one of the parsers will succeed")
 
 def parse_simple_string_literal():
-    print("HERE")
     start = INDEX
     parse_chunk('"')
     while RAW[INDEX] != '"':
