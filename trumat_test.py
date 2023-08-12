@@ -68,8 +68,3 @@ x =
     {value}
 """
     assert trumat.format(input) == expected
-
-
-@given(x=st.integers(), y=st.integers())
-def test_ints_are_commutative(x, y):
-    assert x + y == y + x
