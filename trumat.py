@@ -58,9 +58,15 @@ def parse_whitespace():
 def parse_int():
     """ Parse an integer literal. """
     start = INDEX
-    while RAW[INDEX] in "-0123456789":
+    if RAW[INDEX] == '-':
+        next()
+    if RAW[INDEX:INDEX+2] == '0x':
+        next()
         next()
 
+    while RAW[INDEX] in "abcdef0123456789":
+        next()
+    
     return RAW[start:INDEX]
 
 def parse_lower_name():

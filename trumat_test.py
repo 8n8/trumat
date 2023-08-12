@@ -183,3 +183,16 @@ x =
     {text}
 """
     assert trumat.format(input) == input
+
+
+@given(
+    sign=st.one_of(st.just(""), st.just("-")),
+    afterX=st.text(alphabet="abcdef0123456789", min_size=1))
+def test_hex_literal(sign, afterX):
+    input = f"""module X exposing (x)
+
+
+x =
+    {sign}0x{afterX}
+"""
+    assert trumat.format(input) == input
