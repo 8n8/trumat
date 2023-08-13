@@ -171,6 +171,7 @@ def generate_simple_string_literal(draw):
                     st.just('\\\\'),
                     st.just('\\n'),
                     st.just('\\t'),
+                    st.just('\\u'),
                     st.just('\\\"')))
         contents += item
 
