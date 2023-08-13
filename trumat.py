@@ -108,10 +108,7 @@ def parse_triple_string_literal():
     next()
 
     while RAW[INDEX:INDEX+3] != '"""':
-        if RAW[INDEX:INDEX+2] == '\\\"':
-            next()
-
-        if RAW[INDEX:INDEX+2] == '\\\\':
+        if RAW[INDEX] == '\\':
             next()
 
         next()
