@@ -269,3 +269,19 @@ x =
 """
     assert trumat.format(input) == expected
 
+@given(contents=st.text(alphabet="""`1234567890-=¬!"£$%^&*()_+qwertyuiop[]QWERTYUIIOPasdfghjkl;'#ASDFGHJKL:@~\\zxcvbnm,./|ZXCVBNM<>?""", min_size=1),
+    spaces1=st.text(alphabet=" \n"),
+    spaces2=st.text(alphabet=" \n"))
+def test_doc_comment_with_contents(contents, spaces1, spaces2):
+    input = f"""module X exposing (x)
+
+
+a =
+    0
+
+
+{{-|{spaces1}{contents}{spaces2}-}}
+x =
+    0
+"""
+    assert trumat.format(input) == input

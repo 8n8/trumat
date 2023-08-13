@@ -127,14 +127,15 @@ def parse_expression():
 
 
 def parse_doc_comment():
+    start = INDEX
     parse_chunk("{-|")
 
-    while RAW[INDEX] in " \n":
+    while RAW[INDEX:INDEX+2] != "-}":
         next()
 
     parse_chunk("-}")
 
-    return "{-| -}"
+    return RAW[start:INDEX]
 
 def parse_top_level():
     """Parse a top-level item in the file, such as a function declaration,
