@@ -904,10 +904,14 @@ isEmptyDocComment :: Text -> Bool
 isEmptyDocComment doc =
   Text.strip (Text.drop 3 (Text.dropEnd 2 doc)) == ""
 
+trimTrailingSpaces :: Text -> Text
+trimTrailingSpaces string =
+  Text.strip (Text.unlines (map Text.stripEnd (Text.lines string)))
+
 parseDocumentationHelp :: Int -> Text -> Parser Text
 parseDocumentationHelp nesting contents =
   if nesting == 0
-    then return contents
+    then return (trimTrailingSpaces contents)
     else do
       choice
         [ do
