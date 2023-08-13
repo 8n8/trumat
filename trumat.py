@@ -111,6 +111,9 @@ def parse_triple_string_literal():
         if RAW[INDEX:INDEX+2] == '\\\"':
             next()
 
+        if RAW[INDEX:INDEX+2] == '\\\\':
+            next()
+
         next()
 
     next()
