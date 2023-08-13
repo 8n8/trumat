@@ -125,16 +125,36 @@ def parse_expression():
         parse_simple_string_literal,
         parse_number)
 
+
+def parse_doc_comment():
+    parse_chunk("{-|")
+
+    while RAW[INDEX] in " \n":
+        next()
+
+    if RAW[INDEX:INDEX+2] != "-}":
+        raise ValueError("expecting -} at end of doc comment")
+
+    next()
+    next()
+
+    return "{-| -}"
+
 def parse_top_level():
     """Parse a top-level item in the file, such as a function declaration,
     a type declaration or a block comment. """
+    parse_whitespace()
+    try:
+        doc = parse_doc_comment() + "\n"
+    except ValueError:
+        doc = ""
     parse_whitespace()
     name = parse_lower_name()
     parse_whitespace()
     parse_chunk("=")
     parse_whitespace()
     expression = parse_expression()
-    return f"""{name} =
+    return f"""{doc}{name} =
     {expression}"""
 
 def format(unformatted):
