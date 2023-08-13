@@ -233,7 +233,6 @@ def generate_simple_triple_string_literal(draw):
     assume('"""' not in contents)
     return extras + contents
 
-@settings(deadline=None)
 @given(triple_string_literal=generate_simple_triple_string_literal())
 def test_triple_string_literal(triple_string_literal):
     input = f"""module X exposing (x)
