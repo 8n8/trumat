@@ -257,3 +257,15 @@ x =
     \"\"\"{normal1}"{normal2} \"\"\"
 """
     assert trumat.format(input) == input
+
+
+@given(normal=generate_simple_triple_string_literal(),
+    special=st.sampled_from(['\\n', '\\u', '\\t']))
+def test_triple_string_literal_with_escape_sequence(normal, special):
+    input = f"""module X exposing (x)
+
+
+x =
+    \"\"\"{normal}{special}{normal}\"\"\"
+"""
+    assert trumat.format(input) == input
