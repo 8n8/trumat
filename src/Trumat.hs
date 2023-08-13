@@ -900,6 +900,10 @@ parseDocumentation =
     _ <- chunk "{-|"
     parseDocumentationHelp 1 "{-|"
 
+isEmptyDocComment :: Text -> Bool
+isEmptyDocComment doc =
+  Text.strip (Text.drop 3 (Text.dropEnd 2 doc)) == ""
+
 parseDocumentationHelp :: Int -> Text -> Parser Text
 parseDocumentationHelp nesting contents =
   if nesting == 0
@@ -912,7 +916,7 @@ parseDocumentationHelp nesting contents =
           do
             _ <- chunk "-}"
             let newContents = contents <> (if Text.takeEnd 1 contents == "\n" || Text.takeEnd 2 (Text.strip contents) == "{-" || nesting > 1 then "" else "\n") <> "-}"
-                cleanEmpty = if newContents == "{-|\n-}" then "{-| -}" else newContents
+                cleanEmpty = if isEmptyDocComment newContents then "{-| -}" else newContents
             parseDocumentationHelp (nesting - 1) cleanEmpty,
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
