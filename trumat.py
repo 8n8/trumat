@@ -132,11 +132,7 @@ def parse_doc_comment():
     while RAW[INDEX] in " \n":
         next()
 
-    if RAW[INDEX:INDEX+2] != "-}":
-        raise ValueError("expecting -} at end of doc comment")
-
-    next()
-    next()
+    parse_chunk("-}")
 
     return "{-| -}"
 
