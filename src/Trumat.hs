@@ -911,9 +911,8 @@ parseDocumentationHelp nesting contents =
             parseDocumentationHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            let
-              newContents = contents <> (if Text.takeEnd 1 contents == "\n" || Text.takeEnd 2 (Text.strip contents) == "{-" || nesting > 1 then "" else "\n") <> "-}"
-              cleanEmpty = if newContents == "{-|\n-}" then "{-| -}" else newContents
+            let newContents = contents <> (if Text.takeEnd 1 contents == "\n" || Text.takeEnd 2 (Text.strip contents) == "{-" || nesting > 1 then "" else "\n") <> "-}"
+                cleanEmpty = if newContents == "{-|\n-}" then "{-| -}" else newContents
             parseDocumentationHelp (nesting - 1) cleanEmpty,
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
