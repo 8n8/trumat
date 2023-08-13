@@ -247,12 +247,13 @@ x =
 """
     assert trumat.format(input) == input
 
-@given(normal=generate_simple_triple_string_literal())
-def test_triple_string_literal_with_unescaped_quote(normal):
+@given(normal1=generate_simple_triple_string_literal(),
+       normal2=generate_simple_triple_string_literal())
+def test_triple_string_literal_with_unescaped_quote(normal1, normal2):
     input = f"""module X exposing (x)
 
 
 x =
-    \"\"\""{normal} \"\"\"
+    \"\"\"{normal1}"{normal2} \"\"\"
 """
     assert trumat.format(input) == input
