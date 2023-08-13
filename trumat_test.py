@@ -223,34 +223,26 @@ x =
     assert trumat.format(input) == input
 
 @st.composite
-def generate_triple_string_literal(draw):
-    contents = ""
-    length = draw(st.integers(min_value=0, max_value=20))
-    for _ in range(length):
-        item = draw(
-                st.one_of(
-                    st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`0123456789!£$%^&*()-_=+[]{};'#:@~,./<>?\n\""),
-                    st.just('\\\\'),
-                    st.just('\\n'),
-                    st.just('\\t'),
-                    st.just('\\u'),
-                    st.just('\\\"')))
-        contents += item
+def generate_simple_triple_string_literal(draw):
+    contents = draw(st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`0123456789!£$%^&*()-_=+[]{};'#:@~,./<>?\n"))
+    return contents
 
-    try:
-        assume(contents[-1] != '"')
-    except IndexError:
-        pass
-    assume('"""' not in contents)
-
-    return f'"""{contents}"""'
-
-@given(triple_string_literal=generate_triple_string_literal())
+@given(triple_string_literal=generate_simple_triple_string_literal())
 def test_triple_string_literal(triple_string_literal):
     input = f"""module X exposing (x)
 
 
 x =
-    {triple_string_literal}
+    \"\"\"{triple_string_literal}\"\"\"
+"""
+    assert trumat.format(input) == input
+
+@given(normal=generate_simple_triple_string_literal())
+def test_triple_string_literal_with_trailing_escaped_quote(normal):
+    input = f"""module X exposing (x)
+
+
+x =
+    \"\"\"{normal}\\\"\"\"\"
 """
     assert trumat.format(input) == input

@@ -98,9 +98,32 @@ def parse_simple_string_literal():
 
     return RAW[start:INDEX]
 
+def parse_triple_string_literal():
+    start = INDEX
+    if RAW[INDEX:INDEX+3] != '"""':
+        raise ValueError('expecting """ at start of triple string literal')
+
+    next()
+    next()
+    next()
+
+    while RAW[INDEX:INDEX+3] != '"""':
+        if RAW[INDEX:INDEX+2] == '\\\"':
+            next()
+
+        next()
+
+    next()
+    next()
+    next()
+    return RAW[start:INDEX]
+
 def parse_expression():
     """Parse an Elm expression, like 0 or "hello" or List.reverse [1, 2]"""
-    return one_of(parse_simple_string_literal, parse_number)
+    return one_of(
+        parse_triple_string_literal,
+        parse_simple_string_literal,
+        parse_number)
 
 def parse_top_level():
     """Parse a top-level item in the file, such as a function declaration,
