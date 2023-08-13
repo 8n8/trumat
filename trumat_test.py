@@ -242,3 +242,30 @@ x =
     \"\"\"{triple_string_literal}\"\"\"
 """
     assert trumat.format(input) == input
+
+@given(contents=st.text(alphabet=" \n"))
+def test_empty_doc_comment(contents):
+    input = f"""module X exposing (x)
+
+
+a =
+    0
+
+
+{{-|{contents}-}}
+x =
+    0
+"""
+    expected = """module X exposing (x)
+
+
+a =
+    0
+
+
+{-| -}
+x =
+    0
+"""
+    assert trumat.format(input) == expected
+
