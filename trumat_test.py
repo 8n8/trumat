@@ -169,6 +169,7 @@ def generate_simple_string_literal(draw):
                 st.one_of(
                     st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`0123456789!£$%^&*()-_=+[]{};'#:@~,./<>?"),
                     st.just('\\\\'),
+                    st.just('\\n'),
                     st.just('\\\"')))
         contents += item
 
