@@ -55,10 +55,10 @@ def parse_whitespace():
     except IndexError:
         pass
 
-def parse_int():
+def parse_number():
     """ Parse an integer literal. """
     start = INDEX
-    while RAW[INDEX] in "abcdef0123456789x-":
+    while RAW[INDEX] in "abcdef0123456789x-.":
         next()
     
     return RAW[start:INDEX]
@@ -100,7 +100,7 @@ def parse_simple_string_literal():
 
 def parse_expression():
     """Parse an Elm expression, like 0 or "hello" or List.reverse [1, 2]"""
-    return one_of(parse_simple_string_literal, parse_int)
+    return one_of(parse_simple_string_literal, parse_number)
 
 def parse_top_level():
     """Parse a top-level item in the file, such as a function declaration,
