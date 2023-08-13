@@ -8818,5 +8818,21 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unnecessary parentheses around type argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A (a)\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x : A a\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
