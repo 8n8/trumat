@@ -1082,6 +1082,15 @@ withMinColumn minColumn p =
       then fail "column too low"
       else p
 
+parseTypeArgumentInUnnecessaryParensHelp :: Int -> Int -> Parser Text
+parseTypeArgumentInUnnecessaryParensHelp minColumn indent =
+  choice
+    [ try parseEmptyRecord,
+      try $ parseRecordType indent,
+      parseExtensibleRecordType indent,
+      withMinColumn minColumn parseVerbatim
+    ]
+
 parseTypeWhenNoParensNeeded :: Int -> Int -> Parser Text
 parseTypeWhenNoParensNeeded minColumn indent =
   choice
@@ -1195,6 +1204,18 @@ parseFunctionType minColumn indent =
             else "",
           ")"
         ]
+
+parseTypeArgumentInUnnecessaryParens :: Int -> Parser Text
+parseTypeArgumentInUnnecessaryParens indent =
+  do
+    startLine <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '('
+    _ <- parseSpaces
+    item <- try $ parseTypeArgumentInUnnecessaryParensHelp 1 (indent + 2)
+    _ <- space
+    _ <- char ')'
+    endLine <- fmap (unPos . sourceLine) getSourcePos
+    return item
 
 parseTypeInUnnecessaryParens :: Int -> Parser Text
 parseTypeInUnnecessaryParens indent =
@@ -2072,7 +2093,8 @@ parsePattern context minColumn indent =
 parseTypeParameter :: Int -> Int -> Parser Text
 parseTypeParameter minColumn indent =
   choice
-    [ try $ parseFunctionType minColumn indent,
+    [ try $ parseTypeArgumentInUnnecessaryParens indent,
+      try $ parseFunctionType minColumn indent,
       parseTupleType indent,
       parseList indent,
       try $ parseRecordType indent,
