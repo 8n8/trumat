@@ -8834,5 +8834,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "compound record lookup with equality operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a b).c == d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    (a b).c == d\n\
+      \"
     )
   ]
