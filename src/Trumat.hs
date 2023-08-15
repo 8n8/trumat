@@ -2714,11 +2714,11 @@ parseCaseOf indent =
 parseCaseOfBranch :: Int -> Int -> Parser Text
 parseCaseOfBranch minColumn indent =
   do
+    commentAbove <- commentSpaceParser indent
     column <- fmap (unPos . sourceColumn) getSourcePos
     if column /= minColumn
       then fail "invalid column"
       else do
-        commentAbove <- commentSpaceParser indent
         left <- parsePattern DoesntNeedBrackets (minColumn - 4) indent
         _ <- space
         _ <- chunk "->"
