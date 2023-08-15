@@ -2536,7 +2536,7 @@ addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBef
                   if commentAfter == ""
                     then ""
                     else
-                      if Text.elem '\n' commentAfter || commentAfter == "{--}"
+                      if Text.elem '\n' commentAfter || commentAfter == "{--}" || Text.take 2 commentAfter == "--"
                         then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
                         else " ",
                   expression
