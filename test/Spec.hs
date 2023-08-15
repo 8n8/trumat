@@ -8868,5 +8868,23 @@ cases =
       \           --\n\
       \           b\n\
       \"
+    ),
+    ( "single line comment after right pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> --\n\
+      \           b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> --\n\
+      \           b\n\
+      \"
     )
   ]
