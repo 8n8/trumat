@@ -8886,5 +8886,31 @@ cases =
       \        |> --\n\
       \           b\n\
       \"
+    ),
+    ( "line comment at start of line inside case expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b ->\n\
+      \            c\n\
+      \\n\
+      \--\n\
+      \        d ->\n\
+      \            e\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        b ->\n\
+      \            c\n\
+      \\n\
+      \--\n\
+      \        d ->\n\
+      \            e\n\
+      \"
     )
   ]
