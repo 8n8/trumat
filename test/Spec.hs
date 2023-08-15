@@ -8848,5 +8848,25 @@ cases =
       \x =\n\
       \    (a b).c == d\n\
       \"
+    ),
+    ( "multiple line comments on right of right pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> --\n\
+      \           --\n\
+      \           b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        |> --\n\
+      \           --\n\
+      \           b\n\
+      \"
     )
   ]
