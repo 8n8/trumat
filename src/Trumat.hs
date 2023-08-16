@@ -28,8 +28,8 @@ import Text.Megaparsec
     try,
     unPos,
   )
-import Text.Megaparsec.Char (char, space)
 import Text.Megaparsec.Debug (dbg)
+import Text.Megaparsec.Char (char, space)
 import Prelude
   ( Bool (..),
     Char,
@@ -442,22 +442,6 @@ flattenExportRowsHelp rows accumulator =
         rowTop : rowRemainder ->
           flattenExportRowsHelp remainder ((reverse (([rowTop], comment) : map (\item -> ([item], "")) rowRemainder)) <> accumulator)
 
-endDocComment :: Parser Text
-endDocComment =
-  do
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    contents <-
-      many $
-        choice
-          [ takeWhile1P Nothing (\ch -> ch /= '-'),
-            try $ do
-              _ <- char '-'
-              _ <- notFollowedBy (char '}')
-              return ""
-          ]
-    _ <- chunk "-}"
-    return $ Text.strip $ mconcat contents
-
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
@@ -566,74 +550,6 @@ parseTopLevelNames =
             ]
     _ <- eof
     return names
-
-parseTypeAliasDeclarationForModuleExport :: Parser Text
-parseTypeAliasDeclarationForModuleExport =
-  do
-    _ <- commentSpaceParser 0
-    _ <- chunk "type alias"
-    _ <- commentSpaceParser 0
-    name <- parseName
-    _ <- many $
-      try $
-        do
-          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
-          _ <- char '\n'
-          choice
-            [ do
-                _ <- lookAhead eof
-                return (),
-              do
-                _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                return ()
-            ]
-    return name
-
-parseTypeDeclaration :: Parser Text
-parseTypeDeclaration =
-  do
-    _ <- commentSpaceParser 0
-    _ <- chunk "type"
-    _ <- commentSpaceParser 0
-    name <- parseName
-    _ <- many $
-      try $
-        do
-          _ <- takeWhileP Nothing (\ch -> ch /= '\n')
-          _ <- char '\n'
-          choice
-            [ do
-                _ <- lookAhead eof
-                return (),
-              do
-                _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                return ()
-            ]
-    return (name <> "(..)")
-
-parseTopLevelName :: Parser Text
-parseTopLevelName =
-  do
-    _ <- commentSpaceParser 0
-    name <- parseName
-    _ <- many $
-      try $
-        do
-          column <- fmap (unPos . sourceColumn) getSourcePos
-          if column == 1
-            then fail "column is too low"
-            else do
-              _ <- takeWhileP Nothing (\ch -> ch /= '\n')
-              _ <- char '\n'
-              choice
-                [ do
-                    _ <- lookAhead eof
-                    return (),
-                  do
-                    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                    return ()
-                ]
-    return name
 
 createModuleDeclaration :: Parser Text
 createModuleDeclaration =
@@ -2059,20 +1975,6 @@ parseSimpleStringLiteralChar =
       chunk "\\\\"
     ]
 
-parsePatternArgument :: Context -> Int -> Int -> Parser Text
-parsePatternArgument context minColumn indent =
-  do
-    pattern <- parsePatternNoAliasArgument minColumn indent
-    _ <-
-      notFollowedBy $
-        lookAhead $
-          do
-            _ <- space1
-            _ <- chunk "as"
-            _ <- space1
-            return ()
-    return pattern
-
 parsePattern :: Context -> Int -> Int -> Parser Text
 parsePattern context minColumn indent =
   choice
@@ -2344,11 +2246,6 @@ parseArgument minColumn indent =
             arg <- parseArgumentExpression (floorToFour indent)
             argEndRow <- fmap (unPos . sourceLine) getSourcePos
             return (comment, argStartRow, arg, argEndRow)
-
-numNewlinesInMultiline :: Text -> Int
-numNewlinesInMultiline arg =
-  let multiline = snd $ Text.breakOn "\"\"\"" (fst $ Text.breakOnEnd "\"\"\"" arg)
-   in Text.count "\n" multiline
 
 floorToFour :: Int -> Int
 floorToFour i =
