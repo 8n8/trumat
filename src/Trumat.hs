@@ -126,25 +126,11 @@ parseUnorderedList :: Parser Text
 parseUnorderedList =
   try parseUnorderedListItems
 
-parseOrderedList :: Parser Text
-parseOrderedList =
-  do
-    indent <- getOrderedListItemIndent
-    parseOrderedListItemHelp 1 indent ""
-
 parseUnorderedListItems :: Parser Text
 parseUnorderedListItems =
   do
     indent <- getUnorderedListItemIndent
     parseUnorderedListItemHelp 1 indent ""
-
-getOrderedListItemIndent :: Parser Int
-getOrderedListItemIndent =
-  do
-    indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
-    number <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
-    _ <- char ' '
-    return indent
 
 getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
@@ -152,43 +138,6 @@ getUnorderedListItemIndent =
     indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
     _ <- chunk "- "
     return indent
-
-parseOrderedListItemHelp :: Int -> Int -> Text -> Parser Text
-parseOrderedListItemHelp nesting indent accumulated =
-  if nesting == 0
-    then return accumulated
-    else do
-      text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
-      let numSpaces :: Int
-          numSpaces =
-            ((nesting - 1) * 4) + 2
-
-          formatted :: Text
-          formatted =
-            replicate numSpaces " " <> "- " <> text
-
-      if text == ""
-        then fail "empty unordered list item"
-        else do
-          otherLines <- fmap (intercalate "\n") $
-            many $
-              try $
-                do
-                  _ <- char '\n'
-                  takeWhile1P Nothing (\ch -> ch /= '\n')
-          choice
-            [ try $ do
-                newIndent <- getOrderedListItemIndent
-                parseOrderedListItemHelp
-                  ( nesting + case newIndent `compare` indent of
-                      GT -> 1
-                      LT -> -1
-                      EQ -> 0
-                  )
-                  newIndent
-                  (accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines),
-              return $ accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines
-            ]
 
 parseUnorderedListItemHelp :: Int -> Int -> Text -> Parser Text
 parseUnorderedListItemHelp nesting indent accumulated =
@@ -251,7 +200,6 @@ parseDocRow =
         _ <- char '\n'
         return $ "@docs " <> intercalate ", " docs <> "\n",
       try parseUnorderedList,
-      parseOrderedList,
       do
         pieces <-
           some $
@@ -281,10 +229,7 @@ parseOrdinaryTextInDoc =
   fmap mconcat $
     some $
       choice
-        [ try $ do
-            _ <- takeWhile1P Nothing (\ch -> ch == ' ')
-            _ <- notFollowedBy (takeWhile1P Nothing (\ch -> not $ ch `elem` ("0123456789" :: String)))
-            return " ",
+        [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
           takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ')
         ]
 
@@ -548,7 +493,7 @@ parseModuleDocsHelp nesting contents =
             piece <- parseModuleDocsInner
             parseModuleDocsHelp nesting (contents <> piece),
           do
-            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{' && not (ch `elem` ("0123456789" :: String)))
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> (if Text.takeEnd 3 contents == "{-|" && Text.take 1 piece /= " " then " " else "") <> piece),
           do
             _ <- char '-'
@@ -978,7 +923,7 @@ parseDocumentationHelp nesting contents =
                 cleanEmpty = if isEmptyDocComment newContents then "{-| -}" else newContents
             parseDocumentationHelp (nesting - 1) cleanEmpty,
           do
-            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{' && not (ch `elem` ("0123456789" :: String)) )
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> piece),
           do
             _ <- char '-'

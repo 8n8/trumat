@@ -8912,33 +8912,5 @@ cases =
       \        d ->\n\
       \            e\n\
       \"
-    ),
-    ( "numbered list in doc comment",
-      "module X exposing (x)\n\
-      \\n\
-      \{-| a\n\
-      \\n\
-      \ 1. b\n\
-      \ 2. c\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \{-| a\n\
-      \\n\
-      \1.  b\n\
-      \2.  c\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \"
     )
   ]
