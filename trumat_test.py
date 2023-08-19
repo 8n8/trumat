@@ -6,10 +6,28 @@ formatteds = [
 
 x =
     0
+""",
+    b"""module X exposing (x)
+
+
+x =
+    []
 """
 ]
 
 unformatteds = [
+    ( b"""module X exposing (x)
+
+
+x =
+   0
+""",
+    b"""module X exposing (x)
+
+
+x =
+    0
+""")
 ]
 
 
