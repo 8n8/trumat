@@ -73,8 +73,7 @@ def write_verbatim(out, expression_id, db):
 def write_expression(out, expression_id, indent, db):
     write_verbatim(out, expression_id, db)
 
-
-def write_out(out, db):
+def write_out_module_declaration(out, db):
     write_literal(out, b"module ")
     write_chunk(out, get_module_name(db), db)
     write_literal(out, b" exposing")
@@ -103,6 +102,9 @@ def write_out(out, db):
         write_chunk(out, export_name, db)
         if is_export_expose_all(export_id, db):
             write_literal(out, b"(..)")
+
+def write_out(out, db):
+    write_out_module_declaration(out, db)
 
     for top_bind_id in range(10000):
         name = get_top_bind_name(top_bind_id, db)
