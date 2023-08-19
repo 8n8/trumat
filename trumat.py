@@ -103,9 +103,7 @@ def write_out_module_declaration(out, db):
         if is_export_expose_all(export_id, db):
             write_literal(out, b"(..)")
 
-def write_out(out, db):
-    write_out_module_declaration(out, db)
-
+def write_out_top_binds(out, db):
     for top_bind_id in range(10000):
         name = get_top_bind_name(top_bind_id, db)
         if name is None:
@@ -117,6 +115,11 @@ def write_out(out, db):
         expression_id = get_top_bind_expression(top_bind_id, db)
         write_expression(out, expression_id, 4, db)
         write_literal(out, b"\n")
+
+
+def write_out(out, db):
+    write_out_module_declaration(out, db)
+    write_out_top_binds(out, db)
 
 
 def format_help(unformatted, db):
