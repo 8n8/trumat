@@ -1,7 +1,7 @@
 import trumat
 
 formatteds = [
-    """module X exposing (x)
+    b"""module X exposing (x)
 
 
 x =
@@ -10,13 +10,13 @@ x =
 ]
 
 unformatteds = [
-    ( """module X exposing (x)
+    ( b"""module X exposing (x)
 
 
 x =
    0
 """,
-    """module X exposing (x)
+    b"""module X exposing (x)
 
 
 x =
@@ -26,9 +26,11 @@ x =
 
 
 def test_formatted():
+    db = trumat.init_db()
     for formatted in formatteds:
-        assert trumat.format(formatted) == formatted
+        assert trumat.format(formatted, db) == formatted
 
 def test_unformatted():
+    db = trumat.init_db()
     for unformatted, formatted in unformatteds:
-        assert trumat.format(unformatted) == formatted
+        assert trumat.format(unformatted, db) == formatted
