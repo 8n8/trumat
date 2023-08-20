@@ -17,6 +17,16 @@ x =
 """
     assert trumat.format(input) == input
 
+@hypothesis.given(integer=hypothesis.strategies.integers(min_value=0))
+def test_function_call_int_argument(integer):
+    input = f"""module X exposing (x)
+
+
+x =
+    a {integer}
+"""
+    assert trumat.format(input) == input
+
 @hypothesis.given(infix_spaces=hypothesis.strategies.text(alphabet=" "))
 def test_function_call_with_variable_infix_spaces(infix_spaces):
     input = f"""module X exposing (x)

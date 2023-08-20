@@ -11,7 +11,7 @@ def parse_function_call(code, i):
     callable_, i = parse_name(code, i)
     while code[i] == ' ':
         i += 1
-    argument = code[i]
+    argument = parse_number(code, i)
     return f"{callable_} {argument}"
 
 def parse_number(code, i):
