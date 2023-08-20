@@ -8,3 +8,18 @@ x =
     0
 """
     assert trumat.format(input) == input
+
+def test_block_comment_at_top():
+    input = """module X exposing (x)
+
+
+x =
+   0
+"""
+    expected = """module X exposing (x)
+
+
+x =
+    0
+"""
+    assert trumat.format(input) == expected

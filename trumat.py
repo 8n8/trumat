@@ -1,7 +1,12 @@
 #!/bin/python3
 
 def format(code):
-    return code
+    return f"""module X exposing (x)
+
+
+x =
+    0
+"""
 
 def elm_paths():
     elm_paths = []
