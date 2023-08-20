@@ -1,6 +1,5 @@
 #!/bin/python3
 
-import pathlib
 import json
 
 def elm_paths():
