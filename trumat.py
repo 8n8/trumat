@@ -1,5 +1,8 @@
 #!/bin/python3
 
+def format(unformatted):
+    return unformatted
+
 def elm_paths():
     elm_paths = []
 
@@ -9,9 +12,6 @@ def elm_paths():
                 elm_paths.append(root + "/" + file_name)
 
     return elm_paths
-
-def format(unformatted):
-    return unformatted
 
 def main():
     db = init_db()
