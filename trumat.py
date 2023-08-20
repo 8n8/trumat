@@ -1,7 +1,5 @@
 #!/bin/python3
 
-import json
-
 def elm_paths():
     elm_paths = []
 
