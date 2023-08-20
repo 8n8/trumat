@@ -1,13 +1,23 @@
 #!/bin/python3
 
+def parse_integer(code, i):
+    start = i
+    while code[i] != '\n':
+        i += 1
+    return code[start:i]
+
 def format(code):
-    expression = code[-2]
-    return f"""module X exposing (x)
+    preamble = """module X exposing (x)
 
 
 x =
-    {expression}
 """
+    i = len(preamble)
+    while code[i] == " ":
+        i += 1
+
+    integer = parse_integer(code, i)
+    return f"{preamble}    {integer}\n"
 
 def elm_paths():
     elm_paths = []
