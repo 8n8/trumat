@@ -67,7 +67,7 @@ x =
 """
     assert trumat.format(input) == input
 
-def test_trailing_space_and_non_zero_start():
+def test_trailing_space_and_non_zero_start1():
     input = """module X exposing (x)
 
 
