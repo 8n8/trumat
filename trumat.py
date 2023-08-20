@@ -1,6 +1,5 @@
 #!/bin/python3
 
-import subprocess
 import pathlib
 import json
 
