@@ -2,9 +2,12 @@
 
 def parse_function_call(code, i):
     start = i
-    while code[i] != '\n':
+    callable_ = code[i]
+    i += 1
+    while code[i] == ' ':
         i += 1
-    return code[start:i].strip()
+    argument = code[i]
+    return f"{callable_} {argument}"
 
 def parse_number(code, i):
     start = i

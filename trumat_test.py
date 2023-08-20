@@ -1,13 +1,15 @@
 import trumat
 import hypothesis
 
-@hypothesis.given(spaces=hypothesis.strategies.text(alphabet=" "))
-def test_basic_function_call(spaces):
+@hypothesis.given(
+    trailing_spaces=hypothesis.strategies.text(alphabet=" "),
+    infix_spaces=hypothesis.strategies.text(alphabet=" "))
+def test_basic_function_call(trailing_spaces, infix_spaces):
     input = f"""module X exposing (x)
 
 
 x =
-    a b{spaces}
+    a {infix_spaces}b{trailing_spaces}
 """
     expected = f"""module X exposing (x)
 
