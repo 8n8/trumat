@@ -1,11 +1,12 @@
 #!/bin/python3
 
 def format(code):
+    expression = code[-2]
     return f"""module X exposing (x)
 
 
 x =
-    0
+    {expression}
 """
 
 def elm_paths():

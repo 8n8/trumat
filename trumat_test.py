@@ -23,3 +23,12 @@ x =
     0
 """
     assert trumat.format(input) == expected
+
+def test_expression_1():
+    input = """module X exposing (x)
+
+
+x =
+    1
+"""
+    assert trumat.format(input) == input
