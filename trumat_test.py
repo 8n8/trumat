@@ -59,15 +59,6 @@ x =
 """
     assert trumat.format(input) == expected
 
-def test_basic_function_call():
-    input = """module X exposing (x)
-
-
-x =
-    a b
-"""
-    assert trumat.format(input) == input
-
 def test_trailing_space_and_non_zero_start1():
     input = """module X exposing (x)
 

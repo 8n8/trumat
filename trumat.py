@@ -1,15 +1,9 @@
 #!/bin/python3
 
-def parse_function_call(code, i):
+def parse_integer(code, i):
     start = i
-    if code[i] in "0123456789":
-        while code[i] not in " \n":
-            i += 1
-        return code[start:i]
-
-    while code[i] != '\n':
+    while code[i] not in " \n":
         i += 1
-
     return code[start:i]
         
 def format(code):
@@ -22,7 +16,7 @@ x =
     while code[i] == " ":
         i += 1
 
-    expression = parse_function_call(code, i)
+    expression = parse_integer(code, i)
     return f"{preamble}    {expression}\n"
 
 def elm_paths():
