@@ -4,7 +4,7 @@ def parse_function_call(code, i):
     start = i
     while code[i] != '\n':
         i += 1
-    return code[start:i]
+    return code[start:i].strip()
 
 def parse_number(code, i):
     start = i

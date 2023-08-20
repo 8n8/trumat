@@ -1,14 +1,21 @@
 import trumat
 import hypothesis
 
-def test_basic_function_call():
-    input = """module X exposing (x)
+@hypothesis.given(spaces=hypothesis.strategies.text(alphabet=" "))
+def test_basic_function_call(spaces):
+    input = f"""module X exposing (x)
+
+
+x =
+    a b{spaces}
+"""
+    expected = f"""module X exposing (x)
 
 
 x =
     a b
 """
-    assert trumat.format(input) == input
+    assert trumat.format(input) == expected
 
 
 @hypothesis.given(
