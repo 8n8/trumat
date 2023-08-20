@@ -1,11 +1,14 @@
 import trumat
 import hypothesis
 
-@hypothesis.given(
-    first_char=hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", min_size=1, max_size=1),
-    remaining_chars=hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"))
-def test_function_call_with_trailing(first_char, remaining_chars):
-    name = first_char + remaining_chars
+@hypothesis.strategies.composite
+def name_gen(draw):
+    first_char = draw(hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", min_size=1, max_size=1))
+    remaining_chars = draw(hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"))
+    return first_char + remaining_chars
+
+@hypothesis.given(name=name_gen())
+def test_function_call(name):
     input = f"""module X exposing (x)
 
 
