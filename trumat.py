@@ -1,11 +1,17 @@
 #!/bin/python3
 
-def parse_integer(code, i):
+def parse_function_call(code, i):
     start = i
-    while code[i] not in ' \n':
-        i += 1
-    return code[start:i]
+    if code[i] in "012":
+        while code[i] not in " \n":
+            i += 1
+        return code[start:i]
 
+    while code[i] != '\n':
+        i += 1
+
+    return code[start:i]
+        
 def format(code):
     preamble = """module X exposing (x)
 
@@ -16,8 +22,8 @@ x =
     while code[i] == " ":
         i += 1
 
-    integer = parse_integer(code, i)
-    return f"{preamble}    {integer}\n"
+    expression = parse_function_call(code, i)
+    return f"{preamble}    {expression}\n"
 
 def elm_paths():
     elm_paths = []
