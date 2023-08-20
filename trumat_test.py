@@ -42,3 +42,18 @@ x =
     12
 """
     assert trumat.format(input) == input
+
+def test_int_trailing_space():
+    input = """module X exposing (x)
+
+
+x =
+    0 
+"""
+    expected = """module X exposing (x)
+
+
+x =
+    0
+"""
+    assert trumat.format(input) == expected

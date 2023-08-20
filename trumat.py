@@ -2,7 +2,7 @@
 
 def parse_integer(code, i):
     start = i
-    while code[i] != '\n':
+    while code[i] != '\n' and code[i] != ' ':
         i += 1
     return code[start:i]
 
