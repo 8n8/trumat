@@ -23,13 +23,11 @@ def format(code):
 
 
 x =
-"""
+    """
     i = len(preamble)
-    while code[i] == " ":
-        i += 1
 
     expression = parse_expression(code, i)
-    return f"{preamble}    {expression}\n"
+    return f"{preamble}{expression}\n"
 
 def elm_paths():
     elm_paths = []
