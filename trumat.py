@@ -1,29 +1,6 @@
 #!/bin/python3
 
-def parse_column_numbers(code):
-    column_numbers = [0] * len(code)
-    column_number = 0
-    for i, c in enumerate(code):
-        column_numbers[i] = column_number
-
-        if c == '\n':
-            column_number = 0
-        else:
-            column_number += 1
-
-
-    return column_numbers
-
 def format(code):
-    columns = parse_column_numbers(code)
-
-    i = 0
-    while code[i] == '\n' or code[i] == ' ':
-        i += 1
-
-    if columns[i] != 0:
-        raise ValueError("should be first column")
-
     return code
 
 def elm_paths():
