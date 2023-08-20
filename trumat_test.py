@@ -66,3 +66,18 @@ x =
     a b
 """
     assert trumat.format(input) == input
+
+def test_trailing_space_and_non_zero_start():
+    input = """module X exposing (x)
+
+
+x =
+    1 
+"""
+    expected = """module X exposing (x)
+
+
+x =
+    1
+"""
+    assert trumat.format(input) == expected

@@ -2,7 +2,7 @@
 
 def parse_function_call(code, i):
     start = i
-    if code[i] == "0":
+    if code[i] in "01":
         while code[i] not in " \n":
             i += 1
         return code[start:i]
