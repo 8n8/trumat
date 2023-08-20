@@ -1,9 +1,14 @@
 #!/bin/python3
 
+def parse_name(code, i):
+    start = i
+    while code[i] != ' ':
+        i += 1
+    return code[start:i], i
+
 def parse_function_call(code, i):
     start = i
-    callable_ = code[i]
-    i += 1
+    callable_, i = parse_name(code, i)
     while code[i] == ' ':
         i += 1
     argument = code[i]

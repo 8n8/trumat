@@ -1,21 +1,18 @@
 import trumat
 import hypothesis
 
-@hypothesis.given(trailing_spaces=hypothesis.strategies.text(alphabet=" "))
-def test_function_call_with_trailing(trailing_spaces):
+@hypothesis.given(
+    first_char=hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", min_size=1, max_size=1),
+    remaining_chars=hypothesis.strategies.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"))
+def test_function_call_with_trailing(first_char, remaining_chars):
+    name = first_char + remaining_chars
     input = f"""module X exposing (x)
 
 
 x =
-    a b{trailing_spaces}
+    {name} b
 """
-    expected = f"""module X exposing (x)
-
-
-x =
-    a b
-"""
-    assert trumat.format(input) == expected
+    assert trumat.format(input) == input
 
 @hypothesis.given(infix_spaces=hypothesis.strategies.text(alphabet=" "))
 def test_function_call_with_variable_infix_spaces(infix_spaces):
