@@ -9,7 +9,7 @@ x =
 """
     assert trumat.format(input) == input
 
-def test_block_comment_at_top():
+def test_fix_short_indent():
     input = """module X exposing (x)
 
 
