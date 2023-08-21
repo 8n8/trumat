@@ -1,35 +1,7 @@
 #!/bin/python3
 
-def parse_function_call(code, i):
-    start = i
-    callable_, i = parse_verbatim(code, i)
-    while code[i] == ' ':
-        i += 1
-    argument, _ = parse_verbatim(code, i)
-    return f"{callable_} {argument}"
-
-def parse_verbatim(code, i):
-    start = i
-    while code[i] not in " \n":
-        i += 1
-    return code[start:i], i
-
-def parse_expression(code, i):
-    if code[i] in "0123456789":
-        return parse_verbatim(code, i)[0]
-
-    return parse_function_call(code, i)
-        
 def format(code):
-    preamble = """module X exposing (x)
-
-
-x =
-    """
-    i = len(preamble)
-
-    expression = parse_expression(code, i)
-    return f"{preamble}{expression}\n"
+    return code
 
 def elm_paths():
     elm_paths = []
