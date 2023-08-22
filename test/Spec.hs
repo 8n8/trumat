@@ -9040,5 +9040,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two spaces before hyphen in numbered list item",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \1.  b  - c\n\
+      \2.  d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \1.  b - c\n\
+      \2.  d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
