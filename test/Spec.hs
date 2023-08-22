@@ -8996,5 +8996,49 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "numbered list item with two digit number",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \1.  b\n\
+      \2.  b\n\
+      \3.  b\n\
+      \4.  b\n\
+      \5.  b\n\
+      \6.  b\n\
+      \7.  b\n\
+      \8.  b\n\
+      \9.  b\n\
+      \10. b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \1.  b\n\
+      \2.  b\n\
+      \3.  b\n\
+      \4.  b\n\
+      \5.  b\n\
+      \6.  b\n\
+      \7.  b\n\
+      \8.  b\n\
+      \9.  b\n\
+      \10. b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
