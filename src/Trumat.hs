@@ -2620,7 +2620,9 @@ parseInfixedCaseOf infix_ indent =
   do
     caseOf <- parseCaseOf (if infix_ == "::" then indent + 4 else indent)
     if infix_ == "::"
-      then return $ "(" <> caseOf <> "\n" <> replicate indent " " <> ")"
+      then -- I don't know why it needs the -1 in the indent. But this is what
+      -- elm-format does.
+        return $ "(" <> caseOf <> "\n" <> replicate (floorToFour (indent + 4) - 1) " " <> ")"
       else return caseOf
 
 parseCaseOf :: Int -> Parser Text
