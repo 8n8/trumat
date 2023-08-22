@@ -28,8 +28,8 @@ import Text.Megaparsec
     try,
     unPos,
   )
-import Text.Megaparsec.Debug (dbg)
 import Text.Megaparsec.Char (char, space)
+import Text.Megaparsec.Debug (dbg)
 import Prelude
   ( Bool (..),
     Char,
