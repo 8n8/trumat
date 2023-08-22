@@ -253,10 +253,12 @@ parseNumberedListItem =
 
 noDoubleSpacesLine :: Parser Text
 noDoubleSpacesLine =
-  fmap mconcat $ some $ choice
-    [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
-      takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
-    ]
+  fmap mconcat $
+    some $
+      choice
+        [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
+          takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
+        ]
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
