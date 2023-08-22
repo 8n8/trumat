@@ -248,8 +248,15 @@ parseNumberedListItem =
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
     _ <- choice [char '.', char ')']
-    remainder <- takeWhile1P Nothing (\ch -> ch /= '\n')
+    remainder <- noDoubleSpacesLine
     return $ Text.strip remainder
+
+noDoubleSpacesLine :: Parser Text
+noDoubleSpacesLine =
+  fmap mconcat $ some $ choice
+    [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
+      takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
+    ]
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
