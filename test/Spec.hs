@@ -9093,5 +9093,26 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "case expression without parentheses in infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        :: case b of\n\
+      \            C ->\n\
+      \         d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        :: (case b of\n\
+      \                C ->\n\
+      \                    d\n\
+      \           )\n\
+      \"
     )
   ]
