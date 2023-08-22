@@ -233,9 +233,12 @@ parseNumberedListItems =
         item <- parseNumberedListItem
         _ <- char '\n'
         return item
-    let numbered =
+    let gap :: Int -> Text
+        gap i = if Text.length (pack (show i)) == 2 then " " else "  "
+        numbered :: [Text]
+        numbered =
           List.map
-            (\(item, index) -> pack (show index) <> ".  " <> item)
+            (\(item, index) -> pack (show index) <> "." <> gap index <> item)
             (List.zip items ([1 ..] :: [Int]))
     return (Text.intercalate "\n" numbered <> "\n")
 
