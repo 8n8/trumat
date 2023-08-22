@@ -491,7 +491,11 @@ parseModuleDocsInner =
             then flat
             else
               if Text.take 2 flat == "\n\n" || Text.elem '\n' (Text.strip flat)
-                then flat
+                then
+                  ( if Text.count "\n\n" (Text.strip flat) == 0
+                      then flat
+                      else Text.stripEnd flat <> "\n\n"
+                  )
                 else Text.stripEnd flat <> "\n"
 
 parseModuleDocsHelp :: Int -> Text -> Parser Text
