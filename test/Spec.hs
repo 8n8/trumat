@@ -9114,5 +9114,27 @@ cases =
       \                    d\n\
       \           )\n\
       \"
+    ),
+    ( "case expression with no parentheses and bad indent",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \    ::\n\
+      \    case b of\n\
+      \      C ->\n\
+      \        d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        :: (case b of\n\
+      \                C ->\n\
+      \                    d\n\
+      \           )\n\
+      \"
     )
   ]
