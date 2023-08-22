@@ -2334,7 +2334,7 @@ infixes =
 parseInfixedExpression :: Text -> Int -> Int -> Parser Text
 parseInfixedExpression infix_ minColumn indent =
   choice
-    [ try $ parseCaseOf indent,
+    [ try $ parseInfixedCaseOf infix_ indent,
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
       try $ notDottable $ parseUnnecessaryBracketsInInfix minColumn indent,
@@ -2614,6 +2614,14 @@ parseIfThenElse minColumn indent =
                 else_
               ]
       ]
+
+parseInfixedCaseOf :: Text -> Int -> Parser Text
+parseInfixedCaseOf infix_ indent =
+  do
+    caseOf <- parseCaseOf (if infix_ == "::" then indent + 4 else indent)
+    if infix_ == "::"
+      then return $ "(" <> caseOf <> "\n" <> replicate indent " " <> ")"
+      else return caseOf
 
 parseCaseOf :: Int -> Parser Text
 parseCaseOf indent =
