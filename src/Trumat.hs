@@ -200,16 +200,12 @@ parseDocRow =
         _ <- char '\n'
         return $ "@docs " <> intercalate ", " docs <> "\n",
       try parseUnorderedList,
+      try parseNumberedListItems,
       do
         pieces <-
           some $
             do
-              text <-
-                try $
-                  choice
-                    [ try parseNumberedListItem,
-                      parseOrdinaryTextInDoc
-                    ]
+              text <- try $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -229,14 +225,28 @@ parseDocRow =
             else mconcat pieces
     ]
 
+parseNumberedListItems :: Parser Text
+parseNumberedListItems =
+  do
+    items <- some $
+      do
+        item <- parseNumberedListItem
+        _ <- char '\n'
+        return item
+    let numbered =
+          List.map
+            (\(item, index) -> pack (show index) <> ".  " <> item)
+            (List.zip items ([1 ..] :: [Int]))
+    return (Text.intercalate "\n" numbered <> "\n")
+
 parseNumberedListItem :: Parser Text
 parseNumberedListItem =
   do
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    number <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+    _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
     _ <- choice [char '.', char ')']
     remainder <- takeWhile1P Nothing (\ch -> ch /= '\n')
-    return $ number <> ".  " <> Text.strip remainder
+    return $ Text.strip remainder
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
