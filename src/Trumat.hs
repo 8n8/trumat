@@ -204,7 +204,12 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- parseOrdinaryTextInDoc
+              text <-
+                try $
+                  choice
+                    [ try parseNumberedListItem,
+                      parseOrdinaryTextInDoc
+                    ]
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -223,6 +228,15 @@ parseDocRow =
             then ""
             else mconcat pieces
     ]
+
+parseNumberedListItem :: Parser Text
+parseNumberedListItem =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    number <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+    _ <- char '.'
+    remainder <- takeWhile1P Nothing (\ch -> ch /= '\n')
+    return $ number <> ".  " <> Text.strip remainder
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
