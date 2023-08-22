@@ -234,7 +234,7 @@ parseNumberedListItem =
   do
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     number <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
-    _ <- char '.'
+    _ <- choice [char '.', char ')']
     remainder <- takeWhile1P Nothing (\ch -> ch /= '\n')
     return $ number <> ".  " <> Text.strip remainder
 
