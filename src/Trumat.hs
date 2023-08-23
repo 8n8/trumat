@@ -2622,7 +2622,7 @@ parseInfixedCaseOf infix_ indent =
     if infix_ == "::"
       then -- I don't know why it needs the -1 in the indent. But this is what
       -- elm-format does.
-        return $ "(" <> caseOf <> "\n" <> replicate (floorToFour (indent + 4) - 1) " " <> ")"
+        return $ "(" <> caseOf <> "\n" <> replicate ((floorToFour indent) + Text.length infix_ + 1) " " <> ")"
       else return caseOf
 
 parseCaseOf :: Int -> Parser Text
