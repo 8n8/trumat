@@ -2341,7 +2341,14 @@ parseInfixedExpression infix_ minColumn indent =
       try $ parseFunctionCall minColumn indent,
       try $ makeDottable $ parseTuple NeedsBrackets indent,
       try $ parseTuple NeedsBrackets indent,
-      parseList indent,
+      let
+        listIndent =
+          if Text.length infix_ == 0 || infix_ == "<|" then
+            floorToFour indent
+          else
+            (floorToFour indent) + Text.length infix_ + 1
+      in
+      parseList listIndent,
       try parseEmptyRecord,
       try $ parseRecord indent,
       parseRecordUpdate indent,
