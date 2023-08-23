@@ -9185,5 +9185,27 @@ cases =
       \x =\n\
       \    '\\u{001B}'\n\
       \"
+    ),
+    ( "multi line list in infix in function argument",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ([ b\n\
+      \         ]\n\
+      \            ++ c\n\
+      \        )\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ([ b\n\
+      \         ]\n\
+      \            ++ c\n\
+      \        )\n\
+      \"
     )
   ]
