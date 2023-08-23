@@ -9136,5 +9136,26 @@ cases =
       \                    d\n\
       \           )\n\
       \"
+    ),
+    ( "multi line list after infix",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \  a\n\
+      \  ++\n\
+      \  [ b,\n\
+      \    c\n\
+      \  ]\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ++ [ b\n\
+      \           , c\n\
+      \           ]\n\
+      \"
     )
   ]
