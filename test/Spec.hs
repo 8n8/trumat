@@ -9262,5 +9262,33 @@ cases =
       \    else\n\
       \        c\n\
       \"
+    ),
+    ( "line comment after if expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if\n\
+      \        a\n\
+      \        --\n\
+      \    then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        c\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    if\n\
+      \        a\n\
+      \        --\n\
+      \    then\n\
+      \        b\n\
+      \\n\
+      \    else\n\
+      \        c\n\
+      \"
     )
   ]
