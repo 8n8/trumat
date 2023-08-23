@@ -9158,7 +9158,7 @@ cases =
       \           ]\n\
       \"
     ),
-    ( "lowercase characters in unicode literal",
+    ( "lowercase characters in simple string unicode literal",
       "module X exposing (x)\n\
       \\n\
       \\n\
@@ -9170,6 +9170,20 @@ cases =
       \\n\
       \x =\n\
       \    \"\\u{001B}\"\n\
+      \"
+    ),
+    ( "lowercase characters in char unicode literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\u{001b}'\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    '\\u{001B}'\n\
       \"
     )
   ]
