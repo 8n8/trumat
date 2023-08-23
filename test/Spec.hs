@@ -9318,5 +9318,19 @@ cases =
       \    else\n\
       \        c\n\
       \"
+    ),
+    ( "line break after module name",
+      "module X\n\
+      \  exposing (x)\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
