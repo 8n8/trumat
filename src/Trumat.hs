@@ -2585,7 +2585,7 @@ parseIfThenElse minColumn indent =
     _ <- chunk "then"
     commentBeforeThen <- commentSpaceParser (indent + 4)
     then_ <- parseExpression minColumn DoesntNeedBrackets (floorToFour (indent + 4))
-    _ <- space
+    commentAfterThen <- commentSpaceParser (indent + 4)
     _ <- chunk "else"
     _ <- space1
     commentAfterElse <- commentSpaceParser (floorToFour (indent + 4))
@@ -2628,6 +2628,10 @@ parseIfThenElse minColumn indent =
                 commentBeforeThen,
                 if commentBeforeThen == "" then "" else "\n" <> replicate (floorToFour (indent + 4)) " ",
                 then_,
+                if commentAfterThen == ""
+                  then ""
+                  else "\n" <> replicate (indent + 4) " ",
+                commentAfterThen,
                 "\n\n" <> replicate indent " ",
                 "else\n" <> replicate (floorToFour (indent + 4)) " ",
                 commentAfterElse,
