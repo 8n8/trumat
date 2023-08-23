@@ -1449,6 +1449,7 @@ parser =
             try parseSectionComment,
             try parsePortDeclaration,
             try parseTopLevelBind,
+            try parseIndependentDocComment,
             parseDocCommentAtEndOfModule
           ]
     _ <- eof
@@ -1558,6 +1559,19 @@ parseNonDocBlockComment =
     _ <- lookAhead $ notFollowedBy (char '|')
     parseBlockCommentHelp 1 "{-"
 
+parseIndependentDocComment :: Parser Text
+parseIndependentDocComment =
+  do
+    _ <- chunk "{-|"
+    comment <- parseDocCommentHelp 1 "{-|"
+    _ <- space
+    lineComments <-
+      some $ do
+        line <- parseLineComment
+        _ <- space
+        return line
+    return $ comment <> "\n\n\n\n" <> intercalate "\n" lineComments
+
 parseDocCommentAtEndOfModule :: Parser Text
 parseDocCommentAtEndOfModule =
   do
@@ -1587,7 +1601,8 @@ parseDocCommentHelp nesting contents =
             parseDocCommentHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseDocCommentHelp (nesting - 1) (contents <> "-}"),
+            let stripped = if Text.strip contents == "{-|" then "{-| " else contents
+            parseDocCommentHelp (nesting - 1) (stripped <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocCommentHelp nesting (contents <> indentDocRows piece),
