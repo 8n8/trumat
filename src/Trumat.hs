@@ -546,7 +546,8 @@ parseModuleDeclaration =
         ]
     _ <- chunk "module "
     name <- parseName
-    _ <- chunk " exposing"
+    _ <- space
+    _ <- chunk "exposing"
     _ <- space
     docs <-
       choice
