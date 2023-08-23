@@ -9157,5 +9157,19 @@ cases =
       \           , c\n\
       \           ]\n\
       \"
+    ),
+    ( "lowercase characters in unicode literal",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\u{001b}\"\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    \"\\u{001B}\"\n\
+      \"
     )
   ]
