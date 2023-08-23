@@ -2009,7 +2009,11 @@ parseSimpleStringLiteralChar =
     [ char '\160' >> return "\\u{00A0}",
       takeWhile1P Nothing (\ch -> ch /= '"' && ch /= '\\' && ch /= '\160'),
       chunk "\\\"",
-      chunk "\\u",
+      do
+        _ <- chunk "\\u{"
+        codePoint <- fmap Text.toUpper (takeP Nothing 4)
+        _ <- char '}'
+        return $ "\\u{" <> codePoint <> "}",
       chunk "\\n",
       chunk "\\t",
       chunk "\\\\"
