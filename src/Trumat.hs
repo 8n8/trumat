@@ -1990,7 +1990,7 @@ parseCharLiteral =
           chunk "\\\\",
           do
             _ <- chunk "\\u{"
-            codePoint <- takeP Nothing 4
+            codePoint <- fmap Text.toUpper (takeP Nothing 4)
             _ <- char '}'
             return $ "\\u{" <> codePoint <> "}"
         ]
