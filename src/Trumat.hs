@@ -188,6 +188,7 @@ parseDocRow =
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
+      try parseDocHeader,
       chunk "\n",
       do
         _ <- chunk "    "
@@ -201,7 +202,6 @@ parseDocRow =
         return $ "@docs " <> intercalate ", " docs <> "\n",
       try parseUnorderedList,
       try parseNumberedListItems,
-      parseDocHeader,
       do
         pieces <-
           some $
@@ -229,9 +229,10 @@ parseDocRow =
 parseDocHeader :: Parser Text
 parseDocHeader =
   do
+    _ <- space
     _ <- char '#'
     contents <- takeWhileP Nothing (\ch -> ch /= '\n')
-    return $ "\n#" <> contents
+    return $ "\n\n\n#" <> contents
 
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
