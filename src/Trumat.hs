@@ -198,8 +198,14 @@ parseDocRow =
       try $ do
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         docs <- parseExportDocsRow
+        header <- choice [ try parseDocHeader, return "" ]
         _ <- char '\n'
-        return $ "@docs " <> intercalate ", " docs <> "\n",
+        return $ mconcat
+          [ "@docs "
+          , intercalate ", " docs
+          , header
+          , "\n"
+          ],
       try parseUnorderedList,
       try parseNumberedListItems,
       do
