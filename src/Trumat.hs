@@ -544,7 +544,8 @@ parseModuleDeclaration =
             return ("port " :: Text),
           return ""
         ]
-    _ <- chunk "module "
+    _ <- chunk "module"
+    commentAfterModule <- commentSpaceParser 4
     name <- parseName
     _ <- space
     _ <- chunk "exposing"
@@ -562,9 +563,12 @@ parseModuleDeclaration =
     return $
       mconcat
         [ port,
-          "module ",
+          "module",
+          if commentAfterModule == "" then " " else "\n    " <> commentAfterModule <> "\n    ",
           name,
-          " exposing",
+          if commentAfterModule == "" then " " else "\n    ",
+          "exposing",
+          if commentAfterModule == "" then "" else "\n   ",
           exports,
           if moduleDocs == ""
             then ""
