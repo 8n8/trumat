@@ -9474,5 +9474,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "second level header comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \##\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \##\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
