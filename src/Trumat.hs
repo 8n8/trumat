@@ -384,7 +384,7 @@ formatExports indent originalIsMultiline docs items =
         [single] ->
           if Text.elem '\n' single
             then "\n" <> pack (take indent (repeat ' ')) <> "( " <> single <> "\n" <> pack (take indent (repeat ' ')) <> ")"
-            else " (" <> single <> ")"
+            else "(" <> single <> ")"
         multiple ->
           mconcat
             [ if isMultiline
@@ -544,7 +544,8 @@ parseModuleDeclaration =
             return ("port " :: Text),
           return ""
         ]
-    _ <- chunk "module "
+    _ <- chunk "module"
+    commentAfterModule <- commentSpaceParser 4
     name <- parseName
     _ <- space
     _ <- chunk "exposing"
@@ -559,12 +560,18 @@ parseModuleDeclaration =
     _ <- space
     moduleDocs <- choice [parseModuleDocs, return ""]
     _ <- space
+    let gap = if commentAfterModule == "" then " " else "\n    "
     return $
       mconcat
         [ port,
-          "module ",
+          "module",
+          gap,
+          commentAfterModule,
+          if commentAfterModule == "" then "" else "\n    ",
           name,
-          " exposing",
+          gap,
+          "exposing",
+          if commentAfterModule /= "" then "\n    " else "",
           exports,
           if moduleDocs == ""
             then ""
@@ -1425,8 +1432,8 @@ parseImport =
             then ""
             else
               if endRow == startRow
-                then " exposing" <> exposing_
-                else "\n    exposing" <> exposing_
+                then " exposing " <> exposing_
+                else "\n    exposing " <> exposing_
         ]
 
 parser :: Parser Text
