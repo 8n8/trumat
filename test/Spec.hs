@@ -9332,5 +9332,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "block comment after module keyword",
+      "module\n\
+      \    {--}\n\
+      \    X\n\
+      \    exposing\n\
+      \    (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module\n\
+      \    {--}\n\
+      \    X\n\
+      \    exposing\n\
+      \    (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
