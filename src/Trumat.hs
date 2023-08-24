@@ -233,7 +233,7 @@ parseDocHeader =
     _ <- char '#'
     contents <- takeWhileP Nothing (\ch -> ch /= '\n')
     _ <- space
-    return $ "\n\n\n#\n\n" <> contents
+    return $ "\n\n\n#" <> contents <> "\n\n"
 
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
