@@ -568,7 +568,7 @@ parseModuleDeclaration =
           name,
           if commentAfterName == "" then "" else "\n    ",
           commentAfterName,
-          if commentAfterModule == "" then (if commentAfterName == "" then (if commentAfterExposing == "" then " " else "\n    ") else "\n    ") else "\n    ",
+          if commentAfterModule == "" && commentAfterName == "" && commentAfterExposing == "" then " " else "\n    ",
           "exposing",
           if commentAfterExposing == "" then "" else "\n    ",
           commentAfterExposing,
