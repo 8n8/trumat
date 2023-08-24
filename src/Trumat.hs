@@ -549,7 +549,7 @@ parseModuleDeclaration =
     name <- parseName
     commentAfterName <- commentSpaceParser 4
     _ <- chunk "exposing"
-    _ <- space
+    commentAfterExposing <- commentSpaceParser 4
     docs <-
       choice
         [ lookAhead $ try parseExportDocs,
@@ -568,9 +568,11 @@ parseModuleDeclaration =
           name,
           if commentAfterName == "" then "" else "\n    ",
           commentAfterName,
-          if commentAfterModule == "" then (if commentAfterName == "" then " " else "\n    ") else "\n    ",
+          if commentAfterModule == "" then (if commentAfterName == "" then (if commentAfterExposing == "" then " " else "\n    ") else "\n    ") else "\n    ",
           "exposing",
-          if commentAfterModule == "" && commentAfterName == "" then "" else "\n   ",
+          if commentAfterExposing == "" then "" else "\n    ",
+          commentAfterExposing,
+          if commentAfterModule == "" && commentAfterName == "" && commentAfterExposing == "" then "" else "\n   ",
           exports,
           if moduleDocs == ""
             then ""
