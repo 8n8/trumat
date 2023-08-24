@@ -9395,11 +9395,37 @@ cases =
       \    0\n\
       \"
     ),
-    ( "not enough empty lines before header in comment",
+    ( "only one empty lines before header in comment",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
       \\n\
+      \#\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "no empty lines before header in comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
       \#\n\
       \\n\
       \-}\n\
