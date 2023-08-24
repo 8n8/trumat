@@ -201,6 +201,7 @@ parseDocRow =
         return $ "@docs " <> intercalate ", " docs <> "\n",
       try parseUnorderedList,
       try parseNumberedListItems,
+      parseDocHeader,
       do
         pieces <-
           some $
@@ -224,6 +225,13 @@ parseDocRow =
             then ""
             else mconcat pieces
     ]
+
+parseDocHeader :: Parser Text
+parseDocHeader =
+  do
+    _ <- char '#'
+    contents <- takeWhileP Nothing (\ch -> ch /= '\n')
+    return $ "\n#" <> contents
 
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
