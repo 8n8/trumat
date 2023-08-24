@@ -9354,5 +9354,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "comment after module name",
+      "module X\n\
+      \    {--}\n\
+      \    exposing\n\
+      \    (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X\n\
+      \    {--}\n\
+      \    exposing\n\
+      \    (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
