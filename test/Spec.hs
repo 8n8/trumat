@@ -9638,5 +9638,28 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line of text in doc comment beginning with non list numeral",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1 a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| 1 a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
