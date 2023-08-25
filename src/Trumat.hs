@@ -532,8 +532,20 @@ isNumberedListItem row =
   case Text.uncons row of
     Nothing ->
       False
-    Just (first, _) ->
-      isDigit first
+    Just (first, remainder) ->
+      isNumberedListItemAfterFirst remainder
+
+isNumberedListItemAfterFirst :: Text -> Bool
+isNumberedListItemAfterFirst remainder1 =
+  case Text.uncons remainder1 of
+    Nothing ->
+      False
+    Just ('.', _) ->
+      True
+    Just (first, remainder2) ->
+      if isDigit first
+        then isNumberedListItemAfterFirst remainder2
+        else False
 
 isListItem :: Text -> Bool
 isListItem row =
