@@ -9661,5 +9661,30 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "single numbered list item in doc comment with parentheses",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1) a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
