@@ -9686,5 +9686,36 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "doc comment heading following at docs",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \#\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
