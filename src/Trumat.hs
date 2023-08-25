@@ -495,11 +495,26 @@ flattenExportRowsHelp rows accumulator =
         rowTop : rowRemainder ->
           flattenExportRowsHelp remainder ((reverse (([rowTop], comment) : map (\item -> ([item], "")) rowRemainder)) <> accumulator)
 
+
+stripNewlinesStart :: Text -> Text
+stripNewlinesStart unstripped =
+  case Text.uncons unstripped of
+     Nothing ->
+      ""
+
+     Just ('\n', remainder) ->
+      stripNewlinesStart remainder
+
+     Just _ ->
+      unstripped
+      
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
     rows <- some parseDocRow
-    let flat = mconcat rows
+    let first = Text.take 1 (stripNewlinesStart $ mconcat rows)
+        flat = if first == "#" || first == "-" || first == "@" || first == " " then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
     return $
       if Text.strip (mconcat rows) == ""
         then "\n\n"
