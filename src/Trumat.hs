@@ -570,7 +570,7 @@ parseModuleDocsInner =
             else
               if Text.take 2 flat == "\n\n" || Text.elem '\n' (Text.strip flat)
                 then
-                  ( if Text.count "\n\n" (Text.strip flat) == 0
+                  ( if Text.count "\n\n" (Text.strip flat) == 0 && not firstIsList
                       then flat
                       else Text.stripEnd flat <> "\n\n"
                   )

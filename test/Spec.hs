@@ -9662,12 +9662,12 @@ cases =
       \    0\n\
       \"
     ),
-    ( "single numbered list item in doc comment with parentheses",
+    ( "single numbered list item without enough trailing whitespace",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
       \\n\
-      \1) a\n\
+      \1. a\n\
       \-}\n\
       \\n\
       \\n\
