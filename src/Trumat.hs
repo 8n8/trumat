@@ -40,6 +40,7 @@ import Prelude
     Ordering (..),
     Show,
     String,
+    any,
     compare,
     div,
     elem,
@@ -505,13 +506,21 @@ stripNewlinesStart unstripped =
     Just _ ->
       unstripped
 
+isListItem :: Text -> Bool
+isListItem row =
+  let stripped = Text.take 2 $ Text.stripStart row
+   in stripped == "-" || stripped == "- "
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
     rows <- some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
-    let first = Text.take 1 stripped
+        first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || Text.take 3 stripped == "  -" then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        firstIsList = case filter (\item -> Text.strip item /= "") rows of
+          [] -> False
+          top : _ -> isListItem top
     return $
       if Text.strip (mconcat rows) == ""
         then "\n\n"
@@ -525,7 +534,10 @@ parseModuleDocsInner =
                       then flat
                       else Text.stripEnd flat <> "\n\n"
                   )
-                else Text.stripEnd flat <> "\n"
+                else
+                  if firstIsList
+                    then "\n\n" <> stripNewlinesStart flat
+                    else Text.stripEnd flat <> "\n"
 
 parseModuleDocsHelp :: Int -> Text -> Parser Text
 parseModuleDocsHelp nesting contents =
