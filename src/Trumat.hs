@@ -506,10 +506,38 @@ stripNewlinesStart unstripped =
     Just _ ->
       unstripped
 
-isListItem :: Text -> Bool
-isListItem row =
+isUnorderedListItem :: Text -> Bool
+isUnorderedListItem row =
   let stripped = Text.take 2 $ Text.stripStart row
    in stripped == "-" || stripped == "- "
+
+isDigit :: Char -> Bool
+isDigit ch =
+  case ch of
+    '0' ->
+      True
+    '1' -> True
+    '2' -> True
+    '3' -> True
+    '4' -> True
+    '5' -> True
+    '6' -> True
+    '7' -> True
+    '8' -> True
+    '9' -> True
+    _ -> False
+
+isNumberedListItem :: Text -> Bool
+isNumberedListItem row =
+  case Text.uncons row of
+    Nothing ->
+      False
+    Just (first, _) ->
+      isDigit first
+
+isListItem :: Text -> Bool
+isListItem row =
+  isNumberedListItem row || isUnorderedListItem row
 
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
@@ -517,7 +545,7 @@ parseModuleDocsInner =
     rows <- some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
-        flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || Text.take 3 stripped == "  -" then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
