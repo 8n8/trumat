@@ -560,10 +560,26 @@ isListItem :: Text -> Bool
 isListItem row =
   isNumberedListItem row || isUnorderedListItem row
 
+removeTripleNewlinesInParagraphs :: [Text] -> [Text]
+removeTripleNewlinesInParagraphs rows =
+  removeTripleNewlinesHelp rows 0 []
+
+removeTripleNewlinesHelp :: [Text] -> Int -> [Text] -> [Text]
+removeTripleNewlinesHelp rows count accumulator =
+  case rows of
+    [] ->
+      reverse accumulator
+    "\n" : second : remainder ->
+      if count == 2 && Text.take 1 second /= "#" && not (isListItem second) && Text.take 2 second /= "-}" && Text.take 4 second /= "    " && second /= "\n"
+        then removeTripleNewlinesHelp ((log "second" second) : remainder) 0 accumulator
+        else removeTripleNewlinesHelp (second : remainder) (count + 1) ("\n" : accumulator)
+    top : remainder ->
+      removeTripleNewlinesHelp remainder 0 (top : accumulator)
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- some parseDocRow
+    rows <- fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
