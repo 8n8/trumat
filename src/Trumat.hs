@@ -208,6 +208,15 @@ parseDocRow =
               header,
               "\n"
             ],
+      try $ do
+        docs <- parseExportDocsRow
+        header <- try parseDocHeader
+        return $
+          mconcat
+            [ "@docs ",
+              intercalate ", " docs,
+              header
+            ],
       try parseUnorderedList,
       try parseNumberedListItems,
       do
