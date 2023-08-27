@@ -9745,7 +9745,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "extra newline after code block in doc comment",
+    ( "extra newline after code block in doc comment on module",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
@@ -9768,6 +9768,39 @@ cases =
       \-}\n\
       \\n\
       \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "extra newline after code block in doc comment on function",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    b\n\
+      \\n\
+      \\n\
+      \-}\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \a =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    b\n\
+      \\n\
+      \-}\n\
       \x =\n\
       \    0\n\
       \"

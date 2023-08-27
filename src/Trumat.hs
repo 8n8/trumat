@@ -586,22 +586,16 @@ maxTwoNewlinesHelp rows count accumulator =
     [] ->
       reverse accumulator
     "\n" : remainder ->
-      if count > 1 then
-        maxTwoNewlinesHelp remainder count accumulator
-      else
-        if count == 0 then
-          maxTwoNewlinesHelp remainder count ("\n" : accumulator)
-
+      if count > 1
+        then maxTwoNewlinesHelp remainder count accumulator
         else
-          maxTwoNewlinesHelp remainder (count + 1) ("\n" : accumulator)
-
+          if count == 0
+            then maxTwoNewlinesHelp remainder count ("\n" : accumulator)
+            else maxTwoNewlinesHelp remainder (count + 1) ("\n" : accumulator)
     possibleCodeBlockRow : remainder ->
-      if Text.take 4 possibleCodeBlockRow == "    " then
-        maxTwoNewlinesHelp remainder 1 (possibleCodeBlockRow : accumulator)
-
-      else
-        maxTwoNewlinesHelp remainder 0 (possibleCodeBlockRow : accumulator)
-        
+      if Text.take 4 possibleCodeBlockRow == "    "
+        then maxTwoNewlinesHelp remainder 1 (possibleCodeBlockRow : accumulator)
+        else maxTwoNewlinesHelp remainder 0 (possibleCodeBlockRow : accumulator)
 
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
