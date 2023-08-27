@@ -645,7 +645,7 @@ formatElmInDocsHelp rows accumulatedElm accumulated =
                 ([top] <> accumulatedElm <> accumulated)
 
             else
-            formatElmInDocsHelp remainder [] ([top] <> formatted <> accumulated)
+            formatElmInDocsHelp remainder [] (formatted <> accumulated)
 
 formatElmChunkInDocs :: [Text] -> [Text]
 formatElmChunkInDocs rows =
@@ -657,13 +657,13 @@ formatElmChunkInDocs rows =
       leadingNewlines = getLeadingNewlines (mconcat rows)
       trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
       codeChunk = mconcat $ map (Text.drop 4) rows
-      formatted = case formatElmCodeInDocs codeChunk of
+      formatted = Text.stripStart (case formatElmCodeInDocs codeChunk of
         Nothing ->
           codeChunk
         Just ok ->
-          (Text.strip ok) <> "\n"
+          ok)
       formattedLines = Text.lines formatted
-      indentedLines = map (\line -> if line == "\n" then "\n" else "    " <> line) formattedLines
+      indentedLines = log "HERE" $ map (\line -> if line == "\n" then "\n" else "    " <> line) formattedLines
       indentedFormatted = Text.unlines indentedLines
       in
       [leadingNewlines <> indentedFormatted <> trailingNewlines]
