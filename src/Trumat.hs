@@ -40,7 +40,6 @@ import Prelude
     Ordering (..),
     Show,
     String,
-    any,
     compare,
     div,
     elem,
@@ -769,7 +768,7 @@ getTypeAliasDeclarationName :: Parser Text
 getTypeAliasDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -789,7 +788,7 @@ parseTypeAliasDeclaration :: Parser Text
 parseTypeAliasDeclaration =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- "type"
     _ <- space1
@@ -825,7 +824,7 @@ getCustomTypeDeclarationName :: Parser Text
 getCustomTypeDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -841,7 +840,7 @@ parseCustomTypeDeclaration :: Parser Text
 parseCustomTypeDeclaration =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- "type"
     _ <- space1
@@ -989,12 +988,6 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
                 <> commentAfter
         ]
 
-parseDocumentation :: Parser Text
-parseDocumentation =
-  do
-    _ <- chunk "{-|"
-    parseDocumentationHelp 1 "{-|"
-
 isEmptyDocComment :: Text -> Bool
 isEmptyDocComment doc =
   Text.strip (Text.drop 3 (Text.dropEnd 2 doc)) == ""
@@ -1032,7 +1025,7 @@ getTopLevelBindName :: Parser Text
 getTopLevelBindName =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
@@ -1609,7 +1602,7 @@ getPortDeclarationName :: Parser Text
 getPortDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- chunk "port"
     _ <- space1
@@ -1619,7 +1612,7 @@ parsePortDeclaration :: Parser Text
 parsePortDeclaration =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     _ <- chunk "port"
     _ <- space1
