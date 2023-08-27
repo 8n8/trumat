@@ -571,15 +571,42 @@ removeTripleNewlinesHelp rows count accumulator =
       reverse accumulator
     "\n" : second : remainder ->
       if count == 2 && Text.take 1 second /= "#" && not (isListItem second) && Text.take 2 second /= "-}" && Text.take 4 second /= "    " && second /= "\n"
-        then removeTripleNewlinesHelp ((log "second" second) : remainder) 0 accumulator
+        then removeTripleNewlinesHelp (second : remainder) 0 accumulator
         else removeTripleNewlinesHelp (second : remainder) (count + 1) ("\n" : accumulator)
     top : remainder ->
       removeTripleNewlinesHelp remainder 0 (top : accumulator)
 
+maxTwoNewlinesAfterCodeBlock :: [Text] -> [Text]
+maxTwoNewlinesAfterCodeBlock rows =
+  maxTwoNewlinesHelp rows 0 []
+
+maxTwoNewlinesHelp :: [Text] -> Int -> [Text] -> [Text]
+maxTwoNewlinesHelp rows count accumulator =
+  case rows of
+    [] ->
+      reverse accumulator
+    "\n" : remainder ->
+      if count > 1 then
+        maxTwoNewlinesHelp remainder count accumulator
+      else
+        if count == 0 then
+          maxTwoNewlinesHelp remainder count ("\n" : accumulator)
+
+        else
+          maxTwoNewlinesHelp remainder (count + 1) ("\n" : accumulator)
+
+    possibleCodeBlockRow : remainder ->
+      if Text.take 4 possibleCodeBlockRow == "    " then
+        maxTwoNewlinesHelp remainder 1 (possibleCodeBlockRow : accumulator)
+
+      else
+        maxTwoNewlinesHelp remainder 0 (possibleCodeBlockRow : accumulator)
+        
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
