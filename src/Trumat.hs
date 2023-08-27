@@ -237,10 +237,7 @@ parseDocRow =
                     return $ text <> "@",
                   return text
                 ]
-        return $
-          if Text.strip (mconcat pieces) == "-"
-            then ""
-            else mconcat pieces
+        return $ mconcat pieces
     ]
 
 parseDocHeader :: Parser Text
@@ -638,7 +635,13 @@ parseModuleDocsHelp nesting contents =
             _ <- chunk "-}"
             parseModuleDocsHelp
               (nesting - 1)
-              ( if Text.strip contents == "{-" || Text.strip contents == "{-|" then Text.strip contents <> "\n\n\n-}" else contents <> "-}"
+              ( if Text.strip contents == "{-"
+                  || Text.strip contents == "{-|"
+                  then Text.strip contents <> " -}"
+                  else
+                    if Text.strip (Text.drop 3 contents) == "-"
+                      then "{-|\n\n\n-}"
+                      else contents <> "-}"
               ),
           try $ do
             piece <- parseModuleDocsInner
@@ -1046,7 +1049,7 @@ parseTopLevelBind :: Parser Text
 parseTopLevelBind =
   do
     _ <- space
-    documentation <- choice [parseDocumentation, return ""]
+    documentation <- choice [parseModuleDocs, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
