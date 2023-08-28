@@ -651,8 +651,8 @@ formatElmChunkInDocs rows =
             Just ok ->
               (Text.strip ok) <> "\n"
           formattedLines = Text.lines formatted
-          indentedLines = map (\line -> if line == "\n" then "\n" else "    " <> line) formattedLines
-          indentedFormatted = Text.unlines indentedLines
+          indentedLines = map (\line -> if line == "" then "" else "    " <> line) formattedLines
+          indentedFormatted = Text.replace "\n\n\n" "\n\n" $ Text.unlines indentedLines
        in [leadingNewlines <> indentedFormatted <> trailingNewlines]
 
 getLeadingNewlines :: Text -> Text
