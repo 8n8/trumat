@@ -669,10 +669,24 @@ getLeadingNewlinesHelp text newlines =
     Just _ ->
       newlines
 
+addNewlineToTrailingCode :: [Text] -> [Text]
+addNewlineToTrailingCode rows =
+  case reverse rows of
+    possiblyCodeBlock : previous ->
+      case reverse (Text.lines possiblyCodeBlock) of
+        possiblyCodeRow : remainder ->
+          if Text.take 4 possiblyCodeRow == "    "
+            then previous <> [possiblyCodeBlock <> "\n"]
+            else rows
+        _ ->
+          rows
+    _ ->
+      rows
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
