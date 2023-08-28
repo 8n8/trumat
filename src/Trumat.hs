@@ -40,9 +40,9 @@ import Prelude
     Ordering (..),
     Show,
     String,
+    all,
     compare,
     div,
-    all,
     elem,
     fail,
     filter,
@@ -598,7 +598,6 @@ formatElmInDocs :: [Text] -> [Text]
 formatElmInDocs rows =
   formatElmInDocsHelp rows [] []
 
-
 formatElmCodeInDocs :: Text -> Maybe Text
 formatElmCodeInDocs unformatted =
   case parse parserInDocs "" unformatted of
@@ -607,45 +606,35 @@ formatElmCodeInDocs unformatted =
     Right formatted ->
       Just formatted
 
-
 parserInDocs :: Parser Text
 parserInDocs =
   do
-  moduleDeclaration <- parseModuleDeclarationNoCreate
-  _ <- space
-  parseAfterModuleDeclaration moduleDeclaration
-
+    moduleDeclaration <- parseModuleDeclarationNoCreate
+    _ <- space
+    parseAfterModuleDeclaration moduleDeclaration
 
 formatElmInDocsHelp :: [Text] -> [Text] -> [Text] -> [Text]
 formatElmInDocsHelp rows accumulatedElm accumulated =
   case rows of
     [] ->
-      if all (\ch -> ch == "\n") accumulatedElm then
-        reverse (accumulatedElm <> accumulated)
-      else
-      reverse ((formatElmChunkInDocs (reverse accumulatedElm)) <> accumulated)
-
+      if all (\ch -> ch == "\n") accumulatedElm
+        then reverse (accumulatedElm <> accumulated)
+        else reverse ((formatElmChunkInDocs (reverse accumulatedElm)) <> accumulated)
     top : remainder ->
-      if Text.take 4 top == "    " || top == "\n" then
-        formatElmInDocsHelp remainder (top : accumulatedElm) accumulated
-
-      else
-        case accumulatedElm of
+      if Text.take 4 top == "    " || top == "\n"
+        then formatElmInDocsHelp remainder (top : accumulatedElm) accumulated
+        else case accumulatedElm of
           [] ->
             formatElmInDocsHelp remainder accumulatedElm (top : accumulated)
-
           _ ->
-            let
-              formatted = formatElmChunkInDocs (reverse accumulatedElm)
-            in
-            if all (\ch -> ch == "\n") accumulatedElm then
-              formatElmInDocsHelp
-                remainder
-                []
-                ([top] <> accumulatedElm <> accumulated)
-
-            else
-            formatElmInDocsHelp remainder [] ([top] <> formatted <> accumulated)
+            let formatted = formatElmChunkInDocs (reverse accumulatedElm)
+             in if all (\ch -> ch == "\n") accumulatedElm
+                  then
+                    formatElmInDocsHelp
+                      remainder
+                      []
+                      ([top] <> accumulatedElm <> accumulated)
+                  else formatElmInDocsHelp remainder [] ([top] <> formatted <> accumulated)
 
 formatElmChunkInDocs :: [Text] -> [Text]
 formatElmChunkInDocs rows =
@@ -653,20 +642,18 @@ formatElmChunkInDocs rows =
     [] ->
       []
     _ ->
-      let
-      leadingNewlines = getLeadingNewlines (mconcat rows)
-      trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
-      codeChunk = mconcat $ map (Text.drop 4) rows
-      formatted = case formatElmCodeInDocs codeChunk of
-        Nothing ->
-          codeChunk
-        Just ok ->
-          (Text.strip ok) <> "\n"
-      formattedLines = Text.lines formatted
-      indentedLines = map (\line -> if line == "\n" then "\n" else "    " <> line) formattedLines
-      indentedFormatted = Text.unlines indentedLines
-      in
-      [leadingNewlines <> indentedFormatted <> trailingNewlines]
+      let leadingNewlines = getLeadingNewlines (mconcat rows)
+          trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
+          codeChunk = mconcat $ map (Text.drop 4) rows
+          formatted = case formatElmCodeInDocs codeChunk of
+            Nothing ->
+              codeChunk
+            Just ok ->
+              (Text.strip ok) <> "\n"
+          formattedLines = Text.lines formatted
+          indentedLines = map (\line -> if line == "\n" then "\n" else "    " <> line) formattedLines
+          indentedFormatted = Text.unlines indentedLines
+       in [leadingNewlines <> indentedFormatted <> trailingNewlines]
 
 getLeadingNewlines :: Text -> Text
 getLeadingNewlines text =
@@ -677,10 +664,8 @@ getLeadingNewlinesHelp text newlines =
   case Text.uncons text of
     Nothing ->
       newlines
-
     Just ('\n', remainder) ->
       getLeadingNewlinesHelp remainder ("\n" <> newlines)
-
     Just _ ->
       newlines
 
