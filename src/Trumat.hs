@@ -636,6 +636,24 @@ formatElmInDocsHelp rows accumulatedElm accumulated =
                       ([top] <> accumulatedElm <> accumulated)
                   else formatElmInDocsHelp remainder [] ([top] <> formatted <> accumulated)
 
+stripNewlines :: Text -> Text
+stripNewlines string =
+  stripLeadingNewlines (Text.reverse (stripLeadingNewlines (Text.reverse string)))
+
+
+stripLeadingNewlines :: Text -> Text
+stripLeadingNewlines string =
+  case Text.uncons string of
+    Nothing ->
+      string
+
+    Just ('\n', remainder) ->
+      stripLeadingNewlines remainder
+
+    Just (_, remainder) ->
+      string
+  
+
 formatElmChunkInDocs :: [Text] -> [Text]
 formatElmChunkInDocs rows =
   case rows of
@@ -644,7 +662,7 @@ formatElmChunkInDocs rows =
     _ ->
       let leadingNewlines = getLeadingNewlines (mconcat rows)
           trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
-          codeChunk = mconcat $ map (Text.drop 4) rows
+          codeChunk = log "codeChunk" $ stripNewlines $ mconcat $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) (log "rows" rows)
           formatted = case formatElmCodeInDocs codeChunk of
             Nothing ->
               codeChunk
