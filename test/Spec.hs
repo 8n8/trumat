@@ -9925,5 +9925,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module doc contining only a bulleted list",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \- a\n\
+      \- b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \  - b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
