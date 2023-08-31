@@ -161,6 +161,11 @@ parseUnorderedListItemHelp nesting indent accumulated =
             many $
               try $
                 do
+                  _ <- notFollowedBy $ do
+                    _ <- char '\n'
+                    _ <- space
+                    _ <- chunk "- "
+                    return ()
                   _ <- char '\n'
                   takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
