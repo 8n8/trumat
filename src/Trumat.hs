@@ -142,6 +142,7 @@ parseUnorderedListItemHelp nesting indent accumulated =
     then return accumulated
     else do
       text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
+      -- subsequentLines <- dbg "subsequent" $ many $ try parseUnorderedListSubsequentLine
       let numSpaces :: Int
           numSpaces =
             ((nesting - 1) * 4) + 2
@@ -153,17 +154,18 @@ parseUnorderedListItemHelp nesting indent accumulated =
       if text == ""
         then fail "empty unordered list item"
         else do
-          otherLines <- fmap (intercalate "\n") $
-            many $
-              try $
-                do
-                  _ <- notFollowedBy $ do
+          otherLines <- fmap Text.strip $
+            fmap (intercalate "\n") $
+              many $
+                try $
+                  do
+                    _ <- notFollowedBy $ do
+                      _ <- char '\n'
+                      _ <- space
+                      _ <- chunk "- "
+                      return ()
                     _ <- char '\n'
-                    _ <- space
-                    _ <- chunk "- "
-                    return ()
-                  _ <- char '\n'
-                  takeWhile1P Nothing (\ch -> ch /= '\n')
+                    takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
                 newIndent <- getUnorderedListItemIndent
@@ -174,8 +176,8 @@ parseUnorderedListItemHelp nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines),
-              return $ accumulated <> formatted <> if otherLines == "" then "" else "\n" <> otherLines
+                  (accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
+              return $ accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines
             ]
 
 parseDocRow :: Parser Text
@@ -277,6 +279,19 @@ parseNumberedListSubsequentLine =
       _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
       _ <- choice [char '.', char ')']
       return ()
+    _ <- notFollowedBy $ do
+      _ <- takeWhileP Nothing (\ch -> ch == ' ')
+      _ <- chunk "-}"
+      return ()
+    line <- noDoubleSpacesLine
+    return $ "    " <> Text.strip line
+
+parseUnorderedListSubsequentLine :: Parser Text
+parseUnorderedListSubsequentLine =
+  do
+    _ <- char '\n'
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- notFollowedBy $ chunk "- "
     _ <- notFollowedBy $ do
       _ <- takeWhileP Nothing (\ch -> ch == ' ')
       _ <- chunk "-}"
