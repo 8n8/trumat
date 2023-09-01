@@ -9990,5 +9990,42 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "ordered list in comment followed by code block",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \\n\
+      \    c =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \```\n\
+      \c =\n\
+      \    0\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
