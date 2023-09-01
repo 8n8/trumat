@@ -125,10 +125,6 @@ consumeExportListHelp nesting =
 
 parseUnorderedList :: Parser Text
 parseUnorderedList =
-  try parseUnorderedListItems
-
-parseUnorderedListItems :: Parser Text
-parseUnorderedListItems =
   do
     indent <- getUnorderedListItemIndent
     parseUnorderedListItemHelp 1 indent ""
@@ -259,9 +255,10 @@ parseNumberedListItems =
   do
     items <- some $
       do
-        item <- parseNumberedListItem
+        firstLine <- parseNumberedListFirstLine
+        subsequentLines <- many $ try parseNumberedListSubsequentLine
         _ <- char '\n'
-        return item
+        return $ Text.intercalate "\n" (firstLine : subsequentLines)
     let gap :: Int -> Text
         gap i = if Text.length (pack (show i)) == 2 then " " else "  "
         numbered :: [Text]
@@ -271,8 +268,24 @@ parseNumberedListItems =
             (List.zip items ([1 ..] :: [Int]))
     return (Text.intercalate "\n" numbered <> "\n")
 
-parseNumberedListItem :: Parser Text
-parseNumberedListItem =
+parseNumberedListSubsequentLine :: Parser Text
+parseNumberedListSubsequentLine =
+  do
+    _ <- char '\n'
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- notFollowedBy $ do
+      _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+      _ <- choice [char '.', char ')']
+      return ()
+    _ <- notFollowedBy $ do
+      _ <- takeWhileP Nothing (\ch -> ch == ' ')
+      _ <- chunk "-}"
+      return ()
+    line <- noDoubleSpacesLine
+    return $ "    " <> Text.strip line
+
+parseNumberedListFirstLine :: Parser Text
+parseNumberedListFirstLine =
   do
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
