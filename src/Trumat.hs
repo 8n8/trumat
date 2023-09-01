@@ -197,7 +197,7 @@ parseDocRow =
       try parseDocHeader,
       chunk "\n",
       do
-        _ <- chunk "\n\n    "
+        _ <- chunk "    "
         code <- takeWhileP Nothing (\ch -> ch /= '\n')
         _ <- char '\n'
         return $ "    " <> code <> "\n",
@@ -222,7 +222,7 @@ parseDocRow =
               intercalate ", " docs,
               header
             ],
-      try $ parseUnorderedList,
+      try parseUnorderedList,
       try parseNumberedListItems,
       do
         pieces <-
@@ -702,44 +702,10 @@ addNewlineToTrailingCode rows =
     _ ->
       rows
 
-tripleBackticksAroundCode :: [Text] -> [Text]
-tripleBackticksAroundCode rows =
-  tripleBackticksAroundCodeHelp rows []
-
-
-unindentCode :: Text -> Text
-unindentCode code =
-  let
-    lines = map (Text.drop 4) $ Text.lines code
-  in
-  Text.unlines lines
-
-
-tripleBackticksAroundCodeHelp :: [Text] -> [Text] -> [Text]
-tripleBackticksAroundCodeHelp rows accumulated =
-  case rows of
-    (top : second : remainder) ->
-      if
-        (Text.take 2 (Text.strip top) == "- ")
-          && (Text.take 1 second == "\n")
-          && (Text.take 4 (stripLeadingNewlines second) == "    ")
-      then
-        tripleBackticksAroundCodeHelp
-          remainder
-          (("\n\n```\n" <> unindentCode (stripNewlines second) <> "```") : top : accumulated)
-
-      else
-        tripleBackticksAroundCodeHelp
-          (second : remainder)
-          (top : accumulated)
-
-    _ ->
-      reverse accumulated <> rows
-
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- {- fmap tripleBackticksAroundCode $ -} fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
