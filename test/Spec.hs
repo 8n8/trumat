@@ -9991,7 +9991,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "ordered list in comment followed by code block",
+    ( "number ordered list in comment followed by code block",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
