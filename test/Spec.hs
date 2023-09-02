@@ -10087,5 +10087,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "nested unordered list unformatted",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \     - b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \      - b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
