@@ -142,7 +142,6 @@ parseUnorderedListItemHelp nesting indent accumulated =
     then return accumulated
     else do
       text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
-      -- subsequentLines <- dbg "subsequent" $ many $ try parseUnorderedListSubsequentLine
       let numSpaces :: Int
           numSpaces =
             ((nesting - 1) * 4) + 2
@@ -167,7 +166,8 @@ parseUnorderedListItemHelp nesting indent accumulated =
                     _ <- char '\n'
                     takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
-            [ try $ do
+            [ try $ dbg "HERE" $ do
+                _ <- char '\n'
                 newIndent <- getUnorderedListItemIndent
                 parseUnorderedListItemHelp
                   ( nesting + case newIndent `compare` indent of
@@ -177,7 +177,7 @@ parseUnorderedListItemHelp nesting indent accumulated =
                   )
                   newIndent
                   (accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
-              return $ accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines
+              return $ accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines
             ]
 
 parseDocRow :: Parser Text
