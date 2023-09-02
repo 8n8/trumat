@@ -166,7 +166,7 @@ parseUnorderedListItemHelp nesting indent accumulated =
                     _ <- char '\n'
                     takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
-            [ try $ dbg "HERE" $ do
+            [ try $ do
                 _ <- char '\n'
                 newIndent <- getUnorderedListItemIndent
                 parseUnorderedListItemHelp
@@ -177,7 +177,11 @@ parseUnorderedListItemHelp nesting indent accumulated =
                   )
                   newIndent
                   (accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
-              return $ accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines
+              return $
+                accumulated
+                  <> (if accumulated == "" then "" else "\n")
+                  <> formatted
+                  <> (if otherLines == "" then "" else "\n    " <> otherLines)
             ]
 
 parseDocRow :: Parser Text
@@ -255,20 +259,76 @@ parseDocHeader =
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
   do
-    items <- some $
-      do
-        firstLine <- parseNumberedListFirstLine
-        subsequentLines <- many $ try parseNumberedListSubsequentLine
-        _ <- char '\n'
-        return $ Text.intercalate "\n" (firstLine : subsequentLines)
-    let gap :: Int -> Text
-        gap i = if Text.length (pack (show i)) == 2 then " " else "  "
-        numbered :: [Text]
-        numbered =
-          List.map
-            (\(item, index) -> pack (show index) <> "." <> gap index <> item)
-            (List.zip items ([1 ..] :: [Int]))
-    return (Text.intercalate "\n" numbered <> "\n")
+    indent <- getNumberedListItemIndent
+    parseNumberedListItemHelp 1 indent 1 ""
+
+getNumberedListItemIndent :: Parser Int
+getNumberedListItemIndent =
+  do
+    indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
+    _ <- do
+      _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+      _ <- choice [char '.', char ')']
+      return ()
+    return indent
+
+parseNumberedListItemHelp :: Int -> Int -> Int -> Text -> Parser Text
+parseNumberedListItemHelp nesting indent number accumulated =
+  if nesting == 0
+    then return accumulated
+    else do
+      text <- fmap Text.strip noDoubleSpacesLine
+      let numSpaces :: Int
+          numSpaces =
+            ((nesting - 1) * 4)
+
+          formatted :: Text
+          formatted =
+            replicate numSpaces " " <> Text.pack (show number) <> ". " <> (if number < 10 then " " else "") <> text
+
+      if text == ""
+        then fail "empty numbered list item"
+        else do
+          otherLines <- fmap Text.strip $
+            fmap (intercalate "\n") $
+              many $
+                try $
+                  do
+                    _ <- notFollowedBy $ do
+                      _ <- space
+                      _ <- chunk "-}"
+                      return ()
+                    _ <- notFollowedBy $ do
+                      _ <- char '\n'
+                      _ <- space
+                      _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+                      _ <- choice [char '.', char ')']
+                      return ()
+                    _ <- char '\n'
+                    takeWhile1P Nothing (\ch -> ch /= '\n')
+          choice
+            [ try $ do
+                _ <- char '\n'
+                newIndent <- getNumberedListItemIndent
+                parseNumberedListItemHelp
+                  ( nesting + case newIndent `compare` indent of
+                      GT -> 1
+                      LT -> -1
+                      EQ -> 0
+                  )
+                  newIndent
+                  ( case newIndent `compare` indent of
+                      GT -> 1
+                      LT -> number
+                      EQ -> number + 1
+                  )
+                  (accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
+              return $
+                accumulated
+                  <> (if accumulated == "" then "" else "\n")
+                  <> formatted
+                  <> (if otherLines == "" then "" else "\n    " <> otherLines)
+            ]
 
 parseNumberedListSubsequentLine :: Parser Text
 parseNumberedListSubsequentLine =
