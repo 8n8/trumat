@@ -252,31 +252,32 @@ parseDocHeader :: Parser Text
 parseDocHeader =
   do
     _ <- space
-    contents <-
-      choice
-        [ do
-            _ <- chunk "# "
-            takeWhileP Nothing (\ch -> ch /= '\n'),
-          do
-            _ <- chunk "#\n"
-            return ""
-        ]
+    contents <- parseDocHeaderContents
     _ <- space
     return $ "\n\n\n#" <> (Text.strip contents) <> "\n\n"
+
+parseDocHeaderContents :: Parser Text
+parseDocHeaderContents =
+  choice
+    [ do
+        _ <- chunk "# "
+        takeWhileP Nothing (\ch -> ch /= '\n'),
+      do
+        _ <- chunk "#\n"
+        return ""
+    ]
 
 parseMultipleDocHeaders :: Parser Text
 parseMultipleDocHeaders =
   do
     first <- do
       _ <- space
-      _ <- char '#'
-      contents <- takeWhileP Nothing (\ch -> ch /= '\n')
+      contents <- parseDocHeaderContents
       _ <- space
       return contents
     subsequent <- some $ do
       _ <- space
-      _ <- char '#'
-      contents <- takeWhileP Nothing (\ch -> ch /= '\n')
+      contents <- parseDocHeaderContents
       _ <- space
       return contents
     return $ "\n\n\n#" <> first <> "\n\n\n#" <> Text.intercalate "\n\n#" subsequent
