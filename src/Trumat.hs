@@ -252,8 +252,15 @@ parseDocHeader :: Parser Text
 parseDocHeader =
   do
     _ <- space
-    _ <- char '#'
-    contents <- takeWhileP Nothing (\ch -> ch /= '\n')
+    contents <-
+      choice
+        [ do
+            _ <- chunk "# "
+            takeWhileP Nothing (\ch -> ch /= '\n'),
+          do
+            _ <- chunk "#\n"
+            return ""
+        ]
     _ <- space
     return $ "\n\n\n#" <> (Text.strip contents) <> "\n\n"
 
