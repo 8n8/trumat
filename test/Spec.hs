@@ -10266,5 +10266,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiple doc rows beginning with a hash",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| #a\n\
+      \#b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| #a\n\
+      \#b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
