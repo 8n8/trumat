@@ -255,7 +255,7 @@ parseDocHeader =
     _ <- char '#'
     contents <- takeWhileP Nothing (\ch -> ch /= '\n')
     _ <- space
-    return $ "\n\n\n#" <> contents <> "\n\n"
+    return $ "\n\n\n#" <> (Text.strip contents) <> "\n\n"
 
 parseMultipleDocHeaders :: Parser Text
 parseMultipleDocHeaders =
