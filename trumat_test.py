@@ -8,6 +8,12 @@ def to_string(cache):
     return s
 
 
+def _test_helper(unformatted, formatted):
+    cache = trumat.init_cache()
+    trumat.format(cache, unformatted)
+    return to_string(cache)
+
+
 def test_hello_world_formatted():
     input = """module X exposing (x)
 
@@ -15,6 +21,4 @@ def test_hello_world_formatted():
 x =
     0
 """
-    cache = trumat.init_cache()
-    trumat.format(cache, input)
-    assert to_string(cache) == input
+    assert _test_helper(input, input)
