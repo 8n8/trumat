@@ -53,7 +53,8 @@ def get_top(cache, index):
     if index == 0:
         return {}
 
-def format(cache):
+def format(cache, code):
+    populate_cache(cache, code)
     write_chunk(cache, "module ")
     write_quote(cache, get_module_name(cache))
     write_chunk(cache, " exposing ")

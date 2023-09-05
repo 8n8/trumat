@@ -16,6 +16,5 @@ x =
     0
 """
     cache = trumat.init_cache()
-    trumat.populate_cache(cache, input)
-    trumat.format(cache)
+    trumat.format(cache, input)
     assert to_string(cache) == input
