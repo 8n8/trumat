@@ -1,5 +1,12 @@
 import trumat
 
+def to_string(cache):
+    s = ""
+    for i in range(cache["formatted_size"]):
+        s += chr(cache["formatted"][i])
+
+    return s
+
 
 def test_hello_world_formatted():
     input = """module X exposing (x)
@@ -8,4 +15,7 @@ def test_hello_world_formatted():
 x =
     0
 """
-    assert trumat.format(input) == input
+    cache = trumat.init_cache()
+    trumat.populate_cache(cache, input)
+    trumat.format(cache)
+    assert to_string(cache) == input
