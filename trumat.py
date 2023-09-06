@@ -91,21 +91,16 @@ module_name_state_table = {
 def get_module_name(cache):
     """The state machine is like this:
 
-    0 before
-    1 m
-    2 o
-    3 d
-    4 u
-    5 l
-    6 e
-    7 spaces after module keyword
-    8 first name character
-    9 subsequent name characters
-    10 after
+    0 after spaces after module keyword
+    1 first name character
+    2 subsequent name characters
+    3 after
     """
 
     state = "before"
-    start = 0
+    if cache["module_keyword_index"] is None:
+        return
+    start = cache["module_keyword_index"]
     end = 0
 
     for c in cache["code"]:
@@ -119,13 +114,89 @@ def get_module_name(cache):
 def get_module_index(cache):
     return { "start": 7, "end": 8 }
 
+def index_exports(cache):
+    """ The states are:
+
+    - after module keyword
+    - inside export list
+    - after export list
+    """
+
+    return
+
+index_module_keyword_tokenizer = {
+    "m": "m",
+    "o": "o",
+    "d": "d",
+    "u": "u",
+    "l": "l",
+    "e": "e",
+    " ": " ",
+    "A": "other",
+    "a": "other",
+    'x': 'other',
+    'p': 'other',
+    's': 'other',
+    'i': 'other',
+    'n': 'other',
+    'g': 'other',
+    '(': 'other',
+    ')': 'other',
+    '\n': ' ',
+    '=': 'other',
+    '0': 'other',
+}
+
+index_module_keyword_transition = {
+    ("start", "m"): "after m",
+    ("after m", "o"): "after o",
+    ("after o", "d"): "after d",
+    ("after d", "u"): "after u",
+    ("after u", "l"): "after l",
+    ("after l", "e"): "after e",
+    ("after e", " "): "just after module keyword",
+    ("just after module keyword", "other"): "after",
+    ("after", "other"): "after",
+    ('after', ' '): 'after',
+    ('after', 'e'): 'after',
+    ('after', 'o'): 'after',
+}
+
+index_module_keyword_start = {
+    "after m": 1,
+    "after o": 1,
+    "after d": 1,
+    "after u": 1,
+    "after l": 1,
+    "after e": 1,
+    "just after module keyword": -6,
+    "after": 0,
+}
+
+def index_module_keyword(code):
+    state = "start"
+    start = 0
+
+    for c in code:
+        token = index_module_keyword_tokenizer[c]
+        state = index_module_keyword_transition[(state, token)]
+        start += index_module_keyword_start[state]
+
+    return start
+
 def populate_cache(cache, unformatted):
     cache["code"] = unformatted
     cache["size"] = len(cache["code"])
 
+    cache['module_keyword_index'] = index_module_keyword(cache['code'])
+    index_exports(cache)
+
 def get_export(cache, export_index):
-    if export_index == 0:
-        return { "start": 19, "end": 20 }
+    if export_index >= cache["num_exports"]:
+        return
+
+    return {"start": cache["export_start"][export_index],
+            "end": cache["export_end"][export_index]}
 
 def format_top(cache, top):
     write_chunk(cache, "x =\n    0")
