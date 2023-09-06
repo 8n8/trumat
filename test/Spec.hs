@@ -10338,5 +10338,36 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "second level header followed immediately by text line",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \## a\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \## a\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
