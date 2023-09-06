@@ -254,7 +254,7 @@ parseDocHeader =
     _ <- space
     contents <- parseDocHeaderContents
     _ <- space
-    return $ "\n\n\n#" <> (Text.strip contents) <> "\n\n"
+    return $ "\n\n\n#" <> (if Text.strip contents == "" then "" else " ") <> (Text.strip contents) <> "\n\n"
 
 parseDocHeaderContents :: Parser Text
 parseDocHeaderContents =
