@@ -207,6 +207,17 @@ parseDocRow =
       try $ do
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         docs <- parseExportDocsRow
+        headers <- parseMultipleDocHeaders
+        return $
+          mconcat
+          [ "@docs ",
+            intercalate ", " docs,
+            headers,
+            "\n\n"
+          ],
+      try $ do
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        docs <- parseExportDocsRow
         header <- choice [try parseDocHeader, return ""]
         _ <- char '\n'
         return $
