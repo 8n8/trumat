@@ -254,17 +254,21 @@ parseDocHeader =
     _ <- space
     contents <- parseDocHeaderContents
     _ <- space
-    return $ "\n\n\n#" <> (if Text.strip contents == "" then "" else " ") <> (Text.strip contents) <> "\n\n"
+    return $ "\n\n\n" <> contents <> "\n\n"
 
 parseDocHeaderContents :: Parser Text
 parseDocHeaderContents =
   choice
-    [ do
-        _ <- chunk "# "
-        takeWhileP Nothing (\ch -> ch /= '\n'),
+    [ try $ do
+        hashes <- takeWhile1P Nothing (\ch -> ch == '#')
+        _ <- char ' '
+        contents <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
+        let gap = if contents == "" then "" else " "
+        return $ hashes <> gap <> contents,
       do
-        _ <- chunk "#\n"
-        return ""
+        hashes <- takeWhile1P Nothing (\ch -> ch == '#')
+        _ <- char '\n'
+        return hashes
     ]
 
 parseMultipleDocHeaders :: Parser Text
@@ -280,7 +284,7 @@ parseMultipleDocHeaders =
       contents <- parseDocHeaderContents
       _ <- space
       return contents
-    return $ "\n\n\n#" <> first <> "\n\n\n#" <> Text.intercalate "\n\n#" subsequent
+    return $ "\n\n\n" <> first <> "\n\n\n" <> Text.intercalate "\n\n" subsequent
 
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
