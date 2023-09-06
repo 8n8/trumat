@@ -872,10 +872,38 @@ newlinesAfterBackticks item =
     then item <> "\n\n"
     else item
 
+stripSpaces :: Text -> Text
+stripSpaces text =
+  stripLeadingSpaces (Text.reverse (stripLeadingSpaces (Text.reverse text)))
+
+stripLeadingSpaces :: Text -> Text
+stripLeadingSpaces text =
+  case Text.uncons text of
+    Nothing ->
+      text
+    Just (' ', remainder) ->
+      stripLeadingSpaces remainder
+    Just _ ->
+      text
+
+stripOrdinaryDocRow :: Text -> Text
+stripOrdinaryDocRow row =
+  if Text.take 4 row == "    " || isListItem row
+    then row
+    else stripSpaces row
+
+stripLeadingSpacesFromDocRow :: [Text] -> [Text]
+stripLeadingSpacesFromDocRow rows =
+  case rows of
+    [] ->
+      []
+    top : remainder ->
+      top : map stripOrdinaryDocRow remainder
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
