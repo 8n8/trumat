@@ -10369,5 +10369,49 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "three headers in doc comment with at docs after first one",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \# a\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \\n\
+      \# b\n\
+      \\n\
+      \\n\
+      \# c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \# a\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \\n\
+      \# b\n\
+      \\n\
+      \\n\
+      \# c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
