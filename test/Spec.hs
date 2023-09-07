@@ -10413,5 +10413,32 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two empty lines after at docs row",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

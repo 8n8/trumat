@@ -210,11 +210,11 @@ parseDocRow =
         headers <- parseMultipleDocHeaders
         return $
           mconcat
-          [ "@docs ",
-            intercalate ", " docs,
-            headers,
-            "\n\n"
-          ],
+            [ "@docs ",
+              intercalate ", " docs,
+              headers,
+              "\n\n"
+            ],
       try $ do
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         docs <- parseExportDocsRow
