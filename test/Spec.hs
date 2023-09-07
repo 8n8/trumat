@@ -10440,5 +10440,38 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "extra trailing newline after text after code block after text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \    x =\n\
+      \        0\n\
+      \\n\
+      \b\n\
+      \\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \    x =\n\
+      \        0\n\
+      \\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
