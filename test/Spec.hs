@@ -10503,5 +10503,34 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two empty lines after text before code block in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \\n\
+      \    x =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \    x =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
