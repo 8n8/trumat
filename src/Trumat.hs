@@ -176,7 +176,7 @@ parseUnorderedListItemHelp nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (accumulated <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
+                  (accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
               return $
                 accumulated
                   <> (if accumulated == "" then "" else "\n")
