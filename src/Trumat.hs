@@ -920,7 +920,7 @@ trimTrailingNewlines rows =
   case reverse rows of
     "\n" : "\n" : maybeNotNewline : remainder ->
       if Text.takeEnd 1 maybeNotNewline == "\n"
-        then trimTrailingNewlines (remainder <> [Text.stripEnd maybeNotNewline, "\n", "\n"])
+        then trimTrailingNewlines ((reverse remainder) <> [Text.stripEnd maybeNotNewline, "\n", "\n"])
         else rows
     _ ->
       rows
