@@ -10563,5 +10563,32 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "numbered list following text with no empty line",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| b\n\
+      \1.  c\n\
+      \2.  d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| b\n\
+      \\n\
+      \1.  c\n\
+      \2.  d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
