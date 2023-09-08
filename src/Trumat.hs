@@ -75,6 +75,7 @@ import Prelude
     (<>),
     (==),
     (>),
+    (>=),
     (>>),
     (||),
   )
@@ -191,8 +192,10 @@ parseDocRow =
         _ <- some $
           do
             _ <- char '\n'
-            _ <- takeWhileP Nothing (\ch -> ch == ' ')
-            return ()
+            spaces <- takeWhileP Nothing (\ch -> ch == ' ')
+            if Text.length spaces >= 4
+              then fail "is a code block"
+              else return ()
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
