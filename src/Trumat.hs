@@ -948,10 +948,31 @@ addExtraNewlinesOnStartingCodeBlock rows =
         then "\n\n" <> top : remainder
         else rows
 
+emptyLineBeforeNumberedList :: [Text] -> [Text]
+emptyLineBeforeNumberedList rows =
+  emptyLineBeforeNumberedListHelp rows []
+
+emptyLineBeforeNumberedListHelp :: [Text] -> [Text] -> [Text]
+emptyLineBeforeNumberedListHelp rows accumulated =
+  case rows of
+    [] ->
+      reverse accumulated
+    top : second : third : remainder ->
+      if top /= "\n" && second == "\n" && isListItem third
+        then emptyLineBeforeNumberedListHelp remainder (third : second : "\n" : top : accumulated)
+        else
+          emptyLineBeforeNumberedListHelp
+            (second : third : remainder)
+            (top : accumulated)
+    top : remainder ->
+      emptyLineBeforeNumberedListHelp
+        remainder
+        (top : accumulated)
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
