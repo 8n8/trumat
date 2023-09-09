@@ -306,7 +306,8 @@ parseNumberedListItems :: Parser Text
 parseNumberedListItems =
   do
     indent <- getNumberedListItemIndent
-    parseNumberedListItemHelp 1 indent 1 ""
+    isGappy <- lookAhead $ parseNumberedListGappiness 1 indent False
+    parseNumberedListItemHelp 1 indent 1 "" isGappy
 
 getNumberedListItemIndent :: Parser Int
 getNumberedListItemIndent =
@@ -318,8 +319,49 @@ getNumberedListItemIndent =
       return ()
     return indent
 
-parseNumberedListItemHelp :: Int -> Int -> Int -> Text -> Parser Text
-parseNumberedListItemHelp nesting indent number accumulated =
+parseNumberedListGappiness :: Int -> Int -> Bool -> Parser Bool
+parseNumberedListGappiness nesting indent accumulated =
+  if nesting == 0
+    then return accumulated
+    else do
+      text <- fmap Text.strip noDoubleSpacesLine
+      if text == ""
+        then fail "empty numbered list item"
+        else do
+          gappiness <- fmap (any id) $
+            many $
+              try $
+                do
+                  _ <- notFollowedBy $ do
+                    _ <- space
+                    _ <- chunk "-}"
+                    return ()
+                  _ <- notFollowedBy $ do
+                    _ <- char '\n'
+                    _ <- space
+                    _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+                    _ <- choice [char '.', char ')']
+                    return ()
+                  newlines <- choice [chunk "\n\n", chunk "\n"]
+                  _ <- takeWhile1P Nothing (\ch -> ch /= '\n')
+                  return (Text.length newlines > 1)
+          choice
+            [ try $ do
+                _ <- char '\n'
+                newIndent <- getNumberedListItemIndent
+                parseNumberedListGappiness
+                  ( nesting + case newIndent `compare` indent of
+                      GT -> 1
+                      LT -> -1
+                      EQ -> 0
+                  )
+                  newIndent
+                  (gappiness || accumulated),
+              return (gappiness || accumulated)
+            ]
+
+parseNumberedListItemHelp :: Int -> Int -> Int -> Text -> Bool -> Parser Text
+parseNumberedListItemHelp nesting indent number accumulated isGappy =
   if nesting == 0
     then return accumulated
     else do
@@ -350,7 +392,7 @@ parseNumberedListItemHelp nesting indent number accumulated =
                       _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
                       _ <- choice [char '.', char ')']
                       return ()
-                    _ <- char '\n'
+                    _ <- choice [chunk "\n\n", chunk "\n"]
                     takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
@@ -368,12 +410,23 @@ parseNumberedListItemHelp nesting indent number accumulated =
                       LT -> number
                       EQ -> number + 1
                   )
-                  (accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
+                  ( accumulated
+                      <> (if accumulated == "" then "" else "\n")
+                      <> (if accumulated /= "" && isGappy then "\n" else "")
+                      <> formatted
+                      <> (if otherLines /= "" && isGappy then "\n" else "")
+                      <> (if otherLines == "" then "" else "\n    ")
+                      <> otherLines
+                  )
+                  isGappy,
               return $
                 accumulated
                   <> (if accumulated == "" then "" else "\n")
+                  <> (if accumulated /= "" && isGappy then "\n" else "")
                   <> formatted
-                  <> (if otherLines == "" then "" else "\n    " <> otherLines)
+                  <> (if otherLines /= "" && isGappy then "\n" else "")
+                  <> (if otherLines == "" then "" else "\n    ")
+                  <> otherLines
             ]
 
 parseNumberedListSubsequentLine :: Parser Text
