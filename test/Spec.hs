@@ -10682,5 +10682,38 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "no empty line between multi line numbered list items",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \    c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \2.  b\n\
+      \\n\
+      \    c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
