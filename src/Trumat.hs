@@ -960,12 +960,16 @@ addExtraNewlinesOnStartingCodeBlock rows =
     [] ->
       []
     top : remainder ->
-      if Text.take 6 (stripLeadingNewlines top) == "    {-"
-        then "\n\n\n\n" <> (stripLeadingNewlines top) : remainder
-        else
-          if any (\line -> Text.take 6 line == "    --") (Text.lines top)
-            then "\n\n\n" <> (stripLeadingNewlines top) : remainder
-            else rows
+      case ( Text.take 6 (stripLeadingNewlines top) == "    {-",
+             any (\line -> Text.take 6 line == "    --") (Text.lines top)
+           ) of
+        (True, False) ->
+          "\n\n\n\n" <> (stripLeadingNewlines top) : remainder
+        (False, True) ->
+          "\n\n\n" <> (stripLeadingNewlines top) : remainder
+        (True, True) ->
+          "\n\n" <> (stripLeadingNewlines top) : remainder
+        (False, False) -> rows
 
 emptyLineBeforeNumberedList :: [Text] -> [Text]
 emptyLineBeforeNumberedList rows =
@@ -991,7 +995,7 @@ emptyLineBeforeNumberedListHelp rows accumulated =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows {- fmap addExtraNewlinesAfterEndingCodeBlock $ -} <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
