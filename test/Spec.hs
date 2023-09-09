@@ -10778,5 +10778,37 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "numbered list followed by plain text row in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
