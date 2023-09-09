@@ -41,9 +41,9 @@ import Prelude
     Show,
     String,
     all,
+    any,
     compare,
     div,
-    any,
     elem,
     fail,
     filter,
@@ -940,6 +940,20 @@ stripTooManyNewlinesBeforeCodeBlocks :: [Text] -> [Text]
 stripTooManyNewlinesBeforeCodeBlocks rows =
   map stripTooManyNewlinesBeforeCodeBlock rows
 
+addExtraNewlinesAfterEndingCodeBlock :: [Text] -> [Text]
+addExtraNewlinesAfterEndingCodeBlock rows =
+  case reverse rows of
+    [] ->
+      []
+    last : remainder ->
+      case reverse (Text.lines (Text.strip last)) of
+        [] ->
+          rows
+        lastInLast : remainderOfLast ->
+          if Text.take 6 lastInLast == "    --"
+            then rows <> ["\n", "\n"]
+            else rows
+
 addExtraNewlinesOnStartingCodeBlock :: [Text] -> [Text]
 addExtraNewlinesOnStartingCodeBlock rows =
   case rows of
@@ -947,11 +961,11 @@ addExtraNewlinesOnStartingCodeBlock rows =
       []
     top : remainder ->
       if Text.take 6 (stripLeadingNewlines top) == "    {-"
-        then "\n\n" <> top : remainder
-        else if any (\line -> Text.take 6 line == "    --") (Text.lines top) then
-          "\n\n\n" <> (stripLeadingNewlines top) : remainder
-          else
-            rows
+        then "\n\n\n\n" <> (stripLeadingNewlines top) : remainder
+        else
+          if any (\line -> Text.take 6 line == "    --") (Text.lines top)
+            then "\n\n\n" <> (stripLeadingNewlines top) : remainder
+            else rows
 
 emptyLineBeforeNumberedList :: [Text] -> [Text]
 emptyLineBeforeNumberedList rows =
@@ -977,7 +991,7 @@ emptyLineBeforeNumberedListHelp rows accumulated =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows {- fmap addExtraNewlinesAfterEndingCodeBlock $ -} <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
