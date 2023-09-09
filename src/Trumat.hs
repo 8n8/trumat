@@ -129,7 +129,8 @@ parseUnorderedList :: Parser Text
 parseUnorderedList =
   do
     indent <- getUnorderedListItemIndent
-    parseUnorderedListItemHelp 1 indent ""
+    isGappy <- lookAhead $ parseUnorderedListGappiness 1 indent False
+    parseUnorderedListItemHelp 1 indent "" isGappy
 
 getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
@@ -138,8 +139,48 @@ getUnorderedListItemIndent =
     _ <- chunk "- "
     return indent
 
-parseUnorderedListItemHelp :: Int -> Int -> Text -> Parser Text
-parseUnorderedListItemHelp nesting indent accumulated =
+parseUnorderedListGappiness :: Int -> Int -> Bool -> Parser Bool
+parseUnorderedListGappiness nesting indent accumulated =
+  if nesting == 0
+    then return accumulated
+    else do
+      text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
+      if text == ""
+        then fail "empty unordered list item"
+        else do
+          gappiness <- fmap (any id) $
+            many $
+              try $
+                do
+                  _ <- notFollowedBy $ do
+                    _ <- space
+                    _ <- chunk "-}"
+                    return ()
+                  _ <- notFollowedBy $ do
+                    _ <- char '\n'
+                    _ <- space
+                    _ <- chunk "- "
+                    return ()
+                  newlines <- choice [chunk "\n\n", chunk "\n"]
+                  _ <- takeWhile1P Nothing (\ch -> ch /= '\n')
+                  return (Text.length newlines > 1)
+          choice
+            [ try $ do
+                newlines <- choice [chunk "\n\n", chunk "\n"]
+                newIndent <- getUnorderedListItemIndent
+                parseUnorderedListGappiness
+                  ( nesting + case newIndent `compare` indent of
+                      GT -> 1
+                      LT -> -1
+                      EQ -> 0
+                  )
+                  newIndent
+                  (newIndent == indent && (gappiness || accumulated || Text.length newlines > 1)),
+              return (gappiness || accumulated)
+            ]
+
+parseUnorderedListItemHelp :: Int -> Int -> Text -> Bool -> Parser Text
+parseUnorderedListItemHelp nesting indent accumulated isGappy =
   if nesting == 0
     then return accumulated
     else do
@@ -178,12 +219,22 @@ parseUnorderedListItemHelp nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (accumulated <> (if accumulated == "" then "" else "\n") <> formatted <> if otherLines == "" then "" else "\n    " <> otherLines),
+                  ( accumulated
+                      <> (if accumulated == "" then "" else "\n")
+                      <> formatted
+                      <> (if otherLines /= "" && isGappy then "\n" else "")
+                      <> (if otherLines == "" then "" else "\n    ")
+                      <> otherLines
+                  )
+                  isGappy,
               return $
                 accumulated
                   <> (if accumulated == "" then "" else "\n")
+                  <> (if accumulated /= "" && isGappy then "\n" else "")
                   <> formatted
-                  <> (if otherLines == "" then "" else "\n    " <> otherLines)
+                  <> (if otherLines /= "" && isGappy then "\n" else "")
+                  <> (if otherLines == "" then "" else "\n    ")
+                  <> otherLines
             ]
 
 parseDocRow :: Parser Text
