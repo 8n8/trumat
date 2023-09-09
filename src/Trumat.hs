@@ -249,7 +249,8 @@ parseDocRow =
               _ <-
                 notFollowedBy $
                   lookAhead $
-                    choice [chunk "-}", chunk "docs"]
+                    choice
+                      [chunk "-}", chunk "docs"]
               choice
                 [ do
                     hyphens <- some $ char '-'
@@ -972,7 +973,7 @@ emptyLineBeforeNumberedListHelp rows accumulated =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some parseDocRow
+    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
@@ -1007,7 +1008,9 @@ parseModuleDocsHelp nesting contents =
             _ <- chunk "{-"
             parseModuleDocsHelp (nesting + 1) (contents <> "{-"),
           do
-            _ <- chunk "-}"
+            _ <- try $ do
+              _ <- takeWhileP Nothing (\ch -> ch == ' ')
+              chunk "-}"
             parseModuleDocsHelp
               (nesting - 1)
               ( if Text.strip contents == "{-"
