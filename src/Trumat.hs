@@ -347,7 +347,7 @@ parseNumberedListGappiness nesting indent accumulated =
                   return (Text.length newlines > 1)
           choice
             [ try $ do
-                _ <- char '\n'
+                newlines <- choice [chunk "\n\n", chunk "\n"]
                 newIndent <- getNumberedListItemIndent
                 parseNumberedListGappiness
                   ( nesting + case newIndent `compare` indent of
@@ -356,7 +356,7 @@ parseNumberedListGappiness nesting indent accumulated =
                       EQ -> 0
                   )
                   newIndent
-                  (gappiness || accumulated),
+                  (gappiness || accumulated || Text.length newlines > 1),
               return (gappiness || accumulated)
             ]
 
@@ -396,7 +396,7 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
                     takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
-                _ <- char '\n'
+                _ <- choice [chunk "\n\n", chunk "\n"]
                 newIndent <- getNumberedListItemIndent
                 parseNumberedListItemHelp
                   ( nesting + case newIndent `compare` indent of
