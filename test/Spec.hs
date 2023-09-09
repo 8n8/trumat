@@ -10715,5 +10715,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "numbered list with empty line between the items",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \1.  b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \2.  b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
