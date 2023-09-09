@@ -43,6 +43,7 @@ import Prelude
     all,
     compare,
     div,
+    any,
     elem,
     fail,
     filter,
@@ -749,7 +750,7 @@ parserInDocs =
   do
     moduleDeclaration <- parseModuleDeclarationNoCreate
     _ <- space
-    parseAfterModuleDeclaration moduleDeclaration
+    parseAfterModuleDeclarationInDocComment moduleDeclaration
 
 formatElmInDocsHelp :: [Text] -> [Text] -> [Text] -> [Text]
 formatElmInDocsHelp rows accumulatedElm accumulated =
@@ -796,7 +797,7 @@ formatElmChunkInDocs rows =
     _ ->
       let leadingNewlines = getLeadingNewlines (mconcat rows)
           trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
-          codeChunk = stripNewlines $ mconcat $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) rows
+          codeChunk = (Text.stripEnd $ mconcat $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) rows) <> "\n"
           formatted = case formatElmCodeInDocs codeChunk of
             Nothing ->
               codeChunk
@@ -947,7 +948,10 @@ addExtraNewlinesOnStartingCodeBlock rows =
     top : remainder ->
       if Text.take 6 (stripLeadingNewlines top) == "    {-"
         then "\n\n" <> top : remainder
-        else rows
+        else if any (\line -> Text.take 6 line == "    --") (Text.lines top) then
+          "\n\n\n" <> (stripLeadingNewlines top) : remainder
+          else
+            rows
 
 emptyLineBeforeNumberedList :: [Text] -> [Text]
 emptyLineBeforeNumberedList rows =
@@ -973,7 +977,7 @@ emptyLineBeforeNumberedListHelp rows accumulated =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows <- fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
@@ -1969,6 +1973,42 @@ parser =
     moduleDeclaration <- parseModuleDeclarationWithTitle
     _ <- space
     parseAfterModuleDeclaration moduleDeclaration
+
+parseAfterModuleDeclarationInDocComment :: Text -> Parser Text
+parseAfterModuleDeclarationInDocComment moduleDeclaration =
+  do
+    imports <-
+      fmap (intercalate "\n" . List.sort . List.nub) $
+        many $
+          do
+            import_ <- try parseImport
+            _ <- space
+            return import_
+    _ <- space
+    topLevelBinds <-
+      many $
+        choice
+          [ try parseTypeAliasDeclaration,
+            try parseCustomTypeDeclaration,
+            try parseSectionComment,
+            try parsePortDeclaration,
+            try parseTopLevelBind,
+            try parseIndependentDocComment,
+            parseDocCommentAtEndOfModule
+          ]
+    _ <- eof
+    let binds = intercalate "\n\n" topLevelBinds
+    return $
+      mconcat
+        [ moduleDeclaration,
+          if imports == ""
+            then ""
+            else if moduleDeclaration == "" then "" else "\n\n",
+          imports,
+          if binds == "" then "" else "\n\n\n",
+          binds,
+          "\n"
+        ]
 
 parseAfterModuleDeclaration :: Text -> Parser Text
 parseAfterModuleDeclaration moduleDeclaration =
