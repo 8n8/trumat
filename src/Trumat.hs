@@ -939,7 +939,7 @@ addNewlineToTrailingCode rows =
       case reverse (Text.lines possiblyCodeBlock) of
         possiblyCodeRow : remainder ->
           if Text.take 4 possiblyCodeRow == "    "
-            then previous <> [possiblyCodeBlock <> "\n"]
+            then reverse previous <> [possiblyCodeBlock <> "\n"]
             else rows
         _ ->
           rows
@@ -1105,7 +1105,7 @@ emptyLineBeforeNumberedListHelp rows accumulated =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ {-OK-} fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
