@@ -375,10 +375,6 @@ parseNumberedListGappiness nesting indent accumulated =
   if nesting == 0
     then return accumulated
     else do
-      startColumn <- fmap (unPos . sourceColumn) getSourcePos
-      if startColumn == 1 then
-        fail "after end of list"
-      else do
        text <- fmap Text.strip noDoubleSpacesLine
        if text == ""
         then fail "empty numbered list item"
