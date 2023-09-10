@@ -1043,9 +1043,15 @@ trimTrailingNewlines rows =
 
 stripTooManyNewlinesBeforeCodeBlock :: Text -> Text
 stripTooManyNewlinesBeforeCodeBlock maybeBlock =
-  if Text.take 4 (stripLeadingNewlines maybeBlock) == "    "
-    then "\n\n" <> stripLeadingNewlines maybeBlock
-    else maybeBlock
+  let containsLineComment :: Bool
+      containsLineComment =
+        any (\line -> Text.take 6 line == "    --") (Text.lines maybeBlock)
+
+      extraNewline :: Text
+      extraNewline = if containsLineComment then "\n" else ""
+   in if Text.take 4 (stripLeadingNewlines maybeBlock) == "    "
+        then extraNewline <> "\n\n" <> stripLeadingNewlines maybeBlock
+        else maybeBlock
 
 stripTooManyNewlinesBeforeCodeBlocks :: [Text] -> [Text]
 stripTooManyNewlinesBeforeCodeBlocks rows =
