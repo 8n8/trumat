@@ -375,8 +375,8 @@ parseNumberedListGappiness nesting indent accumulated =
   if nesting == 0
     then return accumulated
     else do
-       text <- fmap Text.strip noDoubleSpacesLine
-       if text == ""
+      text <- fmap Text.strip noDoubleSpacesLine
+      if text == ""
         then fail "empty numbered list item"
         else do
           gappiness <- fmap (any id) $
@@ -447,10 +447,9 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
                     _ <- choice [chunk "\n\n", chunk "\n"]
                     _ <- takeWhileP Nothing (\ch -> ch == ' ')
                     startColumn <- fmap (unPos . sourceColumn) getSourcePos
-                    if startColumn == 1 then
-                      fail "after end of list"
-                    else
-                      takeWhile1P Nothing (\ch -> ch /= '\n')
+                    if startColumn == 1
+                      then fail "after end of list"
+                      else takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
                 _ <- choice [chunk "\n\n", chunk "\n"]

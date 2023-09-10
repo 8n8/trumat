@@ -10810,5 +10810,41 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "non elm code block following numbered list item",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \2.  b\n\
+      \\n\
+      \    c\n\
+      \    d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \\n\
+      \2.  b\n\
+      \\n\
+      \    c\n\
+      \    d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
