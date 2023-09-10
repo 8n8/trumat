@@ -431,25 +431,26 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
         else do
           otherLines <- fmap Text.strip $
             fmap (intercalate "\n") $
-              many $
-                try $
-                  do
-                    _ <- notFollowedBy $ do
-                      _ <- space
-                      _ <- chunk "-}"
-                      return ()
-                    _ <- notFollowedBy $ do
-                      _ <- char '\n'
-                      _ <- space
-                      _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
-                      _ <- choice [char '.', char ')']
-                      return ()
-                    _ <- choice [chunk "\n\n", chunk "\n"]
-                    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                    startColumn <- fmap (unPos . sourceColumn) getSourcePos
-                    if startColumn == 1
-                      then fail "after end of list"
-                      else takeWhile1P Nothing (\ch -> ch /= '\n')
+              fmap (fmap (\line -> "    " <> line)) $
+                many $
+                  try $
+                    do
+                      _ <- notFollowedBy $ do
+                        _ <- space
+                        _ <- chunk "-}"
+                        return ()
+                      _ <- notFollowedBy $ do
+                        _ <- char '\n'
+                        _ <- space
+                        _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+                        _ <- choice [char '.', char ')']
+                        return ()
+                      _ <- choice [chunk "\n\n", chunk "\n"]
+                      _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                      startColumn <- fmap (unPos . sourceColumn) getSourcePos
+                      if startColumn == 1
+                        then fail "after end of list"
+                        else takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
                 _ <- choice [chunk "\n\n", chunk "\n"]
