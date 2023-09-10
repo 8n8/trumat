@@ -10882,5 +10882,40 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "non elm code block after two empty lines after numbered list",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \\n\
+      \    c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \```\n\
+      \c\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
