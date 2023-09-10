@@ -10951,5 +10951,41 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment between declarations in code block in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    a =\n\
+      \        0\n\
+      \\n\
+      \    --\n\
+      \    b =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    a =\n\
+      \        0\n\
+      \\n\
+      \    --\n\
+      \    b =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
