@@ -10917,5 +10917,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "code block with line comment following text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \\n\
+      \    b =\n\
+      \        0\n\
+      \\n\
+      \    --\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \\n\
+      \    b =\n\
+      \        0\n\
+      \\n\
+      \    --\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
