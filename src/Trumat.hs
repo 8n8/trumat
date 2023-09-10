@@ -987,7 +987,8 @@ backticksAroundCodeAfterUnorderedListHelp :: [Text] -> [Text] -> [Text]
 backticksAroundCodeAfterUnorderedListHelp rows accumulated =
   case rows of
     top : second : remainder ->
-      if isListItem top && Text.take 7 second == "\n\n\n    "
+      if isListItem top
+        && Text.take 4 (stripLeadingNewlines $ mconcat (second : remainder)) == "    "
         then
           backticksAroundCodeAfterUnorderedListHelp
             remainder
