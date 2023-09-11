@@ -1041,14 +1041,22 @@ trimTrailingNewlines rows =
     _ ->
       rows
 
+stripTrailingNewlines :: Text -> Text
+stripTrailingNewlines text =
+  Text.reverse (stripLeadingNewlines (Text.reverse text))
+
+lastIsLineComment :: Text -> Bool
+lastIsLineComment codeBlock =
+  case reverse $ Text.lines (stripTrailingNewlines codeBlock) of
+    [] ->
+      False
+    last : _ ->
+      Text.take 6 last == "    --"
+
 stripTooManyNewlinesBeforeCodeBlock :: Text -> Text
 stripTooManyNewlinesBeforeCodeBlock maybeBlock =
-  let containsLineComment :: Bool
-      containsLineComment =
-        any (\line -> Text.take 6 line == "    --") (Text.lines maybeBlock)
-
-      extraNewline :: Text
-      extraNewline = if containsLineComment then "\n" else ""
+  let extraNewline :: Text
+      extraNewline = if lastIsLineComment maybeBlock then "\n" else ""
    in if Text.take 4 (stripLeadingNewlines maybeBlock) == "    "
         then extraNewline <> "\n\n" <> stripLeadingNewlines maybeBlock
         else maybeBlock
@@ -1078,7 +1086,7 @@ addExtraNewlinesOnStartingCodeBlock rows =
       []
     top : remainder ->
       case ( Text.take 6 (stripLeadingNewlines top) == "    {-",
-             any (\line -> Text.take 6 line == "    --") (Text.lines top)
+             lastIsLineComment top
            ) of
         (True, False) ->
           "\n\n\n\n" <> (stripLeadingNewlines top) : remainder
@@ -2109,6 +2117,12 @@ parser =
     _ <- space
     parseAfterModuleDeclaration moduleDeclaration
 
+withTrailing :: Int -> Parser Text -> Parser Text
+withTrailing numTrailing parser' =
+  do
+    result <- parser'
+    return $ result <> replicate numTrailing "\n"
+
 parseAfterModuleDeclarationInDocComment :: Text -> Parser Text
 parseAfterModuleDeclarationInDocComment moduleDeclaration =
   do
@@ -2123,16 +2137,16 @@ parseAfterModuleDeclarationInDocComment moduleDeclaration =
     topLevelBinds <-
       many $
         choice
-          [ try parseTypeAliasDeclaration,
-            try parseCustomTypeDeclaration,
-            try parseSectionComment,
-            try parsePortDeclaration,
-            try parseTopLevelBind,
-            try parseIndependentDocComment,
-            parseDocCommentAtEndOfModule
+          [ try $ withTrailing 2 parseTypeAliasDeclaration,
+            try $ withTrailing 2 parseCustomTypeDeclaration,
+            try $ withTrailing 1 parseSectionComment,
+            try $ withTrailing 2 parsePortDeclaration,
+            try $ withTrailing 2 parseTopLevelBind,
+            try $ withTrailing 2 parseIndependentDocComment,
+            withTrailing 2 parseDocCommentAtEndOfModule
           ]
     _ <- eof
-    let binds = intercalate "\n\n" topLevelBinds
+    let binds = stripTrailingNewlines $ mconcat topLevelBinds
     return $
       mconcat
         [ moduleDeclaration,
