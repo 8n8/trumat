@@ -162,6 +162,7 @@ parseUnorderedListGappiness nesting indent accumulated =
                     _ <- chunk "- "
                     return ()
                   newlines <- choice [chunk "\n\n", chunk "\n"]
+                  _ <- lookAhead (char ' ')
                   _ <- takeWhile1P Nothing (\ch -> ch /= '\n')
                   return (Text.length newlines > 1)
           choice
