@@ -1118,6 +1118,10 @@ emptyLineBeforeNumberedListHelp rows accumulated =
         remainder
         (top : accumulated)
 
+removeSingleAsterisk :: [Text] -> [Text]
+removeSingleAsterisk rows =
+  if Text.strip (mconcat rows) == "*" then [] else rows
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
@@ -1165,7 +1169,7 @@ parseModuleDocsHelp nesting contents =
                   || Text.strip contents == "{-|"
                   then Text.strip contents <> " -}"
                   else
-                    if Text.strip (Text.drop 3 contents) == "-"
+                    if Text.strip (Text.drop 3 contents) == "-" || Text.strip (Text.drop 3 contents) == "*"
                       then "{-|\n\n\n-}"
                       else contents <> "-}"
               ),
