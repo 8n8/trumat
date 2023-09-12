@@ -961,7 +961,15 @@ backtickCodeChunkAfterOrderedList code =
       noIndent = map (Text.drop 4) lines
       unlines = Text.unlines noIndent
       stripped = Text.strip unlines
-   in "\n```\n" <> stripped <> "\n```"
+      extraNewline =
+        case reverse (Text.lines (stripTrailingNewlines stripped)) of
+          [] ->
+            ""
+          last : _ ->
+            if Text.take 2 (Text.strip last) == "--"
+              then "\n"
+              else ""
+   in "\n```" <> extraNewline <> "\n" <> stripped <> "\n```"
 
 backticksAroundCodeAfterOrderedListHelp :: [Text] -> [Text] -> [Text]
 backticksAroundCodeAfterOrderedListHelp rows accumulated =
@@ -976,29 +984,37 @@ backticksAroundCodeAfterOrderedListHelp rows accumulated =
     _ ->
       (reverse accumulated) <> rows
 
-backticksAroundCodeAfterUnorderedList :: [Text] -> [Text]
-backticksAroundCodeAfterUnorderedList rows =
-  backticksAroundCodeAfterUnorderedListHelp rows []
+backticksAroundCodeAfterList :: [Text] -> [Text]
+backticksAroundCodeAfterList rows =
+  backticksAroundCodeAfterListHelp rows []
 
-backtickCodeChunkAfterUnorderedList :: Text -> Text
-backtickCodeChunkAfterUnorderedList code =
+backtickCodeChunkAfterList :: Text -> Text
+backtickCodeChunkAfterList code =
   let lines = Text.lines code
       noIndent = map (Text.drop 4) lines
       unlines = Text.unlines noIndent
       stripped = Text.strip unlines
-   in "\n\n```\n" <> stripped <> "\n```"
+      extraNewline =
+        case reverse (Text.lines (stripTrailingNewlines stripped)) of
+          [] ->
+            ""
+          last : _ ->
+            if Text.take 2 (Text.strip last) == "--"
+              then "\n"
+              else ""
+   in "\n\n```\n" <> extraNewline <> stripped <> "\n```"
 
-backticksAroundCodeAfterUnorderedListHelp :: [Text] -> [Text] -> [Text]
-backticksAroundCodeAfterUnorderedListHelp rows accumulated =
+backticksAroundCodeAfterListHelp :: [Text] -> [Text] -> [Text]
+backticksAroundCodeAfterListHelp rows accumulated =
   case rows of
     top : second : remainder ->
       if isListItem top
         && Text.take 4 (stripLeadingNewlines $ mconcat (second : remainder)) == "    "
         then
-          backticksAroundCodeAfterUnorderedListHelp
+          backticksAroundCodeAfterListHelp
             remainder
-            (backtickCodeChunkAfterUnorderedList second : top : accumulated)
-        else backticksAroundCodeAfterUnorderedListHelp (second : remainder) (top : accumulated)
+            (backtickCodeChunkAfterList second : top : accumulated)
+        else backticksAroundCodeAfterListHelp (second : remainder) (top : accumulated)
     _ ->
       (reverse accumulated) <> rows
 
@@ -1129,7 +1145,7 @@ removeSingleAsterisk rows =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterOrderedList $ fmap backticksAroundCodeAfterUnorderedList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
