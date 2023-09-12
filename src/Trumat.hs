@@ -298,7 +298,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ parseOrdinaryTextInDoc
+              text <- try $ fmap escapeAsterisks $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -533,6 +533,10 @@ noDoubleSpacesLine =
         [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
           takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
         ]
+
+escapeAsterisks :: Text -> Text
+escapeAsterisks text =
+  Text.replace "*" "\\*" text
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
@@ -1169,7 +1173,7 @@ parseModuleDocsHelp nesting contents =
                   || Text.strip contents == "{-|"
                   then Text.strip contents <> " -}"
                   else
-                    if Text.strip (Text.drop 3 contents) == "-" || Text.strip (Text.drop 3 contents) == "*"
+                    if Text.strip (Text.drop 3 contents) == "-" || Text.strip (Text.drop 3 contents) == "\\*"
                       then "{-|\n\n\n-}"
                       else contents <> "-}"
               ),
