@@ -238,6 +238,21 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                   <> otherLines
             ]
 
+parseBacktickedCodeBlock :: Parser Text
+parseBacktickedCodeBlock =
+  do
+    _ <- chunk "```"
+    pieces <- many $ do
+      piece <- takeWhile1P Nothing (\ch -> ch /= '`')
+      _ <- notFollowedBy $ chunk "```"
+      backticks <- choice [chunk "``", chunk "`"]
+      return $ piece <> backticks
+    _ <- chunk "```"
+    let code = mconcat pieces
+        lines = Text.lines code
+        indented = mconcat $ map (\line -> "    " <> line) lines
+    return indented
+
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -252,6 +267,7 @@ parseDocRow =
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
+      parseBacktickedCodeBlock,
       try parseMultipleDocHeaders,
       try parseDocHeader,
       chunk "\n",
