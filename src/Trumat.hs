@@ -242,11 +242,15 @@ parseBacktickedCodeBlock :: Parser Text
 parseBacktickedCodeBlock =
   do
     _ <- chunk "```"
-    pieces <- many $ do
+    pieces <- many $ try $ do
       piece <- takeWhile1P Nothing (\ch -> ch /= '`')
-      _ <- notFollowedBy $ chunk "```"
-      backticks <- choice [chunk "``", chunk "`"]
-      return $ piece <> backticks
+      choice
+        [ do
+            notFollowedBy $ lookAhead $ chunk "```"
+            backticks <- choice [chunk "``", chunk "`"]
+            return $ piece <> backticks,
+          return piece
+        ]
     _ <- chunk "```"
     let code = mconcat pieces
         lines = Text.lines code
