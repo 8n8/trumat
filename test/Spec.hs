@@ -11140,5 +11140,48 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "no leading empty line in code block with trailing line comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \```\n\
+      \c =\n\
+      \    0\n\
+      \\n\
+      \--\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \1.  a\n\
+      \2.  b\n\
+      \\n\
+      \```\n\
+      \\n\
+      \c =\n\
+      \    0\n\
+      \\n\
+      \--\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
