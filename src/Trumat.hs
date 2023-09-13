@@ -951,39 +951,6 @@ addNewlineToTrailingCode rows =
     _ ->
       rows
 
-backticksAroundCodeAfterOrderedList :: [Text] -> [Text]
-backticksAroundCodeAfterOrderedList rows =
-  backticksAroundCodeAfterOrderedListHelp rows []
-
-backtickCodeChunkAfterOrderedList :: Text -> Text
-backtickCodeChunkAfterOrderedList code =
-  let lines = Text.lines code
-      noIndent = map (Text.drop 4) lines
-      unlines = Text.unlines noIndent
-      stripped = Text.strip unlines
-      extraNewline =
-        case reverse (Text.lines (stripTrailingNewlines stripped)) of
-          [] ->
-            ""
-          last : _ ->
-            if Text.take 2 (Text.strip last) == "--"
-              then "\n"
-              else ""
-   in "\n```" <> extraNewline <> "\n" <> stripped <> "\n```"
-
-backticksAroundCodeAfterOrderedListHelp :: [Text] -> [Text] -> [Text]
-backticksAroundCodeAfterOrderedListHelp rows accumulated =
-  case rows of
-    top : second : remainder ->
-      if isListItem top && Text.take 6 second == "\n\n    "
-        then
-          backticksAroundCodeAfterOrderedListHelp
-            remainder
-            (backtickCodeChunkAfterOrderedList second : top : accumulated)
-        else backticksAroundCodeAfterOrderedListHelp (second : remainder) (top : accumulated)
-    _ ->
-      (reverse accumulated) <> rows
-
 backticksAroundCodeAfterList :: [Text] -> [Text]
 backticksAroundCodeAfterList rows =
   backticksAroundCodeAfterListHelp rows []
@@ -1018,11 +985,28 @@ backticksAroundCodeAfterListHelp rows accumulated =
     _ ->
       (reverse accumulated) <> rows
 
-newlinesAfterBackticks :: Text -> Text
-newlinesAfterBackticks item =
-  if Text.takeEnd 3 item == "```"
-    then item <> "\n\n"
-    else item
+newlinesAfterTrailingBackticks :: [Text] -> [Text]
+newlinesAfterTrailingBackticks items =
+  newlinesAfterTrailingBackticksHelp items False []
+
+newlinesAfterTrailingBackticksHelp :: [Text] -> Bool -> [Text] -> [Text]
+newlinesAfterTrailingBackticksHelp items inQuotes accum =
+  case items of
+    [] ->
+      reverse accum
+
+    top : remainder ->
+      if Text.take 3 top == "```"
+        then
+         newlinesAfterTrailingBackticksHelp
+          remainder
+          (not inQuotes)
+          ((log "top" top) <> (if inQuotes then "\n\n" else "") : accum)
+        else
+          newlinesAfterTrailingBackticksHelp
+            remainder
+            inQuotes
+            (top : accum)
 
 stripSpaces :: Text -> Text
 stripSpaces text =
@@ -1145,7 +1129,7 @@ removeSingleAsterisk rows =
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
-    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
+    rows <- fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ dbg "after" $ fmap newlinesAfterTrailingBackticks $ dbg "before" $ fmap backticksAroundCodeAfterList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
         flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
