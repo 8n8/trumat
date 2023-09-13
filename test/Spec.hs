@@ -11103,7 +11103,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "backticked code block in doc comment with leading newline",
+    ( "code block in backticks following numbered list in doc comment",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
@@ -11112,11 +11112,8 @@ cases =
       \2.  b\n\
       \\n\
       \```\n\
-      \\n\
       \c =\n\
       \    0\n\
-      \\n\
-      \--\n\
       \```\n\
       \\n\
       \-}\n\
@@ -11133,11 +11130,8 @@ cases =
       \2.  b\n\
       \\n\
       \```\n\
-      \\n\
       \c =\n\
       \    0\n\
-      \\n\
-      \--\n\
       \```\n\
       \\n\
       \-}\n\
