@@ -11183,5 +11183,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment followed by block comment followed by line comment",
+      "module X exposing (x)\n\
+      \\n\
+      \--\n\
+      \\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \--\n\
+      \--\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
