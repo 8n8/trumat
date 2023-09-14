@@ -2297,6 +2297,21 @@ parseTitleHelp =
         line <- parseLineComment
         _ <- space
         return $ block <> "\n" <> line,
+      try $ do
+        _ <- space
+        linesBefore <- some $
+          do
+            line <- parseLineComment
+            _ <- space
+            return line
+        block <- parseModuleDocs
+        _ <- space
+        linesAfter <- some $
+          do
+            line <- parseLineComment
+            _ <- space
+            return line
+        return $ block <> "\n\n" <> intercalate "\n" (linesBefore <> linesAfter),
       do
         _ <- space
         lines_ <- some $
