@@ -1227,8 +1227,8 @@ parseModuleDocsHelp nesting contents =
             parseModuleDocsHelp nesting (contents <> "{")
         ]
 
-parseModuleDocs :: Parser Text
-parseModuleDocs =
+parseDocComment :: Parser Text
+parseDocComment =
   do
     _ <- chunk "{-|"
     parseModuleDocsHelp 1 "{-|"
@@ -1258,7 +1258,7 @@ parseModuleDeclaration =
 
     exports <- parseExposing 4 docs
     _ <- space
-    moduleDocs <- choice [parseModuleDocs, return ""]
+    moduleDocs <- choice [parseDocComment, return ""]
     _ <- space
     return $
       mconcat
@@ -1363,7 +1363,7 @@ getTypeAliasDeclarationName :: Parser Text
 getTypeAliasDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -1383,7 +1383,7 @@ parseTypeAliasDeclaration :: Parser Text
 parseTypeAliasDeclaration =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
     _ <- space1
@@ -1419,7 +1419,7 @@ getCustomTypeDeclarationName :: Parser Text
 getCustomTypeDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
     _ <- space
@@ -1435,7 +1435,7 @@ parseCustomTypeDeclaration :: Parser Text
 parseCustomTypeDeclaration =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
     _ <- space1
@@ -1620,7 +1620,7 @@ getTopLevelBindName :: Parser Text
 getTopLevelBindName =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
@@ -1637,7 +1637,7 @@ parseTopLevelBind :: Parser Text
 parseTopLevelBind =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
@@ -2244,7 +2244,7 @@ getPortDeclarationName :: Parser Text
 getPortDeclarationName =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- chunk "port"
     _ <- space1
@@ -2254,7 +2254,7 @@ parsePortDeclaration :: Parser Text
 parsePortDeclaration =
   do
     _ <- space
-    documentation <- choice [parseModuleDocs, return ""]
+    documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- chunk "port"
     _ <- space1
@@ -2304,7 +2304,7 @@ parseTitleHelp =
             line <- parseLineComment
             _ <- space
             return line
-        block <- parseModuleDocs
+        block <- parseDocComment
         _ <- space
         linesAfter <- some $
           do
