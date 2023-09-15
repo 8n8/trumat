@@ -11271,5 +11271,28 @@ cases =
       \{-| \\*\\*\n\
       \-}\n\
       \"
+    ),
+    ( "multiline independent block comment containing single line",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a\n\
+      \-}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a -}\n\
+      \"
     )
   ]
