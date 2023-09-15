@@ -2379,30 +2379,6 @@ parseDocCommentAtEndOfModule =
     _ <- lookAhead eof
     return $ comment <> (if lineComments == [] then "" else "\n\n\n\n") <> intercalate "\n" lineComments
 
-parseDocCommentHelp :: Int -> Text -> Parser Text
-parseDocCommentHelp nesting contents =
-  if nesting == 0
-    then return contents
-    else do
-      choice
-        [ do
-            _ <- chunk "{-"
-            parseDocCommentHelp (nesting + 1) (contents <> "{-"),
-          do
-            _ <- chunk "-}"
-            let stripped = if Text.strip contents == "{-|" then "{-| " else contents
-            parseDocCommentHelp (nesting - 1) (stripped <> "-}"),
-          do
-            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseDocCommentHelp nesting (contents <> indentDocRows piece),
-          do
-            _ <- char '-'
-            parseDocCommentHelp nesting (contents <> "-"),
-          do
-            _ <- char '{'
-            parseDocCommentHelp nesting (contents <> "{")
-        ]
-
 indentDocRows :: Text -> Text
 indentDocRows raw =
   case Text.lines raw of
