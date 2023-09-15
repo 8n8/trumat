@@ -2365,7 +2365,7 @@ parseDocCommentAtEndOfModule :: Parser Text
 parseDocCommentAtEndOfModule =
   do
     _ <- chunk "{-|"
-    comment <- parseDocCommentHelp 1 "{-|"
+    comment <- parseModuleDocsHelp 1 "{-|"
     _ <- space
     lineComments <-
       choice
