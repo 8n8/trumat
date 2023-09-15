@@ -11249,5 +11249,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "doc comment containing asterisks at end of module",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| **\n\
+      \-}\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \{-| \\*\\*\n\
+      \-}\n\
+      \"
     )
   ]
