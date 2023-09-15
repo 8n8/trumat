@@ -2220,7 +2220,7 @@ parseAfterModuleDeclaration moduleDeclaration =
         choice
           [ try parseTypeAliasDeclaration,
             try parseCustomTypeDeclaration,
-            try parseSectionComment,
+            try $ parseSectionComment,
             try parsePortDeclaration,
             try parseTopLevelBind,
             try parseIndependentDocComment,
@@ -2399,7 +2399,12 @@ parseBlockCommentHelp nesting contents =
             parseBlockCommentHelp (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
-            parseBlockCommentHelp (nesting - 1) (contents <> "-}"),
+            let noStart = Text.drop 2 contents
+            let cleaned =
+                  if Text.elem '\n' (Text.stripEnd noStart) || Text.strip noStart == ""
+                    then contents
+                    else (Text.strip contents) <> (if Text.strip noStart == "" then "" else " ")
+            parseBlockCommentHelp (nesting - 1) (cleaned <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseBlockCommentHelp nesting (contents <> (indentBlockRows piece)),
