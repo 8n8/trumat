@@ -2352,7 +2352,7 @@ parseIndependentDocComment :: Parser Text
 parseIndependentDocComment =
   do
     _ <- chunk "{-|"
-    comment <- parseDocCommentHelp 1 "{-|"
+    comment <- parseModuleDocsHelp 1 "{-|"
     _ <- space
     lineComments <-
       some $ do
