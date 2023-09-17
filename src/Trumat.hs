@@ -233,7 +233,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                 isGappy,
             return $
               accumulated
-                <> ( if text == ""
+                <> ( if text == "" || text == "*"
                        then ""
                        else
                          (if accumulated == "" then "" else "\n")

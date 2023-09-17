@@ -11350,7 +11350,7 @@ cases =
     ( "unordered list item containing only an asterisk",
       "module X exposing (x)\n\
       \\n\
-      \{-| \n\
+      \{-|\n\
       \\n\
       \  - a\n\
       \  - *\n\
