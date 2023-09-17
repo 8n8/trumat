@@ -11415,10 +11415,7 @@ cases =
       \",
       "module X exposing (x)\n\
       \\n\
-      \{-|\n\
-      \\n\
-      \\n\
-      \-}\n\
+      \{-| -}\n\
       \\n\
       \\n\
       \x =\n\

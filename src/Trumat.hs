@@ -506,12 +506,16 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
                   isGappy,
               return $
                 accumulated
-                  <> (if accumulated == "" then "" else "\n")
-                  <> (if accumulated /= "" && isGappy then "\n" else "")
-                  <> formatted
-                  <> (if otherLines /= "" && isGappy then "\n" else "")
-                  <> (if otherLines == "" then "" else "\n    ")
-                  <> otherLines
+                  <> ( if text == "*"
+                         then "\n\n"
+                         else
+                           (if accumulated == "" then "" else "\n")
+                             <> (if accumulated /= "" && isGappy then "\n" else "")
+                             <> formatted
+                             <> (if otherLines /= "" && isGappy then "\n" else "")
+                             <> (if otherLines == "" then "" else "\n    ")
+                             <> otherLines
+                     )
             ]
 
 parseNumberedListSubsequentLine :: Parser Text
