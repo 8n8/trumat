@@ -186,7 +186,15 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
     then return accumulated
     else do
       _ <- notFollowedBy $ chunk "-}"
-      text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
+      text <-
+        fmap
+          ( \s ->
+              if s == "*"
+                then "*"
+                else Text.replace "*" "\\*" s
+          )
+          $ fmap Text.strip
+          $ takeWhileP Nothing (\ch -> ch /= '\n')
       let numSpaces :: Int
           numSpaces =
             ((nesting - 1) * 4) + 2
