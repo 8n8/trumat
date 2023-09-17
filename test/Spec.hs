@@ -11373,5 +11373,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "trailing space after opening in doc comment with unordered list",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| \n\
+      \\n\
+      \- a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
