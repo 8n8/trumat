@@ -191,7 +191,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else Text.replace "*" "\\*" s
+                else escapeAsterisks s
           )
           $ fmap Text.strip
           $ takeWhileP Nothing (\ch -> ch /= '\n')
