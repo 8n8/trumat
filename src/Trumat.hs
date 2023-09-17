@@ -581,7 +581,23 @@ noDoubleSpacesLine =
 
 escapeAsterisks :: Text -> Text
 escapeAsterisks text =
-  Text.replace "*" "\\*" text
+  case parse parseEscapeAsterisks "" text of
+    Left _ ->
+      text
+    Right ok ->
+      ok
+
+parseEscapeAsterisks :: Parser Text
+parseEscapeAsterisks =
+  do
+    pieces <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
+            chunk "\\*",
+            chunk "*" >> return "\\*"
+          ]
+    return $ mconcat pieces
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
@@ -1270,7 +1286,7 @@ parseModuleDocsHelp nesting contents =
             piece <- parseModuleDocsInner
             parseModuleDocsHelp nesting (contents <> piece),
           do
-            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            piece <- fmap escapeAsterisks $ takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> (if Text.takeEnd 3 contents == "{-|" && Text.take 1 piece /= " " then " " else "") <> piece),
           do
             _ <- char '-'
