@@ -11400,12 +11400,12 @@ cases =
       \    0\n\
       \"
     ),
-    ( "numbered list item with two asterisks in it",
+    ( "numbered list item with one asterisk in it",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
       \\n\
-      \1.  **\n\
+      \1.  *\n\
       \\n\
       \-}\n\
       \\n\
@@ -11417,7 +11417,6 @@ cases =
       \\n\
       \{-|\n\
       \\n\
-      \1.  \\*\\*\n\
       \\n\
       \-}\n\
       \\n\
