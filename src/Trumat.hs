@@ -453,7 +453,14 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
   if nesting == 0
     then return accumulated
     else do
-      text <- fmap Text.strip noDoubleSpacesLine
+      text <-
+        fmap
+          ( \s ->
+              if s == "*"
+                then "*"
+                else Text.replace "*" "\\*" s
+          )
+          $ fmap Text.strip noDoubleSpacesLine
       let numSpaces :: Int
           numSpaces =
             ((nesting - 1) * 4)
