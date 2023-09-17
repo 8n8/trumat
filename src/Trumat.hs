@@ -136,7 +136,7 @@ getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
   do
     indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
-    _ <- chunk "- "
+    _ <- choice [chunk "- ", chunk "-\n"]
     return indent
 
 parseUnorderedListGappiness :: Int -> Int -> Bool -> Parser Bool
@@ -185,6 +185,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
   if nesting == 0
     then return accumulated
     else do
+      _ <- notFollowedBy $ chunk "-}"
       text <- fmap Text.strip $ takeWhileP Nothing (\ch -> ch /= '\n')
       let numSpaces :: Int
           numSpaces =
@@ -194,49 +195,55 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
           formatted =
             replicate numSpaces " " <> "- " <> text
 
-      if text == ""
-        then fail "empty unordered list item"
-        else do
-          otherLines <- fmap Text.strip $
-            fmap (intercalate "\n") $
-              many $
-                try $
-                  do
-                    _ <- notFollowedBy $ do
-                      _ <- char '\n'
-                      _ <- space
-                      _ <- chunk "- "
-                      return ()
+      do
+        otherLines <- fmap Text.strip $
+          fmap (intercalate "\n") $
+            many $
+              try $
+                do
+                  _ <- notFollowedBy $ do
                     _ <- char '\n'
-                    takeWhile1P Nothing (\ch -> ch /= '\n')
-          choice
-            [ try $ do
-                _ <- char '\n'
-                newIndent <- getUnorderedListItemIndent
-                parseUnorderedListItemHelp
-                  ( nesting + case newIndent `compare` indent of
-                      GT -> 1
-                      LT -> -1
-                      EQ -> 0
-                  )
-                  newIndent
-                  ( accumulated
-                      <> (if accumulated == "" then "" else "\n")
-                      <> formatted
-                      <> (if otherLines /= "" && isGappy then "\n" else "")
-                      <> (if otherLines == "" then "" else "\n    ")
-                      <> otherLines
-                  )
-                  isGappy,
-              return $
-                accumulated
-                  <> (if accumulated == "" then "" else "\n")
-                  <> (if accumulated /= "" && isGappy then "\n" else "")
-                  <> formatted
-                  <> (if otherLines /= "" && isGappy then "\n" else "")
-                  <> (if otherLines == "" then "" else "\n    ")
-                  <> otherLines
-            ]
+                    _ <- space
+                    _ <- choice [chunk "- ", chunk "-\n", chunk "-}"]
+                    return ()
+                  _ <- char '\n'
+                  takeWhile1P Nothing (\ch -> ch /= '\n')
+        choice
+          [ try $ do
+              _ <- char '\n'
+              newIndent <- getUnorderedListItemIndent
+              parseUnorderedListItemHelp
+                ( nesting + case newIndent `compare` indent of
+                    GT -> 1
+                    LT -> -1
+                    EQ -> 0
+                )
+                newIndent
+                ( accumulated
+                    <> ( if text == ""
+                           then ""
+                           else
+                             (if accumulated == "" then "" else "\n")
+                               <> formatted
+                               <> (if otherLines /= "" && isGappy then "\n" else "")
+                               <> (if otherLines == "" then "" else "\n    ")
+                               <> otherLines
+                       )
+                )
+                isGappy,
+            return $
+              accumulated
+                <> ( if text == ""
+                       then ""
+                       else
+                         (if accumulated == "" then "" else "\n")
+                           <> (if accumulated /= "" && isGappy then "\n" else "")
+                           <> formatted
+                           <> (if otherLines /= "" && isGappy then "\n" else "")
+                           <> (if otherLines == "" then "" else "\n    ")
+                           <> otherLines
+                   )
+          ]
 
 parseBacktickedCodeBlock :: Parser Text
 parseBacktickedCodeBlock =
