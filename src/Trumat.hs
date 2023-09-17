@@ -303,8 +303,7 @@ parseDocRow =
           mconcat
             [ "@docs ",
               intercalate ", " docs,
-              headers,
-              "\n\n"
+              headers
             ],
       try $ do
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
@@ -387,7 +386,7 @@ parseMultipleDocHeaders =
       contents <- parseDocHeaderContents
       _ <- space
       return contents
-    return $ "\n\n\n" <> first <> "\n\n\n" <> Text.intercalate "\n\n" subsequent
+    return $ "\n\n\n" <> first <> "\n\n\n" <> Text.intercalate "\n\n" subsequent <> "\n\n"
 
 parseNumberedListItems :: Parser Text
 parseNumberedListItems =
