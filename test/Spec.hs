@@ -11473,5 +11473,42 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "text on next line after header after header",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \\n\
+      \#\n\
+      \a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
