@@ -11581,5 +11581,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "empty single line block quote inside doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|>-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
