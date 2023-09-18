@@ -1238,19 +1238,37 @@ removeSingleAsterisk rows =
 
 atLeastTwoNewlinesBeforeBlockQuote :: [Text] -> [Text]
 atLeastTwoNewlinesBeforeBlockQuote rows =
+  atLeastTwoNewlinesBeforeBlockQuoteHelp rows []
+
+atLeastTwoNewlinesBeforeBlockQuoteHelp :: [Text] -> [Text] -> [Text]
+atLeastTwoNewlinesBeforeBlockQuoteHelp rows accum =
   case rows of
-    "\n" : "\n" : remainder ->
-      rows
+    "\n" : "\n" : potentialBlock : remainder ->
+      atLeastTwoNewlinesBeforeBlockQuoteHelp
+        ( if Text.take 2 potentialBlock == "> "
+            then remainder
+            else "\n" : potentialBlock : remainder
+        )
+        ( if Text.take 2 potentialBlock == "> "
+            then potentialBlock : "\n" : "\n" : accum
+            else "\n" : accum
+        )
     "\n" : potentialBlock : remainder ->
-      if Text.take 2 potentialBlock == "> "
-        then "\n" : "\n" : potentialBlock : remainder
-        else rows
+      atLeastTwoNewlinesBeforeBlockQuoteHelp
+        remainder
+        ( if Text.take 2 potentialBlock == "> "
+            then potentialBlock : "\n" : "\n" : accum
+            else potentialBlock : "\n" : accum
+        )
     potentialBlock : remainder ->
-      if Text.take 2 potentialBlock == "> "
-        then "\n" : "\n" : potentialBlock : remainder
-        else rows
+      atLeastTwoNewlinesBeforeBlockQuoteHelp
+        remainder
+        ( if Text.take 2 potentialBlock == "> "
+            then potentialBlock : "\n" : "\n" : accum
+            else potentialBlock : accum
+        )
     [] ->
-      []
+      reverse accum
 
 atLeastTwoNewlinesBeforeAtDocs :: [Text] -> [Text]
 atLeastTwoNewlinesBeforeAtDocs rows =
