@@ -272,6 +272,12 @@ parseBacktickedCodeBlock =
         indented = mconcat $ map (\line -> "    " <> line) lines
     return indented
 
+parseBlockQuote :: Parser Text
+parseBlockQuote =
+  do
+  _ <- char '>'
+  return ""
+
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -287,6 +293,7 @@ parseDocRow =
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
       parseBacktickedCodeBlock,
+      parseBlockQuote,
       try parseMultipleDocHeaders,
       try parseDocHeader,
       chunk "\n",
