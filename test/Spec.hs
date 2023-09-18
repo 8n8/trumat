@@ -11647,5 +11647,30 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "code block preceded by text but with no empty line",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \> b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \> b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
