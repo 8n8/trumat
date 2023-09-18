@@ -272,11 +272,37 @@ parseBacktickedCodeBlock =
         indented = mconcat $ map (\line -> "    " <> line) lines
     return indented
 
+removeEmptyBlockQuote :: [Text] -> [Text]
+removeEmptyBlockQuote rows =
+  filter (\row -> Text.strip row /= ">") rows
+
 parseBlockQuote :: Parser Text
 parseBlockQuote =
   do
+    rows <- some parseBlockQuoteLine
+    return $ "\n\n" <> Text.intercalate "\n" (removeEmptyBlockQuote rows) <> "\n\n"
+
+parseBlockQuoteLine :: Parser Text
+parseBlockQuoteLine =
+  do
     _ <- char '>'
-    return ""
+    contents <- parseBlockQuoteContents
+    let stripped = Text.strip contents
+    return $ ">" <> (if stripped == "" then "" else " ") <> stripped
+
+parseBlockQuoteContents :: Parser Text
+parseBlockQuoteContents =
+  do
+    pieces <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= '-'),
+            try $ do
+              _ <- char '-'
+              _ <- notFollowedBy (char '}')
+              return "-"
+          ]
+    return $ mconcat pieces
 
 parseDocRow :: Parser Text
 parseDocRow =
@@ -1244,7 +1270,7 @@ parseModuleDocsInner =
     rows <- fmap (filter (\row -> stripSpaces row /= "")) $ fmap atLeastTwoNewlinesBeforeAtDocs $ fmap addExtraNewlinesAfterEndingCodeBlock $ fmap emptyLineBeforeNumberedList $ fmap addExtraNewlinesOnStartingCodeBlock $ fmap stripTooManyNewlinesBeforeCodeBlocks $ fmap trimTrailingNewlines $ fmap stripLeadingSpacesFromDocRow $ fmap (map newlinesAfterBackticks) $ fmap backticksAroundCodeAfterList $ fmap addNewlineToTrailingCode $ fmap formatElmInDocs $ fmap maxTwoNewlinesAfterCodeBlock $ fmap removeTripleNewlinesInParagraphs $ some $ try parseDocRow
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
-        flat = if first == "#" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
