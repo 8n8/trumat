@@ -11621,5 +11621,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "formatted doc comment containing only a single line block quote",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \> a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \> a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
