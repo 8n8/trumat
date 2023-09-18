@@ -275,8 +275,8 @@ parseBacktickedCodeBlock =
 parseBlockQuote :: Parser Text
 parseBlockQuote =
   do
-  _ <- char '>'
-  return ""
+    _ <- char '>'
+    return ""
 
 parseDocRow :: Parser Text
 parseDocRow =
