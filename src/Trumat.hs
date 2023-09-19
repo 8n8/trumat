@@ -286,7 +286,7 @@ parseBlockQuote =
         _ <- char '\n'
         parseBlockQuoteLine
     let rows = firstRow : subsequent
-    return $ Text.intercalate "\n" (removeEmptyBlockQuote rows) <> "\n\n"
+    return $ Text.intercalate "\n" (removeEmptyBlockQuote rows)
 
 parseBlockQuoteLine :: Parser Text
 parseBlockQuoteLine =
@@ -1186,6 +1186,16 @@ stripTooManyNewlinesBeforeCodeBlocks :: [Text] -> [Text]
 stripTooManyNewlinesBeforeCodeBlocks rows =
   map stripTooManyNewlinesBeforeCodeBlock rows
 
+addExtraNewlinesAfterEndingBlockQuote :: [Text] -> [Text]
+addExtraNewlinesAfterEndingBlockQuote rows =
+  case reverse rows of
+    [] ->
+      []
+    last : remainder ->
+      if Text.take 2 last == "> "
+        then rows <> ["\n", "\n"]
+        else rows
+
 addExtraNewlinesAfterEndingCodeBlock :: [Text] -> [Text]
 addExtraNewlinesAfterEndingCodeBlock rows =
   case reverse rows of
@@ -1305,20 +1315,21 @@ parseModuleDocsInner =
       fmap (filter (\row -> stripSpaces row /= "")) $
         fmap atLeastTwoNewlinesBeforeBlockQuote $
           fmap atLeastTwoNewlinesBeforeAtDocs $
-            fmap addExtraNewlinesAfterEndingCodeBlock $
-              fmap emptyLineBeforeNumberedList $
-                fmap addExtraNewlinesOnStartingCodeBlock $
-                  fmap stripTooManyNewlinesBeforeCodeBlocks $
-                    fmap trimTrailingNewlines $
-                      fmap stripLeadingSpacesFromDocRow $
-                        fmap (map newlinesAfterBackticks) $
-                          fmap backticksAroundCodeAfterList $
-                            fmap addNewlineToTrailingCode $
-                              fmap formatElmInDocs $
-                                fmap maxTwoNewlinesAfterCodeBlock $
-                                  fmap removeTripleNewlinesInParagraphs $
-                                    some $
-                                      try parseDocRow
+            fmap addExtraNewlinesAfterEndingBlockQuote $
+              fmap addExtraNewlinesAfterEndingCodeBlock $
+                fmap emptyLineBeforeNumberedList $
+                  fmap addExtraNewlinesOnStartingCodeBlock $
+                    fmap stripTooManyNewlinesBeforeCodeBlocks $
+                      fmap trimTrailingNewlines $
+                        fmap stripLeadingSpacesFromDocRow $
+                          fmap (map newlinesAfterBackticks) $
+                            fmap backticksAroundCodeAfterList $
+                              fmap addNewlineToTrailingCode $
+                                fmap formatElmInDocs $
+                                  fmap maxTwoNewlinesAfterCodeBlock $
+                                    fmap removeTripleNewlinesInParagraphs $
+                                      some $
+                                        try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
