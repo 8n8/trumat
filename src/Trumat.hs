@@ -642,7 +642,7 @@ parseEscapeAsterisks =
 underscoreAsteriskBolds :: Parser Text
 underscoreAsteriskBolds =
   do
-    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    leadingSpaces <- some $ choice [char ' ', char '\n']
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
     otherPieces <- many $
@@ -654,7 +654,9 @@ underscoreAsteriskBolds =
     trailing <- takeWhile1P Nothing (\ch -> ch == '*')
     let leadingUnderscores = Text.replace "*" "_" leading
     let trailingUnderscores = Text.replace "*" "_" trailing
-    return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
+    if Text.length leading /= Text.length trailing
+      then fail "there must be equal numbers of trailing and leading asterisks"
+      else return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
