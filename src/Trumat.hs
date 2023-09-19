@@ -1244,37 +1244,34 @@ removeSingleAsterisk rows =
 
 atLeastTwoNewlinesBeforeBlockQuote :: [Text] -> [Text]
 atLeastTwoNewlinesBeforeBlockQuote rows =
-  atLeastTwoNewlinesBeforeBlockQuoteHelp rows []
+  case atLeastTwoNewlinesBeforeBlockQuoteHelp rows [] of
+    first : remainder ->
+      if Text.take 2 first == "> " then
+        "\n\n" <> first : remainder
+
+      else
+        first : remainder
+
+    other ->
+      other
 
 atLeastTwoNewlinesBeforeBlockQuoteHelp :: [Text] -> [Text] -> [Text]
-atLeastTwoNewlinesBeforeBlockQuoteHelp rows accum =
+atLeastTwoNewlinesBeforeBlockQuoteHelp rows accumulated =
   case rows of
-    "\n" : "\n" : potentialBlock : remainder ->
-      atLeastTwoNewlinesBeforeBlockQuoteHelp
-        ( if Text.take 2 potentialBlock == "> "
-            then remainder
-            else "\n" : potentialBlock : remainder
-        )
-        ( if Text.take 2 potentialBlock == "> "
-            then potentialBlock : "\n" : "\n" : accum
-            else "\n" : accum
-        )
-    "\n" : potentialBlock : remainder ->
-      atLeastTwoNewlinesBeforeBlockQuoteHelp
-        remainder
-        ( if Text.take 2 potentialBlock == "> "
-            then potentialBlock : "\n" : "\n" : accum
-            else potentialBlock : "\n" : accum
-        )
-    potentialBlock : remainder ->
-      atLeastTwoNewlinesBeforeBlockQuoteHelp
-        remainder
-        ( if Text.take 2 potentialBlock == "> "
-            then potentialBlock : "\n" : "\n" : accum
-            else potentialBlock : accum
-        )
     [] ->
-      reverse accum
+      reverse accumulated
+    first : "\n" : third : remainder ->
+      if first /= "\n" && Text.take 2 third == "> "
+        then
+          atLeastTwoNewlinesBeforeBlockQuoteHelp
+            ( third : remainder )
+            ( "\n" : "\n" : first : accumulated)
+        else
+          atLeastTwoNewlinesBeforeBlockQuoteHelp
+            ("\n" : third : remainder)
+            (first : accumulated)
+    first : remainder ->
+      atLeastTwoNewlinesBeforeBlockQuoteHelp remainder (first : accumulated)
 
 atLeastTwoNewlinesBeforeAtDocs :: [Text] -> [Text]
 atLeastTwoNewlinesBeforeAtDocs rows =
