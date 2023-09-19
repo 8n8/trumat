@@ -194,6 +194,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                 else escapeAsterisks s
           )
           $ fmap Text.strip
+          $ fmap (\line -> Text.intercalate " " $ Text.words line)
           $ takeWhileP Nothing (\ch -> ch /= '\n')
       let numSpaces :: Int
           numSpaces =
