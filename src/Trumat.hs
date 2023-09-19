@@ -1320,7 +1320,7 @@ atLeastTwoNewlinesBeforeAtDocsHelp rows accumulated =
     [] ->
       reverse accumulated
     first : "\n" : third : remainder ->
-      if first /= "\n" && Text.take 6 third == "@docs "
+      if first /= "\n" && Text.take 6 first /= "@docs " && Text.take 6 third == "@docs "
         then
           atLeastTwoNewlinesBeforeAtDocsHelp
             (third : remainder)
