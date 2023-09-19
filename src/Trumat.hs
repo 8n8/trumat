@@ -1191,6 +1191,10 @@ addExtraNewlinesAfterEndingBlockQuote rows =
   case reverse rows of
     [] ->
       []
+    "\n" : last : remainder ->
+      if Text.take 2 last == "> "
+        then rows <> ["\n"]
+        else rows
     last : remainder ->
       if Text.take 2 last == "> "
         then rows <> ["\n", "\n"]
