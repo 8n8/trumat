@@ -11907,5 +11907,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "single empty line between at docs statements",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
