@@ -632,11 +632,29 @@ parseEscapeAsterisks =
     pieces <-
       many $
         choice
-          [ takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
+          [ try underscoreAsteriskBolds,
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
             chunk "\\*",
             chunk "*" >> return "\\*"
           ]
     return $ mconcat pieces
+
+underscoreAsteriskBolds :: Parser Text
+underscoreAsteriskBolds =
+  do
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    leading <- takeWhile1P Nothing (\ch -> ch == '*')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
+    otherPieces <- many $
+      try $
+        do
+          spaces <- takeWhileP Nothing (\ch -> ch == ' ')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
+          return $ spaces <> piece
+    trailing <- takeWhile1P Nothing (\ch -> ch == '*')
+    let leadingUnderscores = Text.replace "*" "_" leading
+    let trailingUnderscores = Text.replace "*" "_" trailing
+    return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
