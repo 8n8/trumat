@@ -11861,5 +11861,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unequal numbers of asterisks around text in block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **a*\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| \\*\\*a\\*\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
