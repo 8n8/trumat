@@ -1246,12 +1246,9 @@ atLeastTwoNewlinesBeforeBlockQuote :: [Text] -> [Text]
 atLeastTwoNewlinesBeforeBlockQuote rows =
   case atLeastTwoNewlinesBeforeBlockQuoteHelp rows [] of
     first : remainder ->
-      if Text.take 2 first == "> " then
-        "\n\n" <> first : remainder
-
-      else
-        first : remainder
-
+      if Text.take 2 first == "> "
+        then "\n\n" <> first : remainder
+        else first : remainder
     other ->
       other
 
@@ -1264,8 +1261,8 @@ atLeastTwoNewlinesBeforeBlockQuoteHelp rows accumulated =
       if first /= "\n" && Text.take 2 third == "> "
         then
           atLeastTwoNewlinesBeforeBlockQuoteHelp
-            ( third : remainder )
-            ( "\n" : "\n" : first : accumulated)
+            (third : remainder)
+            ("\n" : "\n" : first : accumulated)
         else
           atLeastTwoNewlinesBeforeBlockQuoteHelp
             ("\n" : third : remainder)
