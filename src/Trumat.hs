@@ -280,7 +280,12 @@ removeEmptyBlockQuote rows =
 parseBlockQuote :: Parser Text
 parseBlockQuote =
   do
-    rows <- some parseBlockQuoteLine
+    firstRow <- parseBlockQuoteLine
+    subsequent <- many $
+      try $ do
+        _ <- char '\n'
+        parseBlockQuoteLine
+    let rows = firstRow : subsequent
     return $ Text.intercalate "\n" (removeEmptyBlockQuote rows) <> "\n\n"
 
 parseBlockQuoteLine :: Parser Text
