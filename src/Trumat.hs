@@ -302,7 +302,7 @@ parseBlockQuoteContents =
               _ <- notFollowedBy (char '}')
               return "-"
           ]
-    return $ mconcat pieces
+    return $ Text.intercalate " " $ Text.words $ mconcat pieces
 
 parseDocRow :: Parser Text
 parseDocRow =
