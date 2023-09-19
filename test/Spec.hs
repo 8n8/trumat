@@ -11841,5 +11841,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "convert asterisk bolding to underscore bolding",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| *a*\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| _a_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
