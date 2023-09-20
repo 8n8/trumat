@@ -2,6 +2,7 @@ module Trumat (trumat) where
 
 import qualified Data.List as List
 import qualified Data.Map as Map
+import Data.Map (Map)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, pack, replicate, takeEnd, unpack)
@@ -710,11 +711,11 @@ parseExportDocsRow =
 parseOneExportDoc :: Parser Text
 parseOneExportDoc =
   do
-    name <- parseName
+    name' <- parseName
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     _ <- choice [char ',', lookAhead (char '\n')]
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    return name
+    return name'
 
 parseExportRow :: Parser [Text]
 parseExportRow =
@@ -728,7 +729,7 @@ parseSingleItemInExportRow =
   do
     _ <- choice [char ',', return ' ']
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    name <- choice [parseName, parseInfixInBrackets]
+    name' <- choice [parseName, parseInfixInBrackets]
     all_ <-
       choice
         [ do
@@ -741,7 +742,23 @@ parseSingleItemInExportRow =
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     _ <- choice [char ',', return ' ']
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    return $ name <> all_
+    return $ name' <> all_
+
+parseExposingHelp :: Int -> Parser (Bool, [([Text], Text)])
+parseExposingHelp indent =
+  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- char '('
+    _ <- space
+    items <- some $
+      do
+        row <- parseExportRow
+        comment <- commentSpaceParser 4
+        return $ (row, comment)
+    _ <- space
+    _ <- char ')'
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return (endRow > startRow, items)
 
 parseExposing :: Int -> [[Text]] -> Parser Text
 parseExposing indent docs =
@@ -776,7 +793,7 @@ formatExports indent originalIsMultiline docs items =
       rows = filter (\row -> row /= "") $ (map (formatExportRow (indent + 2) (mconcat items)) unformattedRows) <> undocumented
       undocumented :: [Text]
       undocumented = getUndocumented indent docs items
-      isMultiline = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat (map fst items)) > 1) || originalIsMultiline
+      isMultiline' = (not (null (removeUndocumented (mconcat (map fst items)) docs)) && length (mconcat (map fst items)) > 1) || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -786,16 +803,16 @@ formatExports indent originalIsMultiline docs items =
             else " (" <> single <> ")"
         multiple ->
           mconcat
-            [ if isMultiline
+            [ if isMultiline'
                 then "\n" <> pack (take indent (repeat ' ')) <> "( "
                 else " (",
               intercalate
-                ( if isMultiline
+                ( if isMultiline'
                     then "\n" <> pack (take indent (repeat ' ')) <> ", "
                     else ", "
                 )
                 multiple,
-              if isMultiline
+              if isMultiline'
                 then "\n" <> pack (take indent (repeat ' '))
                 else "",
               ")"
@@ -821,8 +838,8 @@ addExposeAllToDocs used docs =
 makeHasExposeAll :: [Text] -> Set Text
 makeHasExposeAll names =
   Set.fromList $
-    map (\name -> Text.dropEnd 4 name) $
-      filter (\name -> Text.takeEnd 4 name == "(..)") names
+    map (\name' -> Text.dropEnd 4 name') $
+      filter (\name' -> Text.takeEnd 4 name' == "(..)") names
 
 removeEmptyLists :: [[a]] -> [[a]]
 removeEmptyLists items =
@@ -1436,7 +1453,7 @@ parseModuleDeclaration =
         ]
     _ <- chunk "module"
     commentAfterModule <- commentSpaceParser 4
-    name <- parseName
+    name' <- parseName
     commentAfterName <- commentSpaceParser 4
     _ <- chunk "exposing"
     commentAfterExposing <- commentSpaceParser 4
@@ -1455,7 +1472,7 @@ parseModuleDeclaration =
         [ port,
           "module",
           if commentAfterModule == "" then " " else "\n    " <> commentAfterModule <> "\n    ",
-          name,
+          name',
           if commentAfterName == "" then "" else "\n    ",
           commentAfterName,
           if commentAfterModule == "" && commentAfterName == "" && commentAfterExposing == "" then " " else "\n    ",
@@ -1559,7 +1576,7 @@ getTypeAliasDeclarationName =
     _ <- space
     _ <- "alias"
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- space
@@ -1567,7 +1584,7 @@ getTypeAliasDeclarationName =
     comment <- commentSpaceParser 4
     type_ <- parseAliasedType 4
     _ <- space
-    return name
+    return name'
 
 parseTypeAliasDeclaration :: Parser Text
 parseTypeAliasDeclaration =
@@ -1579,7 +1596,7 @@ parseTypeAliasDeclaration =
     _ <- space1
     _ <- "alias"
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- space
@@ -1594,7 +1611,7 @@ parseTypeAliasDeclaration =
             then ""
             else "\n",
           "type alias ",
-          name,
+          name',
           if parameters == ""
             then ""
             else " ",
@@ -1613,13 +1630,13 @@ getCustomTypeDeclarationName =
     _ <- space
     _ <- "type"
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- space
     firstBranch <- parseBranch '='
     nextBranches <- many (parseBranch '|')
-    return (name <> "(..)")
+    return (name' <> "(..)")
 
 parseCustomTypeDeclaration :: Parser Text
 parseCustomTypeDeclaration =
@@ -1629,7 +1646,7 @@ parseCustomTypeDeclaration =
     _ <- space
     _ <- "type"
     _ <- space1
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- space
@@ -1643,7 +1660,7 @@ parseCustomTypeDeclaration =
             then ""
             else "\n",
           "type ",
-          name,
+          name',
           if parameters == ""
             then ""
             else " ",
@@ -1814,14 +1831,14 @@ getTopLevelBindName =
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- char '='
     commentBeforeExpression <- commentSpaceParser 4
     expression <- parseExpression 2 DoesntNeedBrackets 4
     _ <- space
-    return name
+    return name'
 
 parseTopLevelBind :: Parser Text
 parseTopLevelBind =
@@ -1831,7 +1848,7 @@ parseTopLevelBind =
     _ <- space
     signature <- choice [try $ parseTypeSignature 1 0, return ""]
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     parameters <- parseParameters 0
     _ <- char '='
@@ -1847,7 +1864,7 @@ parseTopLevelBind =
           if signature == ""
             then ""
             else signature <> "\n",
-          name,
+          name',
           if parameters == ""
             then ""
             else " ",
@@ -1909,7 +1926,7 @@ parseParameters startColumn =
 getTypeSignatureName :: Int -> Int -> Parser Text
 getTypeSignatureName startColumn indent =
   do
-    name <- parseName
+    name' <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
@@ -1917,12 +1934,12 @@ getTypeSignatureName startColumn indent =
     type_ <- parseBareFunctionType startColumn (indent + 4)
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
-    return name
+    return name'
 
 parseTypeSignature :: Int -> Int -> Parser Text
 parseTypeSignature startColumn indent =
   do
-    name <- parseName
+    name' <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
@@ -1937,7 +1954,7 @@ parseTypeSignature startColumn indent =
             else " "
     return $
       mconcat
-        [ name,
+        [ name',
           " :",
           gap,
           comment,
@@ -2162,7 +2179,7 @@ parseExtensibleRecordType indent =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '{'
     _ <- space
-    name <- parseName
+    name' <- parseName
     _ <- space
     _ <- char '|'
     _ <- space
@@ -2175,7 +2192,7 @@ parseExtensibleRecordType indent =
         return $
           mconcat
             [ "{ ",
-              name,
+              name',
               if endRow > startRow
                 then "\n" <> (pack $ take (indent + 4) $ repeat ' ') <> "| "
                 else " | ",
@@ -2221,7 +2238,7 @@ parseRecordTypeItem indent =
   do
     commentBefore <- commentSpaceParser indent
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    name <- parseName
+    name' <- parseName
     _ <- space
     _ <- char ':'
     _ <- space
@@ -2240,7 +2257,7 @@ parseRecordTypeItem indent =
       mconcat
         [ commentBefore,
           if commentBefore == "" then "" else "\n" <> pack (take indent (repeat ' ')),
-          name,
+          name',
           " :",
           if endRow > startRow
             then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
@@ -2259,15 +2276,15 @@ parseTypeWithArguments indent =
   do
     startColumn <- fmap (unPos . sourceColumn) getSourcePos
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    name <- parseName
+    name' <- parseName
     _ <- space
     afterSpaceRow <- fmap (unPos . sourceLine) getSourcePos
     parameters <- parseTypeArguments startColumn (floorToFour (indent + 4))
     if parameters == ""
-      then return name
+      then return name'
       else
         return $
-          ( name
+          ( name'
               <> ( if afterSpaceRow > startRow
                      then "\n" <> pack (take (floorToFour (indent + 4)) (repeat ' '))
                      else " "
@@ -2303,10 +2320,10 @@ parseImport =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- chunk "import"
     _ <- space1
-    commentBetween <- commentSpaceParser 1
-    name <- parseName
+    commentBetween' <- commentSpaceParser 1
+    name' <- parseName
     _ <- space
-    as_ <-
+    as' <-
       choice
         [ do
             column <- fmap (unPos . sourceColumn) getSourcePos
@@ -2319,7 +2336,7 @@ parseImport =
           return ""
         ]
     _ <- space
-    exposing_ <-
+    exposing' <-
       choice
         [ do
             _ <- chunk "exposing"
@@ -2331,18 +2348,18 @@ parseImport =
     return $
       mconcat
         [ "import ",
-          commentBetween,
-          if commentBetween == "" then "" else " ",
-          name,
-          if as_ == "" || as_ == name
+          commentBetween',
+          if commentBetween' == "" then "" else " ",
+          name',
+          if as' == "" || as' == name'
             then ""
-            else " as " <> as_,
-          if exposing_ == ""
+            else " as " <> as',
+          if exposing' == ""
             then ""
             else
               if endRow == startRow
-                then " exposing" <> exposing_
-                else "\n    exposing" <> exposing_
+                then " exposing" <> exposing'
+                else "\n    exposing" <> exposing'
         ]
 
 parser :: Parser Text
@@ -2394,20 +2411,131 @@ parseAfterModuleDeclarationInDocComment moduleDeclaration =
           "\n"
         ]
 
-splitImport :: Text -> (Text, Text)
-splitImport import_ =
-  case Text.words import_ of
-    "import" : name : remainder ->
-      (name, import_)
-    _ ->
-      ("", "")
+
+parseImportParts :: Text -> Import
+parseImportParts import_ =
+  case parse parseImportPartsHelp "" import_ of
+    Left _ ->
+      Import "" False "" [] "" False
+
+    Right ok ->
+      ok
+
+data Import =
+  Import
+  { commentBetween :: Text
+  , isMultiline :: Bool
+  , as_ :: Text
+  , exposing_ :: [([Text], Text)]
+  , name :: Text
+  , isMultilineExposing :: Bool
+  }
+
+parseImportPartsHelp :: Parser Import
+parseImportPartsHelp =
+  do
+    startRow <- fmap (unPos . sourceLine) getSourcePos
+    _ <- chunk "import"
+    _ <- space1
+    commentBetween' <- commentSpaceParser 1
+    name' <- parseName
+    _ <- space
+    as' <-
+      choice
+        [ do
+            column <- fmap (unPos . sourceColumn) getSourcePos
+            if column == 1
+              then fail "can't have import 'as' at start of line"
+              else do
+                _ <- chunk "as"
+                _ <- space
+                parseName,
+          return ""
+        ]
+    _ <- space
+    (isMultilineExposing', exposing') <-
+      choice
+        [ do
+            _ <- chunk "exposing"
+            _ <- space
+            parseExposingHelp 8,
+          return (False, [])
+        ]
+    endRow <- fmap (unPos . sourceLine) getSourcePos
+    return $
+      Import
+      { commentBetween = commentBetween'
+      , name = name'
+      , isMultiline = endRow /= startRow
+      , as_ = as'
+      , exposing_ = exposing'
+      , isMultilineExposing = isMultilineExposing'
+      }
+  
+importToText :: Import -> Text
+importToText import_ =
+  let
+    exposingText = formatExports 8 (isMultilineExposing import_) [] (exposing_ import_)
+  in
+      mconcat
+        [ "import ",
+          commentBetween import_,
+          if commentBetween import_ == "" then "" else " ",
+          name import_,
+          if as_ import_ == "" || as_ import_ == name import_
+            then ""
+            else " as " <> as_ import_,
+          if exposingText == "()"
+            then ""
+            else
+              if isMultiline import_
+                then "\n    exposing" <> exposingText
+                else " exposing" <> exposingText
+        ]
 
 deduplicateImports :: [Text] -> [Text]
 deduplicateImports imports =
-  map snd $
-    Map.toList $
-      Map.fromList $
-        map splitImport imports
+  map importToText $
+  deduplicateImportsHelp (map parseImportParts imports) Map.empty
+
+combineExposing :: [([Text], Text)] -> [([Text], Text)] -> [([Text], Text)]
+combineExposing a b =
+  let
+    exposingA :: [Text]
+    exposingA = mconcat $ map fst a
+    exposingB :: [Text]
+    exposingB = mconcat $ map fst b
+  in
+  [(exposingA <> exposingB, "")]
+
+combineImports :: Import -> Import -> Import
+combineImports a b =
+  Import
+  { commentBetween = commentBetween a
+  , isMultiline = isMultiline a || isMultiline b
+  , as_ = as_ a
+  , exposing_ = combineExposing (exposing_ a) (exposing_ b)
+  , name = name a
+  , isMultilineExposing = isMultilineExposing a || isMultilineExposing b
+  }
+
+deduplicateImportsHelp :: [Import] -> Map Text Import -> [Import]
+deduplicateImportsHelp imports accum =
+  case imports of
+    [] ->
+      map snd $ Map.toList accum
+
+    top : remainder ->
+      case Map.lookup (name top) accum of
+        Just current ->
+          deduplicateImportsHelp
+            remainder
+            ( Map.insert (name top) (combineImports top current) accum)
+
+        Nothing ->
+          deduplicateImportsHelp
+            remainder
+            (Map.insert (name top) top accum)
 
 parseAfterModuleDeclaration :: Text -> Parser Text
 parseAfterModuleDeclaration moduleDeclaration =
@@ -2888,7 +3016,7 @@ parseRecordItem :: Int -> Parser Text
 parseRecordItem indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    name <- parseName
+    name_ <- parseName
     _ <- space
     _ <- char '='
     _ <- space
@@ -2903,7 +3031,7 @@ parseRecordItem indent =
     _ <- space
     return $
       mconcat
-        [ name,
+        [ name_,
           " =",
           if endRow > startRow || Text.elem '\n' right
             then
@@ -3058,7 +3186,7 @@ parseAliasedPatternNoBrackets context indent =
     _ <- space
     _ <- chunk "as"
     _ <- space
-    name <- parseName
+    name_ <- parseName
     _ <- space
     return $
       mconcat
@@ -3069,7 +3197,7 @@ parseAliasedPatternNoBrackets context indent =
               "",
           pattern,
           " as ",
-          name,
+          name_,
           case context of
             NeedsBrackets ->
               ")"
@@ -3092,10 +3220,10 @@ parseRecordPatternItem :: Parser Text
 parseRecordPatternItem =
   do
     _ <- space
-    name <- parseName
+    name_ <- parseName
     _ <- space
     _ <- choice [char ',', lookAhead (char '}')]
-    return name
+    return name_
 
 parsePatternBeforeAs :: Int -> Parser Text
 parsePatternBeforeAs indent =
@@ -3373,7 +3501,7 @@ parseInfixed minColumn indent =
 
     let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool) -> Text
         addWhitespace (infixItem, previousIsMultiline) =
-          if endRow > startRow || List.any id isMultiline
+          if endRow > startRow || List.any id isMultiline_
             then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline
             else addSingleLineInfixWhitespace infixItem
 
@@ -3381,8 +3509,8 @@ parseInfixed minColumn indent =
         firstIsMultilineString =
           Text.take 3 firstExpression == "\"\"\""
 
-        isMultiline :: [Bool]
-        isMultiline =
+        isMultiline_ :: [Bool]
+        isMultiline_ =
           map (\item -> Text.elem '\n' item) (firstExpression : (map (\(_, _, _, _, _, item) -> item) (items)))
 
     if null items
@@ -3391,7 +3519,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map addWhitespace (List.zip items isMultiline)
+              mconcat $ map addWhitespace (List.zip items isMultiline_)
             ]
 
 parseInfixedItems ::
@@ -3990,9 +4118,9 @@ parseParenthesised context indent =
         )
     commentAfter <- commentSpaceParser indent
     _ <- char ')'
-    let isMultiline =
+    let isMultiline_ =
           Text.elem '\n' (commentBefore <> item <> commentAfter)
-    if isMultiline
+    if isMultiline_
       then case context of
         NeedsBrackets ->
           return $
@@ -4108,14 +4236,14 @@ parseNonEmptyList indent =
         linesInMultiString = List.maximum $ map getLinesInMultiString items
     _ <- char ']'
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    let isMultiline :: Bool
-        isMultiline = ((endRow - startRow) - linesInMultiString) > 0
+    let isMultiline_ :: Bool
+        isMultiline_ = ((endRow - startRow) - linesInMultiString) > 0
     let indentation =
-          if isMultiline
+          if isMultiline_
             then "\n" <> replicate indent " "
             else ""
     let endSpace =
-          if isMultiline
+          if isMultiline_
             then ""
             else " "
     if null items
