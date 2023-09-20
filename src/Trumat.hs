@@ -2495,11 +2495,7 @@ deduplicateImports imports =
 
 combineExposing :: [([Text], Text)] -> [([Text], Text)] -> [([Text], Text)]
 combineExposing a b =
-  let exposingA :: [Text]
-      exposingA = mconcat $ map fst a
-      exposingB :: [Text]
-      exposingB = mconcat $ map fst b
-   in [(exposingA <> exposingB, "")]
+  a <> b
 
 combineImports :: Import -> Import -> Import
 combineImports a b =
