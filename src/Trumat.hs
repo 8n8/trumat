@@ -1,6 +1,7 @@
 module Trumat (trumat) where
 
 import qualified Data.List as List
+import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, pack, replicate, takeEnd, unpack)
@@ -2393,11 +2394,26 @@ parseAfterModuleDeclarationInDocComment moduleDeclaration =
           "\n"
         ]
 
+splitImport :: Text -> (Text, Text)
+splitImport import_ =
+  case Text.words import_ of
+    "import" : name : remainder ->
+      (name, import_)
+    _ ->
+      ("", "")
+
+deduplicateImports :: [Text] -> [Text]
+deduplicateImports imports =
+  map snd $
+    Map.toList $
+      Map.fromList $
+        map splitImport imports
+
 parseAfterModuleDeclaration :: Text -> Parser Text
 parseAfterModuleDeclaration moduleDeclaration =
   do
     imports <-
-      fmap (intercalate "\n" . List.sort . List.nub) $
+      fmap (intercalate "\n" . List.sort . deduplicateImports) $
         many $
           do
             import_ <- try parseImport
