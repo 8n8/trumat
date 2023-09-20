@@ -11956,5 +11956,24 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two imports that should be combined",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing (C)\n\
+      \import A as B\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A as B exposing (C)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
