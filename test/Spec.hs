@@ -11975,5 +11975,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "comment on combinable import",
+      "module X exposing (x)\n\
+      \\n\
+      \import A exposing\n\
+      \    (B -- x\n\
+      \    )\n\
+      \import A exposing (C)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \import A\n\
+      \    exposing\n\
+      \        ( B\n\
+      \          -- x\n\
+      \        , C\n\
+      \        )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

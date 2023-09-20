@@ -1,8 +1,8 @@
 module Trumat (trumat) where
 
 import qualified Data.List as List
-import qualified Data.Map as Map
 import Data.Map (Map)
+import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text, intercalate, pack, replicate, takeEnd, unpack)
@@ -2411,24 +2411,21 @@ parseAfterModuleDeclarationInDocComment moduleDeclaration =
           "\n"
         ]
 
-
 parseImportParts :: Text -> Import
 parseImportParts import_ =
   case parse parseImportPartsHelp "" import_ of
     Left _ ->
       Import "" False "" [] "" False
-
     Right ok ->
       ok
 
-data Import =
-  Import
-  { commentBetween :: Text
-  , isMultiline :: Bool
-  , as_ :: Text
-  , exposing_ :: [([Text], Text)]
-  , name :: Text
-  , isMultilineExposing :: Bool
+data Import = Import
+  { commentBetween :: Text,
+    isMultiline :: Bool,
+    as_ :: Text,
+    exposing_ :: [([Text], Text)],
+    name :: Text,
+    isMultilineExposing :: Bool
   }
 
 parseImportPartsHelp :: Parser Import
@@ -2464,20 +2461,18 @@ parseImportPartsHelp =
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $
       Import
-      { commentBetween = commentBetween'
-      , name = name'
-      , isMultiline = endRow /= startRow
-      , as_ = as'
-      , exposing_ = exposing'
-      , isMultilineExposing = isMultilineExposing'
-      }
-  
+        { commentBetween = commentBetween',
+          name = name',
+          isMultiline = endRow /= startRow,
+          as_ = as',
+          exposing_ = exposing',
+          isMultilineExposing = isMultilineExposing'
+        }
+
 importToText :: Import -> Text
 importToText import_ =
-  let
-    exposingText = formatExports 8 (isMultilineExposing import_) [] (exposing_ import_)
-  in
-      mconcat
+  let exposingText = formatExports 8 (isMultilineExposing import_) [] (exposing_ import_)
+   in mconcat
         [ "import ",
           commentBetween import_,
           if commentBetween import_ == "" then "" else " ",
@@ -2496,42 +2491,38 @@ importToText import_ =
 deduplicateImports :: [Text] -> [Text]
 deduplicateImports imports =
   map importToText $
-  deduplicateImportsHelp (map parseImportParts imports) Map.empty
+    deduplicateImportsHelp (map parseImportParts imports) Map.empty
 
 combineExposing :: [([Text], Text)] -> [([Text], Text)] -> [([Text], Text)]
 combineExposing a b =
-  let
-    exposingA :: [Text]
-    exposingA = mconcat $ map fst a
-    exposingB :: [Text]
-    exposingB = mconcat $ map fst b
-  in
-  [(exposingA <> exposingB, "")]
+  let exposingA :: [Text]
+      exposingA = mconcat $ map fst a
+      exposingB :: [Text]
+      exposingB = mconcat $ map fst b
+   in [(exposingA <> exposingB, "")]
 
 combineImports :: Import -> Import -> Import
 combineImports a b =
   Import
-  { commentBetween = commentBetween a
-  , isMultiline = isMultiline a || isMultiline b
-  , as_ = as_ a
-  , exposing_ = combineExposing (exposing_ a) (exposing_ b)
-  , name = name a
-  , isMultilineExposing = isMultilineExposing a || isMultilineExposing b
-  }
+    { commentBetween = commentBetween a,
+      isMultiline = isMultiline a || isMultiline b,
+      as_ = as_ a,
+      exposing_ = combineExposing (exposing_ a) (exposing_ b),
+      name = name a,
+      isMultilineExposing = isMultilineExposing a || isMultilineExposing b
+    }
 
 deduplicateImportsHelp :: [Import] -> Map Text Import -> [Import]
 deduplicateImportsHelp imports accum =
   case imports of
     [] ->
       map snd $ Map.toList accum
-
     top : remainder ->
       case Map.lookup (name top) accum of
         Just current ->
           deduplicateImportsHelp
             remainder
-            ( Map.insert (name top) (combineImports top current) accum)
-
+            (Map.insert (name top) (combineImports top current) accum)
         Nothing ->
           deduplicateImportsHelp
             remainder
