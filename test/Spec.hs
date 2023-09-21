@@ -12001,5 +12001,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two line comments in top level of let in expression",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            0\n\
+      \\n\
+      \        --\n\
+      \        --\n\
+      \    in\n\
+      \    a\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    let\n\
+      \        a =\n\
+      \            0\n\
+      \\n\
+      \        --\n\
+      \        --\n\
+      \    in\n\
+      \    a\n\
+      \"
     )
   ]
