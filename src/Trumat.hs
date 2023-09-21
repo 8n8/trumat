@@ -58,6 +58,7 @@ import Prelude
     max,
     maximum,
     mconcat,
+    mod,
     not,
     null,
     repeat,
@@ -3445,14 +3446,14 @@ parseInfixedExpression infix_ minColumn indent =
   choice
     [ try $ parseInfixedCaseOf infix_ indent,
       try $ do
-        expression <- parseIfThenElse minColumn (if infix_ == "++" || infix_ == "|>" then floorToFour (indent + 4) else indent)
+        expression <- parseIfThenElse minColumn (if infix_ == "++" || infix_ == "|>" then floorToFour (indent + 4) else indent + (Text.length infix_ `mod` 2))
         return $
           mconcat
-            [ if infix_ == "++" || infix_ == "|>"
+            [ if infix_ == "++" || infix_ == "|>" || infix_ == "<"
                 then "("
                 else "",
               expression,
-              if infix_ == "++" || infix_ == "|>"
+              if infix_ == "++" || infix_ == "|>" || infix_ == "<"
                 then "\n" <> replicate indent " " <> ")"
                 else ""
             ],
