@@ -3525,7 +3525,7 @@ parseInfixedItems minColumn indent accum =
           commentAfter <- commentSpaceParser (indent + 4 + Text.length infix_ + 1)
           beforeExpressionRow <- fmap (unPos . sourceLine) getSourcePos
           let expressionIndent =
-                if beforeExpressionRow == afterInfixRow
+                if beforeExpressionRow == afterInfixRow && infix_ /= "<|"
                   then indent + 4 + Text.length infix_ + 1
                   else indent + 4
           expression <- parseInfixedExpression infix_ minColumn expressionIndent
