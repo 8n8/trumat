@@ -638,7 +638,8 @@ parseEscapeAsterisks =
           [ try underscoreAsteriskBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
             chunk "\\*",
-            chunk "*" >> return "\\*"
+            chunk "*" >> return "\\*",
+            chunk "*"
           ]
     return $ mconcat pieces
 
@@ -659,7 +660,10 @@ underscoreAsteriskBolds =
     let trailingUnderscores = Text.replace "*" "_" trailing
     if Text.length leading /= Text.length trailing
       then fail "there must be equal numbers of trailing and leading asterisks"
-      else return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
+      else
+        if Text.length leading == 1
+          then return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
+          else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
