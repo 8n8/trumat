@@ -3444,6 +3444,18 @@ parseInfixedExpression :: Text -> Int -> Int -> Parser Text
 parseInfixedExpression infix_ minColumn indent =
   choice
     [ try $ parseInfixedCaseOf infix_ indent,
+      try $ do
+        expression <- parseIfThenElse minColumn (if infix_ == "++" then floorToFour (indent + 4) else indent)
+        return $
+          mconcat
+            [ if infix_ == "++"
+                then "("
+                else "",
+              expression,
+              if infix_ == "++"
+                then "\n" <> replicate indent " " <> ")"
+                else ""
+            ],
       try $ parseIfThenElse minColumn indent,
       try $ parseLetIn minColumn indent,
       try $ notDottable $ parseUnnecessaryBracketsInInfix minColumn indent,
