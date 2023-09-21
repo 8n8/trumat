@@ -397,7 +397,7 @@ parseDocHeader =
   do
     _ <- space
     contents <- parseDocHeaderContents
-    _ <- space
+    _ <- takeWhileP Nothing (\ch -> ch == '\n')
     return $ "\n\n\n" <> contents <> "\n\n"
 
 parseDocHeaderContents :: Parser Text
@@ -1357,6 +1357,28 @@ atLeastTwoNewlinesBeforeAtDocsHelp rows accumulated =
     first : remainder ->
       atLeastTwoNewlinesBeforeAtDocsHelp remainder (first : accumulated)
 
+stripTooManyNewlinesBetweenHeaderAndCode :: [Text] -> [Text]
+stripTooManyNewlinesBetweenHeaderAndCode rows =
+  stripTooManyNewlinesBetweenHeaderAndCodeHelp rows []
+
+stripTooManyNewlinesBetweenHeaderAndCodeHelp :: [Text] -> [Text] -> [Text]
+stripTooManyNewlinesBetweenHeaderAndCodeHelp rows accum =
+  case rows of
+    maybeHeader : maybeCode : remainder ->
+      if Text.take 1 (stripLeadingNewlines maybeHeader) == "#" && Text.take 6 maybeCode == "\n\n    "
+        then
+          stripTooManyNewlinesBetweenHeaderAndCodeHelp
+            remainder
+            (maybeCode : Text.stripEnd maybeHeader : accum)
+        else
+          stripTooManyNewlinesBetweenHeaderAndCodeHelp
+            (maybeCode : remainder)
+            (maybeHeader : accum)
+    [] ->
+      reverse accum
+    [top] ->
+      reverse (top : accum)
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
@@ -1368,17 +1390,18 @@ parseModuleDocsInner =
               fmap addExtraNewlinesAfterEndingCodeBlock $
                 fmap emptyLineBeforeNumberedList $
                   fmap addExtraNewlinesOnStartingCodeBlock $
-                    fmap stripTooManyNewlinesBeforeCodeBlocks $
-                      fmap trimTrailingNewlines $
-                        fmap stripLeadingSpacesFromDocRow $
-                          fmap (map newlinesAfterBackticks) $
-                            fmap backticksAroundCodeAfterList $
-                              fmap addNewlineToTrailingCode $
-                                fmap formatElmInDocs $
-                                  fmap maxTwoNewlinesAfterCodeBlock $
-                                    fmap removeTripleNewlinesInParagraphs $
-                                      some $
-                                        try parseDocRow
+                    fmap stripTooManyNewlinesBetweenHeaderAndCode $
+                      fmap stripTooManyNewlinesBeforeCodeBlocks $
+                        fmap trimTrailingNewlines $
+                          fmap stripLeadingSpacesFromDocRow $
+                            fmap (map newlinesAfterBackticks) $
+                              fmap backticksAroundCodeAfterList $
+                                fmap addNewlineToTrailingCode $
+                                  fmap formatElmInDocs $
+                                    fmap maxTwoNewlinesAfterCodeBlock $
+                                      fmap removeTripleNewlinesInParagraphs $
+                                        some $
+                                          try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
