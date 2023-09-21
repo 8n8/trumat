@@ -12230,5 +12230,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "code block following header",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \    a =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \\n\
+      \#\n\
+      \\n\
+      \    a =\n\
+      \        0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
