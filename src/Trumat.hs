@@ -3610,7 +3610,7 @@ parseLetIn minColumn indent =
           items <- parseLetBind column (floorToFour (indent + 4))
           _ <- space
           return items
-    commentBeforeIn <- commentSpaceParser indent
+    commentBeforeIn <- commentSpaceParser (floorToFour (indent + 4))
     _ <- chunk "in"
     comment <- commentSpaceParser indent
     in_ <- parseExpression minColumn DoesntNeedBrackets indent
