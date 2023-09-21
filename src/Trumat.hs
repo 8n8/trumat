@@ -638,15 +638,17 @@ parseEscapeAsterisks =
           [ try underscoreAsteriskBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
             chunk "\\*",
-            chunk "*" >> return "\\*",
-            chunk "*"
+            do
+              stars <- takeWhile1P Nothing (\ch -> ch == '*')
+              return $ Text.replace "*" "\\*" stars,
+            takeWhile1P Nothing (\ch -> ch == '*')
           ]
     return $ mconcat pieces
 
 underscoreAsteriskBolds :: Parser Text
 underscoreAsteriskBolds =
   do
-    leadingSpaces <- some $ choice [char ' ', char '\n']
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
     otherPieces <- many $
