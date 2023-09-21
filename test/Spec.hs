@@ -12149,7 +12149,7 @@ cases =
       \          )\n\
       \"
     ),
-    ( "triple backtick block quote that doesn't contain elm",
+    ( "triple backtick code block that doesn't contain elm",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
