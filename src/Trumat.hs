@@ -273,7 +273,7 @@ parseBacktickedCodeBlock =
     _ <- chunk "```"
     let code = mconcat pieces
         lines = Text.lines code
-        indented = mconcat $ map (\line -> "    " <> line) lines
+        indented = stripLeadingNewlines $ Text.intercalate "\n" $ map (\line -> if line == "" then "" else "    " <> line) lines
     return indented
 
 removeEmptyBlockQuote :: [Text] -> [Text]
@@ -1051,7 +1051,7 @@ formatElmChunkInDocs rows =
     _ ->
       let leadingNewlines = getLeadingNewlines (mconcat rows)
           trailingNewlines = Text.drop 1 (getLeadingNewlines (Text.reverse (mconcat rows)))
-          codeChunk = (Text.stripEnd $ mconcat $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) rows) <> "\n"
+          codeChunk = (Text.stripEnd $ Text.intercalate "\n" $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) (mconcat (map Text.lines rows))) <> "\n"
           formatted = case formatElmCodeInDocs codeChunk of
             Nothing ->
               codeChunk
