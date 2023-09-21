@@ -12048,5 +12048,25 @@ cases =
       \        else\n\
       \            d\n\
       \"
+    ),
+    ( "if then else following double plus infix operator",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a ++ if b then c else d\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        ++ (if b then\n\
+      \                c\n\
+      \\n\
+      \            else\n\
+      \                d\n\
+      \           )\n\
+      \"
     )
   ]
