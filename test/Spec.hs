@@ -12265,7 +12265,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "code block followed by at docs",
+    ( "at docs followed by code block",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
