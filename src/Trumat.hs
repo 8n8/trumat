@@ -1379,6 +1379,28 @@ stripTooManyNewlinesBetweenHeaderAndCodeHelp rows accum =
     [top] ->
       reverse (top : accum)
 
+removeTooManyNewlinesAfterAtDocs :: [Text] -> [Text]
+removeTooManyNewlinesAfterAtDocs rows =
+  removeTooManyNewlinesAfterAtDocsHelp rows []
+
+removeTooManyNewlinesAfterAtDocsHelp :: [Text] -> [Text] -> [Text]
+removeTooManyNewlinesAfterAtDocsHelp rows accum =
+  case rows of
+    [] ->
+      reverse accum
+    [only] ->
+      reverse (only : accum)
+    top : second : remainder ->
+      if Text.take 6 top == "@docs " && Text.take 6 second == "\n\n    "
+        then
+          removeTooManyNewlinesAfterAtDocsHelp
+            remainder
+            (second : Text.dropEnd 1 top : accum)
+        else
+          removeTooManyNewlinesAfterAtDocsHelp
+            (second : remainder)
+            (top : accum)
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
@@ -1397,11 +1419,12 @@ parseModuleDocsInner =
                             fmap (map newlinesAfterBackticks) $
                               fmap backticksAroundCodeAfterList $
                                 fmap addNewlineToTrailingCode $
-                                  fmap formatElmInDocs $
-                                    fmap maxTwoNewlinesAfterCodeBlock $
-                                      fmap removeTripleNewlinesInParagraphs $
-                                        some $
-                                          try parseDocRow
+                                  fmap removeTooManyNewlinesAfterAtDocs $
+                                    fmap formatElmInDocs $
+                                      fmap maxTwoNewlinesAfterCodeBlock $
+                                        fmap removeTripleNewlinesInParagraphs $
+                                          some $
+                                            try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
