@@ -374,7 +374,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap escapeAsterisks $ parseOrdinaryTextInDoc
+              text <- try $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -384,6 +384,14 @@ parseDocRow =
                 [ do
                     hyphens <- some $ char '-'
                     return $ text <> Text.pack hyphens,
+                  try $ do
+                    bold <- underscoreAsteriskBolds
+                    if Text.strip bold == "*"
+                      then return ""
+                      else return bold,
+                  do
+                    _ <- chunk "*"
+                    return "",
                   do
                     _ <- char '@'
                     return $ text <> "@",
@@ -633,7 +641,7 @@ parseEscapeAsterisks :: Parser Text
 parseEscapeAsterisks =
   do
     pieces <-
-      many $
+      some $
         choice
           [ try underscoreAsteriskBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
@@ -673,7 +681,7 @@ parseOrdinaryTextInDoc =
     some $
       choice
         [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
-          takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ')
+          takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ' && ch /= '*')
         ]
 
 parseExportDocsRowOnly :: Int -> [[Text]] -> Parser [[Text]]
