@@ -238,6 +238,10 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                              (if accumulated == "" then "" else "\n")
                                <> formatted
                                <> (if otherLines /= "" && isGappy then "\n" else "")
+                               <> ( if otherLines == "" || Text.takeEnd 1 otherLines == "\n"
+                                      then ""
+                                      else "\n" <> Text.replicate (indent + 2) " "
+                                  )
                                <> otherLines
                        )
                 )
