@@ -12330,5 +12330,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bolded hyphen",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **-**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **-**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
