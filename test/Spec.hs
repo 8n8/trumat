@@ -12412,5 +12412,28 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "trailing empty line in multi line doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
