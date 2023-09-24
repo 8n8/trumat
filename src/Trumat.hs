@@ -673,7 +673,11 @@ parseOrdinaryTextInDoc =
     some $
       choice
         [ takeWhile1P Nothing (\ch -> ch == ' ') >> return " ",
-          takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' ')
+          takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '-' && ch /= '\n' && ch /= ' '),
+          do
+            _ <- char '-'
+            _ <- notFollowedBy $ char '}'
+            return "-"
         ]
 
 parseExportDocsRowOnly :: Int -> [[Text]] -> Parser [[Text]]
