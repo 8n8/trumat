@@ -251,7 +251,6 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                          (if accumulated == "" then "" else "\n")
                            <> (if accumulated /= "" && isGappy then "\n" else "")
                            <> formatted
-                           <> (if otherLines /= "" && isGappy then "\n" else "")
                            <> (if otherLines == "" then "" else "\n    ")
                            <> otherLines
                    )
