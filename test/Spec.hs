@@ -12436,7 +12436,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "line comment in code block in doc comment",
+    ( "only line comment in code block in doc comment",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\

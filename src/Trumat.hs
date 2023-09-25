@@ -1452,11 +1452,27 @@ removeTooManyTrailingEmptyLinesHelp rows =
     _ ->
       reverse rows
 
+formatDocContainingOnlyLineComment :: [Text] -> [Text]
+formatDocContainingOnlyLineComment rows =
+  case filter (\row -> Text.strip row /= "") rows of
+    [] ->
+      rows
+
+    [only] ->
+      if Text.take 6 (stripLeadingNewlines only) == "    --" then
+        ["\n\n    --\n\n\n\n"]
+      else
+        rows
+
+    _ ->
+      rows
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
     rows <-
       fmap (filter (\row -> stripSpaces row /= "")) $
+       fmap formatDocContainingOnlyLineComment $
         fmap removeTooManyTrailingEmptyLines $
           fmap atLeastTwoNewlinesBeforeBlockQuote $
             fmap atLeastTwoNewlinesBeforeAtDocs $
