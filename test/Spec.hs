@@ -12465,5 +12465,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "only non empty line comment in doc comment code block",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    -- a\n\
+      \\n\
+      \\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    -- a\n\
+      \\n\
+      \\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
