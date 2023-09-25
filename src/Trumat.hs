@@ -1055,6 +1055,12 @@ stripLeadingNewlines string =
     Just (_, remainder) ->
       string
 
+isValidElmBlock :: Text -> Bool
+isValidElmBlock candidate =
+  let rows = Text.lines candidate
+      codeChunk = (Text.stripEnd $ Text.intercalate "\n" $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) (mconcat (map Text.lines rows))) <> "\n"
+   in formatElmCodeInDocs codeChunk /= Nothing
+
 formatElmChunkInDocs :: [Text] -> [Text]
 formatElmChunkInDocs rows =
   case rows of
@@ -1261,7 +1267,7 @@ addExtraNewlinesAfterEndingCodeBlock rows =
         [] ->
           rows
         lastInLast : remainderOfLast ->
-          if Text.take 6 lastInLast == "    --"
+          if Text.take 6 lastInLast == "    --" && isValidElmBlock last
             then rows <> ["\n", "\n"]
             else rows
 
@@ -1272,15 +1278,18 @@ addExtraNewlinesOnStartingCodeBlock rows =
       []
     top : remainder ->
       case ( Text.take 6 (stripLeadingNewlines top) == "    {-",
-             lastIsLineComment top
+             lastIsLineComment top,
+             isValidElmBlock top
            ) of
-        (True, False) ->
+        (True, False, _) ->
           "\n\n\n\n" <> (stripLeadingNewlines top) : remainder
-        (False, True) ->
+        (False, True, True) ->
           "\n\n\n" <> (stripLeadingNewlines top) : remainder
-        (True, True) ->
+        (False, True, False) ->
           "\n\n" <> (stripLeadingNewlines top) : remainder
-        (False, False) -> rows
+        (True, True, _) ->
+          "\n\n" <> (stripLeadingNewlines top) : remainder
+        _ -> rows
 
 emptyLineBeforeNumberedList :: [Text] -> [Text]
 emptyLineBeforeNumberedList rows =
