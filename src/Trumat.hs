@@ -1459,7 +1459,7 @@ formatDocContainingOnlyLineComment rows =
       rows
     [only] ->
       if Text.take 6 (stripLeadingNewlines only) == "    --"
-        then ["\n\n    --\n\n\n\n"]
+        then ["\n\n    " <> Text.strip only <> "\n\n\n\n"]
         else rows
     _ ->
       rows
