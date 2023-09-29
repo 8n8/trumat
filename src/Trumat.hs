@@ -688,7 +688,7 @@ backtickQuote =
     trailing <- takeWhile1P Nothing (\ch -> ch == '`')
     if Text.length leading /= Text.length trailing
       then fail "there must be equal numbers of trailing and leading underscores"
-      else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
+      else return $ "`" <> firstPiece <> mconcat otherPieces <> "`"
 
 escapeUnderscores :: Text -> Text
 escapeUnderscores text =
