@@ -641,6 +641,7 @@ parseEscapeBackslashes =
             chunk "\\\\",
             chunk "\\*",
             chunk "\\_",
+            chunk "\\`",
             do
               backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
               return $ Text.replace "\\" "\\\\" backslashes,
@@ -665,6 +666,7 @@ parseEscapeBackticks =
           [ try backtickQuote,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '`'),
             chunk "\\_",
+            chunk "\\`",
             do
               backticks <- takeWhile1P Nothing (\ch -> ch == '`')
               return $ Text.replace "`" "\\`" backticks,
