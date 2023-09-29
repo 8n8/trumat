@@ -12713,5 +12713,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "text enclosed in single backticks in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
