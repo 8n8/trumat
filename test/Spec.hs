@@ -12773,5 +12773,87 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "exponential time code block in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    a a\n\
+      \\n\
+      \    b b\n\
+      \\n\
+      \    c c\n\
+      \\n\
+      \    d d\n\
+      \\n\
+      \    e e\n\
+      \\n\
+      \    f f\n\
+      \\n\
+      \    g g\n\
+      \\n\
+      \    h h\n\
+      \\n\
+      \    i i\n\
+      \\n\
+      \    j j\n\
+      \\n\
+      \    k k\n\
+      \\n\
+      \    l l\n\
+      \\n\
+      \    m m\n\
+      \\n\
+      \    n n\n\
+      \\n\
+      \    o o\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    a a\n\
+      \\n\
+      \    b b\n\
+      \\n\
+      \    c c\n\
+      \\n\
+      \    d d\n\
+      \\n\
+      \    e e\n\
+      \\n\
+      \    f f\n\
+      \\n\
+      \    g g\n\
+      \\n\
+      \    h h\n\
+      \\n\
+      \    i i\n\
+      \\n\
+      \    j j\n\
+      \\n\
+      \    k k\n\
+      \\n\
+      \    l l\n\
+      \\n\
+      \    m m\n\
+      \\n\
+      \    n n\n\
+      \\n\
+      \    o o\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
