@@ -194,7 +194,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else escapeAsterisks s
+                else (escapeAsterisks . escapeBackslashes) s
           )
           $ fmap Text.strip
           $ fmap (\line -> Text.intercalate " " $ Text.words line)
@@ -639,6 +639,7 @@ parseEscapeBackslashes =
         choice
           [ takeWhile1P Nothing (\ch -> ch /= '\\'),
             chunk "\\\\",
+            chunk "\\*",
             do
               backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
               return $ Text.replace "\\" "\\\\" backslashes,
