@@ -194,7 +194,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else (escapeChar '*') s
+                else escapeAsterisks s
           )
           $ fmap Text.strip
           $ fmap (\line -> Text.intercalate " " $ Text.words line)
@@ -313,7 +313,7 @@ parseBlockQuoteContents =
               _ <- notFollowedBy (char '}')
               return "-"
           ]
-    return $ Text.intercalate " " $ Text.words $ mconcat $ map (escapeChar '*') pieces
+    return $ Text.intercalate " " $ Text.words $ mconcat $ map escapeAsterisks pieces
 
 parseDocRow :: Parser Text
 parseDocRow =
@@ -376,7 +376,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap (escapeChar '*') $ parseOrdinaryTextInDoc
+              text <- try $ fmap (escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -501,7 +501,7 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else (escapeChar '*') s
+                else escapeAsterisks s
           )
           $ fmap Text.strip noDoubleSpacesLine
       let numSpaces :: Int
@@ -623,27 +623,51 @@ noDoubleSpacesLine =
           takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
         ]
 
-escapeChar :: Char -> Text -> Text
-escapeChar ch text =
-  case parse (parseEscapeChars ch) "" text of
+escapeBackslashes :: Text -> Text
+escapeBackslashes text =
+  case parse parseEscapeBackslashes "" text of
     Left _ ->
       text
     Right ok ->
       ok
 
-parseEscapeChars :: Char -> Parser Text
-parseEscapeChars character =
+parseEscapeBackslashes :: Parser Text
+parseEscapeBackslashes =
+  do
+    pieces <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '\\'),
+            chunk "\\\\",
+            do
+              backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
+              return $ Text.replace "\\" "\\\\" backslashes,
+            takeWhile1P Nothing (\ch -> ch == '\\')
+          ]
+    return $ mconcat pieces
+
+escapeAsterisks :: Text -> Text
+escapeAsterisks text =
+  case parse parseEscapeAsterisks "" text of
+    Left _ ->
+      text
+    Right ok ->
+      ok
+
+parseEscapeAsterisks :: Parser Text
+parseEscapeAsterisks =
   do
     pieces <-
       many $
         choice
           [ try underscoreAsteriskBolds,
-            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= character),
-            chunk (Text.pack [ '\\', character ]),
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
+            chunk "\\*",
             do
-              stars <- takeWhile1P Nothing (\ch -> ch == character)
-              return $ Text.replace (Text.singleton character) (Text.pack ['\\', character]) stars,
-            takeWhile1P Nothing (\ch -> ch == character)
+              stars <- takeWhile1P Nothing (\ch -> ch == '*')
+              return $ Text.replace "*" "\\*" stars,
+            takeWhile1P Nothing (\ch -> ch == '*'),
+            takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
 
@@ -1583,7 +1607,7 @@ parseModuleDocsHelp nesting contents =
             piece <- parseModuleDocsInner
             parseModuleDocsHelp nesting (contents <> piece),
           do
-            piece <- fmap (escapeChar '*') $ takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            piece <- fmap escapeAsterisks $ takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> (if Text.takeEnd 3 contents == "{-|" && Text.take 1 piece /= " " then " " else "") <> piece),
           do
             _ <- char '-'
