@@ -194,7 +194,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else escapeAsterisks s
+                else (escapeChar '*') s
           )
           $ fmap Text.strip
           $ fmap (\line -> Text.intercalate " " $ Text.words line)
@@ -313,7 +313,7 @@ parseBlockQuoteContents =
               _ <- notFollowedBy (char '}')
               return "-"
           ]
-    return $ Text.intercalate " " $ Text.words $ mconcat $ map escapeAsterisks pieces
+    return $ Text.intercalate " " $ Text.words $ mconcat $ map (escapeChar '*') pieces
 
 parseDocRow :: Parser Text
 parseDocRow =
@@ -376,7 +376,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap escapeAsterisks $ parseOrdinaryTextInDoc
+              text <- try $ fmap (escapeChar '*') $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -501,7 +501,7 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else escapeAsterisks s
+                else (escapeChar '*') s
           )
           $ fmap Text.strip noDoubleSpacesLine
       let numSpaces :: Int
@@ -623,27 +623,27 @@ noDoubleSpacesLine =
           takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
         ]
 
-escapeAsterisks :: Text -> Text
-escapeAsterisks text =
-  case parse parseEscapeAsterisks "" text of
+escapeChar :: Char -> Text -> Text
+escapeChar ch text =
+  case parse (parseEscapeChars ch) "" text of
     Left _ ->
       text
     Right ok ->
       ok
 
-parseEscapeAsterisks :: Parser Text
-parseEscapeAsterisks =
+parseEscapeChars :: Char -> Parser Text
+parseEscapeChars character =
   do
     pieces <-
       many $
         choice
           [ try underscoreAsteriskBolds,
-            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
-            chunk "\\*",
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= character),
+            chunk (Text.pack [ '\\', character ]),
             do
-              stars <- takeWhile1P Nothing (\ch -> ch == '*')
-              return $ Text.replace "*" "\\*" stars,
-            takeWhile1P Nothing (\ch -> ch == '*')
+              stars <- takeWhile1P Nothing (\ch -> ch == character)
+              return $ Text.replace (Text.singleton character) (Text.pack ['\\', character]) stars,
+            takeWhile1P Nothing (\ch -> ch == character)
           ]
     return $ mconcat pieces
 
@@ -1231,10 +1231,17 @@ lastIsLineComment codeBlock =
     last : _ ->
       Text.take 6 last == "    --"
 
+onlyContainsComments :: Text -> Bool
+onlyContainsComments block =
+  let lines = Text.lines block
+      noEmpty = filter (\line -> Text.strip line /= "") lines
+      stripped = map Text.strip noEmpty
+   in all (\line -> Text.take 2 line == "--") stripped
+
 stripTooManyNewlinesBeforeCodeBlock :: Text -> Text
 stripTooManyNewlinesBeforeCodeBlock maybeBlock =
   let extraNewline :: Text
-      extraNewline = if lastIsLineComment maybeBlock then "\n" else ""
+      extraNewline = if lastIsLineComment maybeBlock && isValidElmBlock maybeBlock && not (onlyContainsComments maybeBlock) then "\n" else ""
    in if Text.take 4 (stripLeadingNewlines maybeBlock) == "    "
         then extraNewline <> "\n\n" <> stripLeadingNewlines maybeBlock
         else maybeBlock
@@ -1263,7 +1270,7 @@ addExtraNewlinesAfterEndingCodeBlock rows =
     [] ->
       []
     last : remainder ->
-      case reverse (Text.lines (Text.strip last)) of
+      case reverse (Text.lines (Text.stripEnd last)) of
         [] ->
           rows
         lastInLast : remainderOfLast ->
@@ -1473,6 +1480,27 @@ formatDocContainingOnlyLineComment rows =
     _ ->
       rows
 
+lastIsCommentOnlyCodeBlock :: Text -> Bool
+lastIsCommentOnlyCodeBlock text =
+  lastIsCommentOnlyCodeBlockHelp (reverse (Text.lines text)) False
+
+lastIsCommentOnlyCodeBlockHelp :: [Text] -> Bool -> Bool
+lastIsCommentOnlyCodeBlockHelp reversedLines accum =
+  case reversedLines of
+    [] ->
+      accum
+    "" : remainder ->
+      lastIsCommentOnlyCodeBlockHelp remainder accum
+    "\n" : remainder ->
+      lastIsCommentOnlyCodeBlockHelp remainder accum
+    top : remainder ->
+      if Text.take 6 top == "    --"
+        then lastIsCommentOnlyCodeBlockHelp remainder True
+        else
+          if Text.take 4 top == "    "
+            then False
+            else accum
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
@@ -1518,7 +1546,10 @@ parseModuleDocsInner =
                 then
                   ( if Text.count "\n\n" (Text.strip flat) == 0 && not firstIsList
                       then flat
-                      else Text.stripEnd flat <> "\n\n"
+                      else
+                        if lastIsCommentOnlyCodeBlock flat
+                          then flat
+                          else Text.stripEnd flat <> "\n\n"
                   )
                 else
                   if firstIsList
@@ -1552,7 +1583,7 @@ parseModuleDocsHelp nesting contents =
             piece <- parseModuleDocsInner
             parseModuleDocsHelp nesting (contents <> piece),
           do
-            piece <- fmap escapeAsterisks $ takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            piece <- fmap (escapeChar '*') $ takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDocumentationHelp nesting (contents <> (if Text.takeEnd 3 contents == "{-|" && Text.take 1 piece /= " " then " " else "") <> piece),
           do
             _ <- char '-'

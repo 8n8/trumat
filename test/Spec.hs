@@ -12553,5 +12553,53 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "non elm code block containing line comment following ordinary text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \    b\n\
+      \    --\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \\n\
+      \    b\n\
+      \    --\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "doc comment containing a single backslash",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| \\\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| \\\\\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
