@@ -501,7 +501,7 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
           ( \s ->
               if s == "*"
                 then "*"
-                else escapeAsterisks s
+                else (escapeAsterisks . escapeBackslashes) s
           )
           $ fmap Text.strip noDoubleSpacesLine
       let numSpaces :: Int
