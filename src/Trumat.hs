@@ -662,7 +662,8 @@ parseEscapeBackticks =
     pieces <-
       many $
         choice
-          [ takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '`'),
+          [ try backtickQuote,
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '`'),
             chunk "\\_",
             do
               backticks <- takeWhile1P Nothing (\ch -> ch == '`')
@@ -671,6 +672,23 @@ parseEscapeBackticks =
             takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
+
+backtickQuote :: Parser Text
+backtickQuote =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    leading <- takeWhile1P Nothing (\ch -> ch == '`')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '`')
+    otherPieces <- many $
+      try $
+        do
+          spaces <- takeWhileP Nothing (\ch -> ch == ' ')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '`')
+          return $ spaces <> piece
+    trailing <- takeWhile1P Nothing (\ch -> ch == '`')
+    if Text.length leading /= Text.length trailing
+      then fail "there must be equal numbers of trailing and leading underscores"
+      else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
 
 escapeUnderscores :: Text -> Text
 escapeUnderscores text =
