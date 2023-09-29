@@ -376,7 +376,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap (escapeUnderscores . escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
+              text <- try $ fmap (escapeBackticks . escapeUnderscores . escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -644,6 +644,30 @@ parseEscapeBackslashes =
             do
               backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
               return $ Text.replace "\\" "\\\\" backslashes,
+            takeWhile1P Nothing (\ch -> ch == '\\')
+          ]
+    return $ mconcat pieces
+
+escapeBackticks :: Text -> Text
+escapeBackticks text =
+  case parse parseEscapeBackticks "" text of
+    Left _ ->
+      text
+    Right ok ->
+      ok
+
+parseEscapeBackticks :: Parser Text
+parseEscapeBackticks =
+  do
+    pieces <-
+      many $
+        choice
+          [ takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '`'),
+            chunk "\\_",
+            do
+              backticks <- takeWhile1P Nothing (\ch -> ch == '`')
+              return $ Text.replace "`" "\\`" backticks,
+            takeWhile1P Nothing (\ch -> ch == '`'),
             takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
