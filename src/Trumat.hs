@@ -376,7 +376,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap (escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
+              text <- try $ fmap (escapeUnderscores . escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -648,6 +648,31 @@ parseEscapeBackslashes =
           ]
     return $ mconcat pieces
 
+escapeUnderscores :: Text -> Text
+escapeUnderscores text =
+  case parse parseEscapeUnderscores "" text of
+    Left _ ->
+      text
+    Right ok ->
+      ok
+
+parseEscapeUnderscores :: Parser Text
+parseEscapeUnderscores =
+  do
+    pieces <-
+      many $
+        choice
+          [ try underscoreBolds,
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_'),
+            chunk "\\_",
+            do
+              underscores <- takeWhile1P Nothing (\ch -> ch == '_')
+              return $ Text.replace "_" "\\_" underscores,
+            takeWhile1P Nothing (\ch -> ch == '_'),
+            takeWhile1P Nothing (\ch -> ch == '\\')
+          ]
+    return $ mconcat pieces
+
 escapeAsterisks :: Text -> Text
 escapeAsterisks text =
   case parse parseEscapeAsterisks "" text of
@@ -672,6 +697,23 @@ parseEscapeAsterisks =
             takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
+
+underscoreBolds :: Parser Text
+underscoreBolds =
+  do
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    leading <- takeWhile1P Nothing (\ch -> ch == '_')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_')
+    otherPieces <- many $
+      try $
+        do
+          spaces <- takeWhileP Nothing (\ch -> ch == ' ')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_')
+          return $ spaces <> piece
+    trailing <- takeWhile1P Nothing (\ch -> ch == '_')
+    if Text.length leading /= Text.length trailing
+      then fail "there must be equal numbers of trailing and leading underscores"
+      else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
 
 underscoreAsteriskBolds :: Parser Text
 underscoreAsteriskBolds =
