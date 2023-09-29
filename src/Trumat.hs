@@ -640,6 +640,7 @@ parseEscapeBackslashes =
           [ takeWhile1P Nothing (\ch -> ch /= '\\'),
             chunk "\\\\",
             chunk "\\*",
+            chunk "\\_",
             do
               backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
               return $ Text.replace "\\" "\\\\" backslashes,
