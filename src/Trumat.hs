@@ -736,13 +736,14 @@ parseEscapeAsterisks =
         choice
           [ try backtickQuote,
             try underscoreAsteriskBolds,
-            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*' && ch /= '`'),
             chunk "\\*",
             do
               stars <- takeWhile1P Nothing (\ch -> ch == '*')
               return $ Text.replace "*" "\\*" stars,
             takeWhile1P Nothing (\ch -> ch == '*'),
-            takeWhile1P Nothing (\ch -> ch == '\\')
+            takeWhile1P Nothing (\ch -> ch == '\\'),
+            takeWhile1P Nothing (\ch -> ch == '`')
           ]
     return $ mconcat pieces
 
