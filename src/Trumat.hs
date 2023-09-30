@@ -706,7 +706,8 @@ parseEscapeUnderscores =
     pieces <-
       many $
         choice
-          [ try underscoreBolds,
+          [ try backtickQuote,
+            try underscoreBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_'),
             chunk "\\_",
             do
