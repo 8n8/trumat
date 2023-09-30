@@ -655,11 +655,16 @@ angleBracketUrls text =
       words = Text.words text
    in leadingSpaces <> Text.unwords (map angleBracketUrl words)
 
+urlSchemes :: Set Text
+urlSchemes =
+  Set.fromList ["aaa", "http", "https"]
+
 angleBracketUrl :: Text -> Text
 angleBracketUrl text =
-  if Text.take 8 text == "https://" || Text.take 7 text == "http://"
-    then "<" <> text <> ">"
-    else text
+  let scheme = fst $ Text.break (\ch -> ch == ':') text
+   in if Set.member scheme urlSchemes
+        then "<" <> text <> ">"
+        else text
 
 getLeadingSpaces :: Text -> Text
 getLeadingSpaces text =
