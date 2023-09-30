@@ -12847,5 +12847,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "backtick quoted text following text in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a `_`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a `_`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
