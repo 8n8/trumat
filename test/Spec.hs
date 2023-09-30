@@ -13003,7 +13003,7 @@ cases =
     ( "acap url in doc comment",
       "module X exposing (x)\n\
       \\n\
-      \{-| acap://a\n\
+      \{-| acap:a\n\
       \-}\n\
       \\n\
       \\n\
@@ -13012,7 +13012,7 @@ cases =
       \",
       "module X exposing (x)\n\
       \\n\
-      \{-| <acap://a\n\
+      \{-| <acap:a>\n\
       \-}\n\
       \\n\
       \\n\
