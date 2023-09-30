@@ -376,7 +376,7 @@ parseDocRow =
         pieces <-
           some $
             do
-              text <- try $ fmap (escapeBackticks . escapeUnderscores . escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
+              text <- try $ fmap (angleBracketUrls . escapeBackticks . escapeUnderscores . escapeAsterisks . escapeBackslashes) $ parseOrdinaryTextInDoc
               _ <-
                 notFollowedBy $
                   lookAhead $
@@ -648,6 +648,28 @@ parseEscapeBackslashes =
             takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
+
+angleBracketUrls :: Text -> Text
+angleBracketUrls text =
+  let leadingSpaces = getLeadingSpaces text
+      words = Text.words text
+   in leadingSpaces <> Text.unwords (map angleBracketUrl words)
+
+angleBracketUrl :: Text -> Text
+angleBracketUrl text =
+  if Text.take 8 text == "https://"
+    then "<" <> text <> ">"
+    else text
+
+getLeadingSpaces :: Text -> Text
+getLeadingSpaces text =
+  case Text.uncons text of
+    Nothing ->
+      ""
+    Just (' ', remainder) ->
+      " " <> getLeadingSpaces remainder
+    Just _ ->
+      ""
 
 escapeBackticks :: Text -> Text
 escapeBackticks text =
