@@ -1635,9 +1635,9 @@ parseModuleDocsInner =
                                     fmap backticksAroundCodeAfterList $
                                       fmap addNewlineToTrailingCode $
                                         fmap removeTooManyNewlinesAfterAtDocs $
-                                          fmap formatElmInDocs $
-                                            fmap maxTwoNewlinesAfterCodeBlock $
-                                              fmap removeTripleNewlinesInParagraphs $
+                                           fmap formatElmInDocs $
+                                             fmap maxTwoNewlinesAfterCodeBlock $
+                                               fmap removeTripleNewlinesInParagraphs $
                                                 some $
                                                   try parseDocRow
 
