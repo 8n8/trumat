@@ -1635,9 +1635,9 @@ parseModuleDocsInner =
                                     fmap backticksAroundCodeAfterList $
                                       fmap addNewlineToTrailingCode $
                                         fmap removeTooManyNewlinesAfterAtDocs $
-                                           fmap formatElmInDocs $
-                                             fmap maxTwoNewlinesAfterCodeBlock $
-                                               fmap removeTripleNewlinesInParagraphs $
+                                          fmap formatElmInDocs $
+                                            fmap maxTwoNewlinesAfterCodeBlock $
+                                              fmap removeTripleNewlinesInParagraphs $
                                                 some $
                                                   try parseDocRow
 
@@ -2189,7 +2189,7 @@ parseParameters startColumn =
           if parameterColumn <= startColumn
             then fail "invalid indentation"
             else do
-              parameter <- parsePattern NeedsBrackets startColumn 0
+              parameter <- parseParameter startColumn 0
               _ <- space
               return parameter
     return $ intercalate " " parameters
@@ -3393,6 +3393,17 @@ parseSimpleStringLiteralChar =
       chunk "\\n",
       chunk "\\t",
       chunk "\\\\"
+    ]
+
+parseParameter :: Int -> Int -> Parser Text
+parseParameter minColumn indent =
+  choice
+    [ try $ parseTuplePattern NeedsBrackets indent,
+      parseList indent,
+      parseRecordPattern,
+      try $ parseVerbatim,
+      parseCharLiteral,
+      parseSimpleStringLiteral
     ]
 
 parsePattern :: Context -> Int -> Int -> Parser Text
