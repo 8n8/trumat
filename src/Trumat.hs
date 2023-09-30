@@ -678,7 +678,7 @@ parseEscapeBackticks =
 backtickQuote :: Parser Text
 backtickQuote =
   do
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '`')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '`')
     otherPieces <- many $
@@ -690,7 +690,7 @@ backtickQuote =
     trailing <- takeWhile1P Nothing (\ch -> ch == '`')
     if Text.length leading /= Text.length trailing
       then fail "there must be equal numbers of trailing and leading underscores"
-      else return $ "`" <> firstPiece <> mconcat otherPieces <> "`"
+      else return $ leadingSpaces <> "`" <> firstPiece <> mconcat otherPieces <> "`"
 
 escapeUnderscores :: Text -> Text
 escapeUnderscores text =
