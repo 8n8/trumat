@@ -12807,5 +12807,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "asterisk in backticks in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `*`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `*`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
