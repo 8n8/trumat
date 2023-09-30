@@ -12940,7 +12940,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "url in doc comment",
+    ( "https url in doc comment",
       "module X exposing (x)\n\
       \\n\
       \{-| https://a.com\n\
@@ -12953,6 +12953,26 @@ cases =
       "module X exposing (x)\n\
       \\n\
       \{-| <https://a.com>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "http url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| http://a.com\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <http://a.com>\n\
       \-}\n\
       \\n\
       \\n\
