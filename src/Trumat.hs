@@ -657,7 +657,7 @@ angleBracketUrls text =
 
 angleBracketUrl :: Text -> Text
 angleBracketUrl text =
-  if Text.take 8 text == "https://"
+  if Text.take 8 text == "https://" || Text.take 7 text == "http://"
     then "<" <> text <> ">"
     else text
 
