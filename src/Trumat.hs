@@ -708,12 +708,14 @@ parseEscapeUnderscores =
         choice
           [ try backtickQuote,
             try underscoreBolds,
-            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_'),
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_' && ch /= '`'),
             chunk "\\_",
+            chunk "\\`",
             do
               underscores <- takeWhile1P Nothing (\ch -> ch == '_')
               return $ Text.replace "_" "\\_" underscores,
             takeWhile1P Nothing (\ch -> ch == '_'),
+            takeWhile1P Nothing (\ch -> ch == '`'),
             takeWhile1P Nothing (\ch -> ch == '\\')
           ]
     return $ mconcat pieces
