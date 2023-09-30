@@ -732,7 +732,8 @@ parseEscapeAsterisks =
     pieces <-
       many $
         choice
-          [ try underscoreAsteriskBolds,
+          [ try backtickQuote,
+            try underscoreAsteriskBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '*'),
             chunk "\\*",
             do
