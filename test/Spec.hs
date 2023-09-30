@@ -12787,5 +12787,25 @@ cases =
       \x a b c d e f g h j k l m n o p q r =\n\
       \    0\n\
       \"
+    ),
+    ( "underscore in backticks in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `_`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `_`\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
