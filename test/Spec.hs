@@ -13179,5 +13179,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bitcoin url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| bitcoin:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <bitcoin:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
