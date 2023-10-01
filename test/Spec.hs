@@ -13279,5 +13279,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "cid url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| cid:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <cid:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
