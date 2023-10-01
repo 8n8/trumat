@@ -13219,5 +13219,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "callto url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| callto:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <callto:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
