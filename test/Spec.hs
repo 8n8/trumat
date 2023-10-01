@@ -13059,5 +13059,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "afs url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| afs:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <afs:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
