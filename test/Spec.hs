@@ -13439,5 +13439,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "dns url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| dns:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <dns:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
