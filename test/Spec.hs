@@ -13479,5 +13479,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "go in a doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| go\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| go\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
