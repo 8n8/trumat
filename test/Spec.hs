@@ -13199,5 +13199,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bolo URL in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| bolo:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <bolo:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
