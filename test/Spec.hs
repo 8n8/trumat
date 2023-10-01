@@ -13319,5 +13319,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "content url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| content:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <content:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
