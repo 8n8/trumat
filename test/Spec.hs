@@ -13571,5 +13571,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "ordinary text in doc comment followed by underscore in url",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a [b](_)\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a [b](_)\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
