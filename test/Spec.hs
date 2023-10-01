@@ -13079,5 +13079,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "aim url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| aim:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <aim:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
