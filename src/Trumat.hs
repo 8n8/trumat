@@ -754,9 +754,9 @@ parseEscapeUnderscores =
       many $
         choice
           [ try backtickQuote,
-            try namedUrl,
             try underscoreBolds,
-            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_' && ch /= '`'),
+            try namedUrl,
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_' && ch /= '`' && ch /= '['),
             chunk "\\_",
             chunk "\\`",
             do
