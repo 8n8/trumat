@@ -657,7 +657,7 @@ angleBracketUrls text =
 
 urlSchemes :: Set Text
 urlSchemes =
-  Set.fromList ["aaa", "http", "https", "acap", "adiumxtra", "afp", "afs", "aim"]
+  Set.fromList ["aaa", "http", "https", "acap", "adiumxtra", "afp", "afs", "aim", "apt"]
 
 angleBracketUrl :: Text -> Text
 angleBracketUrl text =
