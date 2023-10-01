@@ -13551,5 +13551,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "underscore in url",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a](_)\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a](_)\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
