@@ -315,6 +315,17 @@ parseBlockQuoteContents =
           ]
     return $ Text.intercalate " " $ Text.words $ mconcat $ map escapeAsterisks pieces
 
+parseLinkAlias :: Parser Text
+parseLinkAlias =
+  do
+    _ <- char '['
+    alias <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= ']' && ch /= '\n')
+    _ <- char ']'
+    _ <- char ':'
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    link <- takeWhile1P Nothing (\ch -> ch /= '\n')
+    return $ "[" <> alias <> "]: " <> link
+
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -329,6 +340,7 @@ parseDocRow =
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
+      parseLinkAlias,
       parseBacktickedCodeBlock,
       parseBlockQuote,
       try parseMultipleDocHeaders,
@@ -1675,10 +1687,20 @@ parseModuleDocsInner =
 
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
-        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped || first == "[" then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
+        lastIsAlias =
+          case reverse (Text.lines (Text.strip flat)) of
+            last : _ ->
+              case parse parseLinkAlias "" last of
+                Left _ ->
+                  False
+                Right _ ->
+                  True
+            [] ->
+              False
     return $
       if Text.strip (mconcat rows) == ""
         then "\n\n"
@@ -1688,7 +1710,7 @@ parseModuleDocsInner =
             else
               if Text.take 2 flat == "\n\n" || Text.elem '\n' (Text.strip flat)
                 then
-                  ( if Text.count "\n\n" (Text.strip flat) == 0 && not firstIsList
+                  ( if Text.count "\n\n" (Text.strip flat) == 0 && not firstIsList && not lastIsAlias
                       then flat
                       else
                         if lastIsCommentOnlyCodeBlock flat
