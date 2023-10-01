@@ -13039,5 +13039,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "afp url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| afp:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <afp:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
