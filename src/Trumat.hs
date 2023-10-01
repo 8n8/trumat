@@ -735,6 +735,18 @@ escapeUnderscores text =
     Right ok ->
       ok
 
+namedUrl :: Parser Text
+namedUrl =
+  do
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- char '['
+    alias <- takeWhile1P Nothing (\ch -> ch /= ']')
+    _ <- char ']'
+    _ <- char '('
+    url <- takeWhile1P Nothing (\ch -> ch /= ')')
+    _ <- char ')'
+    return $ leadingSpaces <> "[" <> alias <> "](" <> url <> ")"
+
 parseEscapeUnderscores :: Parser Text
 parseEscapeUnderscores =
   do
@@ -742,6 +754,7 @@ parseEscapeUnderscores =
       many $
         choice
           [ try backtickQuote,
+            try namedUrl,
             try underscoreBolds,
             takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '_' && ch /= '`'),
             chunk "\\_",
