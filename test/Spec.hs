@@ -13159,5 +13159,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "beshare url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| beshare:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <beshare:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
