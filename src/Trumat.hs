@@ -662,7 +662,7 @@ urlSchemes =
 angleBracketUrl :: Text -> Text
 angleBracketUrl text =
   let scheme = fst $ Text.break (\ch -> ch == ':') text
-   in if Set.member scheme urlSchemes
+   in if Text.elem ':' text && Set.member scheme urlSchemes
         then "<" <> text <> ">"
         else text
 
