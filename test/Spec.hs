@@ -13459,5 +13459,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "doi url in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| doi:a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| <doi:a>\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
