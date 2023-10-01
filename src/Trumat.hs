@@ -319,12 +319,8 @@ parseLinkAlias :: Parser Text
 parseLinkAlias =
   do
     _ <- char '['
-    alias <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= ']' && ch /= '\n')
-    _ <- char ']'
-    _ <- char ':'
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    link <- takeWhile1P Nothing (\ch -> ch /= '\n')
-    return $ "[" <> alias <> "]: " <> link
+    contents <- takeWhileP Nothing (\ch -> ch /= '\n')
+    return $ "[" <> contents
 
 parseDocRow :: Parser Text
 parseDocRow =
