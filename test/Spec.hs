@@ -13632,7 +13632,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "bacticked text followed by double asterisk text",
+    ( "backticked text followed by double asterisk text",
       "module X exposing (x)\n\
       \\n\
       \{-| `a` **b**\n\

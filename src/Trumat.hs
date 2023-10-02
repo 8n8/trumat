@@ -816,7 +816,7 @@ underscoreBolds =
 underscoreAsteriskBolds :: Parser Text
 underscoreAsteriskBolds =
   do
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
     otherPieces <- many $
@@ -832,8 +832,8 @@ underscoreAsteriskBolds =
       then fail "there must be equal numbers of trailing and leading asterisks"
       else
         if Text.length leading == 1
-          then return $ leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
-          else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
+          then return $ leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingUnderscores
+          else return $ leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailing
 
 parseOrdinaryTextInDoc :: Parser Text
 parseOrdinaryTextInDoc =
