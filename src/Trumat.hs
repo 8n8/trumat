@@ -799,7 +799,7 @@ parseEscapeAsterisks =
 underscoreBolds :: Parser Text
 underscoreBolds =
   do
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '_')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_')
     otherPieces <- many $
@@ -811,7 +811,7 @@ underscoreBolds =
     trailing <- takeWhile1P Nothing (\ch -> ch == '_')
     if Text.length leading /= Text.length trailing
       then fail "there must be equal numbers of trailing and leading underscores"
-      else return $ leading <> firstPiece <> mconcat otherPieces <> trailing
+      else return $ leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailing
 
 underscoreAsteriskBolds :: Parser Text
 underscoreAsteriskBolds =
