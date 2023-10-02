@@ -13631,5 +13631,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bacticked text followed by double asterisk text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a` **b**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a` **b**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
