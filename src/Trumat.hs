@@ -1110,7 +1110,9 @@ isNumberedListItem row =
     Nothing ->
       False
     Just (first, remainder) ->
-      isNumberedListItemAfterFirst remainder
+      if isDigit first
+        then isNumberedListItemAfterFirst remainder
+        else False
 
 isNumberedListItemAfterFirst :: Text -> Bool
 isNumberedListItemAfterFirst remainder1 =
@@ -1678,7 +1680,9 @@ parseModuleDocsInner =
               fmap atLeastTwoNewlinesBeforeAtDocs $
                 fmap addExtraNewlinesAfterEndingBlockQuote $
                   fmap addExtraNewlinesAfterEndingCodeBlock $
+                    -- BAD
                     fmap emptyLineBeforeNumberedList $
+                      -- OK
                       fmap addExtraNewlinesOnStartingCodeBlock $
                         fmap stripTooManyNewlinesBetweenHeaderAndCode $
                           fmap removeTooManyNewlinesAfterAtDocsAfterHeader $
