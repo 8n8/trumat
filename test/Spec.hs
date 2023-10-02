@@ -13611,5 +13611,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "backticked text followed by underscore bolded text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a` _b_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| `a` _b_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
