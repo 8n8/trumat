@@ -13652,11 +13652,11 @@ cases =
       \    0\n\
       \"
     ),
-    ( "text in block comment following text line following hyphen",
+    ( "block comment with two hyphens at the start",
       "module X exposing (x)\n\
       \\n\
-      \{--a\n\
-      \b\n\
+      \{--\n\
+      \a\n\
       \-}\n\
       \\n\
       \\n\
@@ -13665,8 +13665,8 @@ cases =
       \",
       "module X exposing (x)\n\
       \\n\
-      \{--a\n\
-      \b\n\
+      \{--\n\
+      \a\n\
       \-}\n\
       \\n\
       \\n\

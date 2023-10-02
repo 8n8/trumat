@@ -2998,10 +2998,25 @@ parseTopLevelCommentPiece =
 
 parseNonDocBlockComment :: Parser Text
 parseNonDocBlockComment =
+  choice
+    [ chunk "{--}",
+      try parseNonLiteralBlockComment,
+      parseDoubleHyphenBlockComment
+    ]
+
+parseNonLiteralBlockComment :: Parser Text
+parseNonLiteralBlockComment =
   do
     _ <- chunk "{-"
     _ <- lookAhead $ notFollowedBy (char '|')
+    _ <- lookAhead $ notFollowedBy (char '-')
     parseBlockCommentHelp 1 "{-"
+
+parseDoubleHyphenBlockComment :: Parser Text
+parseDoubleHyphenBlockComment =
+  do
+    _ <- chunk "{--"
+    parseDoubleHyphenBlockCommentHelp 1 "{--"
 
 parseIndependentDocComment :: Parser Text
 parseIndependentDocComment =
@@ -3042,6 +3057,34 @@ indentDocRows raw =
     top : remainder ->
       Text.intercalate "\n" (top : map Text.strip remainder)
         <> (if Text.takeEnd 1 raw == "\n" then "\n" else "")
+
+parseDoubleHyphenBlockCommentHelp :: Int -> Text -> Parser Text
+parseDoubleHyphenBlockCommentHelp nesting contents =
+  if nesting == 0
+    then return contents
+    else do
+      choice
+        [ do
+            _ <- chunk "{-"
+            parseDoubleHyphenBlockCommentHelp (nesting + 1) (contents <> "{-"),
+          do
+            _ <- chunk "-}"
+            let noStart = Text.drop 2 contents
+            let cleaned =
+                  if Text.elem '\n' (Text.stripEnd noStart) || Text.strip noStart == ""
+                    then contents
+                    else (Text.strip contents) <> (if Text.strip noStart == "" then "" else " ")
+            parseDoubleHyphenBlockCommentHelp (nesting - 1) (cleaned <> "-}"),
+          do
+            piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
+            parseDoubleHyphenBlockCommentHelp nesting (contents <> piece),
+          do
+            _ <- char '-'
+            parseDoubleHyphenBlockCommentHelp nesting (contents <> "-"),
+          do
+            _ <- char '{'
+            parseDoubleHyphenBlockCommentHelp nesting (contents <> "{")
+        ]
 
 parseBlockCommentHelp :: Int -> Text -> Parser Text
 parseBlockCommentHelp nesting contents =
