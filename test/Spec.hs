@@ -13673,5 +13673,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "doc comment where the second line ends with a dot",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \b.\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \b.\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
