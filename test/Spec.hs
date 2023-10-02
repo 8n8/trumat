@@ -13651,5 +13651,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "text in block comment following text line following hyphen",
+      "module X exposing (x)\n\
+      \\n\
+      \{--a\n\
+      \b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{--a\n\
+      \b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
