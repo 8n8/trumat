@@ -1618,6 +1618,7 @@ removeTooManyNewlinesAfterAtDocsHelp rows accum =
 removeTooManyTrailingEmptyLines :: [Text] -> [Text]
 removeTooManyTrailingEmptyLines rows =
   if any (\row -> Text.take 6 (stripLeadingNewlines row) == "@docs ") rows
+    || any (\row -> Text.take 1 row == "[") rows
     then rows
     else removeTooManyTrailingEmptyLinesHelp (reverse rows)
 
@@ -1675,7 +1676,9 @@ parseModuleDocsInner =
     rows <-
       fmap (filter (\row -> stripSpaces row /= "")) $
         fmap formatDocContainingOnlyLineComment $
+          -- BAD
           fmap removeTooManyTrailingEmptyLines $
+            -- OK
             fmap atLeastTwoNewlinesBeforeBlockQuote $
               fmap atLeastTwoNewlinesBeforeAtDocs $
                 fmap addExtraNewlinesAfterEndingBlockQuote $
