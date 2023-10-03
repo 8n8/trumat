@@ -319,8 +319,11 @@ parseLinkAlias :: Parser Text
 parseLinkAlias =
   do
     _ <- char '['
+    alias <- takeWhile1P Nothing (\ch -> ch /= ']')
+    _ <- chunk "]:"
+    _ <- takeWhileP Nothing (\ch -> ch == ' ')
     contents <- takeWhileP Nothing (\ch -> ch /= '\n')
-    return $ "[" <> contents
+    return $ "[" <> alias <> "]: " <> contents
 
 parseDocRow :: Parser Text
 parseDocRow =
@@ -336,7 +339,7 @@ parseDocRow =
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
-      parseLinkAlias,
+      try parseLinkAlias,
       parseBacktickedCodeBlock,
       parseBlockQuote,
       try parseMultipleDocHeaders,
@@ -1618,9 +1621,17 @@ removeTooManyNewlinesAfterAtDocsHelp rows accum =
 removeTooManyTrailingEmptyLines :: [Text] -> [Text]
 removeTooManyTrailingEmptyLines rows =
   if any (\row -> Text.take 6 (stripLeadingNewlines row) == "@docs ") rows
-    || any (\row -> Text.take 1 row == "[") rows
+    || any isLinkAlias rows
     then rows
     else removeTooManyTrailingEmptyLinesHelp (reverse rows)
+
+isLinkAlias :: Text -> Bool
+isLinkAlias row =
+  case parse parseLinkAlias "" row of
+    Left _ ->
+      False
+    Right _ ->
+      True
 
 removeTooManyTrailingEmptyLinesHelp :: [Text] -> [Text]
 removeTooManyTrailingEmptyLinesHelp rows =
@@ -1676,9 +1687,7 @@ parseModuleDocsInner =
     rows <-
       fmap (filter (\row -> stripSpaces row /= "")) $
         fmap formatDocContainingOnlyLineComment $
-          -- BAD
           fmap removeTooManyTrailingEmptyLines $
-            -- OK
             fmap atLeastTwoNewlinesBeforeBlockQuote $
               fmap atLeastTwoNewlinesBeforeAtDocs $
                 fmap addExtraNewlinesAfterEndingBlockQuote $
@@ -1702,7 +1711,7 @@ parseModuleDocsInner =
 
     let stripped = stripNewlinesStart $ mconcat rows
         first = Text.take 1 stripped
-        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped || first == "[" then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped || any isLinkAlias rows then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
