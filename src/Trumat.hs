@@ -1680,9 +1680,7 @@ parseModuleDocsInner =
               fmap atLeastTwoNewlinesBeforeAtDocs $
                 fmap addExtraNewlinesAfterEndingBlockQuote $
                   fmap addExtraNewlinesAfterEndingCodeBlock $
-                    -- BAD
                     fmap emptyLineBeforeNumberedList $
-                      -- OK
                       fmap addExtraNewlinesOnStartingCodeBlock $
                         fmap stripTooManyNewlinesBetweenHeaderAndCode $
                           fmap removeTooManyNewlinesAfterAtDocsAfterHeader $
@@ -1705,6 +1703,16 @@ parseModuleDocsInner =
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
+        lastIsNotSeparateAlias =
+          case reverse (Text.lines (Text.strip flat)) of
+            last : second : remainder ->
+              case parse parseLinkAlias "" last of
+                Left _ ->
+                  False
+                Right _ ->
+                  second /= ""
+            _ ->
+              False
         lastIsAlias =
           case reverse (Text.lines (Text.strip flat)) of
             last : _ ->
@@ -1727,7 +1735,7 @@ parseModuleDocsInner =
                   ( if Text.count "\n\n" (Text.strip flat) == 0 && not firstIsList && not lastIsAlias
                       then flat
                       else
-                        if lastIsCommentOnlyCodeBlock flat
+                        if lastIsCommentOnlyCodeBlock flat || lastIsNotSeparateAlias
                           then flat
                           else Text.stripEnd flat <> "\n\n"
                   )
