@@ -13818,5 +13818,25 @@ cases =
       \        ((B c) :: d) :: e ->\n\
       \            f\n\
       \"
+    ),
+    ( "text followed by at sign in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a @\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a @\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
