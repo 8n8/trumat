@@ -853,7 +853,11 @@ parseOrdinaryTextInDoc =
           do
             _ <- char '-'
             _ <- notFollowedBy $ char '}'
-            return "-"
+            return "-",
+          try $ do
+            _ <- char '@'
+            _ <- notFollowedBy $ chunk "docs "
+            return "@"
         ]
 
 parseExportDocsRowOnly :: Int -> [[Text]] -> Parser [[Text]]
