@@ -13884,5 +13884,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "typed backticked code block in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \```a\n\
+      \b\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \```a\n\
+      \b\n\
+      \```\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
