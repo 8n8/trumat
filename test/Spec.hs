@@ -13800,5 +13800,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "pattern match with argument in brackets in cons in cons",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ((B c) :: d) :: e ->\n\
+      \            f\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    case a of\n\
+      \        ((B c) :: d) :: e ->\n\
+      \            f\n\
+      \"
     )
   ]
