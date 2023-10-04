@@ -885,6 +885,10 @@ parseExportDocsRowOnly nesting accumulator =
             parseExportDocsRowOnly nesting accumulator,
           do
             _ <- takeWhile1P Nothing (\ch -> ch /= '@' && ch /= '{' && ch /= '}' && ch /= '-')
+            parseExportDocsRowOnly nesting accumulator,
+          do
+            _ <- char '@'
+            _ <- notFollowedBy $ try $ chunk "docs "
             parseExportDocsRowOnly nesting accumulator
         ]
 
