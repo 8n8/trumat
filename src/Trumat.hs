@@ -3687,7 +3687,7 @@ parsePatternNoAlias context minColumn indent =
 parsePatternInsideConsPattern :: Int -> Int -> Parser Text
 parsePatternInsideConsPattern minColumn indent =
   choice
-    [ try $ parseTuple NeedsBrackets indent,
+    [ try $ parseTuplePattern NeedsBrackets indent,
       try $ parseAliasedPattern NeedsBrackets indent,
       parseRecordPattern,
       parseList indent,
