@@ -663,8 +663,9 @@ parseEscapeBackslashes =
 angleBracketUrls :: Text -> Text
 angleBracketUrls text =
   let leadingSpaces = getLeadingSpaces text
+      trailingSpaces = getTrailingSpaces text
       words = Text.words text
-   in leadingSpaces <> Text.unwords (map angleBracketUrl words)
+   in leadingSpaces <> Text.unwords (map angleBracketUrl words) <> trailingSpaces
 
 urlSchemes :: Set Text
 urlSchemes =
@@ -686,6 +687,10 @@ getLeadingSpaces text =
       " " <> getLeadingSpaces remainder
     Just _ ->
       ""
+
+getTrailingSpaces :: Text -> Text
+getTrailingSpaces text =
+  getLeadingSpaces (Text.reverse text)
 
 escapeBackticks :: Text -> Text
 escapeBackticks text =
