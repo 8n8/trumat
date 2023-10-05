@@ -14082,5 +14082,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "elm code block in doc comment with five space indent",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \     a = 0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \     a = 0\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
