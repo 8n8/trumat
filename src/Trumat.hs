@@ -1236,8 +1236,9 @@ formatElmCodeInDocs unformatted =
 parserInDocs :: Parser Text
 parserInDocs =
   do
+    _ <- takeWhileP Nothing (\ch -> ch == '\n')
     moduleDeclaration <- parseModuleDeclarationNoCreate
-    _ <- space
+    _ <- takeWhileP Nothing (\ch -> ch == '\n')
     parseAfterModuleDeclarationInDocComment moduleDeclaration
 
 formatElmInDocsHelp :: [Text] -> [Text] -> [Text] -> [Text]
@@ -1969,14 +1970,13 @@ createModuleDeclaration =
 parseModuleDeclarationNoCreate :: Parser Text
 parseModuleDeclarationNoCreate =
   do
-    _ <- space
+    -- asdfasdf
     commentBefore <- choice [parseTopLevelComment, return ""]
     declaration <-
       choice
         [ parseModuleDeclaration,
           return ""
         ]
-    _ <- space
     title <- choice [parseTitle, return ""]
     return $
       mconcat
