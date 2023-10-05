@@ -742,7 +742,7 @@ backtickQuote =
   do
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '`')
-    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '`')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= '`')
     otherPieces <- many $
       try $
         do
@@ -752,7 +752,7 @@ backtickQuote =
     trailing <- takeWhile1P Nothing (\ch -> ch == '`')
     if Text.length leading /= Text.length trailing
       then fail "there must be equal numbers of trailing and leading underscores"
-      else return $ leadingSpaces <> "`" <> firstPiece <> mconcat otherPieces <> "`"
+      else return $ leadingSpaces <> "`" <> Text.strip (firstPiece <> mconcat otherPieces) <> "`"
 
 escapeUnderscores :: Text -> Text
 escapeUnderscores text =
