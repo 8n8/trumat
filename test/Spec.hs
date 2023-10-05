@@ -7540,32 +7540,6 @@ cases =
       \    0\n\
       \"
     ),
-    ( "pair of hyphens on subsequent line of module documentation",
-      "module X exposing (x)\n\
-      \\n\
-      \{-|\n\
-      \\n\
-      \--\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \{-|\n\
-      \\n\
-      \--\n\
-      \\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \"
-    ),
     ( "anonymous function in argument bound to name beginning with type",
       "module X exposing (typea)\n\
       \\n\

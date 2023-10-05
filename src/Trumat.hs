@@ -1765,36 +1765,48 @@ addTwoNewlinesAfterTrailingTypedCodeBlock rows =
     [] ->
       []
 
+removeNewlinesBeforeLeadingHyphens :: [Text] -> [Text]
+removeNewlinesBeforeLeadingHyphens rows =
+  case rows of
+    top : remainder ->
+      if Text.take 4 (stripLeadingNewlines top) /= "    "
+        && Text.take 2 (Text.stripStart top) == "--"
+        then (" " <> Text.stripStart top) : remainder
+        else rows
+    [] ->
+      []
+
 parseModuleDocsInner :: Parser Text
 parseModuleDocsInner =
   do
     rows <-
-      fmap addTwoNewlinesAfterTrailingTypedCodeBlock $
-        fmap maxTwoNewlinesAfterTypedCodeBlock $
-          fmap (filter (\row -> stripSpaces row /= "")) $
-            fmap formatDocContainingOnlyLineComment $
-              fmap removeTooManyTrailingEmptyLines $
-                fmap atLeastTwoNewlinesBeforeBlockQuote $
-                  fmap atLeastTwoNewlinesBeforeAtDocs $
-                    fmap addExtraNewlinesAfterEndingBlockQuote $
-                      fmap addExtraNewlinesAfterEndingCodeBlock $
-                        fmap emptyLineBeforeNumberedList $
-                          fmap addExtraNewlinesOnStartingCodeBlock $
-                            fmap stripTooManyNewlinesBetweenHeaderAndCode $
-                              fmap stripTooManyNewlinesBetweenCodeAndHeader $
-                                fmap removeTooManyNewlinesAfterAtDocsAfterHeader $
-                                  fmap stripTooManyNewlinesBeforeCodeBlocks $
-                                    fmap trimTrailingNewlines $
-                                      fmap stripLeadingSpacesFromDocRow $
-                                        fmap (map newlinesAfterBackticks) $
-                                          fmap backticksAroundCodeAfterList $
-                                            fmap addNewlineToTrailingCode $
-                                              fmap removeTooManyNewlinesAfterAtDocs $
-                                                fmap formatElmInDocs $
-                                                  fmap maxTwoNewlinesAfterCodeBlock $
-                                                    fmap removeTripleNewlinesInParagraphs $
-                                                      some $
-                                                        try parseDocRow
+      fmap removeNewlinesBeforeLeadingHyphens $
+        fmap addTwoNewlinesAfterTrailingTypedCodeBlock $
+          fmap maxTwoNewlinesAfterTypedCodeBlock $
+            fmap (filter (\row -> stripSpaces row /= "")) $
+              fmap formatDocContainingOnlyLineComment $
+                fmap removeTooManyTrailingEmptyLines $
+                  fmap atLeastTwoNewlinesBeforeBlockQuote $
+                    fmap atLeastTwoNewlinesBeforeAtDocs $
+                      fmap addExtraNewlinesAfterEndingBlockQuote $
+                        fmap addExtraNewlinesAfterEndingCodeBlock $
+                          fmap emptyLineBeforeNumberedList $
+                            fmap addExtraNewlinesOnStartingCodeBlock $
+                              fmap stripTooManyNewlinesBetweenHeaderAndCode $
+                                fmap stripTooManyNewlinesBetweenCodeAndHeader $
+                                  fmap removeTooManyNewlinesAfterAtDocsAfterHeader $
+                                    fmap stripTooManyNewlinesBeforeCodeBlocks $
+                                      fmap trimTrailingNewlines $
+                                        fmap stripLeadingSpacesFromDocRow $
+                                          fmap (map newlinesAfterBackticks) $
+                                            fmap backticksAroundCodeAfterList $
+                                              fmap addNewlineToTrailingCode $
+                                                fmap removeTooManyNewlinesAfterAtDocs $
+                                                  fmap formatElmInDocs $
+                                                    fmap maxTwoNewlinesAfterCodeBlock $
+                                                      fmap removeTripleNewlinesInParagraphs $
+                                                        some $
+                                                          try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
         first =
