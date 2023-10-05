@@ -403,6 +403,12 @@ parseDocRow =
             ],
       try parseUnorderedList,
       try parseNumberedListItems,
+      try $ do
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        _ <- char '-'
+        _ <- takeWhileP Nothing (\ch -> ch == ' ')
+        _ <- char '\n'
+        return "\n",
       do
         pieces <-
           some $
