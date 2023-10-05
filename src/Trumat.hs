@@ -3179,13 +3179,13 @@ parseDoubleHyphenBlockCommentHelp nesting contents =
             _ <- chunk "{-"
             parseDoubleHyphenBlockCommentHelp (nesting + 1) (contents <> "{-"),
           do
-            _ <- chunk "-}"
-            let noStart = Text.drop 2 contents
+            end <- choice [chunk "--}", chunk "-}"]
+            let noStart = Text.drop 3 contents
             let cleaned =
                   if Text.elem '\n' (Text.stripEnd noStart) || Text.strip noStart == ""
                     then contents
                     else (Text.strip contents) <> (if Text.strip noStart == "" then "" else " ")
-            parseDoubleHyphenBlockCommentHelp (nesting - 1) (cleaned <> "-}"),
+            parseDoubleHyphenBlockCommentHelp (nesting - 1) (cleaned <> end),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             parseDoubleHyphenBlockCommentHelp nesting (contents <> piece),
