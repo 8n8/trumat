@@ -364,6 +364,7 @@ parseDocRow =
       parseBlockQuote,
       try parseMultipleDocHeaders,
       try parseDocHeader,
+      try parseSecondLevelUnderlineDocHeader,
       chunk "\n",
       do
         _ <- chunk "    "
@@ -430,6 +431,17 @@ parseDocRow =
                 ]
         return $ mconcat pieces
     ]
+
+parseSecondLevelUnderlineDocHeader :: Parser Text
+parseSecondLevelUnderlineDocHeader =
+  do
+    header <- takeWhile1P Nothing (\ch -> ch /= '\n')
+    _ <- char '\n'
+    _ <- char '-'
+    _ <- takeWhile1P Nothing (\ch -> ch == '-')
+    _ <- char '\n'
+    return $ "\n\n\n## " <> Text.strip header <> "\n\n"
+
 
 parseDocHeader :: Parser Text
 parseDocHeader =
