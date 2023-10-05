@@ -14108,5 +14108,26 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "doc comment containing only an empty line comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \--\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| --\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
