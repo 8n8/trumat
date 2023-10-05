@@ -668,7 +668,7 @@ parseEscapeBackslashes =
       many $
         choice
           [ try backtickQuote,
-            takeWhile1P Nothing (\ch -> ch /= '\\'),
+            takeWhile1P Nothing (\ch -> ch /= '\\' && ch /= '`'),
             chunk "\\\\",
             chunk "\\*",
             chunk "\\_",
@@ -676,7 +676,8 @@ parseEscapeBackslashes =
             do
               backslashes <- takeWhile1P Nothing (\ch -> ch == '\\')
               return $ Text.replace "\\" "\\\\" backslashes,
-            takeWhile1P Nothing (\ch -> ch == '\\')
+            takeWhile1P Nothing (\ch -> ch == '\\'),
+            takeWhile1P Nothing (\ch -> ch == '`')
           ]
     return $ mconcat pieces
 
