@@ -356,7 +356,8 @@ parseDocRow =
               else return ()
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
-        return $ "\n\n-" <> hyphens,
+        remainder <- takeWhileP Nothing (\ch -> ch /= '\n')
+        return $ "\n\n-" <> hyphens <> remainder,
       try parseLinkAlias,
       try parseTypedBacktickedCodeBlock,
       parseBacktickedCodeBlock,
@@ -1771,6 +1772,7 @@ removeNewlinesBeforeLeadingHyphens rows =
     top : remainder ->
       if Text.take 4 (stripLeadingNewlines top) /= "    "
         && Text.take 2 (Text.stripStart top) == "--"
+        && Text.take 3 (Text.stripStart top) /= "-->"
         then (" " <> Text.stripStart top) : remainder
         else rows
     [] ->
