@@ -13914,5 +13914,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "typed code block in doc comment followed by text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \```a\n\
+      \b\n\
+      \```\n\
+      \\n\
+      \c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \```a\n\
+      \b\n\
+      \```\n\
+      \\n\
+      \c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
