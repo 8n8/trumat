@@ -14002,5 +14002,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "url scheme followed by colon then whitespace",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| notes:\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| notes:\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
