@@ -667,7 +667,8 @@ parseEscapeBackslashes =
     pieces <-
       many $
         choice
-          [ takeWhile1P Nothing (\ch -> ch /= '\\'),
+          [ try backtickQuote,
+            takeWhile1P Nothing (\ch -> ch /= '\\'),
             chunk "\\\\",
             chunk "\\*",
             chunk "\\_",
