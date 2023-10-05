@@ -14129,5 +14129,26 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "text followed by hyphen on new line in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \-\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
