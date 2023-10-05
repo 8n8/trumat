@@ -14201,7 +14201,7 @@ cases =
       "module X exposing (x)\n\
       \\n\
       \{-| a\n\
-      \-->\n\
+      \--b\n\
       \-}\n\
       \\n\
       \\n\
@@ -14211,7 +14211,7 @@ cases =
       "module X exposing (x)\n\
       \\n\
       \{-| a\n\
-      \-->\n\
+      \--b\n\
       \-}\n\
       \\n\
       \\n\

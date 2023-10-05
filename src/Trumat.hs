@@ -357,7 +357,7 @@ parseDocRow =
         _ <- char '-'
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         remainder <- takeWhileP Nothing (\ch -> ch /= '\n')
-        return $ "\n\n-" <> hyphens <> remainder,
+        return $ (if remainder == "" || remainder == ">" then "\n\n" else "\n") <> "-" <> hyphens <> remainder,
       try parseLinkAlias,
       try parseTypedBacktickedCodeBlock,
       parseBacktickedCodeBlock,
