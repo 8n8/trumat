@@ -259,6 +259,24 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                    )
           ]
 
+parseTypedBacktickedCodeBlock :: Parser Text
+parseTypedBacktickedCodeBlock =
+  do
+    _ <- chunk "```"
+    type_ <- takeWhile1P Nothing (\ch -> ch /= '\n' && ch /= ' ')
+    pieces <- many $ try $ do
+      piece <- takeWhile1P Nothing (\ch -> ch /= '`')
+      choice
+        [ do
+            notFollowedBy $ lookAhead $ chunk "```"
+            backticks <- choice [chunk "``", chunk "`"]
+            return $ piece <> backticks,
+          return piece
+        ]
+    _ <- chunk "```"
+    let code = mconcat pieces
+    return $ "```" <> type_ <> code <> "```"
+
 parseBacktickedCodeBlock :: Parser Text
 parseBacktickedCodeBlock =
   do
@@ -340,6 +358,7 @@ parseDocRow =
         hyphens <- takeWhile1P Nothing (\ch -> ch == '-')
         return $ "\n\n-" <> hyphens,
       try parseLinkAlias,
+      try parseTypedBacktickedCodeBlock,
       parseBacktickedCodeBlock,
       parseBlockQuote,
       try parseMultipleDocHeaders,
@@ -1746,8 +1765,11 @@ parseModuleDocsInner =
                                                     try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
-        first = Text.take 1 stripped
-        flat = if first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped || any isLinkAlias rows then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
+        first =
+          if Text.take 3 stripped == "```"
+            then Text.take 3 stripped
+            else Text.take 1 stripped
+        flat = if first == "```" || first == "#" || first == ">" || first == "-" || first == "@" || Text.take 4 stripped == "    " || isListItem stripped || any isLinkAlias rows then mconcat rows else " " <> (Text.stripStart $ mconcat rows)
         firstIsList = case filter (\item -> Text.strip item /= "") rows of
           [] -> False
           top : _ -> isListItem top
