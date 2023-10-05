@@ -3184,7 +3184,7 @@ parseDoubleHyphenBlockCommentHelp nesting contents =
             let cleaned =
                   if Text.elem '\n' (Text.stripEnd noStart) || Text.strip noStart == ""
                     then contents
-                    else (Text.strip contents) <> (if Text.strip noStart == "" then "" else " ")
+                    else Text.strip contents
             parseDoubleHyphenBlockCommentHelp (nesting - 1) (cleaned <> end),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
