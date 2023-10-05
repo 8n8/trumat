@@ -13948,5 +13948,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "double hyphens on each end of block comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{----}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{----}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
