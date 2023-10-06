@@ -411,6 +411,7 @@ parseDocRow =
         _ <- takeWhileP Nothing (\ch -> ch == ' ')
         _ <- char '\n'
         return "\n",
+      try parseMultilineAsteriskBold,
       do
         pieces <-
           some $
@@ -834,6 +835,29 @@ escapeAsterisks text =
       text
     Right ok ->
       ok
+
+parseMultilineAsteriskBold :: Parser Text
+parseMultilineAsteriskBold =
+  do
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    leading <- takeWhile1P Nothing (\ch -> ch == '*')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
+    otherPieces <- many $
+      try $
+        do
+          spaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
+          return $ spaces <> piece
+    trailingSpaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    trailing <- takeWhile1P Nothing (\ch -> ch == '*')
+    let leadingUnderscores = Text.replace "*" "_" leading
+    let trailingUnderscores = Text.replace "*" "_" trailing
+    if Text.length leading /= Text.length trailing
+      then fail "there must be equal numbers of trailing and leading asterisks"
+      else
+        if Text.length leading == 1
+          then return $ leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailingUnderscores
+          else return $ leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
 
 parseEscapeAsterisks :: Parser Text
 parseEscapeAsterisks =
