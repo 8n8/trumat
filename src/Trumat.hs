@@ -139,7 +139,7 @@ getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
   do
     indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
-    _ <- choice [chunk "- ", chunk "-\n"]
+    _ <- choice [chunk "- ", chunk "-\n", chunk "+ ", chunk "+\n"]
     return indent
 
 parseUnorderedListGappiness :: Int -> Int -> Bool -> Parser Bool
@@ -162,7 +162,7 @@ parseUnorderedListGappiness nesting indent accumulated =
                   _ <- notFollowedBy $ do
                     _ <- char '\n'
                     _ <- space
-                    _ <- chunk "- "
+                    _ <- choice [chunk "- ", chunk "+ "]
                     return ()
                   newlines <- choice [chunk "\n\n", chunk "\n"]
                   _ <- lookAhead (char ' ')
@@ -216,7 +216,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                   _ <- notFollowedBy $ do
                     _ <- char '\n'
                     _ <- space
-                    _ <- choice [chunk "- ", chunk "-\n", chunk "-}"]
+                    _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n"]
                     return ()
                   _ <- char '\n'
                   takeWhile1P Nothing (\ch -> ch /= '\n')
