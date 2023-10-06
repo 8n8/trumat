@@ -14306,5 +14306,24 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "bolded text in type declaration after multi line empty module docs",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {-*a*-} A\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| -}\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = {- *a* -} A\n\
+      \"
     )
   ]
