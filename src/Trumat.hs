@@ -839,6 +839,7 @@ escapeAsterisks text =
 parseMultilineAsteriskBold :: Parser Text
 parseMultilineAsteriskBold =
   do
+    leadingText <- takeWhileP Nothing (\ch -> ch /= '*')
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
@@ -856,8 +857,8 @@ parseMultilineAsteriskBold =
       then fail "there must be equal numbers of trailing and leading asterisks"
       else
         if Text.length leading == 1
-          then return $ leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailingUnderscores
-          else return $ leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
+          then return $ leadingText <> leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailingUnderscores
+          else return $ leadingText <> leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
 
 parseEscapeAsterisks :: Parser Text
 parseEscapeAsterisks =
