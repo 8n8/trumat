@@ -1927,7 +1927,7 @@ parseModuleDocsHelp nesting contents =
                   then Text.strip contents <> " -}"
                   else
                     if Text.strip (Text.drop 3 contents) == "-" || Text.strip (Text.drop 3 contents) == "\\*"
-                      then "{-|\n\n\n-}"
+                      then "{-| -}"
                       else contents <> "-}"
               ),
           try $ do
