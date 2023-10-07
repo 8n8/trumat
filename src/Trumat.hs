@@ -139,7 +139,7 @@ getUnorderedListItemIndent :: Parser Int
 getUnorderedListItemIndent =
   do
     indent <- fmap Text.length (takeWhileP Nothing (\ch -> ch == ' '))
-    _ <- choice [chunk "- ", chunk "-\n", chunk "+ ", chunk "+\n"]
+    _ <- choice [chunk "- ", chunk "-\n", chunk "+ ", chunk "+\n", chunk "* "]
     return indent
 
 parseUnorderedListGappiness :: Int -> Int -> Bool -> Parser Bool
