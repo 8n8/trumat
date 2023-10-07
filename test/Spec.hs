@@ -14343,5 +14343,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "asterisk bolding followed by text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **a** b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **a** b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
