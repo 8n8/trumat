@@ -14363,5 +14363,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline asterisk bold followed by space and text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **a\n\
+      \** b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| **a\n\
+      \** b\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
