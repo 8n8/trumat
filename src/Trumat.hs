@@ -839,10 +839,10 @@ escapeAsterisks text =
 parseMultilineAsteriskBold :: Parser Text
 parseMultilineAsteriskBold =
   do
-    leadingText <- takeWhileP Nothing (\ch -> ch /= '*')
+    leadingText <- takeWhileP Nothing (\ch -> ch /= '*' && ch /= '-')
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
-    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*' && ch /= '-')
     otherPieces <- many $
       try $
         do
@@ -3299,7 +3299,8 @@ parseBlockCommentHelp nesting contents =
             parseBlockCommentHelp (nesting - 1) (cleaned <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
-            parseBlockCommentHelp nesting (contents <> (indentBlockRows piece)),
+            let indented = indentBlockRows piece
+            parseBlockCommentHelp nesting (contents <> (if Text.take 1 indented == "|" || Text.take 1 indented == " " || Text.take 1 indented == "\n" then "" else " ") <> indented),
           do
             _ <- char '-'
             parseBlockCommentHelp nesting (contents <> "-"),
