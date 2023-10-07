@@ -850,15 +850,18 @@ parseMultilineAsteriskBold =
           piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*')
           return $ spaces <> piece
     trailingSpaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-    trailing <- takeWhile1P Nothing (\ch -> ch == '*')
-    let leadingUnderscores = Text.replace "*" "_" leading
-    let trailingUnderscores = Text.replace "*" "_" trailing
-    if Text.length leading /= Text.length trailing
-      then fail "there must be equal numbers of trailing and leading asterisks"
-      else
-        if Text.length leading == 1
-          then return $ leadingText <> leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailingUnderscores
-          else return $ leadingText <> leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
+    if not $ Text.elem '\n' ((mconcat otherPieces) <> trailingSpaces)
+      then dbg "HERE" $ fail "expecting a newline in the text"
+      else do
+        trailing <- takeWhile1P Nothing (\ch -> ch == '*')
+        let leadingUnderscores = Text.replace "*" "_" leading
+        let trailingUnderscores = Text.replace "*" "_" trailing
+        if Text.length leading /= Text.length trailing
+          then fail "there must be equal numbers of trailing and leading asterisks"
+          else
+            if Text.length leading == 1
+              then return $ leadingText <> leadingSpaces <> leadingUnderscores <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailingUnderscores
+              else return $ leadingText <> leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
 
 parseEscapeAsterisks :: Parser Text
 parseEscapeAsterisks =
