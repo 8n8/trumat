@@ -14407,5 +14407,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline double asterisk text after single asterisked text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| *a* **b\n\
+      \**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| _a_ **b\n\
+      \**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
