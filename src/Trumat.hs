@@ -839,7 +839,11 @@ escapeAsterisks text =
 parseMultilineAsteriskBold :: Parser Text
 parseMultilineAsteriskBold =
   do
-    leadingText <- takeWhileP Nothing (\ch -> ch /= '*' && ch /= '-')
+    leadingText <-
+      choice
+        [ backtickQuote,
+          takeWhileP Nothing (\ch -> ch /= '*' && ch /= '-')
+        ]
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*' && ch /= '-')
