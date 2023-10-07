@@ -14477,5 +14477,38 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "gappy unordered list with asterisk bullets",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  * a\n\
+      \\n\
+      \  * b\n\
+      \  * c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \\n\
+      \  - b\n\
+      \\n\
+      \  - c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
