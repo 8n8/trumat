@@ -851,7 +851,7 @@ parseMultilineAsteriskBold =
           return $ spaces <> piece
     trailingSpaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     if not $ Text.elem '\n' ((mconcat otherPieces) <> trailingSpaces)
-      then dbg "HERE" $ fail "expecting a newline in the text"
+      then fail "expecting a newline in the text"
       else do
         trailing <- takeWhile1P Nothing (\ch -> ch == '*')
         let leadingUnderscores = Text.replace "*" "_" leading
