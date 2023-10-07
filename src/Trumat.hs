@@ -840,11 +840,13 @@ parseMultilineAsteriskBold :: Parser Text
 parseMultilineAsteriskBold =
   do
     leadingText <-
-      choice
-        [ try backtickQuote,
-          try underscoreAsteriskBolds,
-          takeWhileP Nothing (\ch -> ch /= '*' && ch /= '-')
-        ]
+      fmap mconcat $
+        some $
+          choice
+            [ try backtickQuote,
+              try underscoreAsteriskBolds,
+              takeWhile1P Nothing (\ch -> ch /= '*' && ch /= '-')
+            ]
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
     firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '*' && ch /= '-')
