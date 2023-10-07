@@ -3300,7 +3300,11 @@ parseBlockCommentHelp nesting contents =
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             let indented = indentBlockRows piece
-            parseBlockCommentHelp nesting (contents <> (if Text.take 1 indented == "|" || Text.take 1 indented == " " || Text.take 1 indented == "\n" then "" else " ") <> indented),
+            let extraSpace =
+                  if Text.takeEnd 2 contents == "{-" && Text.take 1 indented /= " " && Text.take 1 indented /= "\n" && Text.take 1 indented /= "|"
+                    then " "
+                    else ""
+            parseBlockCommentHelp nesting (contents <> extraSpace <> indented),
           do
             _ <- char '-'
             parseBlockCommentHelp nesting (contents <> "-"),

@@ -14325,5 +14325,23 @@ cases =
       \type X\n\
       \    = {- *a* -} A\n\
       \"
+    ),
+    ( "block comment containing single hyphen in backticks",
+      "module X exposing (x)\n\
+      \\n\
+      \{- `-` -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{- `-` -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
