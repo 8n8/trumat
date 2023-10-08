@@ -14510,5 +14510,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "empty line in unordered list item",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \\n\
+      \    b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \\n\
+      \    b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
