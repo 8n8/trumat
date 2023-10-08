@@ -220,7 +220,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                     return ()
                   newlines <- choice [chunk "\n\n", chunk "\n"]
                   spaces_ <- takeWhile1P Nothing (\ch -> ch == ' ')
-                  if Text.length spaces_ < indent
+                  if Text.length spaces_ < numSpaces
                     then fail "incorrect indentation"
                     else do
                       line <- takeWhile1P Nothing (\ch -> ch /= '\n')
