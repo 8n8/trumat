@@ -178,7 +178,7 @@ parseUnorderedListGappiness nesting indent accumulated =
                       LT -> -1
                       EQ -> 0
                   )
-                  (log "newIndent" newIndent)
+                  newIndent
                   (newIndent == indent && (gappiness || accumulated || Text.length newlines > 1)),
               return (gappiness || accumulated)
             ]
