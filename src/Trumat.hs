@@ -214,7 +214,6 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
               try $
                 do
                   _ <- notFollowedBy $ do
-                    _ <- char '\n'
                     _ <- space
                     _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n", chunk "* "]
                     return ()
