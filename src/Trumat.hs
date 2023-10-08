@@ -208,7 +208,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
             replicate numSpaces " " <> "- " <> text
 
       do
-        otherLines <- fmap Text.strip $
+        otherLines <-
           fmap (intercalate "\n") $
             many $
               try $
@@ -218,8 +218,13 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                     _ <- space
                     _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n", chunk "* "]
                     return ()
-                  _ <- char '\n'
-                  takeWhile1P Nothing (\ch -> ch /= '\n')
+                  newlines <- choice [chunk "\n\n", chunk "\n"]
+                  spaces_ <- takeWhile1P Nothing (\ch -> ch == ' ')
+                  if Text.length spaces_ < indent
+                    then fail "incorrect indentation"
+                    else do
+                      line <- takeWhile1P Nothing (\ch -> ch /= '\n')
+                      return $ newlines <> replicate (numSpaces + 2) " " <> line
         choice
           [ try $ do
               _ <- takeWhile1P Nothing (\ch -> ch == '\n')
@@ -238,10 +243,6 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                              (if accumulated == "" then "" else "\n")
                                <> (if accumulated /= "" && isGappy && newIndent == indent then "\n" else "")
                                <> formatted
-                               <> ( if otherLines == "" || Text.takeEnd 1 otherLines == "\n"
-                                      then ""
-                                      else "\n" <> Text.replicate (indent + 2) " "
-                                  )
                                <> otherLines
                        )
                 )
@@ -254,7 +255,6 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                          (if accumulated == "" then "" else "\n")
                            <> (if accumulated /= "" && isGappy then "\n" else "")
                            <> formatted
-                           <> (if otherLines == "" then "" else "\n    ")
                            <> otherLines
                    )
           ]
