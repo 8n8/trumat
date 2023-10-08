@@ -155,14 +155,14 @@ parseUnorderedListGappiness nesting indent accumulated =
             many $
               try $
                 do
-                  _ <- notFollowedBy $ do
+                  _ <- notFollowedBy $ try $ do
                     _ <- space
                     _ <- chunk "-}"
                     return ()
-                  _ <- notFollowedBy $ do
+                  _ <- notFollowedBy $ try $ do
                     _ <- char '\n'
-                    _ <- space
-                    _ <- choice [chunk "- ", chunk "+ "]
+                    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                    _ <- choice [chunk "- ", chunk "+ ", chunk "* "]
                     return ()
                   newlines <- choice [chunk "\n\n", chunk "\n"]
                   _ <- lookAhead (char ' ')
@@ -178,7 +178,7 @@ parseUnorderedListGappiness nesting indent accumulated =
                       LT -> -1
                       EQ -> 0
                   )
-                  newIndent
+                  (log "newIndent" newIndent)
                   (newIndent == indent && (gappiness || accumulated || Text.length newlines > 1)),
               return (gappiness || accumulated)
             ]
@@ -216,13 +216,13 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                   _ <- notFollowedBy $ do
                     _ <- char '\n'
                     _ <- space
-                    _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n"]
+                    _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n", chunk "* "]
                     return ()
                   _ <- char '\n'
                   takeWhile1P Nothing (\ch -> ch /= '\n')
         choice
           [ try $ do
-              _ <- char '\n'
+              _ <- takeWhile1P Nothing (\ch -> ch == '\n')
               newIndent <- getUnorderedListItemIndent
               parseUnorderedListItemHelp
                 ( nesting + case newIndent `compare` indent of
@@ -236,8 +236,8 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                            then ""
                            else
                              (if accumulated == "" then "" else "\n")
+                               <> (if accumulated /= "" && isGappy && newIndent == indent then "\n" else "")
                                <> formatted
-                               <> (if otherLines /= "" && isGappy then "\n" else "")
                                <> ( if otherLines == "" || Text.takeEnd 1 otherLines == "\n"
                                       then ""
                                       else "\n" <> Text.replicate (indent + 2) " "
