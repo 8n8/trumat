@@ -14598,5 +14598,22 @@ cases =
       \    X\n\
       \    = X\n\
       \"
+    ),
+    ( "line comment immediately after type keyword",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type--\n\
+      \    X\n\
+      \    = X\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type\n\
+      \    --\n\
+      \    X\n\
+      \    = X\n\
+      \"
     )
   ]
