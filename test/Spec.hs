@@ -14562,5 +14562,23 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment after new type name",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type\n\
+      \    X\n\
+      \    --\n\
+      \    = X\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type\n\
+      \    X\n\
+      \    --\n\
+      \    = X\n\
+      \"
     )
   ]
