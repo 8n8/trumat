@@ -2209,11 +2209,14 @@ parseCustomTypeDeclaration =
     documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
+    startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space1
     name' <- parseName
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     parameters <- parseParameters 0
     _ <- space
+    comment <- commentSpaceParser 4
     firstBranch <- parseBranch '='
     nextBranches <- many (parseBranch '|')
     let branches = firstBranch : nextBranches
@@ -2223,12 +2226,15 @@ parseCustomTypeDeclaration =
           if documentation == ""
             then ""
             else "\n",
-          "type ",
+          "type",
+          (if endRow > startRow then "\n    " else " "),
           name',
           if parameters == ""
             then ""
             else " ",
           parameters,
+          (if comment == "" then "" else "\n    "),
+          comment,
           "\n    = ",
           intercalate "\n    | " branches
         ]
