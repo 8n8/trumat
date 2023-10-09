@@ -2210,6 +2210,7 @@ parseCustomTypeDeclaration =
     _ <- space
     _ <- "type"
     startRow <- fmap (unPos . sourceLine) getSourcePos
+    lineCommentAfterType <- choice [parseLineComment, return ""]
     _ <- space1
     commentBeforeName <- commentSpaceParser 4
     name' <- parseName
@@ -2228,6 +2229,8 @@ parseCustomTypeDeclaration =
             then ""
             else "\n",
           "type",
+          (if lineCommentAfterType == "" then "" else "\n    "),
+          lineCommentAfterType,
           (if commentBeforeName == "" then "" else "\n    "),
           commentBeforeName,
           (if endRow > startRow then "\n    " else " "),
