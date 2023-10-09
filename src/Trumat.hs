@@ -2213,11 +2213,12 @@ parseCustomTypeDeclaration =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     commentBeforeName <- commentSpaceParser 4
     name' <- parseName
-    endRow <- fmap (unPos . sourceLine) getSourcePos
+    afterNameRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     parameters <- parseParameters 0
     _ <- space
     commentBeforeEquals <- commentSpaceParser 4
+    endRow <- fmap (unPos . sourceLine) getSourcePos
     firstBranch <- parseBranch '='
     nextBranches <- many (parseBranch '|')
     let branches = firstBranch : nextBranches
@@ -2230,8 +2231,8 @@ parseCustomTypeDeclaration =
           "type",
           (if commentBeforeName == "" then "" else "\n    "),
           commentBeforeName,
-          (if commentBeforeName /= "" || endRow > startRow then "\n    " else ""),
-          (if endRow == startRow && commentBeforeName == "" then " " else ""),
+          (if commentBeforeName /= "" || afterNameRow > startRow || commentBeforeEquals /= "" then "\n    " else " "),
+          (if endRow == startRow && commentBeforeName == "" && commentBeforeEquals == "" then " " else ""),
           name',
           if parameters == ""
             then ""
@@ -2487,14 +2488,15 @@ parseParameters startColumn =
   do
     parameters <-
       many $
-        do
-          parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
-          if parameterColumn <= startColumn
-            then fail "invalid indentation"
-            else do
-              parameter <- parseParameter startColumn 0
-              _ <- space
-              return parameter
+        try $
+          do
+            parameterColumn <- fmap (unPos . sourceColumn) getSourcePos
+            if parameterColumn <= startColumn
+              then fail "invalid indentation"
+              else do
+                parameter <- parseParameter startColumn 0
+                _ <- space
+                return parameter
     return $ intercalate " " parameters
 
 getTypeSignatureName :: Int -> Int -> Parser Text
