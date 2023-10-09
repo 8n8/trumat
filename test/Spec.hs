@@ -14630,5 +14630,20 @@ cases =
       \    X\n\
       \    = X\n\
       \"
+    ),
+    ( "block comment between new type name and equals",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X{--}= X\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type\n\
+      \    X\n\
+      \    {--}\n\
+      \    = X\n\
+      \"
     )
   ]
