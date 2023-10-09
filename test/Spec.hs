@@ -14540,5 +14540,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multiline double asterisk quote after backticked after text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a `-` **b\n\
+      \**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a `-` **b\n\
+      \**\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
