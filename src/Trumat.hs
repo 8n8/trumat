@@ -2209,9 +2209,8 @@ parseCustomTypeDeclaration =
     documentation <- choice [parseDocComment, return ""]
     _ <- space
     _ <- "type"
+    _ <- lookAhead $ try $ choice [chunk "{-", chunk "--", chunk " ", chunk "\n"]
     startRow <- fmap (unPos . sourceLine) getSourcePos
-    lineCommentAfterType <- choice [parseLineComment, return ""]
-    _ <- space1
     commentBeforeName <- commentSpaceParser 4
     name' <- parseName
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -2229,11 +2228,10 @@ parseCustomTypeDeclaration =
             then ""
             else "\n",
           "type",
-          (if lineCommentAfterType == "" then "" else "\n    "),
-          lineCommentAfterType,
           (if commentBeforeName == "" then "" else "\n    "),
           commentBeforeName,
-          (if endRow > startRow then "\n    " else " "),
+          (if commentBeforeName /= "" || endRow > startRow then "\n    " else ""),
+          (if endRow == startRow && commentBeforeName == "" then " " else ""),
           name',
           if parameters == ""
             then ""
