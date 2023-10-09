@@ -2211,12 +2211,13 @@ parseCustomTypeDeclaration =
     _ <- "type"
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space1
+    commentBeforeName <- commentSpaceParser 4
     name' <- parseName
     endRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- space
     parameters <- parseParameters 0
     _ <- space
-    comment <- commentSpaceParser 4
+    commentBeforeEquals <- commentSpaceParser 4
     firstBranch <- parseBranch '='
     nextBranches <- many (parseBranch '|')
     let branches = firstBranch : nextBranches
@@ -2227,14 +2228,16 @@ parseCustomTypeDeclaration =
             then ""
             else "\n",
           "type",
+          (if commentBeforeName == "" then "" else "\n    "),
+          commentBeforeName,
           (if endRow > startRow then "\n    " else " "),
           name',
           if parameters == ""
             then ""
             else " ",
           parameters,
-          (if comment == "" then "" else "\n    "),
-          comment,
+          (if commentBeforeEquals == "" then "" else "\n    "),
+          commentBeforeEquals,
           "\n    = ",
           intercalate "\n    | " branches
         ]
