@@ -844,7 +844,7 @@ parseMultilineAsteriskBold =
           choice
             [ try backtickQuote,
               try underscoreAsteriskBolds,
-              takeWhile1P Nothing (\ch -> ch /= '*' && ch /= '-')
+              takeWhile1P Nothing (\ch -> ch /= '*' && ch /= '-' && ch /= '`')
             ]
     leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
     leading <- takeWhile1P Nothing (\ch -> ch == '*')
