@@ -14696,5 +14696,21 @@ cases =
       \\n\
       \{- a -}\n\
       \"
+    ),
+    ( "multiple line comments following final type branch",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X --\n\
+      \        --\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X --\n\
+      \        --\n\
+      \"
     )
   ]
