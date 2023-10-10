@@ -3196,7 +3196,14 @@ parseSectionComment :: Parser Text
 parseSectionComment =
   do
     comment <- parseTopLevelComment
-    return $ "\n" <> comment
+    return $
+      ( if -- I know this is strange, but it's what elm-format does so I
+        -- thought I would include it for compatibility.
+        comment == "{--}"
+          then ""
+          else "\n"
+      )
+        <> comment
 
 parseTitle :: Parser Text
 parseTitle =
