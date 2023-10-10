@@ -2288,6 +2288,17 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
     commentAfter <-
       choice
         [ try $ do
+            columnBefore <- fmap (unPos . sourceColumn) getSourcePos
+            if columnBefore == 1
+              then fail "starting column should be greater than 1"
+              else do
+                comment <- parseLineComment
+                _ <- space
+                column <- fmap (unPos . sourceColumn) getSourcePos
+                if column == 1
+                  then return comment
+                  else fail "expecting column 1",
+          try $ do
             comment <-
               if afterEmptySpaceColumn > 1
                 then commentSpaceParser 6
