@@ -2231,8 +2231,11 @@ parseCustomTypeDeclaration =
           "type",
           (if commentBeforeName == "" then "" else "\n    "),
           commentBeforeName,
-          (if commentBeforeName /= "" || afterNameRow > startRow || commentBeforeEquals /= "" then "\n    " else " "),
-          (if endRow == startRow && commentBeforeName == "" && commentBeforeEquals == "" then " " else ""),
+          if commentBeforeName /= ""
+            || afterNameRow > startRow
+            || commentBeforeEquals /= ""
+            then "\n    "
+            else " ",
           name',
           if parameters == ""
             then ""
@@ -2290,6 +2293,11 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
             else
               if not (Text.elem '\n' commentBefore)
                 && Text.take 2 commentBefore == "{-"
+                && {- I know this is really strange, but it is how
+                      elm-format behaves. It can probably be considered a
+                      bug in elm-format, but I left it in for
+                      compatibility.
+                      -} commentBefore /= "{--}"
                 then " "
                 else "\n      ",
           branchName,
