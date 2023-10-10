@@ -2275,6 +2275,10 @@ parseBranch startChar =
                   afterNameRow
               ]
 
+isOnlyLineComment :: Text -> Bool
+isOnlyLineComment comment =
+  Text.take 2 (Text.stripStart comment) == "--" && not (Text.elem '\n' comment)
+
 parseBranchNoParameters :: Text -> Text -> Int -> Parser Text
 parseBranchNoParameters commentBefore branchName afterNameRow =
   do
@@ -2282,9 +2286,22 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
     afterEmptySpaceColumn <- fmap (unPos . sourceColumn) getSourcePos
     commentAfter <-
-      if afterEmptySpaceColumn > 1
-        then commentSpaceParser 6
-        else return ""
+      choice
+        [ try $ do
+            comment <-
+              if afterEmptySpaceColumn > 1
+                then commentSpaceParser 6
+                else return ""
+            notFollowedBy $ lookAhead $ do
+              _ <- space
+              column <- fmap (unPos . sourceColumn) getSourcePos
+              if column == 1 && not (isOnlyLineComment comment)
+                then return ()
+                else fail "expecting first column"
+            return comment,
+          return ""
+        ]
+
     return $
       mconcat
         [ commentBefore,
