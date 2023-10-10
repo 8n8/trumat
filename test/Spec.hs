@@ -14659,5 +14659,23 @@ cases =
       \    = {--}\n\
       \      X\n\
       \"
+    ),
+    ( "block comment after final branch of type declaration",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X {- a -}\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = X\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a -}\n\
+      \"
     )
   ]
