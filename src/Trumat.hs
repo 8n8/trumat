@@ -2285,34 +2285,7 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
     afterEmptySpaceColumn <- fmap (unPos . sourceColumn) getSourcePos
-    commentAfter <-
-      choice
-        [ try $ do
-            columnBefore <- fmap (unPos . sourceColumn) getSourcePos
-            if columnBefore == 1
-              then fail "starting column should be greater than 1"
-              else do
-                comment <- parseLineComment
-                _ <- lookAhead $ commentSpaceParser 6
-                column <- fmap (unPos . sourceColumn) getSourcePos
-                if column == 1
-                  then return comment
-                  else fail "expecting column 1",
-          try $ do
-            comment <-
-              if afterEmptySpaceColumn > 1
-                then commentSpaceParser 6
-                else return ""
-            lookAhead $ do
-              _ <- space
-              column <- fmap (unPos . sourceColumn) getSourcePos
-              if column == 1 && not (isOnlyLineComment comment)
-                then fail ""
-                else return ()
-            return comment,
-          return ""
-        ]
-
+    commentAfter <- parseCommentAfterTypeBranch afterEmptySpaceColumn
     return $
       mconcat
         [ commentBefore,
@@ -2339,6 +2312,36 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
                 <> commentAfter
         ]
 
+parseCommentAfterTypeBranch :: Int -> Parser Text
+parseCommentAfterTypeBranch afterEmptySpaceColumn =
+  choice
+    [ try $ do
+        columnBefore <- fmap (unPos . sourceColumn) getSourcePos
+        if columnBefore == 1
+          then fail "starting column should be greater than 1"
+          else do
+            comment <- parseLineComment
+            lookAhead $ do
+              _ <- commentSpaceParser 6
+              column <- fmap (unPos . sourceColumn) getSourcePos
+              if column == 1
+                then return comment
+                else fail "expecting column 1",
+      try $ do
+        comment <-
+          if afterEmptySpaceColumn > 1
+            then commentSpaceParser 6
+            else return ""
+        lookAhead $ do
+          _ <- space
+          column <- fmap (unPos . sourceColumn) getSourcePos
+          if column == 1 && not (isOnlyLineComment comment)
+            then fail ""
+            else return ()
+        return comment,
+      return ""
+    ]
+
 parseBranchParametersWithComments :: Text -> Text -> Int -> Parser Text
 parseBranchParametersWithComments commentBefore branchName afterNameRow =
   do
@@ -2346,12 +2349,8 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
     parameters <- parseTypeDeclarationParameters 2
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
-    commentAfter <-
-      do
-        afterEmptySpaceColumn <- fmap (unPos . sourceColumn) getSourcePos
-        if afterEmptySpaceColumn == 1
-          then return ""
-          else commentSpaceParser 6
+    afterEmptySpaceColumn <- fmap (unPos . sourceColumn) getSourcePos
+    commentAfter <- parseCommentAfterTypeBranch afterEmptySpaceColumn
     return $
       mconcat
         [ commentBefore,
