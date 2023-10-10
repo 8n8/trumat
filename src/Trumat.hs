@@ -2293,7 +2293,7 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
               then fail "starting column should be greater than 1"
               else do
                 comment <- parseLineComment
-                _ <- space
+                _ <- lookAhead $ commentSpaceParser 6
                 column <- fmap (unPos . sourceColumn) getSourcePos
                 if column == 1
                   then return comment
