@@ -2292,12 +2292,12 @@ parseBranchNoParameters commentBefore branchName afterNameRow =
               if afterEmptySpaceColumn > 1
                 then commentSpaceParser 6
                 else return ""
-            notFollowedBy $ lookAhead $ do
+            lookAhead $ do
               _ <- space
               column <- fmap (unPos . sourceColumn) getSourcePos
               if column == 1 && not (isOnlyLineComment comment)
-                then return ()
-                else fail "expecting first column"
+                then fail ""
+                else return ()
             return comment,
           return ""
         ]
