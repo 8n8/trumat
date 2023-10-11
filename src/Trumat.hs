@@ -3271,7 +3271,23 @@ parseTopLevelComment =
   do
     pieces <- some $ try parseTopLevelCommentPiece
     _ <- space
-    return $ intercalate "\n" pieces
+    return $ mconcat $ whitespaceInTopLevelComment pieces
+
+whitespaceInTopLevelComment :: [Text] -> [Text]
+whitespaceInTopLevelComment comments =
+  case comments of
+    [] ->
+      []
+    first : remainder ->
+      first : map prefixTopLevelCommentWhitespace remainder
+
+prefixTopLevelCommentWhitespace :: Text -> Text
+prefixTopLevelCommentWhitespace comment =
+  ( if comment == "{--}"
+      then "\n\n\n"
+      else "\n"
+  )
+    <> comment
 
 parseTopLevelCommentPiece :: Parser Text
 parseTopLevelCommentPiece =
