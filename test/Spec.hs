@@ -14783,5 +14783,26 @@ cases =
       \        {--}\n\
       \        b\n\
       \"
+    ),
+    ( "two block comments after type branch with one full and one empty",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A {- a -} {--}\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \\n\
+      \\n\
+      \\n\
+      \{- a -}\n\
+      \\n\
+      \\n\
+      \{--}\n\
+      \"
     )
   ]
