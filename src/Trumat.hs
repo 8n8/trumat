@@ -2368,7 +2368,7 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
               if parameters == ""
                 then ""
                 else
-                  if afterEmptySpaceRow == afterNameRow
+                  if afterEmptySpaceRow == afterNameRow && commentAfterName /= "{--}"
                     then " "
                     else "\n        ",
           if parameters == ""
@@ -2380,7 +2380,7 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
               if parameters == ""
                 then ""
                 else
-                  if afterEmptySpaceRow == afterNameRow
+                  if afterEmptySpaceRow == afterNameRow && commentAfterName /= "{--}"
                     then " "
                     else "\n       ",
           if parameters == ""
@@ -2393,7 +2393,7 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
           if commentAfter == ""
             then ""
             else
-              ( if afterEmptySpaceRow == afterNameRow
+              ( if afterEmptySpaceRow == afterNameRow && commentAfterName /= "{--}"
                   then " "
                   else "\n      "
               )
