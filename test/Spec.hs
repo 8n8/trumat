@@ -14752,5 +14752,19 @@ cases =
       \        a\n\
       \      --\n\
       \"
+    ),
+    ( "type branch with parameter and block comment and line comment",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A {- a -} b --\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A {- a -} b --\n\
+      \"
     )
   ]
