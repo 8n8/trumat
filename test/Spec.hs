@@ -14766,5 +14766,22 @@ cases =
       \type X\n\
       \    = A {- a -} b --\n\
       \"
+    ),
+    ( "two block comments between type constructor and parameter",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A {--} {--} b\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \type X\n\
+      \    = A\n\
+      \        {--}\n\
+      \        {--}\n\
+      \        b\n\
+      \"
     )
   ]

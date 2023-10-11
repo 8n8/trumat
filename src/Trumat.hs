@@ -2345,7 +2345,7 @@ parseCommentAfterTypeBranch afterEmptySpaceColumn =
 parseBranchParametersWithComments :: Text -> Text -> Int -> Parser Text
 parseBranchParametersWithComments commentBefore branchName afterNameRow =
   do
-    commentAfterName <- commentSpaceParser 6
+    commentAfterName <- commentSpaceParser 8
     parameters <- parseTypeDeclarationParameters 2
     _ <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     afterEmptySpaceRow <- fmap (unPos . sourceLine) getSourcePos
