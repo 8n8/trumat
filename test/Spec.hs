@@ -14804,5 +14804,22 @@ cases =
       \\n\
       \{--}\n\
       \"
+    ),
+    ( "block comment at start of module exports",
+      "module X exposing ({--}x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( {--}\n\
+      \      x\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
