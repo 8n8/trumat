@@ -2381,7 +2381,7 @@ parseBranchParametersWithComments commentBefore branchName afterNameRow =
                 then ""
                 else
                   if afterEmptySpaceRow == afterNameRow && commentAfterName /= "{--}"
-                    then " "
+                    then ""
                     else "\n       ",
           if parameters == ""
             then ""
