@@ -1,5 +1,6 @@
 module Trumat (trumat) where
 
+import Data.Function ((&))
 import qualified Data.List as List
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -1133,11 +1134,11 @@ trimExposeAll text =
 getUndocumented :: Int -> [[Text]] -> [([Text], Text)] -> [Text]
 getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
-   in List.sort $
-        joinCommentWithContent indent $
-          removeEmptyExportRows $
-            flattenNonEmptyExportRows docs $
-              removeDocumented docSet items
+   in removeDocumented docSet items
+        & flattenNonEmptyExportRows docs
+        & removeEmptyExportRows
+        & joinCommentWithContent indent
+        & List.sort
 
 joinCommentWithContent :: Int -> [([Text], Text)] -> [Text]
 joinCommentWithContent indent rows =
