@@ -2,7 +2,7 @@
 
 **work in progress - don't use yet**
 
-A fast formatter for Elm, using the same rules as [elm-format](https://github.com/avh4/elm-format).
+A code formatter for Elm, using the same rules as [elm-format](https://github.com/avh4/elm-format).
 
 ## Install
 
