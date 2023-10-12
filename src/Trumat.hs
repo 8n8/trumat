@@ -1146,9 +1146,7 @@ getUndocumented indent docs items =
           )
         $ removeEmptyExportRows
         $ flattenNonEmptyExportRows docs
-        $ removeDocumented
-          docSet
-          items
+        $ removeDocumented docSet items
 
 removeEmptyExportRows :: [([Text], Text)] -> [([Text], Text)]
 removeEmptyExportRows rows =
