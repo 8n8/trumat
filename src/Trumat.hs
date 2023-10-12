@@ -1144,11 +1144,15 @@ getUndocumented indent docs items =
                   comment
                 ]
           )
-        $ filter (\row -> not (null row))
+        $ removeEmptyExportRows
         $ flattenNonEmptyExportRows docs
         $ removeDocumented
           docSet
           items
+
+removeEmptyExportRows :: [([Text], Text)] -> [([Text], Text)]
+removeEmptyExportRows rows =
+  filter (\row -> not (null row)) rows
 
 flattenNonEmptyExportRows :: [[Text]] -> [([Text], Text)] -> [([Text], Text)]
 flattenNonEmptyExportRows docs rows =
