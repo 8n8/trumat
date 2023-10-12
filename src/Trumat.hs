@@ -1149,13 +1149,19 @@ getUndocumented indent docs items =
               [] -> flattenExportRows
               _ -> id
           )
-        $ map
-          ( \(row, comment) ->
-              ( filter (\item -> not (Set.member (trimExposeAll item) docSet)) row,
-                comment
-              )
-          )
+        $ removeDocumented
+          docSet
           items
+
+removeDocumented :: Set Text -> [([Text], Text)] -> [([Text], Text)]
+removeDocumented docSet items =
+  map
+    ( \(row, comment) ->
+        ( filter (\item -> not (Set.member (trimExposeAll item) docSet)) row,
+          comment
+        )
+    )
+    items
 
 flattenExportRows :: [([Text], Text)] -> [([Text], Text)]
 flattenExportRows rows =
