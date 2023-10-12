@@ -1133,20 +1133,25 @@ trimExposeAll text =
 getUndocumented :: Int -> [[Text]] -> [([Text], Text)] -> [Text]
 getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
-   in List.sort
-        $ map
-          ( \(row, comment) ->
-              mconcat
-                [ intercalate ", " (List.sort row),
-                  if comment == ""
-                    then ""
-                    else "\n" <> pack (take (indent + 2) (repeat ' ')),
-                  comment
-                ]
-          )
-        $ removeEmptyExportRows
-        $ flattenNonEmptyExportRows docs
-        $ removeDocumented docSet items
+   in List.sort $
+        joinCommentWithContent indent $
+          removeEmptyExportRows $
+            flattenNonEmptyExportRows docs $
+              removeDocumented docSet items
+
+joinCommentWithContent :: Int -> [([Text], Text)] -> [Text]
+joinCommentWithContent indent rows =
+  map
+    ( \(row, comment) ->
+        mconcat
+          [ intercalate ", " (List.sort row),
+            if comment == ""
+              then ""
+              else "\n" <> pack (take (indent + 2) (repeat ' ')),
+            comment
+          ]
+    )
+    rows
 
 removeEmptyExportRows :: [([Text], Text)] -> [([Text], Text)]
 removeEmptyExportRows rows =
