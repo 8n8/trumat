@@ -51,11 +51,11 @@ oneTest (description, input, expected) =
 
 temporaryTestingInputPath :: String
 temporaryTestingInputPath =
-  "trumatTemporaryTestingInput"
+  ".trumatTemporaryTestingInput"
 
 temporaryTestingOutputPath :: String
 temporaryTestingOutputPath =
-  "trumatTemporaryTestingOutput"
+  ".trumatTemporaryTestingOutput"
 
 cases :: [(String, String, String)]
 cases =
