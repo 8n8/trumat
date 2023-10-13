@@ -29,10 +29,6 @@ ghc-options:
 
 library:
   source-dirs: src
-  dependencies:
-  - text
-  - megaparsec
-  - containers
 
 executables:
   trumat:
