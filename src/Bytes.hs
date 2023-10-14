@@ -16,7 +16,6 @@ import Data.Word (Word8)
 import qualified Foreign.Marshal.Alloc
 import Foreign.Ptr (Ptr)
 import qualified Foreign.Storable
-import System.IO (Handle)
 import qualified System.IO
 import Prelude
   ( FilePath,

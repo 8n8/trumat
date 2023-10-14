@@ -23,7 +23,6 @@ ghc-options:
 - -Wno-missing-deriving-strategies
 - -Wno-missed-specialisations
 - -Wno-unused-matches
-- -Wno-unused-imports
 - -Wno-unused-top-binds
 - -O2
 
@@ -40,8 +39,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
-    - bytestring
-    - text
     - directory
 
 tests:
@@ -54,8 +51,3 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
-    - tasty
-    - tasty-hunit
-    - text
-    - hedgehog
-    - tasty-hedgehog

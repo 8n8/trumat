@@ -1,42 +1,98 @@
 import Bytes (Bytes)
 import qualified Bytes
 import qualified Data.Char
-import Data.Function ((&))
-import Data.Text (Text, intercalate, pack)
 import Data.Word (Word8)
-import qualified Hedgehog
-import qualified Hedgehog.Gen
-import qualified Hedgehog.Range
 import qualified Memory
-import qualified System.IO
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (testCase, (@?=))
-import qualified Test.Tasty.Hedgehog
 import qualified Trumat
 import Prelude
+  ( Bool,
+    Char,
+    Eq,
+    IO,
+    Int,
+    Maybe (..),
+    Show,
+    String,
+    fmap,
+    pure,
+    show,
+    ($),
+    (&&),
+    (+),
+    (/=),
+    (<),
+    (<>),
+    (==),
+  )
+import qualified Prelude
 
 main :: IO ()
 main =
-  map oneTest (zip cases [0 ..])
-    & testGroup "Unit tests"
-    & defaultMain
+  do
+    results <- Prelude.mapM oneTest cases
+    let numFailed :: Int
+        numFailed =
+          Prelude.sum $ fmap (\result -> if result then 0 else 1) results
+        numPassed :: Int
+        numPassed =
+          Prelude.sum $ fmap (\result -> if result then 1 else 0) results
+    Prelude.putStr "\n"
+    if numFailed == 0
+      then do
+        Prelude.putStr "All "
+        Prelude.putStr $ show numPassed
+        Prelude.putStr " tests passed!\n"
+      else do
+        Prelude.putStr $ show numPassed
+        Prelude.putStr " passed\n"
+        Prelude.putStr $ show numFailed
+        Prelude.putStr " failed\n"
 
-oneTest :: ((String, String, String), Int) -> TestTree
-oneTest ((description, input, expected), counter) =
-  testCase description $
-    do
-      memory <- Memory.malloc
-      inBytes <- Bytes.malloc
-      outBytes <- Bytes.malloc
+oneTest :: (String, String, String) -> IO Bool
+oneTest (description, input, expected) =
+  do
+    memory <- Memory.malloc
+    inBytes <- Bytes.malloc
+    outBytes <- Bytes.malloc
 
-      writeResult <- writeInput input inBytes
-      writeResult @?= Just ()
+    writeResult <- writeInput input inBytes
 
-      result <- Trumat.format memory inBytes outBytes
-      result @?= Trumat.Ok
+    result <- Trumat.format memory inBytes outBytes
+    output <- readOutput outBytes
 
-      output <- readOutput outBytes
-      output @?= expected
+    let passed =
+          writeResult == Just ()
+            && result == Trumat.Ok
+            && output == expected
+
+    Prelude.putStr (if passed then "PASS" else "FAIL")
+    Prelude.putStr ": "
+    Prelude.putStr description
+    Prelude.putStr "\n"
+
+    expectEqual writeResult (Just ())
+    expectEqual result Trumat.Ok
+    expectEqual output expected
+
+    pure passed
+
+expectEqual :: (Eq a, Show a) => a -> a -> IO ()
+expectEqual expected got =
+  do
+    if expected /= got
+      then do
+        Prelude.putStr "\n"
+        putIndented "EXPECTED:\n\n"
+        putIndented (show expected)
+        Prelude.putStr "\n\n"
+        putIndented "GOT:\n\n"
+        putIndented (show got)
+        Prelude.putStr "\n\n"
+      else pure ()
+
+putIndented :: String -> IO ()
+putIndented message =
+  Prelude.putStr $ "    " <> message
 
 writeInput :: String -> Bytes -> IO (Maybe ())
 writeInput string bytes =
@@ -59,7 +115,7 @@ writeInput string bytes =
 charToWord8 :: Char -> Maybe Word8
 charToWord8 char =
   if Data.Char.ord char < 256
-    then Just (fromIntegral (Data.Char.ord char))
+    then Just (Prelude.fromIntegral (Data.Char.ord char))
     else Nothing
 
 readOutput :: Bytes -> IO String
@@ -74,38 +130,38 @@ readOutputHelp bytes accumulated index =
       Just word ->
         readOutputHelp
           bytes
-          (Data.Char.chr (fromIntegral word) : accumulated)
+          (Data.Char.chr (Prelude.fromIntegral word) : accumulated)
           (index + 1)
       Nothing ->
-        pure $ reverse accumulated
+        pure $ Prelude.reverse accumulated
 
 cases :: [(String, String, String)]
 cases =
-  [ ( "hello world",
+  [ ( "hello world with different name",
       "module X exposing (x)\n\
       \\n\
       \\n\
-      \x =\n\
+      \y =\n\
       \    0\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
-      \x =\n\
+      \y =\n\
       \    0\n\
       \"
     ),
-    ( "hello world with different name",
+    ( "hello world",
       "module X exposing (x)\n\
       \\n\
       \\n\
-      \y =\n\
+      \x =\n\
       \    0\n\
       \",
       "module X exposing (x)\n\
       \\n\
       \\n\
-      \y =\n\
+      \x =\n\
       \    0\n\
       \"
     )

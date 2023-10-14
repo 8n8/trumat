@@ -5,8 +5,6 @@ import qualified Bytes
 import qualified Data.Char
 import Data.Word (Word8)
 import Memory (Memory)
-import System.IO (Handle)
-import qualified System.IO
 import Prelude
   ( Char,
     Eq,
@@ -16,7 +14,6 @@ import Prelude
     String,
     fromIntegral,
     pure,
-    undefined,
     (<),
     (<>),
   )

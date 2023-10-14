@@ -3,8 +3,6 @@ module Main (main) where
 import Bytes (Bytes)
 import qualified Bytes
 import Control.Exception (try)
-import Data.ByteString (readFile, writeFile)
-import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Memory (Memory)
 import qualified Memory
 import Path (Path)
@@ -14,13 +12,10 @@ import System.IO
 import qualified Trumat
 import Prelude
   ( Either (Left, Right),
-    FilePath,
-    IO,
     IOError,
     Maybe (Just, Nothing),
     map,
     mapM_,
-    putStrLn,
     return,
     ($),
     (<>),
