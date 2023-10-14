@@ -29,14 +29,18 @@ format :: Memory -> Bytes -> Bytes -> IO Result
 format memory input out =
   do
     charParseResult <- ElmChars.parse input (Memory.elmChars memory)
-    appendString
-      out
-      "module X exposing (x)\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \"
+    case charParseResult of
+      ElmChars.Error message ->
+        pure (Error message)
+      ElmChars.Ok ->
+        appendString
+          out
+          "module X exposing (x)\n\
+          \\n\
+          \\n\
+          \x =\n\
+          \    0\n\
+          \"
 
 appendString :: Bytes -> String -> IO Result
 appendString bytes string =

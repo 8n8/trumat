@@ -1,4 +1,4 @@
-module ElmChars (ElmChars, malloc, parse) where
+module ElmChars (ElmChars, Result (..), malloc, parse) where
 
 import Bytes (Bytes)
 import qualified Bytes
