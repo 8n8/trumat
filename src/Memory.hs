@@ -1,14 +1,15 @@
-module Memory (Memory, malloc) where
+module Memory (Memory, malloc, elmChars) where
 
+import ElmChars (ElmChars)
+import qualified ElmChars
 import Prelude (IO, pure, ($))
-import Tokens (Tokens)
-import qualified Tokens
 
-data Memory
-  = Memory Tokens
+data Memory = Memory
+  { elmChars :: ElmChars
+  }
 
 malloc :: IO Memory
 malloc =
   do
-  tokens <- Tokens.malloc
-  pure $ Memory tokens
+    elmChars' <- ElmChars.malloc
+    pure $ Memory elmChars'

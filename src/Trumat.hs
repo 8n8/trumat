@@ -4,7 +4,9 @@ import Bytes (Bytes)
 import qualified Bytes
 import qualified Data.Char
 import Data.Word (Word8)
+import qualified ElmChars
 import Memory (Memory)
+import qualified Memory
 import Prelude
   ( Char,
     Eq,
@@ -24,15 +26,17 @@ data Result
   deriving (Eq, Show)
 
 format :: Memory -> Bytes -> Bytes -> IO Result
-format _ _ out =
-  appendString
-    out
-    "module X exposing (x)\n\
-    \\n\
-    \\n\
-    \x =\n\
-    \    0\n\
-    \"
+format memory input out =
+  do
+    charParseResult <- ElmChars.parse input (Memory.elmChars memory)
+    appendString
+      out
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
 
 appendString :: Bytes -> String -> IO Result
 appendString bytes string =

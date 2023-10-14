@@ -4,7 +4,7 @@ module Array
     append,
     Result (..),
     malloc,
-    get
+    get,
   )
 where
 
@@ -12,8 +12,8 @@ import Data.IORef (IORef)
 import qualified Data.IORef
 import qualified Foreign.Marshal.Alloc
 import Foreign.Ptr (Ptr)
-import qualified Foreign.Storable
 import Foreign.Storable (Storable)
+import qualified Foreign.Storable
 import Prelude
   ( IO,
     Int,
