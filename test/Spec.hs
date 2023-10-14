@@ -1,11 +1,11 @@
+import Bytes (Bytes)
+import qualified Bytes
+import qualified Data.Char
 import Data.Function ((&))
 import Data.Text (Text, intercalate, pack)
-import qualified Hedgehog
-import qualified Bytes
-import Bytes (Bytes)
-import qualified Hedgehog.Gen
-import qualified Data.Char
 import Data.Word (Word8)
+import qualified Hedgehog
+import qualified Hedgehog.Gen
 import qualified Hedgehog.Range
 import qualified Memory
 import qualified System.IO
@@ -17,7 +17,7 @@ import Prelude
 
 main :: IO ()
 main =
-  map oneTest (zip cases [0..])
+  map oneTest (zip cases [0 ..])
     & testGroup "Unit tests"
     & defaultMain
 
@@ -47,23 +47,20 @@ writeInput string bytes =
           pure Nothing
         Just word ->
           do
-          result <- Bytes.append bytes word
-          case result of
-            Bytes.Ok ->
-              writeInput remainder bytes
-            Bytes.NotEnoughSpace ->
-              pure Nothing
-
+            result <- Bytes.append bytes word
+            case result of
+              Bytes.Ok ->
+                writeInput remainder bytes
+              Bytes.NotEnoughSpace ->
+                pure Nothing
     [] ->
       pure $ Just ()
 
 charToWord8 :: Char -> Maybe Word8
 charToWord8 char =
-  if Data.Char.ord char < 256 then
-    Just (fromIntegral (Data.Char.ord char))
-
-  else
-    Nothing
+  if Data.Char.ord char < 256
+    then Just (fromIntegral (Data.Char.ord char))
+    else Nothing
 
 readOutput :: Bytes -> IO String
 readOutput bytes =
@@ -72,16 +69,15 @@ readOutput bytes =
 readOutputHelp :: Bytes -> String -> Int -> IO String
 readOutputHelp bytes accumulated index =
   do
-  result <- Bytes.get index bytes
-  case result of
-    Just word ->
-      readOutputHelp
-        bytes
-        (Data.Char.chr (fromIntegral word) : accumulated)
-        (index + 1)
-
-    Nothing ->
-      pure $ reverse accumulated
+    result <- Bytes.get index bytes
+    case result of
+      Just word ->
+        readOutputHelp
+          bytes
+          (Data.Char.chr (fromIntegral word) : accumulated)
+          (index + 1)
+      Nothing ->
+        pure $ reverse accumulated
 
 cases :: [(String, String, String)]
 cases =

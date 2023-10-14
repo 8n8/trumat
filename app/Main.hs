@@ -1,12 +1,12 @@
 module Main (main) where
 
+import Bytes (Bytes)
+import qualified Bytes
 import Control.Exception (try)
 import Data.ByteString (readFile, writeFile)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
-import qualified Memory
 import Memory (Memory)
-import qualified Bytes
-import Bytes (Bytes)
+import qualified Memory
 import Path (Path)
 import qualified Path
 import qualified System.Directory
