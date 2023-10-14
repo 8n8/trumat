@@ -2,6 +2,7 @@ import Bytes (Bytes)
 import qualified Bytes
 import qualified Data.Char
 import Data.Word (Word8)
+import Memory (Memory)
 import qualified Memory
 import qualified Trumat
 import Prelude
@@ -29,8 +30,13 @@ import qualified Prelude
 main :: IO ()
 main =
   do
+    memory <- Memory.malloc
+    input <- Bytes.malloc
+    output <- Bytes.malloc
+
+    results <- Prelude.mapM (oneTest memory input output) cases
+
     Prelude.putStr "\n"
-    results <- Prelude.mapM oneTest cases
     let numFailed :: Int
         numFailed =
           Prelude.sum $ fmap (\result -> if result then 0 else 1) results
@@ -49,12 +55,12 @@ main =
         Prelude.putStr $ show numFailed
         Prelude.putStr " failed\n"
 
-oneTest :: (String, String, String) -> IO Bool
-oneTest (description, input, expected) =
+oneTest :: Memory -> Bytes -> Bytes -> (String, String, String) -> IO Bool
+oneTest memory inBytes outBytes (description, input, expected) =
   do
-    memory <- Memory.malloc
-    inBytes <- Bytes.malloc
-    outBytes <- Bytes.malloc
+    Memory.zero memory
+    Bytes.zero inBytes
+    Bytes.zero outBytes
 
     writeResult <- writeInput input inBytes
 

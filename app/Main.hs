@@ -21,10 +21,6 @@ import Prelude
     (<>),
   )
 
-temporaryPath :: FilePath
-temporaryPath =
-  ".trumatTemp"
-
 main :: IO ()
 main =
   do

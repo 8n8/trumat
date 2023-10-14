@@ -1,4 +1,4 @@
-module ElmChars (ElmChars, Result (..), malloc, parse) where
+module ElmChars (ElmChars, Result (..), malloc, parse, zero) where
 
 import Bytes (Bytes)
 import qualified Bytes
@@ -17,6 +17,10 @@ import Prelude
 
 newtype ElmChars
   = ElmChars Bytes
+
+zero :: ElmChars -> IO ()
+zero (ElmChars bytes) =
+  Bytes.zero bytes
 
 malloc :: IO ElmChars
 malloc =
