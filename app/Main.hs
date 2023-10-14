@@ -3,7 +3,10 @@ module Main (main) where
 import Control.Exception (try)
 import Data.ByteString (readFile, writeFile)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
-import Memory
+import qualified Memory
+import Memory (Memory)
+import qualified Bytes
+import Bytes (Bytes)
 import Path (Path)
 import qualified Path
 import qualified System.Directory
@@ -31,10 +34,12 @@ main :: IO ()
 main =
   do
     memory <- Memory.malloc
-    formatPath memory "."
+    input <- Bytes.malloc
+    output <- Bytes.malloc
+    formatPath memory input output "."
 
-formatPath :: Memory -> FilePath -> IO ()
-formatPath memory path =
+formatPath :: Memory -> Bytes -> Bytes -> FilePath -> IO ()
+formatPath memory input output path =
   do
     eitherContents <- listDirectory path
     case eitherContents of
@@ -45,24 +50,24 @@ formatPath memory path =
           Just elmPath ->
             do
               putStrLn path
-              formatFile memory elmPath
+              formatFile memory input output elmPath
       Right contents ->
-        mapM_ (formatPath memory) $ map (\dir -> path <> "/" <> dir) contents
+        mapM_ (formatPath memory input output) $
+          map (\dir -> path <> "/" <> dir) contents
 
 listDirectory :: FilePath -> IO (Either IOError [FilePath])
 listDirectory path =
   try $ System.Directory.listDirectory path
 
-formatFile :: Memory -> Path -> IO ()
-formatFile memory path =
+formatFile :: Memory -> Bytes -> Bytes -> Path -> IO ()
+formatFile memory input output path =
   do
-    result <-
-      System.IO.withFile (Path.toString path) System.IO.ReadMode $ \inHandle ->
-        System.IO.withFile temporaryPath System.IO.WriteMode $ \outHandle ->
-          Trumat.format memory inHandle outHandle
-
+    Bytes.zero input
+    Bytes.zero output
+    Bytes.readFile (Path.toString path) input
+    result <- Trumat.format memory input output
     case result of
       Trumat.Ok ->
-        System.Directory.renameFile temporaryPath (Path.toString path)
+        Bytes.writeFile output (Path.toString path)
       Trumat.Error errorMessage ->
         putStrLn $ "not a valid Elm file: " <> errorMessage
