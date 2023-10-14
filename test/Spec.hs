@@ -29,6 +29,7 @@ import qualified Prelude
 main :: IO ()
 main =
   do
+    Prelude.putStr "\n"
     results <- Prelude.mapM oneTest cases
     let numFailed :: Int
         numFailed =
