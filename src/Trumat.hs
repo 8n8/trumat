@@ -4301,40 +4301,59 @@ addSingleLineInfixWhitespace (indent, isOnSameRowAsPrevious, commentBefore, infi
           expression
         ]
 
-addMultilineInfixWhitespace :: Int -> (Int, Bool, Text, Text, Text, Text) -> Bool -> Bool -> Text
-addMultilineInfixWhitespace minColumn (indent, isOnSameRowAsPrevious, commentBefore, infix_, commentAfter, expression) precededByMultilineString firstIsMultiline =
-  let newIndent = floorToFour indent
-   in if infix_ == "<|"
-        then
-          mconcat
-            [ if not firstIsMultiline
-                then " "
-                else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
-              "<|\n",
-              replicate newIndent " ",
-              expression
-            ]
-        else
-          if isOnSameRowAsPrevious && commentBefore == "" && commentAfter == "" && precededByMultilineString
-            then " " <> infix_ <> " " <> expression
-            else
-              mconcat
-                [ "\n" <> replicate newIndent " ",
-                  commentBefore,
-                  if commentBefore == ""
-                    then ""
-                    else "\n" <> replicate newIndent " ",
-                  infix_,
-                  " ",
-                  commentAfter,
-                  if commentAfter == ""
-                    then ""
-                    else
-                      if Text.elem '\n' commentAfter || commentAfter == "{--}" || Text.take 2 commentAfter == "--"
-                        then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
-                        else " ",
-                  expression
-                ]
+addMultilineInfixWhitespace ::
+  Int ->
+  (Int, Bool, Text, Text, Text, Text) ->
+  Bool ->
+  Bool ->
+  Text
+addMultilineInfixWhitespace
+  minColumn
+  ( indent,
+    isOnSameRowAsPrevious,
+    commentBefore,
+    infix_,
+    commentAfter,
+    expression
+    )
+  precededByMultilineString
+  firstIsMultiline =
+    let newIndent = floorToFour indent
+     in if infix_ == "<|"
+          then
+            mconcat
+              [ if not firstIsMultiline
+                  then " "
+                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                "<|\n",
+                replicate newIndent " ",
+                commentAfter,
+                if commentAfter == ""
+                  then ""
+                  else "\n" <> replicate newIndent " ",
+                expression
+              ]
+          else
+            if isOnSameRowAsPrevious && commentBefore == "" && commentAfter == "" && precededByMultilineString
+              then " " <> infix_ <> " " <> expression
+              else
+                mconcat
+                  [ "\n" <> replicate newIndent " ",
+                    commentBefore,
+                    if commentBefore == ""
+                      then ""
+                      else "\n" <> replicate newIndent " ",
+                    infix_,
+                    " ",
+                    commentAfter,
+                    if commentAfter == ""
+                      then ""
+                      else
+                        if Text.elem '\n' commentAfter || commentAfter == "{--}" || Text.take 2 commentAfter == "--"
+                          then "\n" <> replicate (newIndent + Text.length infix_ + 1) " "
+                          else " ",
+                    expression
+                  ]
 
 space1 :: Parser ()
 space1 =
