@@ -4240,9 +4240,13 @@ parseInfixed minColumn indent =
         firstIsMultilineString =
           Text.take 3 firstExpression == "\"\"\""
 
+        itemIsMultiline :: (Int, Bool, Text, Text, Text, Text) -> Bool
+        itemIsMultiline (_, _, _, _, commentAfter, item) =
+          Text.elem '\n' item || commentAfter == "{--}"
+
         isMultiline_ :: [Bool]
         isMultiline_ =
-          map (\item -> Text.elem '\n' item) (firstExpression : (map (\(_, _, _, _, _, item) -> item) (items)))
+          Text.elem '\n' firstExpression : map itemIsMultiline items
 
     if null items
       then fail "zero infix items"
