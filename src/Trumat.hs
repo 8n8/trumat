@@ -1158,7 +1158,12 @@ joinCommentWithContent indent rows =
           [ comment1,
             if comment1 == ""
               then ""
-              else "\n" <> replicate (indent + 2) " ",
+              else
+                if (not (Text.elem '\n' comment1))
+                  && Text.take 2 comment1 == "{-"
+                  && comment1 /= "{--}"
+                  then " "
+                  else "\n" <> replicate (indent + 2) " ",
             intercalate ", " (List.sort row),
             if comment2 == ""
               then ""
