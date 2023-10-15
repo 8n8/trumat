@@ -1150,29 +1150,26 @@ getUndocumented indent docs items =
         & joinCommentWithContent indent
         & List.sort
 
+exportCommentSpace :: Int -> Text -> Text
+exportCommentSpace indent comment =
+  if comment == ""
+    then ""
+    else
+      if (not (Text.elem '\n' comment))
+        && Text.take 2 comment == "{-"
+        && comment /= "{--}"
+        then " "
+        else "\n" <> replicate (indent + 2) " "
+
 joinCommentWithContent :: Int -> [(Text, [Text], Text)] -> [Text]
 joinCommentWithContent indent rows =
   map
     ( \(comment1, row, comment2) ->
         mconcat
           [ comment1,
-            if comment1 == ""
-              then ""
-              else
-                if (not (Text.elem '\n' comment1))
-                  && Text.take 2 comment1 == "{-"
-                  && comment1 /= "{--}"
-                  then " "
-                  else "\n" <> replicate (indent + 2) " ",
+            exportCommentSpace indent comment1,
             intercalate ", " (List.sort row),
-            if comment2 == ""
-              then ""
-              else
-                if (not (Text.elem '\n' comment2))
-                  && Text.take 2 comment2 == "{-"
-                  && comment2 /= "{--}"
-                  then " "
-                  else "\n" <> pack (take (indent + 2) (repeat ' ')),
+            exportCommentSpace indent comment2,
             comment2
           ]
     )
