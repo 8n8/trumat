@@ -1,8 +1,9 @@
-module ElmChars (ElmChars, Result (..), malloc, parse, zero) where
+module ElmChars (ElmChars, Result (..), malloc, parse, zero, get) where
 
 import Bytes (Bytes)
 import qualified Bytes
 import qualified ElmChar
+import ElmChar (ElmChar)
 import Prelude
   ( IO,
     Int,
@@ -17,6 +18,22 @@ import Prelude
 
 newtype ElmChars
   = ElmChars Bytes
+
+get :: Int -> ElmChars -> IO (Maybe ElmChar)
+get index (ElmChars bytes) =
+  do
+  result <- Bytes.get index bytes
+  case result of
+    Nothing ->
+      pure Nothing
+
+    Just rawByte ->
+      case ElmChar.parse rawByte of
+        Nothing ->
+          pure Nothing
+
+        Just elmChar ->
+          pure (Just elmChar)
 
 zero :: ElmChars -> IO ()
 zero (ElmChars bytes) =

@@ -1,4 +1,4 @@
-module ElmChar (ElmChar, toByte, parse) where
+module ElmChar (ElmChar(..), toByte, parse) where
 
 import Data.Word (Word8)
 import Prelude (Maybe (..))

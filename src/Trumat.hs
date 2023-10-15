@@ -7,6 +7,7 @@ import Data.Word (Word8)
 import qualified ElmChars
 import Memory (Memory)
 import qualified Memory
+import qualified Tokens
 import Prelude
   ( Char,
     Eq,
@@ -33,14 +34,21 @@ format memory input out =
       ElmChars.Error message ->
         pure (Error message)
       ElmChars.Ok ->
-        appendString
-          out
-          "module X exposing (x)\n\
-          \\n\
-          \\n\
-          \x =\n\
-          \    0\n\
-          \"
+        do
+        tokeniseResult <- Tokens.parse (Memory.elmChars memory) (Memory.tokens memory)
+        case tokeniseResult of
+          Tokens.Error message ->
+            pure (Error message)
+
+          Tokens.Ok ->
+            appendString
+              out
+              "module X exposing (x)\n\
+              \\n\
+              \\n\
+              \x =\n\
+              \    0\n\
+              \"
 
 appendString :: Bytes -> String -> IO Result
 appendString bytes string =
