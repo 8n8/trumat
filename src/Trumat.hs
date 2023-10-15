@@ -1049,9 +1049,9 @@ parseExposing indent docs =
     _ <- space
     items <- some $
       do
-        comment1 <- commentSpaceParser 4
+        comment1 <- commentSpaceParser 6
         row <- parseExportRow
-        comment2 <- commentSpaceParser 4
+        comment2 <- commentSpaceParser 6
         return $ (comment1, row, comment2)
     _ <- space
     _ <- char ')'
