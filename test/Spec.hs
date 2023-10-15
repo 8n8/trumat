@@ -14942,5 +14942,26 @@ cases =
       \    <|\n\
       \        b\n\
       \"
+    ),
+    ( "multi line block comment with no newline before the end",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \   a -}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \   a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    b\n\
+      \"
     )
   ]
