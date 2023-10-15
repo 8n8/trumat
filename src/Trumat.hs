@@ -4241,8 +4241,10 @@ parseInfixed minColumn indent =
           Text.take 3 firstExpression == "\"\"\""
 
         itemIsMultiline :: (Int, Bool, Text, Text, Text, Text) -> Bool
-        itemIsMultiline (_, _, _, _, commentAfter, item) =
-          Text.elem '\n' item || commentAfter == "{--}"
+        itemIsMultiline (_, _, commentBefore, _, commentAfter, item) =
+          Text.elem '\n' item
+            || commentBefore == "{--}"
+            || commentAfter == "{--}"
 
         isMultiline_ :: [Bool]
         isMultiline_ =
@@ -4327,7 +4329,14 @@ addMultilineInfixWhitespace
           then
             mconcat
               [ if not firstIsMultiline
-                  then " "
+                  then if commentBefore == "" then " " else ""
+                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                if commentBefore == ""
+                  then ""
+                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                commentBefore,
+                if commentBefore == ""
+                  then ""
                   else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
                 "<|\n",
                 replicate newIndent " ",
