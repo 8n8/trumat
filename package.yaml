@@ -23,10 +23,16 @@ ghc-options:
 - -Wno-missing-deriving-strategies
 - -Wno-missed-specialisations
 - -Wno-unused-matches
+- -Wno-unused-imports
+- -Wno-unused-top-binds
 - -O2
 
 library:
   source-dirs: src
+  dependencies:
+  - text
+  - megaparsec
+  - containers
 
 executables:
   trumat:
@@ -38,6 +44,8 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - bytestring
+    - text
     - directory
 
 tests:
@@ -50,3 +58,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - tasty
+    - tasty-hunit
+    - text
+    - hedgehog
+    - tasty-hedgehog
