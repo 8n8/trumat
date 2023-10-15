@@ -3443,7 +3443,7 @@ parseBlockCommentHelp indent nesting contents =
                       if Text.stripEnd contents == "{-"
                         then contents
                         else
-                          (Text.stripEnd contents)
+                          (Text.stripEnd $ fixBlockIndentation indent contents)
                             <> "\n"
                             <> Text.replicate indent " "
                     else
@@ -3465,6 +3465,18 @@ parseBlockCommentHelp indent nesting contents =
             _ <- char '{'
             parseBlockCommentHelp indent nesting (contents <> "{")
         ]
+
+fixBlockIndentation :: Int -> Text -> Text
+fixBlockIndentation indent text =
+  let lines = Text.lines text
+      stripped = map Text.stripStart lines
+      withStart =
+        case stripped of
+          [] ->
+            []
+          top : remainder ->
+            top : map (\item -> Text.replicate indent " " <> "   " <> item) remainder
+   in Text.unlines withStart
 
 indentBlockRows :: Text -> Text
 indentBlockRows raw =
