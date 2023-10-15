@@ -4325,19 +4325,20 @@ addMultilineInfixWhitespace
   precededByMultilineString
   firstIsMultiline =
     let newIndent = floorToFour indent
+        lowIndent = "\n" <> replicate (max minColumn (newIndent - 4)) " "
      in if infix_ == "<|"
           then
             mconcat
               [ if not firstIsMultiline
                   then if commentBefore == "" then " " else ""
-                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                  else lowIndent,
                 if commentBefore == ""
                   then ""
-                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                  else lowIndent,
                 commentBefore,
                 if commentBefore == ""
                   then ""
-                  else "\n" <> replicate (max minColumn (newIndent - 4)) " ",
+                  else lowIndent,
                 "<|\n",
                 replicate newIndent " ",
                 commentAfter,
