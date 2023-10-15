@@ -3262,19 +3262,19 @@ parseTitleHelp =
         block1 <- try $
           do
             _ <- space
-            block <- parseNonDocBlockComment
+            block <- parseNonDocBlockComment 0
             return block
         blocks <- some $
           try $
             do
               _ <- space
-              block <- parseNonDocBlockComment
+              block <- parseNonDocBlockComment 0
               return block
         _ <- space
         return $ intercalate " " (block1 : blocks),
       try $ do
         _ <- space
-        block <- parseNonDocBlockComment
+        block <- parseNonDocBlockComment 0
         _ <- space
         line <- parseLineComment
         _ <- space
@@ -3305,7 +3305,7 @@ parseTitleHelp =
         return $ intercalate "\n" lines_,
       try $ do
         _ <- space
-        block <- parseNonDocBlockComment
+        block <- parseNonDocBlockComment 0
         _ <- space
         return block
     ]
@@ -3337,23 +3337,23 @@ parseTopLevelCommentPiece :: Parser Text
 parseTopLevelCommentPiece =
   do
     _ <- space
-    choice [parseNonDocBlockComment, parseLineComment]
+    choice [parseNonDocBlockComment 0, parseLineComment]
 
-parseNonDocBlockComment :: Parser Text
-parseNonDocBlockComment =
+parseNonDocBlockComment :: Int -> Parser Text
+parseNonDocBlockComment indent =
   choice
     [ chunk "{--}",
-      try parseNonLiteralBlockComment,
+      try $ parseNonLiteralBlockComment indent,
       parseDoubleHyphenBlockComment
     ]
 
-parseNonLiteralBlockComment :: Parser Text
-parseNonLiteralBlockComment =
+parseNonLiteralBlockComment :: Int -> Parser Text
+parseNonLiteralBlockComment indent =
   do
     _ <- chunk "{-"
     _ <- lookAhead $ notFollowedBy (char '|')
     _ <- lookAhead $ notFollowedBy (char '-')
-    parseBlockCommentHelp 1 "{-"
+    parseBlockCommentHelp indent 1 "{-"
 
 parseDoubleHyphenBlockComment :: Parser Text
 parseDoubleHyphenBlockComment =
@@ -3424,23 +3424,32 @@ parseDoubleHyphenBlockCommentHelp nesting contents =
             parseDoubleHyphenBlockCommentHelp nesting (contents <> "{")
         ]
 
-parseBlockCommentHelp :: Int -> Text -> Parser Text
-parseBlockCommentHelp nesting contents =
+parseBlockCommentHelp :: Int -> Int -> Text -> Parser Text
+parseBlockCommentHelp indent nesting contents =
   if nesting == 0
     then return contents
     else do
       choice
         [ do
             _ <- chunk "{-"
-            parseBlockCommentHelp (nesting + 1) (contents <> "{-"),
+            parseBlockCommentHelp indent (nesting + 1) (contents <> "{-"),
           do
             _ <- chunk "-}"
             let noStart = Text.drop 2 contents
             let cleaned =
-                  if Text.elem '\n' (Text.stripEnd noStart) || Text.strip noStart == ""
-                    then contents
-                    else (Text.strip contents) <> (if Text.strip noStart == "" then "" else " ")
-            parseBlockCommentHelp (nesting - 1) (cleaned <> "-}"),
+                  if Text.elem '\n' (Text.stripEnd noStart)
+                    || Text.strip noStart == ""
+                    then
+                      if Text.stripEnd contents == "{-"
+                        then contents
+                        else
+                          (Text.stripEnd contents)
+                            <> "\n"
+                            <> Text.replicate indent " "
+                    else
+                      (Text.strip contents)
+                        <> (if Text.strip noStart == "" then "" else " ")
+            parseBlockCommentHelp indent (nesting - 1) (cleaned <> "-}"),
           do
             piece <- takeWhile1P Nothing (\ch -> ch /= '-' && ch /= '{')
             let indented = indentBlockRows piece
@@ -3448,13 +3457,13 @@ parseBlockCommentHelp nesting contents =
                   if Text.takeEnd 2 contents == "{-" && Text.take 1 indented /= " " && Text.take 1 indented /= "\n" && Text.take 1 indented /= "|"
                     then " "
                     else ""
-            parseBlockCommentHelp nesting (contents <> extraSpace <> indented),
+            parseBlockCommentHelp indent nesting (contents <> extraSpace <> indented),
           do
             _ <- char '-'
-            parseBlockCommentHelp nesting (contents <> "-"),
+            parseBlockCommentHelp indent nesting (contents <> "-"),
           do
             _ <- char '{'
-            parseBlockCommentHelp nesting (contents <> "{")
+            parseBlockCommentHelp indent nesting (contents <> "{")
         ]
 
 indentBlockRows :: Text -> Text
@@ -4693,7 +4702,7 @@ commentSpaceParser indent =
       many $
         choice
           [ parseLineComment,
-            try parseNonDocBlockComment,
+            try $ parseNonDocBlockComment indent,
             do
               _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
               return ""
