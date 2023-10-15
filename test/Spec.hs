@@ -14963,5 +14963,27 @@ cases =
       \x =\n\
       \    b\n\
       \"
+    ),
+    ( "multi line doc comment with too much indentation",
+      "module X exposing (X)\n\
+      \\n\
+      \{-\n\
+      \    a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \{-\n\
+      \   a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
