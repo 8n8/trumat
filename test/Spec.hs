@@ -14871,5 +14871,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "module export followed by empty block comment",
+      "module X exposing\n\
+      \    ( x\n\
+      \      {--}\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( x\n\
+      \      {--}\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
