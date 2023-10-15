@@ -14843,5 +14843,19 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "single line block comment in single line module exports",
+      "module X exposing (x {- a -})\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x {- a -})\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
