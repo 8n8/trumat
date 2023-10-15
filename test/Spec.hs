@@ -14909,5 +14909,21 @@ cases =
       \        --\n\
       \        b\n\
       \"
+    ),
+    ( "empty block comment after left pizza",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <| {--} b\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a <|\n\
+      \        {--}\n\
+      \        b\n\
+      \"
     )
   ]
