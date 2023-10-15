@@ -1170,6 +1170,7 @@ joinCommentWithContent indent rows =
               else
                 if (not (Text.elem '\n' comment2))
                   && Text.take 2 comment2 == "{-"
+                  && comment2 /= "{--}"
                   then " "
                   else "\n" <> pack (take (indent + 2) (repeat ' ')),
             comment2
