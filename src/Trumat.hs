@@ -1079,7 +1079,11 @@ formatExports indent originalIsMultiline docs items =
       rows = filter (\row -> row /= "") $ (map (formatExportRow (indent + 2) (mconcat items)) unformattedRows) <> undocumented
       undocumented :: [Text]
       undocumented = getUndocumented indent docs items
-      isMultiline' = (not (null (removeUndocumented (mconcat (map snd3 items)) docs)) && length (mconcat (map snd3 items)) > 1) || originalIsMultiline
+      isMultiline' =
+        ( not (null (removeUndocumented (mconcat (map snd3 items)) docs))
+            && length (mconcat (map snd3 items)) > 1
+        )
+          || originalIsMultiline
    in case rows of
         [] ->
           "()"
@@ -1158,7 +1162,11 @@ joinCommentWithContent indent rows =
             intercalate ", " (List.sort row),
             if comment2 == ""
               then ""
-              else "\n" <> pack (take (indent + 2) (repeat ' ')),
+              else
+                if (not (Text.elem '\n' comment2))
+                  && Text.take 2 comment2 == "{-"
+                  then " "
+                  else "\n" <> pack (take (indent + 2) (repeat ' ')),
             comment2
           ]
     )
