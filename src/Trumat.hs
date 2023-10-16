@@ -2586,14 +2586,14 @@ parseParameters startColumn =
                     [ if comment == ""
                         then ""
                         else
-                          if comment == "{--}"
+                          if comment == "{--}" || Text.elem '\n' comment
                             then "\n    "
                             else "",
                       comment,
                       if comment == ""
                         then ""
                         else
-                          if comment == "{--}"
+                          if comment == "{--}" || Text.elem '\n' comment
                             then "\n    "
                             else " ",
                       parameter
