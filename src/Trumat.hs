@@ -2506,6 +2506,7 @@ parseTopLevelBind =
     _ <- char '='
     commentBeforeExpression <- commentSpaceParser 4
     expression <- parseExpression 2 DoesntNeedBrackets 4
+    commentAfter <- choice [parseLineComment, return ""]
     _ <- space
     return $
       mconcat
@@ -2533,7 +2534,11 @@ parseTopLevelBind =
           if commentBeforeExpression == ""
             then ""
             else "\n    ",
-          expression
+          expression,
+          if commentAfter == ""
+            then ""
+            else "\n\n\n\n",
+          commentAfter
         ]
 
 parseTypeDeclarationParameters :: Int -> Parser Text
@@ -4674,9 +4679,14 @@ parseNumberLiteral =
     firstDigit <- choice $ map char ("0123456789" :: String)
     x <- choice [char 'x' >> return "x", return ""]
     remainder <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789abcdefABCDEF." :: String))
-    e <- choice [char 'e' >> return "e", return ""]
-    exponentNegative <- choice [char '-' >> return "-", return ""]
-    exponent <- takeWhileP Nothing (\ch -> ch `elem` ("0123456789" :: String))
+    (exponentNegative, exponent) <-
+      choice
+        [ try $ do
+            exponentNegative <- chunk "-"
+            exponent <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
+            return (exponentNegative, exponent),
+          return ("", "")
+        ]
     return $
       mconcat
         [ case Text.singleton firstDigit <> x <> remainder of
@@ -4689,7 +4699,6 @@ parseNumberLiteral =
           Text.singleton firstDigit,
           x,
           remainder,
-          e,
           exponentNegative,
           exponent
         ]
