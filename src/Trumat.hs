@@ -2517,11 +2517,14 @@ parseTopLevelBind =
             then ""
             else signature <> "\n",
           name',
-          if parameters == ""
+          if parameters == "" || Text.elem '\n' parameters
             then ""
             else " ",
           parameters,
-          " =\n    ",
+          if Text.elem '\n' parameters
+            then "\n    "
+            else " ",
+          "=\n    ",
           commentBeforeEquals,
           if commentBeforeEquals == ""
             then ""
@@ -2575,9 +2578,20 @@ parseParameters startColumn =
             if parameterColumn <= startColumn
               then fail "invalid indentation"
               else do
+                comment <- commentSpaceParser 4
                 parameter <- parseParameter startColumn 0
                 _ <- space
-                return parameter
+                return $
+                  mconcat
+                    [ if comment == ""
+                        then ""
+                        else "\n    ",
+                      comment,
+                      if comment == ""
+                        then ""
+                        else "\n    ",
+                      parameter
+                    ]
     return $ intercalate " " parameters
 
 getTypeSignatureName :: Int -> Int -> Parser Text
