@@ -14985,5 +14985,20 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "empty block comment before equals in function definition",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x {--} =\n\
+      \    0\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    {--}\n\
+      \    0\n\
+      \"
     )
   ]
