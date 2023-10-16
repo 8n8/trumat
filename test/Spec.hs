@@ -15031,5 +15031,29 @@ cases =
       \x {- a -} a =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line block comment before top level function parameter",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x\n\
+      \    {- a\n\
+      \       b\n\
+      \    -}\n\
+      \    c\n\
+      \    =\n\
+      \    0\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x\n\
+      \    {- a\n\
+      \       b\n\
+      \    -}\n\
+      \    c\n\
+      \    =\n\
+      \    0\n\
+      \"
     )
   ]
