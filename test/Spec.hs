@@ -15000,5 +15000,22 @@ cases =
       \    {--}\n\
       \    0\n\
       \"
+    ),
+    ( "comment before parameter in top level bind",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x {--} a =\n\
+      \    0\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x\n\
+      \    {--}\n\
+      \    a\n\
+      \    =\n\
+      \    0\n\
+      \"
     )
   ]
