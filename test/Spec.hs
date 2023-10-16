@@ -15055,5 +15055,23 @@ cases =
       \    =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment after function body",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0--\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \\n\
+      \\n\
+      \\n\
+      \--\n\
+      \"
     )
   ]
