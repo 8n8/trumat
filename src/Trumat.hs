@@ -3500,7 +3500,7 @@ fixBlockIndentation indent text =
           [] ->
             []
           top : remainder ->
-            top : map (\item -> Text.replicate indent " " <> "   " <> item) remainder
+            top : map (\item -> if item == "" then "" else Text.replicate indent " " <> "   " <> item) remainder
    in Text.unlines withStart
 
 indentBlockRows :: Text -> Text

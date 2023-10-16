@@ -15090,7 +15090,7 @@ cases =
       \        b\n\
       \"
     ),
-    ( "asterisk unordered list",
+    ( "asterisk unordered list with extra spaces",
       "module X exposing (x)\n\
       \\n\
       \{-\n\
