@@ -15017,5 +15017,19 @@ cases =
       \    =\n\
       \    0\n\
       \"
+    ),
+    ( "non empty block comment before top level function parameter",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x {- a -} a =\n\
+      \    0\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x {- a -} a =\n\
+      \    0\n\
+      \"
     )
   ]
