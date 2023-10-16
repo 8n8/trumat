@@ -2506,7 +2506,6 @@ parseTopLevelBind =
     _ <- char '='
     commentBeforeExpression <- commentSpaceParser 4
     expression <- parseExpression 2 DoesntNeedBrackets 4
-    commentAfter <- choice [parseLineComment, return ""]
     _ <- space
     return $
       mconcat
@@ -2534,11 +2533,7 @@ parseTopLevelBind =
           if commentBeforeExpression == ""
             then ""
             else "\n    ",
-          expression,
-          if commentAfter == ""
-            then ""
-            else "\n\n\n\n",
-          commentAfter
+          expression
         ]
 
 parseTypeDeclarationParameters :: Int -> Parser Text
