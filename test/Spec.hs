@@ -15073,5 +15073,21 @@ cases =
       \\n\
       \--\n\
       \"
+    ),
+    ( "empty block comment between function name and argument",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a{--}b\n\
+      \",
+      "module X exposing (X)\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    a\n\
+      \        {--}\n\
+      \        b\n\
+      \"
     )
   ]
