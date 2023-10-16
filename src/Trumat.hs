@@ -4141,7 +4141,7 @@ getOnlyTripleStringLiteral arg =
 addArgSpaces :: Bool -> Bool -> Bool -> Int -> Int -> Int -> (Text, Int, Text, Int) -> Text
 addArgSpaces atLeastOneMultiline isFirstArg allLinesInStringLiteral startRow endRow indent (comment, argStartRow, arg, argEndRow) =
   let indentation =
-        if (startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && allArgLinesInStringLiteral arg) || allLinesInStringLiteral
+        if ((startRow == endRow && not atLeastOneMultiline) || ((not (Text.elem '\n' arg)) && isFirstArg && argStartRow == startRow) || (argStartRow == startRow && allArgLinesInStringLiteral arg) || allLinesInStringLiteral) && comment /= "{--}"
           then " "
           else (pack $ '\n' : (take (floorToFour (indent + 4)) $ repeat ' '))
    in if comment == ""
