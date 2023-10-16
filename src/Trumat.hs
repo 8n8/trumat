@@ -2502,6 +2502,7 @@ parseTopLevelBind =
     name' <- parseName
     _ <- space
     parameters <- parseParameters 0
+    commentBeforeEquals <- commentSpaceParser 4
     _ <- char '='
     commentBeforeExpression <- commentSpaceParser 4
     expression <- parseExpression 2 DoesntNeedBrackets 4
@@ -2521,6 +2522,10 @@ parseTopLevelBind =
             else " ",
           parameters,
           " =\n    ",
+          commentBeforeEquals,
+          if commentBeforeEquals == ""
+            then ""
+            else "\n    ",
           commentBeforeExpression,
           if commentBeforeExpression == ""
             then ""
