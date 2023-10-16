@@ -2585,11 +2585,17 @@ parseParameters startColumn =
                   mconcat
                     [ if comment == ""
                         then ""
-                        else "\n    ",
+                        else
+                          if comment == "{--}"
+                            then "\n    "
+                            else "",
                       comment,
                       if comment == ""
                         then ""
-                        else "\n    ",
+                        else
+                          if comment == "{--}"
+                            then "\n    "
+                            else " ",
                       parameter
                     ]
     return $ intercalate " " parameters
