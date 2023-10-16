@@ -15089,5 +15089,29 @@ cases =
       \        {--}\n\
       \        b\n\
       \"
+    ),
+    ( "asterisk unordered list",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \\n\
+      \   * a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-\n\
+      \\n\
+      \   * a\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
