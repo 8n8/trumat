@@ -15204,5 +15204,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line text in doc comment enclosed in underscores",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| _a\n\
+      \_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| _a\n\
+      \_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
