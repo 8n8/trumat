@@ -15174,5 +15174,35 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unordered list item with three lines of text in it",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \    b\n\
+      \    c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \    b\n\
+      \    c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
