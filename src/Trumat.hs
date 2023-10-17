@@ -249,7 +249,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                 isGappy,
             return $
               accumulated
-                <> (if text == "" || text == "*"
+                <> ( if text == "" || text == "*"
                        then ""
                        else
                          (if accumulated == "" then "" else "\n")
@@ -412,6 +412,7 @@ parseDocRow =
         _ <- char '\n'
         return "\n",
       try parseMultilineAsteriskBold,
+      try parseMultilineUnderscored,
       do
         pieces <-
           some $
@@ -835,6 +836,27 @@ escapeAsterisks text =
       text
     Right ok ->
       ok
+
+parseMultilineUnderscored :: Parser Text
+parseMultilineUnderscored =
+  do
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    leading <- takeWhile1P Nothing (\ch -> ch == '_')
+    firstPiece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_' && ch /= '-')
+    otherPieces <- many $
+      try $
+        do
+          spaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_')
+          return $ spaces <> piece
+    trailingSpaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
+    if not $ Text.elem '\n' ((mconcat otherPieces) <> trailingSpaces)
+      then fail "expecting a newline in the text"
+      else do
+        trailing <- takeWhile1P Nothing (\ch -> ch == '_')
+        if Text.length leading /= Text.length trailing
+          then fail "there must be equal numbers of trailing and leading asterisks"
+          else return $ leadingSpaces <> leading <> firstPiece <> mconcat otherPieces <> trailingSpaces <> trailing
 
 parseMultilineAsteriskBold :: Parser Text
 parseMultilineAsteriskBold =
