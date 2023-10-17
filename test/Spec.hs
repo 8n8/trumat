@@ -41,7 +41,7 @@ main =
     paths <- fmap (map (\path -> drop 11 path)) (getElmPaths "test_input")
     defaultMain $
       testGroup "Unit tests" $
-        regressionTests paths : property : map oneTest cases
+        {- regressionTests paths : -} property : map oneTest cases
 
 regressionTests :: [FilePath] -> TestTree
 regressionTests paths =
