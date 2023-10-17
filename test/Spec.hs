@@ -15226,5 +15226,27 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line underscored text with leading text",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a _b\n\
+      \_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a _b\n\
+      \_\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
