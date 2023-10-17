@@ -210,7 +210,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
 
       do
         otherLines <-
-          fmap (intercalate "\n") $
+          fmap mconcat $
             many $
               try $
                 do
@@ -249,7 +249,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                 isGappy,
             return $
               accumulated
-                <> ( if text == "" || text == "*"
+                <> (if text == "" || text == "*"
                        then ""
                        else
                          (if accumulated == "" then "" else "\n")
