@@ -1,22 +1,34 @@
+import Control.Exception (try)
+import qualified Data.ByteString
 import Data.Text (Text, intercalate, pack)
+import qualified Data.Text.Encoding
 import qualified Hedgehog
 import qualified Hedgehog.Gen
 import qualified Hedgehog.Range
+import qualified System.Directory
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import qualified Test.Tasty.Hedgehog
 import qualified Trumat
 import Prelude
-  ( Either (..),
+  ( Bool (..),
+    Either (..),
+    FilePath,
     IO,
+    IOError,
     Int,
     String,
+    drop,
+    fail,
     fmap,
     map,
     mapM,
     mconcat,
+    print,
+    pure,
     repeat,
     return,
+    reverse,
     take,
     ($),
     (+),
@@ -25,9 +37,58 @@ import Prelude
 
 main :: IO ()
 main =
-  defaultMain $
-    testGroup "Unit tests" $
-      property : map oneTest cases
+  do
+    paths <- fmap (map (\path -> drop 11 path)) (getElmPaths "test_input")
+    defaultMain $
+      testGroup "Unit tests" $
+        regressionTests paths : property : map oneTest cases
+
+regressionTests :: [FilePath] -> TestTree
+regressionTests paths =
+  testGroup "Regression tests" $
+    map oneRegressionTest paths
+
+oneRegressionTest :: FilePath -> TestTree
+oneRegressionTest path =
+  testCase path $
+    do
+      inputBytes <- Data.ByteString.readFile ("test_input/" <> path)
+      expectedBytes <- Data.ByteString.readFile ("test_expected/" <> path)
+      case ( Data.Text.Encoding.decodeUtf8' inputBytes,
+             Data.Text.Encoding.decodeUtf8' expectedBytes
+           ) of
+        (Left _, _) ->
+          fail "expecting UTF8 input file"
+        (_, Left _) ->
+          fail "expecting UTF8 expected output file"
+        (Right input, Right expected) ->
+          Trumat.trumat input Test.Tasty.HUnit.@?= Right expected
+
+listDirectory :: FilePath -> IO (Either IOError [FilePath])
+listDirectory path =
+  try $ System.Directory.listDirectory path
+
+isElmFile :: FilePath -> Bool
+isElmFile path =
+  case reverse path of
+    'm' : 'l' : 'e' : '.' : _ ->
+      True
+    _ ->
+      False
+
+getElmPaths :: FilePath -> IO [FilePath]
+getElmPaths path =
+  do
+    eitherContents <- listDirectory path
+    case eitherContents of
+      Left _ ->
+        if isElmFile path
+          then pure [path]
+          else pure []
+      Right contents ->
+        fmap
+          mconcat
+          (mapM (\subPath -> getElmPaths (path <> "/" <> subPath)) contents)
 
 property :: TestTree
 property =

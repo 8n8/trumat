@@ -63,3 +63,5 @@ tests:
     - text
     - hedgehog
     - tasty-hedgehog
+    - directory
+    - bytestring
