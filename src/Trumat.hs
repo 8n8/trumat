@@ -848,7 +848,7 @@ parseMultilineUnderscored =
       try $
         do
           spaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
-          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_')
+          piece <- takeWhile1P Nothing (\ch -> ch /= ' ' && ch /= '\n' && ch /= '_' && ch /= '-')
           return $ spaces <> piece
     trailingSpaces <- takeWhileP Nothing (\ch -> ch == ' ' || ch == '\n')
     if not $ Text.elem '\n' ((mconcat otherPieces) <> trailingSpaces)
