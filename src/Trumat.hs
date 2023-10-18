@@ -1098,15 +1098,33 @@ snd3 (_, b, _) =
 
 formatExports :: Int -> Bool -> [[Text]] -> [(Text, [Text], Text)] -> Text
 formatExports indent originalIsMultiline docs items =
-  let unformattedRows = removeUndocumented (mconcat (map snd3 items)) docs
-      rows = filter (\row -> row /= "") $ (map (formatExportRow (indent + 2) (mconcat items)) unformattedRows) <> undocumented
+  let unformattedRows :: [[Text]]
+      unformattedRows =
+        removeUndocumented (mconcat (map snd3 items)) docs
+
+      documentedRows :: [Text]
+      documentedRows =
+        map
+          (formatExportRow (indent + 2) (mconcat items))
+          unformattedRows
+
+      rows :: [Text]
+      rows =
+        filter
+          (\row -> row /= "") $
+          documentedRows <> undocumented
+
       undocumented :: [Text]
-      undocumented = getUndocumented indent docs items
+      undocumented =
+        getUndocumented indent docs items
+
+      isMultiline' :: Bool
       isMultiline' =
         ( not (null (removeUndocumented (mconcat (map snd3 items)) docs))
             && length (mconcat (map snd3 items)) > 1
         )
           || originalIsMultiline
+
    in case rows of
         [] ->
           "()"
@@ -1133,8 +1151,14 @@ formatExports indent originalIsMultiline docs items =
 
 removeUndocumented :: [Text] -> [[Text]] -> [[Text]]
 removeUndocumented used docs =
-  let docsWithExposeAll = addExposeAllToDocs used docs
-      usedDocs = removeUnusedDocs used docsWithExposeAll
+  let docsWithExposeAll :: [[Text]]
+      docsWithExposeAll =
+        addExposeAllToDocs used docs
+
+      usedDocs :: [[Text]]
+      usedDocs =
+        removeUnusedDocs used docsWithExposeAll
+
    in removeEmptyLists usedDocs
 
 removeUnusedDocs :: [Text] -> [[Text]] -> [[Text]]
