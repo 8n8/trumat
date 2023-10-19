@@ -1098,25 +1098,25 @@ snd3 (_, b, _) =
 
 formatExports :: Int -> Bool -> [[Text]] -> [(Text, [Text], Text)] -> Text
 formatExports indent originalIsMultiline docs items =
-  let unformattedRows :: [[Text]]
-      unformattedRows =
+  let unformattedDocumentedRows :: [[Text]]
+      unformattedDocumentedRows =
         removeUndocumented (mconcat (map snd3 items)) docs
 
-      documentedRows :: [Text]
-      documentedRows =
+      formattedDocumentedRows :: [Text]
+      formattedDocumentedRows =
         map
           (formatExportRow (indent + 2) (mconcat items))
-          unformattedRows
+          unformattedDocumentedRows
 
-      rows :: [Text]
-      rows =
+      undocumentedRows :: [Text]
+      undocumentedRows =
+        getUndocumented indent docs items
+
+      formattedRows :: [Text]
+      formattedRows =
         filter
           (\row -> row /= "") $
-          documentedRows <> undocumented
-
-      undocumented :: [Text]
-      undocumented =
-        getUndocumented indent docs items
+          formattedDocumentedRows <> undocumentedRows
 
       isMultiline' :: Bool
       isMultiline' =
@@ -1125,7 +1125,7 @@ formatExports indent originalIsMultiline docs items =
         )
           || originalIsMultiline
 
-   in case rows of
+   in case formattedRows of
         [] ->
           "()"
         [single] ->
