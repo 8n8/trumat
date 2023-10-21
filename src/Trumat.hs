@@ -1182,31 +1182,52 @@ formatExports indent originalIsMultiline docs items =
           "()"
         [single] ->
           if Text.elem '\n' single
-            then "\n" <> pack (take indent (repeat ' ')) <> "( " <> single <> "\n" <> pack (take indent (repeat ' ')) <> ")"
-            else " (" <> single <> ")"
+            || any isMultilineComment commentsOnDocumented
+            then
+              [ "\n",
+                Text.replicate indent " ",
+                "( ",
+                single,
+                if null commentsOnDocumented
+                  then ""
+                  else "\n" <> Text.replicate indent " ",
+                Text.intercalate
+                  ("\n" <> Text.replicate indent " ")
+                  commentsOnDocumented,
+                "\n",
+                Text.replicate indent " ",
+                ")"
+              ]
+                & mconcat
+            else
+              [ " (",
+                single,
+                ")"
+              ]
+                & mconcat
         multiple ->
-          mconcat
-            [ if isMultiline'
-                then "\n" <> pack (take indent (repeat ' ')) <> "( "
-                else " (",
-              intercalate
-                ( if isMultiline'
-                    then "\n" <> pack (take indent (repeat ' ')) <> ", "
-                    else ", "
-                )
-                multiple,
-              if formattedCommentsOnDocumented == ""
-                then ""
-                else
-                  if isMultilineComment formattedCommentsOnDocumented
-                    then "\n    "
-                    else " ",
-              formattedCommentsOnDocumented,
-              if isMultiline'
-                then "\n" <> pack (take indent (repeat ' '))
-                else "",
-              ")"
-            ]
+          [ if isMultiline'
+              then "\n" <> pack (take indent (repeat ' ')) <> "( "
+              else " (",
+            intercalate
+              ( if isMultiline'
+                  then "\n" <> pack (take indent (repeat ' ')) <> ", "
+                  else ", "
+              )
+              multiple,
+            if formattedCommentsOnDocumented == ""
+              then ""
+              else
+                if isMultilineComment formattedCommentsOnDocumented
+                  then "\n    "
+                  else " ",
+            formattedCommentsOnDocumented,
+            if isMultiline'
+              then "\n" <> pack (take indent (repeat ' '))
+              else "",
+            ")"
+          ]
+            & mconcat
 
 isMultilineComment :: Text -> Bool
 isMultilineComment text =
