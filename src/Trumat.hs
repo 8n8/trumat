@@ -1088,16 +1088,7 @@ exportItemIsMultiline (comment1, item, comment2) =
 
 formatUndocumented :: Int -> [(Text, Text, Text)] -> Text
 formatUndocumented indent row =
-  let isMultiline :: Bool
-      isMultiline =
-        any exportItemIsMultiline row
-
-      join :: Text
-      join =
-        if isMultiline
-          then "\n" <> replicate indent " " <> ", "
-          else ", "
-   in Text.intercalate join (map (formatUndocumentedItem indent) row)
+  Text.intercalate ", " (map (formatUndocumentedItem indent) row)
 
 formatUndocumentedItem :: Int -> (Text, Text, Text) -> Text
 formatUndocumentedItem indent (comment1, item, comment2) =
