@@ -15458,5 +15458,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "single line documented exposing with single line block comment",
+      "module X exposing (a {- b -})\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (a {- b -})\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
