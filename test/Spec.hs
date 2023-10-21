@@ -15374,5 +15374,31 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "non empty block comment in single line documented exports",
+      "module X exposing (a, b {- a -})\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (a, b {- a -})\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
