@@ -1202,6 +1202,10 @@ formatExports indent originalIsMultiline docs items =
             else
               [ " (",
                 single,
+                if null commentsOnDocumented
+                  then ""
+                  else " ",
+                Text.intercalate " " commentsOnDocumented,
                 ")"
               ]
                 & mconcat
