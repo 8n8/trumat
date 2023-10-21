@@ -1146,10 +1146,18 @@ formatExports indent originalIsMultiline docs items =
 
       isMultiline' :: Bool
       isMultiline' =
-        ( not (null (removeUndocumented (map snd3 (mconcat items)) docs))
-            && length (mconcat items) > 1
-        )
-          || originalIsMultiline
+        originalIsMultiline
+          || ( case removeUndocumented (map snd3 (mconcat items)) docs of
+                 [] ->
+                   False
+                 [_] ->
+                   False
+                 _ ->
+                   True
+             )
+          || ( not (null formattedDocumentedRows)
+                 && not (null formattedUndocumentedRows)
+             )
    in case formattedRows of
         [] ->
           "()"
@@ -1168,13 +1176,22 @@ formatExports indent originalIsMultiline docs items =
                     else ", "
                 )
                 multiple,
-              if formattedCommentsOnDocumented == "" then "" else "\n    ",
+              if formattedCommentsOnDocumented == ""
+                then ""
+                else
+                  if isMultilineComment formattedCommentsOnDocumented
+                    then "\n    "
+                    else " ",
               formattedCommentsOnDocumented,
               if isMultiline'
                 then "\n" <> pack (take indent (repeat ' '))
                 else "",
               ")"
             ]
+
+isMultilineComment :: Text -> Bool
+isMultilineComment text =
+  text == "{--}" || Text.take 2 text == "--" || Text.elem '\n' text
 
 removeUndocumented :: [Text] -> [[Text]] -> [[Text]]
 removeUndocumented used docs =

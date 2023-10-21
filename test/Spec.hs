@@ -1305,7 +1305,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "at docs",
+    ( "simple at docs",
       "module X exposing (x, y)\n\
       \\n\
       \{-|\n\
