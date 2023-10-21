@@ -1113,6 +1113,17 @@ formatCommentsOnDocumented :: [Text] -> Text
 formatCommentsOnDocumented comments =
   Text.intercalate "\n        " comments
 
+isSingleLineExports :: [[Text]] -> [Text] -> [Text] -> [Text] -> Bool
+isSingleLineExports docs commentsOnDocumented documented undocumented =
+  case (documented, undocumented) of
+    ([], []) ->
+      True
+    ((_ : _), []) ->
+      (not $ any isMultilineComment commentsOnDocumented)
+        && (length docs < 2)
+    _ ->
+      False
+
 formatExports :: Int -> Bool -> [[Text]] -> [[(Text, Text, Text)]] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedDocumentedRows :: [[Text]]
@@ -1146,18 +1157,26 @@ formatExports indent originalIsMultiline docs items =
 
       isMultiline' :: Bool
       isMultiline' =
-        originalIsMultiline
-          || ( case removeUndocumented (map snd3 (mconcat items)) docs of
-                 [] ->
-                   False
-                 [_] ->
-                   False
-                 _ ->
-                   True
-             )
-          || ( not (null formattedDocumentedRows)
-                 && not (null formattedUndocumentedRows)
-             )
+        ( originalIsMultiline
+            || ( case removeUndocumented (map snd3 (mconcat items)) docs of
+                   [] ->
+                     False
+                   [_] ->
+                     False
+                   _ ->
+                     True
+               )
+            || ( not (null formattedDocumentedRows)
+                   && not (null formattedUndocumentedRows)
+               )
+        )
+          && not
+            ( isSingleLineExports
+                docs
+                commentsOnDocumented
+                formattedDocumentedRows
+                formattedUndocumentedRows
+            )
    in case formattedRows of
         [] ->
           "()"

@@ -2010,7 +2010,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "module @docs and freestyle",
+    ( "module at docs and freestyle",
       "module X exposing\n\
       \    ( x\n\
       \    , y\n\
