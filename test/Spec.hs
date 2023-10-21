@@ -15306,5 +15306,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "exports with docs and multi item non doc row with line comment",
+      "module X exposing\n\
+      \    ( a, b\n\
+      \    , c, d\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a, b\n\
+      \    , c, d\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

@@ -1073,7 +1073,7 @@ parseExposing indent docs =
 
 formatDocumentedExportRow :: [Text] -> Text
 formatDocumentedExportRow items =
- Text.intercalate ", " items
+  Text.intercalate ", " items
 
 snd3 :: (a, b, c) -> b
 snd3 (_, b, _) =
@@ -1086,42 +1086,36 @@ exportItemIsMultiline (comment1, item, comment2) =
     || Text.elem '\n' comment1
     || Text.elem '\n' comment2
 
-
 formatUndocumented :: Int -> [(Text, Text, Text)] -> Text
 formatUndocumented indent row =
-  let
-    isMultiline :: Bool
-    isMultiline =
-      any exportItemIsMultiline row
+  let isMultiline :: Bool
+      isMultiline =
+        any exportItemIsMultiline row
 
-    join :: Text
-    join =
-      if isMultiline then
-        "\n" <> replicate indent " " <> ", "
-      else
-        ", "
-  in
-  Text.intercalate join (map (formatUndocumentedItem indent) row)
+      join :: Text
+      join =
+        if isMultiline
+          then "\n" <> replicate indent " " <> ", "
+          else ", "
+   in Text.intercalate join (map (formatUndocumentedItem indent) row)
 
 formatUndocumentedItem :: Int -> (Text, Text, Text) -> Text
 formatUndocumentedItem indent (comment1, item, comment2) =
-  let
-    gap comment = 
-      if comment == ""
-      then ""
-      else
-        if Text.take 2 comment == "--" || Text.elem '\n' comment || comment == "{--}"
-        then "\n" <> Text.replicate (indent + 2) " "
-        else " "
-  in
-  mconcat
-  [ comment1
-  , gap comment1
-  , item
-  , gap comment2
-  , comment2
-  ]
-      
+  let gap comment =
+        if comment == ""
+          then ""
+          else
+            if Text.take 2 comment == "--" || Text.elem '\n' comment || comment == "{--}"
+              then "\n" <> Text.replicate (indent + 2) " "
+              else " "
+   in mconcat
+        [ comment1,
+          gap comment1,
+          item,
+          gap comment2,
+          comment2
+        ]
+
 formatExports :: Int -> Bool -> [[Text]] -> [[(Text, Text, Text)]] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedDocumentedRows :: [[Text]]
@@ -1139,8 +1133,8 @@ formatExports indent originalIsMultiline docs items =
       formattedRows :: [Text]
       formattedRows =
         filter
-          (\row -> row /= "") $
-          formattedDocumentedRows <> formattedUndocumentedRows
+          (\row -> row /= "")
+          $ formattedDocumentedRows <> formattedUndocumentedRows
 
       isMultiline' :: Bool
       isMultiline' =
@@ -1148,7 +1142,6 @@ formatExports indent originalIsMultiline docs items =
             && length (mconcat items) > 1
         )
           || originalIsMultiline
-
    in case formattedRows of
         [] ->
           "()"
@@ -1182,7 +1175,6 @@ removeUndocumented used docs =
       usedDocs :: [[Text]]
       usedDocs =
         removeUnusedDocs used docsWithExposeAll
-
    in removeEmptyLists usedDocs
 
 removeUnusedDocs :: [Text] -> [[Text]] -> [[Text]]
@@ -1212,27 +1204,27 @@ trimExposeAll text =
     then Text.dropEnd 4 text
     else text
 
-getUndocumented :: Int -> [[Text]] -> [[(Text, Text, Text)]] -> [[(Text,Text,Text)]]
+getUndocumented :: Int -> [[Text]] -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
    in removeDocumented docSet items
         & flattenIfNoDocs docs
-        & List.sortOn (\row ->
-          case row of
-            [] ->
-             "" 
-            (_, topName, _) : _ ->
-              topName)
+        & List.sortOn
+          ( \row ->
+              case row of
+                [] ->
+                  ""
+                (_, topName, _) : _ ->
+                  topName
+          )
 
 flattenIfNoDocs :: [[Text]] -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 flattenIfNoDocs docs rows =
   case docs of
     [] ->
       map (\item -> [item]) (mconcat rows)
-
     _ ->
       rows
-  
 
 exportCommentSpace :: Int -> Text -> Text
 exportCommentSpace indent comment =
@@ -1253,15 +1245,15 @@ removeDocumented :: Set Text -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 removeDocumented docSet items =
   filter
     (\row -> not (null row))
-    (map
-      (filter (\(_, item, _) -> not (Set.member (trimExposeAll item) docSet)))
-      items
+    ( map
+        (filter (\(_, item, _) -> not (Set.member (trimExposeAll item) docSet)))
+        items
     )
 
 -- flattenExportRows :: [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 -- flattenExportRows rows =
 --   flattenExportRowsHelp rows []
--- 
+--
 -- flattenExportRowsHelp :: [[(Text, Text, Text)]] -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 -- flattenExportRowsHelp rows accumulator =
 --   case rows of
@@ -1275,7 +1267,7 @@ removeDocumented docSet items =
 --           flattenExportRowsHelp
 --             remainder
 --             ((reverse ((comment1, [rowTop], comment2) : map (\item -> ("", [item], "")) rowRemainder)) <> accumulator)
--- 
+--
 stripNewlinesStart :: Text -> Text
 stripNewlinesStart unstripped =
   case Text.uncons unstripped of
