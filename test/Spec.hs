@@ -15400,5 +15400,34 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "multi line documented exposing with non empty block comment",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b {- a -}\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (a, b {- a -})\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
