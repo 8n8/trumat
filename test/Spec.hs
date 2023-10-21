@@ -15340,5 +15340,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "documented exports followed by empty block comment",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b\n\
+      \    {--}\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b\n\
+      \    {--}\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
