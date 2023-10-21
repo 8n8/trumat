@@ -1020,18 +1020,18 @@ parseOneExportDoc =
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return name'
 
-parseExportRow :: Parser [Text]
+parseExportRow :: Parser [(Text, Text, Text)]
 parseExportRow =
   do
     items <- some parseSingleItemInExportRow
     _ <- space
     return items
 
-parseSingleItemInExportRow :: Parser Text
+parseSingleItemInExportRow :: Parser (Text, Text, Text)
 parseSingleItemInExportRow =
   do
     _ <- choice [char ',', return ' ']
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    commentBefore <- commentSpaceParser 6
     name' <- choice [parseName, parseInfixInBrackets]
     all_ <-
       choice
@@ -1042,23 +1042,18 @@ parseSingleItemInExportRow =
             return "(..)",
           return ""
         ]
-    _ <- takeWhileP Nothing (\ch -> ch == ' ')
+    commentAfter <- commentSpaceParser 6
     _ <- choice [char ',', return ' ']
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
-    return $ name' <> all_
+    return (commentBefore, name' <> all_, commentAfter)
 
-parseExposingHelp :: Int -> Parser (Bool, [(Text, [Text], Text)])
+parseExposingHelp :: Int -> Parser (Bool, [[(Text, Text, Text)]])
 parseExposingHelp indent =
   do
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- some $
-      do
-        comment1 <- commentSpaceParser 4
-        row <- parseExportRow
-        comment2 <- commentSpaceParser 4
-        return $ (comment1, row, comment2)
+    items <- some parseExportRow
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
@@ -1070,58 +1065,87 @@ parseExposing indent docs =
     startRow <- fmap (unPos . sourceLine) getSourcePos
     _ <- char '('
     _ <- space
-    items <- some $
-      do
-        comment1 <- commentSpaceParser 6
-        row <- parseExportRow
-        comment2 <- commentSpaceParser 6
-        return $ (comment1, row, comment2)
+    items <- some parseExportRow
     _ <- space
     _ <- char ')'
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $ formatExports indent (endRow > startRow) docs items
 
-formatExportRow :: Int -> (Text, [Text], Text) -> [Text] -> Text
-formatExportRow indent (comment1, items, comment2) docRow =
-  let documented = filter (\doc -> elem doc items) docRow
-   in mconcat
-        [ intercalate ", " documented,
-          if comment2 == ""
-            then ""
-            else "\n" <> pack (take indent (repeat ' ')),
-          comment2
-        ]
+formatDocumentedExportRow :: [Text] -> Text
+formatDocumentedExportRow items =
+ Text.intercalate ", " items
 
 snd3 :: (a, b, c) -> b
 snd3 (_, b, _) =
   b
 
-formatExports :: Int -> Bool -> [[Text]] -> [(Text, [Text], Text)] -> Text
+exportItemIsMultiline :: (Text, Text, Text) -> Bool
+exportItemIsMultiline (comment1, item, comment2) =
+  Text.take 2 comment1 == "--"
+    || Text.take 2 comment2 == "--"
+    || Text.elem '\n' comment1
+    || Text.elem '\n' comment2
+
+
+formatUndocumented :: Int -> [(Text, Text, Text)] -> Text
+formatUndocumented indent row =
+  let
+    isMultiline :: Bool
+    isMultiline =
+      any exportItemIsMultiline row
+
+    join :: Text
+    join =
+      if isMultiline then
+        "\n" <> replicate indent " " <> ", "
+      else
+        ", "
+  in
+  Text.intercalate join (map (formatUndocumentedItem indent) row)
+
+formatUndocumentedItem :: Int -> (Text, Text, Text) -> Text
+formatUndocumentedItem indent (comment1, item, comment2) =
+  let
+    gap comment = 
+      if comment == ""
+      then ""
+      else
+        if Text.take 2 comment == "--" || Text.elem '\n' comment || comment == "{--}"
+        then "\n" <> Text.replicate (indent + 2) " "
+        else " "
+  in
+  mconcat
+  [ comment1
+  , gap comment1
+  , item
+  , gap comment2
+  , comment2
+  ]
+      
+formatExports :: Int -> Bool -> [[Text]] -> [[(Text, Text, Text)]] -> Text
 formatExports indent originalIsMultiline docs items =
   let unformattedDocumentedRows :: [[Text]]
       unformattedDocumentedRows =
-        removeUndocumented (mconcat (map snd3 items)) docs
+        removeUndocumented (map snd3 (mconcat items)) docs
 
       formattedDocumentedRows :: [Text]
       formattedDocumentedRows =
-        map
-          (formatExportRow (indent + 2) (mconcat items))
-          unformattedDocumentedRows
+        map formatDocumentedExportRow unformattedDocumentedRows
 
-      undocumentedRows :: [Text]
-      undocumentedRows =
-        getUndocumented indent docs items
+      formattedUndocumentedRows :: [Text]
+      formattedUndocumentedRows =
+        map (formatUndocumented indent) $ getUndocumented indent docs items
 
       formattedRows :: [Text]
       formattedRows =
         filter
           (\row -> row /= "") $
-          formattedDocumentedRows <> undocumentedRows
+          formattedDocumentedRows <> formattedUndocumentedRows
 
       isMultiline' :: Bool
       isMultiline' =
-        ( not (null (removeUndocumented (mconcat (map snd3 items)) docs))
-            && length (mconcat (map snd3 items)) > 1
+        ( not (null (removeUndocumented (map snd3 (mconcat items)) docs))
+            && length (mconcat items) > 1
         )
           || originalIsMultiline
 
@@ -1188,14 +1212,27 @@ trimExposeAll text =
     then Text.dropEnd 4 text
     else text
 
-getUndocumented :: Int -> [[Text]] -> [(Text, [Text], Text)] -> [Text]
+getUndocumented :: Int -> [[Text]] -> [[(Text, Text, Text)]] -> [[(Text,Text,Text)]]
 getUndocumented indent docs items =
   let docSet = Set.fromList $ mconcat docs
    in removeDocumented docSet items
-        & flattenNonEmptyExportRows docs
-        & removeEmptyExportRows
-        & joinCommentWithContent indent
-        & List.sort
+        & flattenIfNoDocs docs
+        & List.sortOn (\row ->
+          case row of
+            [] ->
+             "" 
+            (_, topName, _) : _ ->
+              topName)
+
+flattenIfNoDocs :: [[Text]] -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
+flattenIfNoDocs docs rows =
+  case docs of
+    [] ->
+      map (\item -> [item]) (mconcat rows)
+
+    _ ->
+      rows
+  
 
 exportCommentSpace :: Int -> Text -> Text
 exportCommentSpace indent comment =
@@ -1208,59 +1245,37 @@ exportCommentSpace indent comment =
         then " "
         else "\n" <> replicate (indent + 2) " "
 
-joinCommentWithContent :: Int -> [(Text, [Text], Text)] -> [Text]
-joinCommentWithContent indent rows =
-  map
-    ( \(comment1, row, comment2) ->
-        mconcat
-          [ comment1,
-            exportCommentSpace indent comment1,
-            intercalate ", " (List.sort row),
-            exportCommentSpace indent comment2,
-            comment2
-          ]
-    )
-    rows
-
-removeEmptyExportRows :: [(Text, [Text], Text)] -> [(Text, [Text], Text)]
+removeEmptyExportRows :: [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 removeEmptyExportRows rows =
-  filter (\row -> not (null (snd3 row))) rows
+  filter (\row -> not (null row)) rows
 
-flattenNonEmptyExportRows :: [[Text]] -> [(Text, [Text], Text)] -> [(Text, [Text], Text)]
-flattenNonEmptyExportRows docs rows =
-  case docs of
-    [] -> flattenExportRows rows
-    _ -> rows
-
-removeDocumented :: Set Text -> [(Text, [Text], Text)] -> [(Text, [Text], Text)]
+removeDocumented :: Set Text -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
 removeDocumented docSet items =
-  map
-    ( \(comment1, row, comment2) ->
-        ( comment1,
-          filter (\item -> not (Set.member (trimExposeAll item) docSet)) row,
-          comment2
-        )
+  filter
+    (\row -> not (null row))
+    (map
+      (filter (\(_, item, _) -> not (Set.member (trimExposeAll item) docSet)))
+      items
     )
-    items
 
-flattenExportRows :: [(Text, [Text], Text)] -> [(Text, [Text], Text)]
-flattenExportRows rows =
-  flattenExportRowsHelp rows []
-
-flattenExportRowsHelp :: [(Text, [Text], Text)] -> [(Text, [Text], Text)] -> [(Text, [Text], Text)]
-flattenExportRowsHelp rows accumulator =
-  case rows of
-    [] ->
-      reverse accumulator
-    (comment1, row, comment2) : remainder ->
-      case reverse row of
-        [] ->
-          flattenExportRowsHelp remainder accumulator
-        rowTop : rowRemainder ->
-          flattenExportRowsHelp
-            remainder
-            ((reverse ((comment1, [rowTop], comment2) : map (\item -> ("", [item], "")) rowRemainder)) <> accumulator)
-
+-- flattenExportRows :: [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
+-- flattenExportRows rows =
+--   flattenExportRowsHelp rows []
+-- 
+-- flattenExportRowsHelp :: [[(Text, Text, Text)]] -> [[(Text, Text, Text)]] -> [[(Text, Text, Text)]]
+-- flattenExportRowsHelp rows accumulator =
+--   case rows of
+--     [] ->
+--       reverse accumulator
+--     top : remainder ->
+--       case reverse row of
+--         [] ->
+--           flattenExportRowsHelp remainder accumulator
+--         rowTop : rowRemainder ->
+--           flattenExportRowsHelp
+--             remainder
+--             ((reverse ((comment1, [rowTop], comment2) : map (\item -> ("", [item], "")) rowRemainder)) <> accumulator)
+-- 
 stripNewlinesStart :: Text -> Text
 stripNewlinesStart unstripped =
   case Text.uncons unstripped of
@@ -3145,9 +3160,9 @@ parseImportParts import_ =
 
 data Import = Import
   { commentBetween :: Text,
-    isMultiline :: Bool,
+    isMultiline_ :: Bool,
     as_ :: Text,
-    exposing_ :: [(Text, [Text], Text)],
+    exposing_ :: [[(Text, Text, Text)]],
     name :: Text,
     isMultilineExposing :: Bool
   }
@@ -3187,7 +3202,7 @@ parseImportPartsHelp =
       Import
         { commentBetween = commentBetween',
           name = name',
-          isMultiline = endRow /= startRow,
+          isMultiline_ = endRow /= startRow,
           as_ = as',
           exposing_ = exposing',
           isMultilineExposing = isMultilineExposing'
@@ -3207,7 +3222,7 @@ importToText import_ =
           if exposingText == "()"
             then ""
             else
-              if isMultiline import_
+              if isMultiline_ import_
                 then "\n    exposing" <> exposingText
                 else " exposing" <> exposingText
         ]
@@ -3217,20 +3232,13 @@ deduplicateImports imports =
   map importToText $
     deduplicateImportsHelp (map parseImportParts imports) Map.empty
 
-combineExposing ::
-  [(Text, [Text], Text)] ->
-  [(Text, [Text], Text)] ->
-  [(Text, [Text], Text)]
-combineExposing a b =
-  a <> b
-
 combineImports :: Import -> Import -> Import
 combineImports a b =
   Import
     { commentBetween = commentBetween a,
-      isMultiline = isMultiline a || isMultiline b,
+      isMultiline_ = isMultiline_ a || isMultiline_ b,
       as_ = as_ a,
-      exposing_ = combineExposing (exposing_ a) (exposing_ b),
+      exposing_ = exposing_ a <> exposing_ b,
       name = name a,
       isMultilineExposing = isMultilineExposing a || isMultilineExposing b
     }
@@ -4325,7 +4333,7 @@ parseInfixed minColumn indent =
 
     let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool) -> Text
         addWhitespace (infixItem, previousIsMultiline) =
-          if endRow > startRow || List.any id isMultiline_
+          if endRow > startRow || List.any id isMultiline
             then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline
             else addSingleLineInfixWhitespace infixItem
 
@@ -4339,8 +4347,8 @@ parseInfixed minColumn indent =
             || commentBefore == "{--}"
             || commentAfter == "{--}"
 
-        isMultiline_ :: [Bool]
-        isMultiline_ =
+        isMultiline :: [Bool]
+        isMultiline =
           Text.elem '\n' firstExpression : map itemIsMultiline items
 
     if null items
@@ -4349,7 +4357,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map addWhitespace (List.zip items isMultiline_)
+              mconcat $ map addWhitespace (List.zip items isMultiline)
             ]
 
 parseInfixedItems ::
@@ -4979,9 +4987,9 @@ parseParenthesised context indent =
         )
     commentAfter <- commentSpaceParser indent
     _ <- char ')'
-    let isMultiline_ =
+    let isMultiline =
           Text.elem '\n' (commentBefore <> item <> commentAfter)
-    if isMultiline_
+    if isMultiline
       then case context of
         NeedsBrackets ->
           return $
@@ -5097,14 +5105,14 @@ parseNonEmptyList indent =
         linesInMultiString = List.maximum $ map getLinesInMultiString items
     _ <- char ']'
     endRow <- fmap (unPos . sourceLine) getSourcePos
-    let isMultiline_ :: Bool
-        isMultiline_ = ((endRow - startRow) - linesInMultiString) > 0
+    let isMultiline :: Bool
+        isMultiline = ((endRow - startRow) - linesInMultiString) > 0
     let indentation =
-          if isMultiline_
+          if isMultiline
             then "\n" <> replicate indent " "
             else ""
     let endSpace =
-          if isMultiline_
+          if isMultiline
             then ""
             else " "
     if null items
