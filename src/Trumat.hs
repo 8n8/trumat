@@ -4880,10 +4880,11 @@ commentSpaceParser indent =
               _ <- takeWhile1P Nothing (\ch -> ch == ' ' || ch == '\n')
               return ""
           ]
-    return $
-      intercalate
-        ("\n" <> replicate indent " ")
-        (filter (\s -> s /= "") comments)
+    let join =
+          if any isMultilineComment comments
+            then "\n" <> replicate indent " "
+            else " "
+    return $ intercalate join (filter (\s -> s /= "") comments)
 
 parseSameLineComment :: Parser Text
 parseSameLineComment =
