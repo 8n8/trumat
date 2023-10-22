@@ -15510,5 +15510,38 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "documented export row with line comment and undocumented export",
+      "module X exposing\n\
+      \    ( a, b --\n\
+      \    , c\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a, b\n\
+      \    , c\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a, b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
