@@ -1071,9 +1071,9 @@ parseExposing indent docs =
     endRow <- fmap (unPos . sourceLine) getSourcePos
     return $ formatExports indent (endRow > startRow) docs items
 
-formatDocumentedExportRow :: [Text] -> [Text] -> [Text]
-formatDocumentedExportRow documentedComments items =
-  if null documentedComments
+formatDocumentedExportRow :: [Text] -> [Text] -> [Text] -> [Text]
+formatDocumentedExportRow undocumented documentedComments items =
+  if null documentedComments || not (null (log "HERE" undocumented))
     then [Text.intercalate ", " items]
     else items
 
@@ -1134,7 +1134,10 @@ formatExports indent originalIsMultiline docs items =
       formattedDocumentedRows =
         mconcat $
           map
-            (formatDocumentedExportRow commentsOnDocumented)
+            ( formatDocumentedExportRow
+                formattedUndocumentedRows
+                commentsOnDocumented
+            )
             unformattedDocumentedRows
 
       commentsOnDocumented :: [Text]
@@ -1223,7 +1226,12 @@ formatExports indent originalIsMultiline docs items =
               then ""
               else
                 if isMultilineComment formattedCommentsOnDocumented
-                  then "\n    "
+                  then
+                    "\n    "
+                      <> ( if null formattedUndocumentedRows
+                             then ""
+                             else "  "
+                         )
                   else " ",
             formattedCommentsOnDocumented,
             if isMultiline'
