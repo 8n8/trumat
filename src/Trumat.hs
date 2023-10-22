@@ -1486,6 +1486,23 @@ formatElmInDocs :: [Text] -> [Text]
 formatElmInDocs rows =
   formatElmInDocsHelp rows [] []
 
+formatElmExpressionInDocs :: Text -> Maybe Text
+formatElmExpressionInDocs unformatted =
+  case parse (try parseExpressionInDocsWithSpace) "" unformatted of
+    Left _ ->
+      Nothing
+    Right formatted ->
+      Just formatted
+
+parseExpressionInDocsWithSpace :: Parser Text
+parseExpressionInDocsWithSpace =
+  do
+    _ <- space
+    expression <- parseExpressionInDocs 1 DoesntNeedBrackets 1
+    _ <- space
+    eof
+    return expression
+
 formatElmCodeInDocs :: Text -> Maybe Text
 formatElmCodeInDocs unformatted =
   case parse parserInDocs "" unformatted of
@@ -1556,7 +1573,11 @@ formatElmChunkInDocs rows =
           codeChunk = (Text.stripEnd $ Text.intercalate "\n" $ map (\row -> if row == "\n" then "\n" else Text.drop 4 row) (mconcat (map Text.lines rows))) <> "\n"
           formatted = case formatElmCodeInDocs codeChunk of
             Nothing ->
-              codeChunk
+              case formatElmExpressionInDocs codeChunk of
+                Nothing ->
+                  codeChunk
+                Just ok ->
+                  (Text.strip ok) <> "\n"
             Just ok ->
               (Text.strip ok) <> "\n"
           formattedLines = Text.lines formatted
@@ -3769,6 +3790,28 @@ parseInfixedInBrackets minColumn indent =
             else "",
           ")"
         ]
+
+parseExpressionInDocs :: Int -> Context -> Int -> Parser Text
+parseExpressionInDocs minColumn context indent =
+  choice
+    [ try $ parseCaseOf indent,
+      try parseGlsl,
+      try $ notFollowedByInfix $ parseList indent,
+      try $ parseIfThenElse minColumn indent,
+      try $ parseLetIn minColumn indent,
+      try $ notFollowedByInfix $ parseRecord indent,
+      try $ notFollowedByInfix $ parseRecordUpdate indent,
+      try $ notFollowedByInfix parseNumberLiteral,
+      try $ parseInfixed minColumn indent,
+      try parseInfixInBrackets,
+      try $ notDottable $ parseParenthesised context indent,
+      try $ makeDottable $ parseParenthesised NeedsBrackets indent,
+      parseTuple context indent,
+      parseTripleStringLiteral,
+      parseSimpleStringLiteral,
+      parseCharLiteral,
+      parseAnonymousFunction minColumn indent
+    ]
 
 parseExpression :: Int -> Context -> Int -> Parser Text
 parseExpression minColumn context indent =
