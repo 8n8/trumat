@@ -15639,5 +15639,45 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "documented exports interspersed with line comments",
+      "module X exposing\n\
+      \    ( a\n\
+      \    --\n\
+      \    , b\n\
+      \    --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b\n\
+      \    --\n\
+      \    --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
