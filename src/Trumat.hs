@@ -1120,7 +1120,7 @@ formatUndocumentedItem indent (comment1, item, comment2) =
 
 formatCommentsOnDocumented :: [Text] -> Text
 formatCommentsOnDocumented comments =
-  Text.intercalate "\n        " comments
+  Text.intercalate "\n    " comments
 
 isSingleLineExports :: [[Text]] -> [Text] -> [Text] -> [Text] -> Bool
 isSingleLineExports docs commentsOnDocumented documented undocumented =
