@@ -15543,5 +15543,43 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "line comment after multi item documented exposing after single",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b, c\n\
+      \    --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b, c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \    , b, c\n\
+      \    --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs a\n\
+      \\n\
+      \@docs b, c\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
