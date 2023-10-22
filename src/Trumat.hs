@@ -1073,7 +1073,7 @@ parseExposing indent docs =
 
 formatDocumentedExportRow :: [Text] -> [Text] -> [Text] -> [Text]
 formatDocumentedExportRow undocumented documentedComments items =
-  if null documentedComments || not (null (log "HERE" undocumented))
+  if null documentedComments || not (null undocumented)
     then [Text.intercalate ", " items]
     else items
 
