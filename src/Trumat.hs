@@ -1042,7 +1042,7 @@ parseSingleItemInExportRow =
             return "(..)",
           return ""
         ]
-    commentAfter <- commentSpaceParser 6
+    commentAfter <- commentSpaceParser 4
     _ <- choice [char ',', return ' ']
     _ <- takeWhileP Nothing (\ch -> ch == ' ')
     return (commentBefore, name' <> all_, commentAfter)
