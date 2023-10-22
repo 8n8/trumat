@@ -15581,5 +15581,39 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "documented export followed by two line comments",
+      "module X exposing\n\
+      \    ( x\n\
+      \    --\n\
+      \      --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( x\n\
+      \    --\n\
+      \    --\n\
+      \    )\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \@docs x\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
