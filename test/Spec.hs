@@ -15615,5 +15615,29 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "two line comments in between undocumented exports",
+      "module X exposing\n\
+      \    ( a\n\
+      \      --\n\
+      \      --\n\
+      \    , b\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing\n\
+      \    ( a\n\
+      \      --\n\
+      \      --\n\
+      \    , b\n\
+      \    )\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
