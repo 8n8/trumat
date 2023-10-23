@@ -15680,7 +15680,7 @@ cases =
       \    0\n\
       \"
     ),
-    ( "elm expression in code block in doc comment",
+    ( "elm list in code block in doc comment",
       "module X exposing (x)\n\
       \\n\
       \{-|\n\
@@ -15698,6 +15698,36 @@ cases =
       \{-|\n\
       \\n\
       \    [ 0 ]\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "elm record in code block in doc comment",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    { a = 0\n\
+      \    , b = 1\n\
+      \    }\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \    { a = 0\n\
+      \    , b = 1\n\
+      \    }\n\
       \\n\
       \-}\n\
       \\n\
