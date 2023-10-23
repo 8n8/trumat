@@ -15818,5 +15818,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "call to link alias with empty second part",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a][]\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a]\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
