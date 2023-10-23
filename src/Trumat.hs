@@ -354,7 +354,7 @@ parseLinkAlias =
 parseNamedLinkAlias :: Parser Text
 parseNamedLinkAlias =
   do
-    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    leadingText <- takeWhileP Nothing (\ch -> ch /= '\n' && ch /= '-' && ch /= '_' && ch /= '\\' && ch /= '[')
     _ <- char '['
     firstPart <- takeWhileP Nothing (\ch -> ch /= ']')
     _ <- char ']'
@@ -363,7 +363,7 @@ parseNamedLinkAlias =
     _ <- char ']'
     return $
       mconcat
-        [ leadingSpaces,
+        [ leadingText,
           "[",
           firstPart,
           "]",

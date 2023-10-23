@@ -15858,5 +15858,45 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "named link alias call following text in line",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a [b][]\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| a [b]\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
+    ),
+    ( "dot and text after named link alias call",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a][b]. c\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a][b]. c\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
