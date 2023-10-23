@@ -2139,7 +2139,7 @@ addExtraSpaceBetweenSameLineItemsHelp :: [Text] -> [Text] -> [Text]
 addExtraSpaceBetweenSameLineItemsHelp rows accumulated =
   case rows of
     first : second : remainder ->
-      if Text.takeEnd 1 first /= " " && Text.takeEnd 1 first /= "\n" && Text.take 1 second /= "\n" && Text.take 1 second /= " " && second /= "."
+      if Text.takeEnd 1 first /= " " && Text.takeEnd 1 first /= "\n" && Text.take 1 second /= "\n" && Text.take 1 second /= " " && Text.take 1 second /= "."
         then
           addExtraSpaceBetweenSameLineItemsHelp
             remainder
