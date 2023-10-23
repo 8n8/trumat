@@ -1498,7 +1498,7 @@ parseExpressionInDocsWithSpace :: Parser Text
 parseExpressionInDocsWithSpace =
   do
     _ <- space
-    expression <- parseExpressionInDocs 1 DoesntNeedBrackets 1
+    expression <- parseExpressionInDocs 0 DoesntNeedBrackets 0
     _ <- space
     eof
     return expression
