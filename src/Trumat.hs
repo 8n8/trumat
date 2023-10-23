@@ -1599,6 +1599,16 @@ getLeadingNewlinesHelp text newlines =
     Just _ ->
       newlines
 
+addNewlineToTrailingLinkAliases :: [Text] -> [Text]
+addNewlineToTrailingLinkAliases rows =
+  case reverse rows of
+    "\n" : possiblyLinkAlias : previous ->
+      if isLinkAlias possiblyLinkAlias
+        then reverse ((Text.stripEnd possiblyLinkAlias) <> "\n\n" : previous)
+        else rows
+    _ ->
+      rows
+
 addNewlineToTrailingCode :: [Text] -> [Text]
 addNewlineToTrailingCode rows =
   case reverse rows of
@@ -2123,13 +2133,14 @@ parseModuleDocsInner =
                                             fmap stripLeadingSpacesFromDocRow $
                                               fmap (map newlinesAfterBackticks) $
                                                 fmap backticksAroundCodeAfterList $
-                                                  fmap addNewlineToTrailingCode $
-                                                    fmap removeTooManyNewlinesAfterAtDocs $
-                                                      fmap formatElmInDocs $
-                                                        fmap maxTwoNewlinesAfterCodeBlock $
-                                                          fmap removeTripleNewlinesInParagraphs $
-                                                            some $
-                                                              try parseDocRow
+                                                  fmap addNewlineToTrailingLinkAliases $
+                                                    fmap addNewlineToTrailingCode $
+                                                      fmap removeTooManyNewlinesAfterAtDocs $
+                                                        fmap formatElmInDocs $
+                                                          fmap maxTwoNewlinesAfterCodeBlock $
+                                                            fmap removeTripleNewlinesInParagraphs $
+                                                              some $
+                                                                try parseDocRow
 
     let stripped = stripNewlinesStart $ mconcat rows
         first =
