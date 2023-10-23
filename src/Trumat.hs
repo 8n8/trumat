@@ -218,13 +218,21 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                     _ <- space
                     _ <- choice [chunk "- ", chunk "-\n", chunk "-}", chunk "+ ", chunk "+\n", chunk "* "]
                     return ()
-                  newlines <- choice [chunk "\n\n", chunk "\n"]
-                  spaces_ <- takeWhile1P Nothing (\ch -> ch == ' ')
-                  if Text.length spaces_ < numSpaces
-                    then fail "incorrect indentation"
-                    else do
-                      line <- takeWhile1P Nothing (\ch -> ch /= '\n')
-                      return $ newlines <> replicate (numSpaces + 2) " " <> line
+                  newlines <-
+                    choice
+                      [ do
+                          _ <- chunk "\n\n"
+                          spaces_ <- takeWhileP Nothing (\ch -> ch == ' ')
+                          if Text.length spaces_ < numSpaces
+                            then fail "incorrect indentation"
+                            else return "\n\n",
+                        do
+                          _ <- chunk "\n"
+                          _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                          return "\n"
+                      ]
+                  line <- takeWhile1P Nothing (\ch -> ch /= '\n')
+                  return $ newlines <> replicate (numSpaces + 2) " " <> line
         choice
           [ try $ do
               _ <- takeWhile1P Nothing (\ch -> ch == '\n')
