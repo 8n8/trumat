@@ -15838,5 +15838,25 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "named link alias call followed by full stop",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a][b].\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-| [a][b].\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]

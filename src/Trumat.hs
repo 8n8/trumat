@@ -351,6 +351,32 @@ parseLinkAlias =
     contents <- takeWhileP Nothing (\ch -> ch /= '\n')
     return $ "[" <> alias <> "]: " <> contents
 
+parseNamedLinkAlias :: Parser Text
+parseNamedLinkAlias =
+  do
+    leadingSpaces <- takeWhileP Nothing (\ch -> ch == ' ')
+    _ <- char '['
+    firstPart <- takeWhileP Nothing (\ch -> ch /= ']')
+    _ <- char ']'
+    _ <- char '['
+    secondPart <- takeWhileP Nothing (\ch -> ch /= ']')
+    _ <- char ']'
+    return $
+      mconcat
+        [ leadingSpaces,
+          "[",
+          firstPart,
+          "]",
+          if secondPart == ""
+            then ""
+            else
+              mconcat
+                [ "[",
+                  secondPart,
+                  "]"
+                ]
+        ]
+
 parseDocRow :: Parser Text
 parseDocRow =
   choice
@@ -421,6 +447,7 @@ parseDocRow =
         return "\n",
       try parseMultilineAsteriskBold,
       try parseMultilineUnderscored,
+      try parseNamedLinkAlias,
       do
         pieces <-
           some $
@@ -2112,7 +2139,7 @@ addExtraSpaceBetweenSameLineItemsHelp :: [Text] -> [Text] -> [Text]
 addExtraSpaceBetweenSameLineItemsHelp rows accumulated =
   case rows of
     first : second : remainder ->
-      if Text.takeEnd 1 first /= " " && Text.takeEnd 1 first /= "\n" && Text.take 1 second /= "\n" && Text.take 1 second /= " "
+      if Text.takeEnd 1 first /= " " && Text.takeEnd 1 first /= "\n" && Text.take 1 second /= "\n" && Text.take 1 second /= " " && second /= "."
         then
           addExtraSpaceBetweenSameLineItemsHelp
             remainder
