@@ -15790,5 +15790,33 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "unordered list extra line in first column",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \-  a\n\
+      \b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \    b\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
