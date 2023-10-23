@@ -592,12 +592,21 @@ parseNumberedListItemHelp nesting indent number accumulated isGappy =
                         _ <- takeWhile1P Nothing (\ch -> ch `elem` ("0123456789" :: String))
                         _ <- choice [char '.', char ')']
                         return ()
-                      _ <- choice [chunk "\n\n", chunk "\n"]
-                      _ <- takeWhileP Nothing (\ch -> ch == ' ')
-                      startColumn <- fmap (unPos . sourceColumn) getSourcePos
-                      if startColumn == 1
-                        then fail "after end of list"
-                        else takeWhile1P Nothing (\ch -> ch /= '\n')
+                      _ <-
+                        choice
+                          [ do
+                              _ <- chunk "\n\n"
+                              _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                              startColumn <- fmap (unPos . sourceColumn) getSourcePos
+                              if startColumn == 1
+                                then fail "after end of list"
+                                else return (),
+                            do
+                              _ <- chunk "\n"
+                              _ <- takeWhileP Nothing (\ch -> ch == ' ')
+                              return ()
+                          ]
+                      takeWhile1P Nothing (\ch -> ch /= '\n')
           choice
             [ try $ do
                 _ <- choice [chunk "\n\n", chunk "\n"]
