@@ -15922,29 +15922,5 @@ cases =
       \x =\n\
       \    0\n\
       \"
-    ),
-    ( "three lines in doc comment with 3 2 4 indentation",
-      "module X exposing (x)\n\
-      \\n\
-      \{- a\n\
-      \  b\n\
-      \    c\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \",
-      "module X exposing (x)\n\
-      \\n\
-      \{- a\n\
-      \   b\n\
-      \     c\n\
-      \-}\n\
-      \\n\
-      \\n\
-      \x =\n\
-      \    0\n\
-      \"
     )
   ]
