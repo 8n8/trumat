@@ -15898,5 +15898,29 @@ cases =
       \x =\n\
       \    0\n\
       \"
+    ),
+    ( "block comment with extra indentation on middle line",
+      "module X exposing (x)\n\
+      \\n\
+      \{- a\n\
+      \    b\n\
+      \   c\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{- a\n\
+      \    b\n\
+      \   c\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
