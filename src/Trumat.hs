@@ -56,7 +56,6 @@ import Prelude
     id,
     length,
     map,
-    max,
     maximum,
     mconcat,
     mod,
@@ -84,6 +83,7 @@ import Prelude
     (>>),
     (||),
   )
+import qualified Prelude
 
 type Parser =
   Parsec Void Text
@@ -3720,7 +3720,25 @@ parseBlockCommentHelp indent nesting contents =
 fixBlockIndentation :: Int -> Text -> Text
 fixBlockIndentation indent text =
   let lines = Text.lines text
-      stripped = map Text.stripStart lines
+      firstIndent =
+        case lines of
+          [] ->
+            0
+          top : remainder ->
+            if Text.take 2 top == "{-"
+              then Text.length (getLeadingSpaces (Text.drop 2 top)) + 2
+              else Text.length $ getLeadingSpaces top
+      lowestSubsequentIndent = Prelude.minimum $ map (\line -> Text.length (getLeadingSpaces line)) (filter (\line -> line /= "" && Text.take 2 line /= "{-") lines)
+      lowestIndent =
+        if firstIndent < 3
+          then lowestSubsequentIndent
+          else Prelude.min firstIndent lowestSubsequentIndent
+      stripped =
+        case lines of
+          [] ->
+            []
+          top : remainder ->
+            top : map (Text.drop (lowestIndent + indent)) remainder
       withStart =
         case stripped of
           [] ->
@@ -3728,6 +3746,12 @@ fixBlockIndentation indent text =
           top : remainder ->
             top : map (\item -> if item == "" then "" else Text.replicate indent " " <> "   " <> item) remainder
    in Text.unlines withStart
+
+stripStartUpToX :: Int -> Text -> Text
+stripStartUpToX max text =
+  let leading = getLeadingSpaces text
+      numToStrip = Prelude.min max (Text.length leading)
+   in Text.drop numToStrip text
 
 indentBlockRows :: Text -> Text
 indentBlockRows raw =
@@ -4619,7 +4643,7 @@ addMultilineInfixWhitespace
   precededByMultilineString
   firstIsMultiline =
     let newIndent = floorToFour indent
-        lowIndent = "\n" <> replicate (max minColumn (newIndent - 4)) " "
+        lowIndent = "\n" <> replicate (Prelude.max minColumn (newIndent - 4)) " "
      in if infix_ == "<|"
           then
             mconcat
