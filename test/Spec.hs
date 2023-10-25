@@ -15964,5 +15964,39 @@ cases =
       \        <|\n\
       \            c\n\
       \"
+    ),
+    ( "nested unordered lists with gaps on outer list",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \      - b\n\
+      \      - c\n\
+      \\n\
+      \  - d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \",
+      "module X exposing (x)\n\
+      \\n\
+      \{-|\n\
+      \\n\
+      \  - a\n\
+      \      - b\n\
+      \      - c\n\
+      \\n\
+      \  - d\n\
+      \\n\
+      \-}\n\
+      \\n\
+      \\n\
+      \x =\n\
+      \    0\n\
+      \"
     )
   ]
