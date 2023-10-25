@@ -4548,15 +4548,25 @@ parseInfixed minColumn indent =
     items <- parseInfixedItems minColumn (floorToFour indent) []
     endRow <- fmap (unPos . sourceLine) getSourcePos
 
-    let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool) -> Text
-        addWhitespace (infixItem, previousIsMultiline) =
+    let addWhitespace :: ((Int, Bool, Text, Text, Text, Text), Bool, Bool) -> Text
+        addWhitespace (infixItem, previousIsMultiline, precededByLineComment_) =
           if endRow > startRow || List.any id isMultiline
-            then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline
+            then addMultilineInfixWhitespace indent infixItem firstIsMultilineString previousIsMultiline precededByLineComment_
             else addSingleLineInfixWhitespace infixItem
 
         firstIsMultilineString :: Bool
         firstIsMultilineString =
           Text.take 3 firstExpression == "\"\"\""
+
+        precededByLineComment :: [Bool]
+        precededByLineComment =
+          False : map commentAfterIsLineComment items
+
+        commentAfterIsLineComment
+          :: (Int, Bool, Text, Text, Text, Text)
+          -> Bool
+        commentAfterIsLineComment (_, _, _, _, commentAfter, _) =
+          Text.take 2 commentAfter == "--"
 
         itemIsMultiline :: (Int, Bool, Text, Text, Text, Text) -> Bool
         itemIsMultiline (_, _, commentBefore, _, commentAfter, item) =
@@ -4574,7 +4584,7 @@ parseInfixed minColumn indent =
         return $
           mconcat
             [ firstExpression,
-              mconcat $ map addWhitespace (List.zip items isMultiline)
+              mconcat $ map addWhitespace (List.zip3 items isMultiline precededByLineComment)
             ]
 
 parseInfixedItems ::
@@ -4634,6 +4644,7 @@ addMultilineInfixWhitespace ::
   (Int, Bool, Text, Text, Text, Text) ->
   Bool ->
   Bool ->
+  Bool ->
   Text
 addMultilineInfixWhitespace
   minColumn
@@ -4645,20 +4656,21 @@ addMultilineInfixWhitespace
     expression
     )
   precededByMultilineString
-  firstIsMultiline =
+  firstIsMultiline
+  precededByLineComment =
     let newIndent = floorToFour indent
         lowIndent = "\n" <> replicate (Prelude.max minColumn (newIndent - 4)) " "
      in if infix_ == "<|"
           then
             mconcat
               [ if not firstIsMultiline
-                  then if commentBefore == "" then " " else ""
+                  then if commentBefore == "" && not precededByLineComment then " " else ""
                   else lowIndent,
                 if commentBefore == ""
                   then ""
                   else lowIndent,
                 commentBefore,
-                if commentBefore == ""
+                if commentBefore == "" && not precededByLineComment
                   then ""
                   else lowIndent,
                 "<|\n",
