@@ -5,14 +5,14 @@
 
 
 int main(int argc, char* argv[]) {
-  DIR* dp;
-  struct dirent *ep;
-  dp = opendir("./");
-  if (dp != NULL) {
-    while ((ep = readdir(dp)) != NULL) {
-      puts(ep->d_name);
+  DIR* directory;
+  struct dirent *item_in_directory;
+  directory = opendir("./");
+  if (directory != NULL) {
+    while ((item_in_directory = readdir(directory)) != NULL) {
+      puts(item_in_directory->d_name);
     }
-    (void) closedir(dp);
+    closedir(directory);
     return 0;
   } else {
     perror("Couldn't open the directory");
