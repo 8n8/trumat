@@ -1,22 +1,25 @@
-The current target is to format list expressions.
+The current target is to correctly indent top level bind bodies.
 
-This excludes list expressions in code blocks in doc comments.
+- the only valid expression is 0
+- the only valid name is x
+- the module declaration should be "module X exposing (x)"
+- there should be exactly two empty lines between each bind
+- there should be no trailing spaces
+- there should be a newline after the equals sign in each bind
+- there should be exactly one space after the name in each bind
+- binds cannot have parameters
 
-Everything else should be left unchanged as much as possible. Of course there will have to be some changes, for example this code:
+The file should contain:
 
-[ a, b
-, c
-]
+- the module declaration
+- just one top level bind
+- no comments
+- no type signatures
+- no type declarations
+- no imports
 
-will change to
+The formatter should fail without changing the file if it encounters anything outside this specification. It's really important that it doesn't mess up code that it doesn't know how to format.
 
-[ a
-, b
-, c
-]
+It only needs to run on Ubuntu Linux x86_64.
 
-So the b and c are moved around.
 
-Currently formatted code must not be changed.
-
-It only has to work on Linux x86_64.

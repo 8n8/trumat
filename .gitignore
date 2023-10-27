@@ -10,3 +10,5 @@ test.elm
 elm.json
 elm-stuff/
 venv/
+a.out
+trumat.o
