@@ -4,6 +4,8 @@
 #include <sys/types.h>
 
 void run_tests(char *);
+void run_one_test(char *);
+int is_elm_path(char *);
 
 int main(int argc, char *argv[]) { run_tests("test_input"); }
 
@@ -18,7 +20,11 @@ void run_tests(char *path) {
     }
     closedir(directory);
     return;
-  } else {
-    perror("Couldn't open the directory");
   }
+
+  if (!is_elm_path(path)) {
+    return;
+  }
+
+  run_one_test(path);
 }
