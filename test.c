@@ -1,16 +1,14 @@
 #include "trumat.h"
+#include <dirent.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <dirent.h>
 
-void run_tests(char*);
+void run_tests(char *);
 
-int main(int argc, char* argv[]) {
-  run_tests("test_input");
-}
+int main(int argc, char *argv[]) { run_tests("test_input"); }
 
-void run_tests(char* path) {
-  DIR* directory;
+void run_tests(char *path) {
+  DIR *directory;
   struct dirent *item_in_directory;
   directory = opendir(path);
   if (directory != NULL) {
