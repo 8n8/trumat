@@ -1,0 +1,20 @@
+The current target is to format list expressions.
+
+This excludes list expressions in code blocks in doc comments.
+
+Everything else should be left unchanged as much as possible. Of course there will have to be some changes, for example this code:
+
+[ a, b
+, c
+]
+
+will change to
+
+[ a
+, b
+, c
+]
+
+So the b and c are moved around.
+
+Currently formatted code must not be changed.
