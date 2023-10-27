@@ -18,3 +18,5 @@ will change to
 So the b and c are moved around.
 
 Currently formatted code must not be changed.
+
+It only has to work on Linux x86_64.
