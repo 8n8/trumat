@@ -9,6 +9,28 @@ int is_elm_path(char *);
 void make_sub_path(char *, char *, char *);
 int is_dot_path(char *);
 int string_length(char *);
+void make_expected_path(char *, char *);
+
+void make_expected_path(char *in_path, char *expected_path) {
+  char *expected_root = "test_expected/";
+  int expected_i = 0;
+  for (; expected_root[expected_i] != 0; ++expected_i) {
+    expected_path[expected_i] = expected_root[expected_i];
+  }
+
+  char *in_root = "test_input/";
+  int in_i = 0;
+  for (; in_root[in_i] != 0; ++in_i) {
+  }
+
+  for (; in_path[in_i] != 0;) {
+    expected_path[expected_i] = in_path[in_i];
+    ++expected_i;
+    ++in_i;
+  }
+
+  expected_path[expected_i] = 0;
+}
 
 int is_dot_path(char *path) {
   int length = string_length(path);
@@ -74,6 +96,8 @@ int is_elm_path(char *path) {
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
 
-void run_one_test(char *path, uint8_t in[1000000], uint8_t out[1000000]) {
-  puts(path);
+void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000]) {
+  char expected_path[256];
+  make_expected_path(in_path, expected_path);
+  puts(expected_path);
 }
