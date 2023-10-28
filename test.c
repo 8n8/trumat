@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-void run_tests(char *, uint8_t in[1000000], uint8_t out[1000000],
-               struct memory *);
+void run_positive_tests(char *, uint8_t in[1000000], uint8_t out[1000000],
+                        struct memory *);
 void run_one_test(char *, uint8_t in[1000000], uint8_t out[1000000],
                   struct memory *);
 int is_elm_path(char *);
@@ -61,10 +61,12 @@ uint8_t IN[1000000];
 uint8_t OUT[1000000];
 struct memory MEMORY;
 
-int main(int argc, char *argv[]) { run_tests("test_input", IN, OUT, &MEMORY); }
+int main(int argc, char *argv[]) {
+  run_positive_tests("test_input", IN, OUT, &MEMORY);
+}
 
-void run_tests(char *path, uint8_t in[1000000], uint8_t out[1000000],
-               struct memory *memory) {
+void run_positive_tests(char *path, uint8_t in[1000000], uint8_t out[1000000],
+                        struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -73,7 +75,7 @@ void run_tests(char *path, uint8_t in[1000000], uint8_t out[1000000],
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_tests(sub_path, in, out, memory);
+        run_positive_tests(sub_path, in, out, memory);
       }
       item_in_directory = readdir(directory);
     }
