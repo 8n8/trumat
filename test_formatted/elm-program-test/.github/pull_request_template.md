@@ -1,0 +1,2 @@
+- [ ] ran tests locally with `npm test`
+- [ ] updated CHANGELOG.md if appropriate
