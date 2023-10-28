@@ -17,6 +17,7 @@ int is_dot_path(char *);
 int string_length(char *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
+void check_expected(char *, uint8_t out[1000000]);
 
 void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "test_expected/";
@@ -203,6 +204,10 @@ void run_one_positive_test(char *in_path, uint8_t in[1000000],
     return;
   }
 
+  check_expected(in_path, out);
+}
+
+void check_expected(char *in_path, uint8_t out[1000000]) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
