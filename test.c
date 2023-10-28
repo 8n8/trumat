@@ -66,11 +66,13 @@ void make_sub_path(char *parent, char *child, char *result) {
 uint8_t IN[1000000];
 uint8_t OUT[1000000];
 struct memory MEMORY;
+int NUM_PASSED = 0;
 
 int main(int argc, char *argv[]) {
   run_positive_tests("test_input", IN, OUT, &MEMORY);
   zero_memory(&MEMORY);
   run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
+  printf("%d tests passed\n", NUM_PASSED);
 }
 
 void run_no_change_tests(char *path, uint8_t in[1000000], uint8_t out[1000000],
@@ -153,7 +155,6 @@ void run_one_no_change_test(char *in_path, uint8_t in[1000000],
   int result = format(in, out, memory);
 
   if (result != 0) {
-    printf("SUCCESS: formatter error code but OK: %s\n", in_path);
     return;
   }
 
@@ -185,7 +186,7 @@ void check_unchanged(char *in_path, uint8_t in[1000000], uint8_t out[1000000]) {
     }
   }
 
-  printf("SUCCESS: %s\n", in_path);
+  ++NUM_PASSED;
 }
 
 void run_one_positive_test(char *in_path, uint8_t in[1000000],
@@ -239,7 +240,7 @@ void check_expected(char *in_path, uint8_t out[1000000]) {
     }
   }
 
-  printf("SUCCESS: %s\n", in_path);
+  ++NUM_PASSED;
 }
 
 void print_error(char *path, char *message) {
