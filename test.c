@@ -3,14 +3,16 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-void run_tests(char *, uint8_t in[1000000], uint8_t out[1000000], struct memory*);
-void run_one_test(char *, uint8_t in[1000000], uint8_t out[1000000], struct memory*);
+void run_tests(char *, uint8_t in[1000000], uint8_t out[1000000],
+               struct memory *);
+void run_one_test(char *, uint8_t in[1000000], uint8_t out[1000000],
+                  struct memory *);
 int is_elm_path(char *);
 void make_sub_path(char *, char *, char *);
 int is_dot_path(char *);
 int string_length(char *);
 void make_expected_path(char *, char *);
-void print_error(char*, char*);
+void print_error(char *, char *);
 
 void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "test_expected/";
@@ -59,11 +61,10 @@ uint8_t IN[1000000];
 uint8_t OUT[1000000];
 struct memory MEMORY;
 
-int main(int argc, char *argv[]) {
-  run_tests("test_input", IN, OUT, &MEMORY);
-}
+int main(int argc, char *argv[]) { run_tests("test_input", IN, OUT, &MEMORY); }
 
-void run_tests(char *path, uint8_t in[1000000], uint8_t out[1000000], struct memory* memory) {
+void run_tests(char *path, uint8_t in[1000000], uint8_t out[1000000],
+               struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -101,11 +102,12 @@ int is_elm_path(char *path) {
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
 
-void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000], struct memory* memory) {
+void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000],
+                  struct memory *memory) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
-  FILE* in_file = fopen(in_path, "rb");
+  FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
     sprintf(error_message, "could not open file: %s", in_path);
@@ -124,6 +126,6 @@ void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000], stru
   }
 }
 
-void print_error(char* path, char* message) {
+void print_error(char *path, char *message) {
   printf("FAILED: %s\n\n    %s\n", path, message);
 }
