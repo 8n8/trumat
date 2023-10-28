@@ -104,9 +104,6 @@ int is_elm_path(char *path) {
 
 void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000],
                   struct memory *memory) {
-  char expected_path[256];
-  make_expected_path(in_path, expected_path);
-
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -125,6 +122,9 @@ void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000],
     print_error(in_path, error_message);
     return;
   }
+
+  char expected_path[256];
+  make_expected_path(in_path, expected_path);
 
   FILE *expected_file = fopen(expected_path, "rb");
   if (expected_file == NULL) {
