@@ -151,7 +151,7 @@ void run_one_no_change_test(char *in_path, uint8_t in[1000000],
   int result = format(in, out, memory);
 
   if (result != 0) {
-    printf("SUCCESS: %s\n", in_path);
+    printf("SUCCESS: formatter error code but OK: %s\n", in_path);
     return;
   }
 
