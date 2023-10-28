@@ -123,9 +123,35 @@ void run_one_test(char *in_path, uint8_t in[1000000], uint8_t out[1000000],
     char error_message[256];
     sprintf(error_message, "formatter failed with non-zero result: %d", result);
     print_error(in_path, error_message);
+    return;
   }
+
+  FILE *expected_file = fopen(expected_path, "rb");
+  if (expected_file == NULL) {
+    char error_message[300];
+    sprintf(error_message, "could not open file; %s", expected_path);
+    print_error(expected_path, error_message);
+    return;
+  }
+
+  for (int i = 0; i < 1000000; ++i) {
+    int expected = fgetc(expected_file);
+    if (expected == EOF && out[i] == 0) {
+      break;
+    }
+
+    if (expected != out[i]) {
+      char error_message[300];
+      sprintf(error_message, "expected '%c' but got '%c' at position %d",
+              expected, out[i], i);
+      print_error(in_path, error_message);
+      return;
+    }
+  }
+
+  printf("SUCCESS: %s\n", in_path);
 }
 
 void print_error(char *path, char *message) {
-  printf("FAILED: %s\n\n    %s\n", path, message);
+  printf("FAILED: %s\n\n    %s\n\n", path, message);
 }
