@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
+void check_unchanged(char *, uint8_t in[1000000], uint8_t out[1000000]);
 void run_positive_tests(char *, uint8_t in[1000000], uint8_t out[1000000],
                         struct memory *);
 void run_no_change_tests(char *, uint8_t in[1000000], uint8_t out[1000000],
@@ -156,6 +157,10 @@ void run_one_no_change_test(char *in_path, uint8_t in[1000000],
     return;
   }
 
+  check_unchanged(in_path, in, out);
+}
+
+void check_unchanged(char *in_path, uint8_t in[1000000], uint8_t out[1000000]) {
   for (int i = 0; i < 1000000; ++i) {
     if (in[i] == 0 && out[i] == 0) {
       break;
