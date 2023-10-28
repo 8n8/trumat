@@ -5,8 +5,9 @@ The current target is to correctly indent top level bind bodies.
 - the module declaration should be "module X exposing (x)"
 - there should be exactly two empty lines between each bind
 - there should be no trailing spaces
-- there should be a newline after the equals sign in each bind
-- there should be exactly one space after the name in each bind
+- there should be one trailing newline
+- there should be a single newline after the equals sign
+- there should be exactly one space after the name
 - binds cannot have parameters
 
 The file should contain:
@@ -17,8 +18,6 @@ The file should contain:
 - no type signatures
 - no type declarations
 - no imports
-
-The formatter should fail without changing the file if it encounters anything outside this specification. It's really important that it doesn't mess up code that it doesn't know how to format.
 
 It only needs to run on Ubuntu Linux x86_64.
 
