@@ -1,0 +1,1 @@
+((\length -> [length, length]) << String.length) "compose to the left"
