@@ -151,6 +151,7 @@ void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
   }
   int in_size = fread(in, 1, CODE_SIZE, in_file);
   in[in_size] = 0;
+  fclose(in_file);
 
   int result = format(in, out, memory);
 
@@ -200,6 +201,7 @@ void run_one_positive_test(char *in_path, uint8_t in[CODE_SIZE],
   }
   int in_size = fread(in, 1, CODE_SIZE, in_file);
   in[in_size] = 0;
+  fclose(in_file);
 
   int result = format(in, out, memory);
 
@@ -236,9 +238,11 @@ void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
       sprintf(error_message, "expected '%c' but got '%c' at position %d",
               expected, out[i], i);
       print_error(in_path, error_message);
+      fclose(expected_file);
       return;
     }
   }
+  fclose(expected_file);
 
   ++NUM_PASSED;
 }
