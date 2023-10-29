@@ -249,5 +249,5 @@ void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
 }
 
 void print_error(char *path, char *message) {
-  printf("FAILED: %s\n\n    %s\n\n", path, message);
+  printf("FAILED: %s: %s\n", path, message);
 }
