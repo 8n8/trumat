@@ -7,7 +7,7 @@ The current target is to correctly indent top level bind bodies.
 - there should be no trailing spaces
 - there should be one trailing newline
 - there should be a single newline after the equals sign
-- there should be exactly one space after the name
+- there should be a single space after the name
 - binds cannot have parameters
 
 The file should contain:
@@ -21,4 +21,4 @@ The file should contain:
 
 It only needs to run on Ubuntu Linux x86_64.
 
-
+It must not change any formatted Elm file. This is important because it means it can be used as it is without causing any harm.
