@@ -1,6 +1,6 @@
 #include <stdint.h>
 // I found an elm file in elm-review that was approx 700 KB.
-#define CODE_SIZE 2000*1000
+#define CODE_SIZE 2000 * 1000
 struct memory {};
 
 void zero_memory(struct memory *);
