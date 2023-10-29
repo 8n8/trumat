@@ -1,0 +1,9 @@
+elm-stuff
+demo/elm.js
+*.log
+node_modules/
+demo/index.html
+.coverage
+.idea/
+ElmjutsuDumMyM0DuL3.elm
+artifacts.dat
