@@ -1,3 +1,0 @@
-[ List.isEmpty []
-, List.isEmpty [ "" ]
-]

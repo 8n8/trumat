@@ -1,1 +1,0 @@
-AppModule.Variant_Gamma "hello" 3

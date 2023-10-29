@@ -1,1 +1,0 @@
-elm make --docs docs.json

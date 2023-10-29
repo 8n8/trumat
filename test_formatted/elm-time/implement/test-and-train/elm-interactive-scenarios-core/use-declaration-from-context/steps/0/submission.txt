@@ -1,1 +1,0 @@
-AppModule.declared_name

@@ -1,4 +1,0 @@
-if False then
-    "condition is true"
-else
-    "condition is false"

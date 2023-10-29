@@ -1,3 +1,0 @@
-[ Maybe.withDefault "beta" (Just "alpha")
-, Maybe.withDefault "beta" Nothing
-]

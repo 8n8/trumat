@@ -1,7 +1,0 @@
-# Visual Studio 2019
-
-[Bb]in/
-[Oo]bj/
-
-.vs/
-*.csproj.user

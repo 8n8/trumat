@@ -1,3 +1,0 @@
-[ String.endsWith "the" "theory"
-, String.endsWith "ory" "theory"
-]

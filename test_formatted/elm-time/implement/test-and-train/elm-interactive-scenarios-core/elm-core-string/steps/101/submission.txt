@@ -1,1 +1,0 @@
-String.fromList [ 'w', 'o', 'r', 'l', 'd' ]

@@ -1,1 +1,0 @@
-Dict.get 31 (Dict.insert 31 11 Dict.empty)

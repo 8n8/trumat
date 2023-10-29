@@ -1,7 +1,0 @@
-mutation SignIn($form: UserSignInForm!) {
-  signIn(form: $form) {
-    id
-    email 
-    avatarUrl
-  }
-}

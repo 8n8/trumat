@@ -1,9 +1,0 @@
-{
-  "root": "../src",
-  "tests": [
-    "Csv.Decode",
-    "Csv.Encode",
-    "Csv.Parser",
-    "README.md"
-  ]
-}

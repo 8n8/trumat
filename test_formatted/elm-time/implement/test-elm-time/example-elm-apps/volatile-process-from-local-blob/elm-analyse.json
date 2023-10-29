@@ -1,7 +1,0 @@
-{
-    "checks": {
-        "SingleFieldRecord": false,
-        "MultiLineRecordFormatting": false,
-        "MapNothingToNothing": false
-    }
-}

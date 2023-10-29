@@ -1,1 +1,0 @@
-Set.size Set.empty

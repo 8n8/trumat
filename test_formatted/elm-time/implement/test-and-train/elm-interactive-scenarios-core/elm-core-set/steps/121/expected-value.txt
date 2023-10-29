@@ -1,1 +1,0 @@
-Set.fromList [13,21]

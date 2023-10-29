@@ -1,1 +1,0 @@
-Set.insert 21 (Set.insert 31 Set.empty)

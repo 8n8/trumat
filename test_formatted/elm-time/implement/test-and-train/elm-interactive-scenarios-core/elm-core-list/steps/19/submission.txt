@@ -1,5 +1,0 @@
-let
-    greet subject =
-        "hello " ++ subject
-in
-List.map greet [ "world" ]

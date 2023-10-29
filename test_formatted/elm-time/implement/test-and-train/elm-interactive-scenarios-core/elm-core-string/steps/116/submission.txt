@@ -1,1 +1,0 @@
-String.concat [ "never", "the", "less" ]

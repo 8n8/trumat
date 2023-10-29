@@ -1,3 +1,0 @@
-[ Result.fromMaybe "error text" (Maybe.Just "alfa")
-, Result.fromMaybe "error text" Maybe.Nothing
-]

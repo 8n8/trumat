@@ -1,5 +1,0 @@
-[ List.take -1 [ "alpha", "beta", "gamma" ]
-, List.take  0 [ "alpha", "beta", "gamma" ]
-, List.take  1 [ "alpha", "beta", "gamma" ]
-, List.take  2 [ "alpha", "beta", "gamma" ]
-]

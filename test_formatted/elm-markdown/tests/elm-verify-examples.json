@@ -1,5 +1,0 @@
-{
-  "root": "../src",
-  "tests": ["Markdown.Block"]
-}
-

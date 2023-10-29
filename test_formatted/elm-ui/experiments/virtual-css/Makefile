@@ -1,1 +1,0 @@
-elm-live Main.elm --open --start-page=test.html -- --output=elm.js

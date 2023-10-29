@@ -1,1 +1,0 @@
-List.repeat 3 "text"
