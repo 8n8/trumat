@@ -19,7 +19,7 @@ void zero_memory(struct memory *);
 int format(
     // This should contain the unformatted source code terminated with a
     // zero byte.
-    uint8_t in[CODE_SIZE],
+    const uint8_t in[CODE_SIZE],
     // This will be overwritten with the formatted code, terminated with a
     // zero byte.
     uint8_t out[CODE_SIZE], struct memory *m);
