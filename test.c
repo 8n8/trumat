@@ -72,7 +72,7 @@ int NUM_IGNORED = 0;
 int main(int argc, char *argv[]) {
   run_positive_tests("test_input", IN, OUT, &MEMORY);
   zero_memory(&MEMORY);
-  // run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
+  run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
