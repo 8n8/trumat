@@ -26,7 +26,7 @@ int parse_chunk(uint8_t in[CODE_SIZE], int in_i, char *chunk) {
 
 int format(uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
   int in_i = 0;
-  int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n 0\n");
+  int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");
   if (result < 0) {
     return result;
   }
