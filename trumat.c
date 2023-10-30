@@ -3,7 +3,7 @@
 
 void zero_memory(struct memory *m) {}
 
-static int write_chunk(uint8_t out[CODE_SIZE], int out_i, char *chunk) {
+static int write_chunk(uint8_t out[CODE_SIZE], int out_i, const char *chunk) {
   int chunk_i = 0;
   for (; out_i + chunk_i < CODE_SIZE && chunk[chunk_i] != 0; ++chunk_i) {
     out[out_i + chunk_i] = chunk[chunk_i];
@@ -11,7 +11,8 @@ static int write_chunk(uint8_t out[CODE_SIZE], int out_i, char *chunk) {
   return out_i + chunk_i;
 }
 
-static int parse_chunk(const uint8_t in[CODE_SIZE], int in_i, char *chunk) {
+static int parse_chunk(const uint8_t in[CODE_SIZE], int in_i,
+                       const char *chunk) {
   int chunk_i = 0;
   for (; in[chunk_i + in_i] == chunk[chunk_i] && chunk[chunk_i] != 0;
        ++chunk_i) {
@@ -24,7 +25,8 @@ static int parse_chunk(const uint8_t in[CODE_SIZE], int in_i, char *chunk) {
   return -1;
 }
 
-int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
+int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
+           struct memory *m) {
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");
   if (result < 0) {
