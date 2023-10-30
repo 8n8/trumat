@@ -30,9 +30,17 @@ int format(uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
   if (result < 0) {
     return result;
   }
-  int out_i = write_chunk(out, 0, "module X exposing (x)\n\n\nx =\n    0\n");
+  in_i = result;
 
-  out[out_i] = 0;
+  for (; in[in_i] == ' '; ++in_i) {
+  }
+
+  result = parse_chunk(in, in_i, "0\n\0");
+  if (result < 0) {
+    return result;
+  }
+
+  write_chunk(out, 0, "module X exposing (x)\n\n\nx =\n    0\n\0");
 
   return 0;
 }
