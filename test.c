@@ -67,12 +67,14 @@ uint8_t IN[CODE_SIZE];
 uint8_t OUT[CODE_SIZE];
 struct memory MEMORY;
 int NUM_PASSED = 0;
+int NUM_IGNORED = 0;
 
 int main(int argc, char *argv[]) {
   run_positive_tests("test_input", IN, OUT, &MEMORY);
   zero_memory(&MEMORY);
-  // run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
+  run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
+  printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
 void run_no_change_tests(char *path, uint8_t in[CODE_SIZE],
@@ -156,7 +158,7 @@ void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
   int result = format(in, out, memory);
 
   if (result != 0) {
-    ++NUM_PASSED;
+    ++NUM_IGNORED;
     return;
   }
 
