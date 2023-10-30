@@ -3,7 +3,7 @@
 
 void zero_memory(struct memory *m) {}
 
-int write_chunk(uint8_t out[CODE_SIZE], int out_i, char *chunk) {
+static int write_chunk(uint8_t out[CODE_SIZE], int out_i, char *chunk) {
   int chunk_i = 0;
   for (; out_i + chunk_i < CODE_SIZE && chunk[chunk_i] != 0; ++chunk_i) {
     out[out_i + chunk_i] = chunk[chunk_i];
@@ -11,7 +11,7 @@ int write_chunk(uint8_t out[CODE_SIZE], int out_i, char *chunk) {
   return out_i + chunk_i;
 }
 
-int parse_chunk(uint8_t in[CODE_SIZE], int in_i, char *chunk) {
+static int parse_chunk(uint8_t in[CODE_SIZE], int in_i, char *chunk) {
   int chunk_i = 0;
   for (; in[chunk_i + in_i] == chunk[chunk_i] && chunk[chunk_i] != 0;
        ++chunk_i) {
