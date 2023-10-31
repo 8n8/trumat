@@ -31,3 +31,9 @@ Run `trumat --overwrite` to recursively format and overwrite all the Elm files i
 ## Test
 
 To test the code for development work, run `cc -c -Wall -Werror -O2 -std=c99 trumat.c && cc -Wall -O2 -Werror -std=c99 trumat.o test.c && ./a.out`.
+
+The test data is kept in `test_formatted`, `test_expected` and `test_input`.
+
+The `test_formatted` directory contains a lot of Elm files that are already formatted with `elm_format`. The test runner passes all these through `trumat` and checks it doesn't change any of them.
+
+The `test_input` directory contains unformatted Elm code. The `test_expected` directory contains the same paths as `test_input`, but all the files are formatted. The test runner passes each file in `test_input` through `trumat` and checks the result against the corresponding file in `test_expected`.
