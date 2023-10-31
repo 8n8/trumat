@@ -47,16 +47,8 @@ static int parse_chunk(
   return -1;
 }
 
-// Format some Elm code.
-int format(
-    // This should contain the unformatted code, terminated with a zero
-    // byte.
-    const uint8_t in[CODE_SIZE],
-    // It will write the formatted code to this array, terminated with a
-    // zero byte.
-    uint8_t out[CODE_SIZE],
-    // The memory to use for the formatting.
-    struct memory *m) {
+int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
+           struct memory *m) {
 
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");
