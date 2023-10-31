@@ -1,23 +1,33 @@
 # trumat
 
-**work in progress - don't use yet**
+**work in progress - it's safe to use but doesn't do much yet**
 
-A code formatter for Elm, using the same rules as [elm-format](https://github.com/avh4/elm-format).
+A code formatter for Elm. The aim is to replicate the rules used in [elm-format](https://github.com/avh4/elm-format).
+
+Currently it doesn't do much, but is well tested and shouldn't do any damage.
 
 ## Install
 
-First install the Haskell Tool Stack: https://docs.haskellstack.org/en/stable/#how-to-install-stack
+You need to build it from source.
 
-Run `stack install` in the root of this repository. This will take several minutes and will download the compiler and dependencies, build the binary and copy it to `~/.local/bin`. You can add this to your `$PATH` by adding `export PATH=$HOME/.local/bin:$PATH` to your terminal configuration file, probably `~/.bashrc` or `~/.zshrc`. Restart the terminal.
+It's currently only tested on Ubuntu Linux, but should work on MacOS. I think it won't work on Windows.
 
-## (Don't) Run
+You need a C compiler, such as gcc or clang. You may have one already. Run `cc --version` to find out.
 
-At the moment, it doesn't accept any command-line options. IT ALSO OVER-WRITES FILES WITHOUT WARNING, SO BE CAREFUL. It recursively over-writes all the .elm files in the directory it is run in.
+Then:
 
-Run `trumat` in your terminal in the directory containing the .elm files.
+- clone this repository
+- in the root of this repository run `cc -c -O2 trumat.c && cc -O2 trumat.o main.c --output=trumat`
+- you should now have a binary called `trumat` which can be run where it is with `./trumat`, or you can copy it to somewhere on your PATH, such as `/usr/local/bin`
 
-Be aware that it isn't finished yet, so doesn't do a very good job.
+(The PATH is an environment variable that specifies the directories that contain the programs you can run directly by name from your terminal. To see your current PATH run `echo $PATH`.)
+
+## Usage
+
+IT'S A GOOD IDEA TO BACK UP YOUR CODE FIRST BECAUSE IT WILL OVERWRITE FILES.
+
+Run `trumat --overwrite` to recursively format and overwrite all the Elm files in the current directory.
 
 ## Test
 
-Run `stack test`.
+To test the code for development work, run `cc -c -Wall -Werror -O2 -std=c99 trumat.c && cc -Wall -O2 -Werror -std=c99 trumat.o test.c && ./a.out`.
