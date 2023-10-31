@@ -5,12 +5,15 @@ void zero_memory(struct memory *m) {}
 
 // Write a string to an array of bytes at a particular index. The return
 // value is the first index after the end of the new section.
+//
+// If there isn't enough room in the array then it writes as much as it can.
 static int write_chunk(
-    // This array is modified, starting at the given position.
+    // The string is written into this array, starting at the given
+    // position.
     uint8_t array[CODE_SIZE],
     // This is the position to write the first byte of the chunk to.
     int position,
-    // This is the chunk that is written to an array.
+    // This is the string that is written to the array.
     const char *chunk) {
 
   int chunk_i = 0;
