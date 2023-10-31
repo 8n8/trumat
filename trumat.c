@@ -4,9 +4,9 @@
 void zero_memory(struct memory *m) {}
 
 // Write a string to an array of bytes at a particular index. The return
-// value is the index at the end of the new section.
+// value is the first index after the end of the new section.
 static int write_chunk(
-    // This array is modified, starting at position index.
+    // This array is modified, starting at the given position.
     uint8_t array[CODE_SIZE],
     // This is the position to write the first byte of the chunk to.
     int position,
