@@ -1,14 +1,2 @@
-.stack-work/
-.hypothesis/
-__pycache__/
-trumat.cabal
-elm/
-node_modules/
-package-lock.json
-package.json
-test.elm
-elm.json
-elm-stuff/
-venv/
 a.out
 trumat.o
