@@ -106,4 +106,3 @@ int is_elm_path(const char *path) {
   return path[length - 1] == 'm' && path[length - 2] == 'l' &&
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
-

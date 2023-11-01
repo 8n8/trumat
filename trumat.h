@@ -25,7 +25,7 @@ int format(
     char out[CODE_SIZE], struct memory *m);
 
 // Writes "parent" and "child" to "result", separated by a forward slash.
-void make_sub_path(const char * parent, const char * child, char *result);
+void make_sub_path(const char *parent, const char *child, char *result);
 
 // Checks if the path is "." or "..".
 int is_dot_path(const char *);
