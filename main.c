@@ -3,11 +3,18 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-char IN[CODE_SIZE];
-char OUT[CODE_SIZE];
+uint8_t IN[CODE_SIZE];
+uint8_t OUT[CODE_SIZE];
 struct memory MEMORY;
 
-void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+static int code_length(const uint8_t code[CODE_SIZE]) {
+  int i = 0;
+  for (; code[i] != 0; ++i) {
+  }
+  return i;
+}
+
+void format_file(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                  struct memory *memory) {
   {
     FILE *file = fopen(path, "rb");
@@ -30,17 +37,12 @@ void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
   }
 
   FILE *file = fopen(path, "wb");
-  int result = fputs(out, file);
-  fclose(file);
-  if (result == EOF) {
-    printf("error writing the formatted code to the file: %s\n", path);
-    return;
-  }
+  fwrite(out, 1, code_length(out), file);
 
   printf("Processing %s\n", path);
 }
 
-void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+void format_directory(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                       struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
