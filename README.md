@@ -28,7 +28,7 @@ IT'S A GOOD IDEA TO BACK UP YOUR CODE FIRST BECAUSE IT WILL OVERWRITE FILES.
 
 Run `trumat --overwrite` to recursively format and overwrite all the Elm files in the current directory.
 
-Note that it will currently fail to do anything and print an error message for most files as there is a lot of Elm that is not supported yet.
+Note that it will currently fail to do anything and print an error message for most files as there is a lot of Elm that is not supported yet. You can suppress these error messages by redirecting them to `/dev/null` as follows: `trumat --overwrite 2> /dev/null`.
 
 ## Test
 
