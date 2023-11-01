@@ -7,7 +7,8 @@ char IN[CODE_SIZE];
 char OUT[CODE_SIZE];
 struct memory MEMORY;
 
-void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct memory *memory) {
+void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+                 struct memory *memory) {
   {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
@@ -20,12 +21,15 @@ void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct mem
     int result = format(in, out, memory);
 
     if (result != 0) {
-      fprintf(stderr, "could not format %s\nIt may be invalid Elm or it may be that this formatter doesn't support it yet.\n", path);
+      fprintf(stderr,
+              "could not format %s\nIt may be invalid Elm or it may be that "
+              "this formatter doesn't support it yet.\n",
+              path);
       return;
     }
   }
 
-  FILE* file = fopen(path, "wb");
+  FILE *file = fopen(path, "wb");
   int result = fputs(out, file);
   fclose(file);
   if (result == EOF) {
@@ -36,7 +40,8 @@ void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct mem
   printf("Processing %s\n", path);
 }
 
-void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct memory *memory) {
+void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+                      struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -55,11 +60,11 @@ void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struc
   format_file(path, in, out, memory);
 }
 
-char* usage =
-  "you need to provide the --overwrite flag to confirm you are happy to "
-  "recursively overwrite all the Elm files in this directory\n";
+char *usage =
+    "you need to provide the --overwrite flag to confirm you are happy to "
+    "recursively overwrite all the Elm files in this directory\n";
 
-int string_equal(char* a, char* b) {
+int string_equal(char *a, char *b) {
   for (; *a == *b && *a != 0 && *b != 0; ++a, ++b) {
   }
 

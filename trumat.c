@@ -50,8 +50,7 @@ static int parse_chunk(
   return -1;
 }
 
-int format(const char in[CODE_SIZE], char out[CODE_SIZE],
-           struct memory *m) {
+int format(const char in[CODE_SIZE], char out[CODE_SIZE], struct memory *m) {
 
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");
