@@ -28,6 +28,8 @@ IT'S A GOOD IDEA TO BACK UP YOUR CODE FIRST BECAUSE IT WILL OVERWRITE FILES.
 
 Run `trumat --overwrite` to recursively format and overwrite all the Elm files in the current directory.
 
+Note that it will currently fail to do anything and print an error message for most files as there is a lot of Elm that is not supported yet.
+
 ## Test
 
 To test the code for development work, run `cc -c -Wall -Werror -O2 -std=c99 trumat.c && cc -Wall -O2 -Werror -std=c99 trumat.o test.c && ./a.out`.
