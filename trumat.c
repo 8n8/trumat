@@ -88,7 +88,7 @@ void make_sub_path(const char *parent, const char *child, char *result) {
   result[i] = 0;
 }
 
-int string_length(const char *path) {
+static int string_length(const char *path) {
   int i = 0;
   for (; path[i] != 0; ++i) {
   }

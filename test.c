@@ -12,7 +12,6 @@ void run_one_positive_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                            struct memory *);
 void run_one_no_change_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                             struct memory *);
-int is_elm_path(char *);
 int string_length(char *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
@@ -103,12 +102,6 @@ void run_positive_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
 
   zero_memory(memory);
   run_one_positive_test(path, in, out, memory);
-}
-
-int is_elm_path(char *path) {
-  int length = string_length(path);
-  return path[length - 1] == 'm' && path[length - 2] == 'l' &&
-         path[length - 3] == 'e' && path[length - 4] == '.';
 }
 
 void run_one_no_change_test(char *in_path, char in[CODE_SIZE],
