@@ -8,10 +8,10 @@ void run_positive_tests(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                         struct memory *);
 void run_no_change_tests(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                          struct memory *);
-void run_one_positive_test(char *, char in[CODE_SIZE],
-                           char out[CODE_SIZE], struct memory *);
-void run_one_no_change_test(char *, char in[CODE_SIZE],
-                            char out[CODE_SIZE], struct memory *);
+void run_one_positive_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+                           struct memory *);
+void run_one_no_change_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+                            struct memory *);
 int is_elm_path(char *);
 void make_sub_path(char *, char *, char *);
 int string_length(char *);
@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
-void run_no_change_tests(char *path, char in[CODE_SIZE],
-                         char out[CODE_SIZE], struct memory *memory) {
+void run_no_change_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+                         struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -80,8 +80,8 @@ void run_no_change_tests(char *path, char in[CODE_SIZE],
   run_one_no_change_test(path, in, out, memory);
 }
 
-void run_positive_tests(char *path, char in[CODE_SIZE],
-                        char out[CODE_SIZE], struct memory *memory) {
+void run_positive_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+                        struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -135,8 +135,7 @@ void run_one_no_change_test(char *in_path, char in[CODE_SIZE],
   check_unchanged(in_path, in, out);
 }
 
-void check_unchanged(char *in_path, char in[CODE_SIZE],
-                     char out[CODE_SIZE]) {
+void check_unchanged(char *in_path, char in[CODE_SIZE], char out[CODE_SIZE]) {
   for (int i = 0; i < CODE_SIZE; ++i) {
     if (in[i] == 0 && out[i] == 0) {
       break;
