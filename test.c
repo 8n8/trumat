@@ -3,18 +3,18 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-void check_unchanged(char *, char in[CODE_SIZE], char out[CODE_SIZE]);
-void run_positive_tests(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+void check_unchanged(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE]);
+void run_positive_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                         struct memory *);
-void run_no_change_tests(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+void run_no_change_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                          struct memory *);
-void run_one_positive_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+void run_one_positive_test(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                            struct memory *);
-void run_one_no_change_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
+void run_one_no_change_test(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                             struct memory *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
-void check_expected(char *, char out[CODE_SIZE]);
+void check_expected(char *, uint8_t out[CODE_SIZE]);
 
 void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "test_expected/";
@@ -37,8 +37,8 @@ void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-char IN[CODE_SIZE];
-char OUT[CODE_SIZE];
+uint8_t IN[CODE_SIZE];
+uint8_t OUT[CODE_SIZE];
 struct memory MEMORY;
 int NUM_PASSED = 0;
 int NUM_IGNORED = 0;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
-void run_no_change_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+void run_no_change_tests(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                          struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
@@ -77,7 +77,7 @@ void run_no_change_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
   run_one_no_change_test(path, in, out, memory);
 }
 
-void run_positive_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
+void run_positive_tests(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                         struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
@@ -103,8 +103,8 @@ void run_positive_tests(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
   run_one_positive_test(path, in, out, memory);
 }
 
-void run_one_no_change_test(char *in_path, char in[CODE_SIZE],
-                            char out[CODE_SIZE], struct memory *memory) {
+void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
+                            uint8_t out[CODE_SIZE], struct memory *memory) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -126,7 +126,7 @@ void run_one_no_change_test(char *in_path, char in[CODE_SIZE],
   check_unchanged(in_path, in, out);
 }
 
-void check_unchanged(char *in_path, char in[CODE_SIZE], char out[CODE_SIZE]) {
+void check_unchanged(char *in_path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE]) {
   for (int i = 0; i < CODE_SIZE; ++i) {
     if (in[i] == 0 && out[i] == 0) {
       break;
@@ -154,8 +154,8 @@ void check_unchanged(char *in_path, char in[CODE_SIZE], char out[CODE_SIZE]) {
   ++NUM_PASSED;
 }
 
-void run_one_positive_test(char *in_path, char in[CODE_SIZE],
-                           char out[CODE_SIZE], struct memory *memory) {
+void run_one_positive_test(char *in_path, uint8_t in[CODE_SIZE],
+                           uint8_t out[CODE_SIZE], struct memory *memory) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -179,7 +179,7 @@ void run_one_positive_test(char *in_path, char in[CODE_SIZE],
   check_expected(in_path, out);
 }
 
-void check_expected(char *in_path, char out[CODE_SIZE]) {
+void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 

@@ -19,10 +19,10 @@ void zero_memory(struct memory *);
 int format(
     // This should contain the unformatted source code terminated with a
     // zero byte.
-    const char in[CODE_SIZE],
+    const uint8_t in[CODE_SIZE],
     // This will be overwritten with the formatted code, terminated with a
     // zero byte.
-    char out[CODE_SIZE], struct memory *m);
+    uint8_t out[CODE_SIZE], struct memory *m);
 
 // Writes "parent" and "child" to "result", separated by a forward slash.
 void make_sub_path(const char *parent, const char *child, char *result);

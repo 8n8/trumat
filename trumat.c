@@ -10,7 +10,7 @@ void zero_memory(struct memory *m) {}
 static int write_chunk(
     // The string is written into this array, starting at the given
     // position.
-    char array[CODE_SIZE],
+    uint8_t array[CODE_SIZE],
     // This is the position to write the first byte of the chunk to.
     int position,
     // This is the string that is written to the array.
@@ -32,7 +32,7 @@ static int write_chunk(
 // there.
 static int parse_chunk(
     // The array to search
-    const char array[CODE_SIZE],
+    const uint8_t array[CODE_SIZE],
     // The position in the array to start the search.
     int position,
     // The chunk to search for.
@@ -50,7 +50,7 @@ static int parse_chunk(
   return -1;
 }
 
-int format(const char in[CODE_SIZE], char out[CODE_SIZE], struct memory *m) {
+int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
 
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");
