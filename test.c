@@ -12,7 +12,6 @@ void run_one_positive_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                            struct memory *);
 void run_one_no_change_test(char *, char in[CODE_SIZE], char out[CODE_SIZE],
                             struct memory *);
-int string_length(char *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
 void check_expected(char *, char out[CODE_SIZE]);
