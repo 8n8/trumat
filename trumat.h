@@ -19,7 +19,10 @@ void zero_memory(struct memory *);
 int format(
     // This should contain the unformatted source code terminated with a
     // zero byte.
-    const uint8_t in[CODE_SIZE],
+    const char in[CODE_SIZE],
     // This will be overwritten with the formatted code, terminated with a
     // zero byte.
-    uint8_t out[CODE_SIZE], struct memory *m);
+    char out[CODE_SIZE], struct memory *m);
+
+void make_sub_path(char *, char *, char *);
+int is_dot_path(char *);

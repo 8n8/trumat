@@ -14,7 +14,6 @@ void run_one_no_change_test(char *, uint8_t in[CODE_SIZE],
                             uint8_t out[CODE_SIZE], struct memory *);
 int is_elm_path(char *);
 void make_sub_path(char *, char *, char *);
-int is_dot_path(char *);
 int string_length(char *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
@@ -39,28 +38,6 @@ void make_expected_path(char *in_path, char *expected_path) {
   }
 
   expected_path[expected_i] = 0;
-}
-
-int is_dot_path(char *path) {
-  int length = string_length(path);
-  return (length == 1 && path[0] == '.') ||
-         (length == 2 && path[0] == '.' && path[1] == '.');
-}
-
-void make_sub_path(char *parent, char *child, char *result) {
-  int i = 0;
-  for (; parent[i] != 0; ++i) {
-    result[i] = parent[i];
-  }
-  result[i] = '/';
-  ++i;
-
-  int j = 0;
-  for (; child[j] != 0; ++j) {
-    result[i + j] = child[j];
-  }
-  i += j;
-  result[i] = 0;
 }
 
 uint8_t IN[CODE_SIZE];
@@ -127,13 +104,6 @@ void run_positive_tests(char *path, uint8_t in[CODE_SIZE],
 
   zero_memory(memory);
   run_one_positive_test(path, in, out, memory);
-}
-
-int string_length(char *path) {
-  int i = 0;
-  for (; path[i] != 0; ++i) {
-  }
-  return i;
 }
 
 int is_elm_path(char *path) {

@@ -10,7 +10,7 @@ void zero_memory(struct memory *m) {}
 static int write_chunk(
     // The string is written into this array, starting at the given
     // position.
-    uint8_t array[CODE_SIZE],
+    char array[CODE_SIZE],
     // This is the position to write the first byte of the chunk to.
     int position,
     // This is the string that is written to the array.
@@ -32,7 +32,7 @@ static int write_chunk(
 // there.
 static int parse_chunk(
     // The array to search
-    const uint8_t array[CODE_SIZE],
+    const char array[CODE_SIZE],
     // The position in the array to start the search.
     int position,
     // The chunk to search for.
@@ -50,7 +50,7 @@ static int parse_chunk(
   return -1;
 }
 
-int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
+int format(const char in[CODE_SIZE], char out[CODE_SIZE],
            struct memory *m) {
 
   int in_i = 0;
@@ -71,4 +71,33 @@ int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
   write_chunk(out, 0, "module X exposing (x)\n\n\nx =\n    0\n\0");
 
   return 0;
+}
+
+void make_sub_path(char *parent, char *child, char *result) {
+  int i = 0;
+  for (; parent[i] != 0; ++i) {
+    result[i] = parent[i];
+  }
+  result[i] = '/';
+  ++i;
+
+  int j = 0;
+  for (; child[j] != 0; ++j) {
+    result[i + j] = child[j];
+  }
+  i += j;
+  result[i] = 0;
+}
+
+int string_length(char *path) {
+  int i = 0;
+  for (; path[i] != 0; ++i) {
+  }
+  return i;
+}
+
+int is_dot_path(char *path) {
+  int length = string_length(path);
+  return (length == 1 && path[0] == '.') ||
+         (length == 2 && path[0] == '.' && path[1] == '.');
 }
