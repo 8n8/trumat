@@ -20,7 +20,7 @@ void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct mem
     int result = format(in, out, memory);
 
     if (result != 0) {
-      printf("invalid Elm file: %s\n", path);
+      printf("could not format %s\nIt may be invalid Elm or it may be that this formatter doesn't support it yet.\n", path);
       return;
     }
   }
@@ -46,6 +46,7 @@ void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struc
         make_sub_path(path, item_in_directory->d_name, sub_path);
         format_directory(sub_path, in, out, memory);
       }
+      item_in_directory = readdir(directory);
     }
   }
 
@@ -65,11 +66,11 @@ int string_equal(char* a, char* b) {
 }
 
 int is_valid_args(int argc, char *argv[]) {
-  if (argc != 1) {
+  if (argc != 2) {
     return 0;
   }
 
-  return string_equal("--overwrite", argv[0]);
+  return string_equal("--overwrite", argv[1]);
 }
 
 int main(int argc, char *argv[]) {
