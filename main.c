@@ -20,13 +20,14 @@ void format_file(char *path, char in[CODE_SIZE], char out[CODE_SIZE], struct mem
     int result = format(in, out, memory);
 
     if (result != 0) {
-      printf("could not format %s\nIt may be invalid Elm or it may be that this formatter doesn't support it yet.\n", path);
+      fprintf(stderr, "could not format %s\nIt may be invalid Elm or it may be that this formatter doesn't support it yet.\n", path);
       return;
     }
   }
 
   FILE* file = fopen(path, "wb");
   int result = fputs(out, file);
+  fclose(file);
   if (result == EOF) {
     printf("error writing the formatted code to the file: %s\n", path);
     return;
