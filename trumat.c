@@ -72,7 +72,7 @@ int format(const char in[CODE_SIZE], char out[CODE_SIZE], struct memory *m) {
   return 0;
 }
 
-void make_sub_path(char *parent, char *child, char *result) {
+void make_sub_path(const char *parent, const char *child, char *result) {
   int i = 0;
   for (; parent[i] != 0; ++i) {
     result[i] = parent[i];
@@ -88,15 +88,22 @@ void make_sub_path(char *parent, char *child, char *result) {
   result[i] = 0;
 }
 
-int string_length(char *path) {
+int string_length(const char *path) {
   int i = 0;
   for (; path[i] != 0; ++i) {
   }
   return i;
 }
 
-int is_dot_path(char *path) {
+int is_dot_path(const char *path) {
   int length = string_length(path);
   return (length == 1 && path[0] == '.') ||
          (length == 2 && path[0] == '.' && path[1] == '.');
 }
+
+int is_elm_path(const char *path) {
+  int length = string_length(path);
+  return path[length - 1] == 'm' && path[length - 2] == 'l' &&
+         path[length - 3] == 'e' && path[length - 4] == '.';
+}
+

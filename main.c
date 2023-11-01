@@ -56,6 +56,10 @@ void format_directory(char *path, char in[CODE_SIZE], char out[CODE_SIZE],
     }
   }
 
+  if (!is_elm_path(path)) {
+    return;
+  }
+
   zero_memory(memory);
   format_file(path, in, out, memory);
 }

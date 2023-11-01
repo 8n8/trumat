@@ -24,5 +24,11 @@ int format(
     // zero byte.
     char out[CODE_SIZE], struct memory *m);
 
-void make_sub_path(char *, char *, char *);
-int is_dot_path(char *);
+// Writes "parent" and "child" to "result", separated by a forward slash.
+void make_sub_path(const char * parent, const char * child, char *result);
+
+// Checks if the path is "." or "..".
+int is_dot_path(const char *);
+
+// Checks if the path ends in .elm
+int is_elm_path(const char *);
