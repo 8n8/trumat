@@ -39,8 +39,7 @@ static int parse_chunk(
     const char *chunk) {
 
   int i = 0;
-  for (; array[i + position] == chunk[i] && chunk[i] != 0;
-       ++i) {
+  for (; array[i + position] == chunk[i] && chunk[i] != 0; ++i) {
   }
 
   if (chunk[i] == 0) {
