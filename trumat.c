@@ -107,12 +107,6 @@ const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-static int parse_int_literal(const uint8_t in[CODE_SIZE], int *in_i,
-                             struct memory *m, int *int_literal) {
-
-  return take_while_1(in, in_i, m, int_literal, is_digit);
-}
-
 static int write_text(uint8_t out[CODE_SIZE], int out_i, int text,
                       struct memory *m) {
 
@@ -138,7 +132,7 @@ int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
   }
 
   int int_literal;
-  result = parse_int_literal(in, &in_i, m, &int_literal);
+  result = take_while_1(in, &in_i, m, &int_literal, is_digit);
   if (result < 0) {
     return result;
   }
