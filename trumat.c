@@ -184,6 +184,6 @@ int is_dot_path(const char *path) {
 
 int is_elm_path(const char *path) {
   int length = string_length(path);
-  return path[length - 1] == 'm' && path[length - 2] == 'l' &&
+  return length >= 4 && path[length - 1] == 'm' && path[length - 2] == 'l' &&
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
