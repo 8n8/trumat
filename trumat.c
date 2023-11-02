@@ -30,20 +30,24 @@ static int write_chunk(
 //
 // It returns the position of the end of the string in the array if it is
 // there.
+//
+// To be clear, the searched for string must start at the provided position.
+// It can't come later in the array.
 static int parse_chunk(
     // The array to search
-    const uint8_t array[CODE_SIZE],
+    const uint8_t in[CODE_SIZE],
     // The position in the array to start the search.
-    int position,
+    int in_i,
     // The chunk to search for.
     const char *chunk) {
 
   int i = 0;
-  for (; array[i + position] == chunk[i] && chunk[i] != 0; ++i) {
+  for (; in_i + i < CODE_SIZE && in[i + in_i] == chunk[i] && chunk[i] != 0;
+       ++i) {
   }
 
   if (chunk[i] == 0) {
-    return position + i;
+    return in_i + i;
   }
 
   return -1;
