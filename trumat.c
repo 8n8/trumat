@@ -38,13 +38,13 @@ static int parse_chunk(
     // The chunk to search for.
     const char *chunk) {
 
-  int chunk_i = 0;
-  for (; array[chunk_i + position] == chunk[chunk_i] && chunk[chunk_i] != 0;
-       ++chunk_i) {
+  int i = 0;
+  for (; array[i + position] == chunk[i] && chunk[i] != 0;
+       ++i) {
   }
 
-  if (chunk[chunk_i] == 0) {
-    return position + chunk_i;
+  if (chunk[i] == 0) {
+    return position + i;
   }
 
   return -1;
