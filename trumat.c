@@ -1,9 +1,7 @@
 #include "trumat.h"
 #include <stdio.h>
 
-void zero_memory(struct memory *m) {
-  m->text_head = 0;
-}
+void zero_memory(struct memory *m) { m->text_head = 0; }
 
 // Write a string to an array of bytes at a particular index. The return
 // value is the first index after the end of the new section.
@@ -52,7 +50,8 @@ static int parse_chunk(
   return -1;
 }
 
-static int text_from_bytes(const uint8_t in[CODE_SIZE], int start, int end, struct memory *m) {
+static int text_from_bytes(const uint8_t in[CODE_SIZE], int start, int end,
+                           struct memory *m) {
   int string = m->text_head;
   int i = 0;
   for (; start + i < end && m->text_head + i < TEXT_SIZE; ++i) {
@@ -71,12 +70,9 @@ static int text_from_bytes(const uint8_t in[CODE_SIZE], int start, int end, stru
   return string;
 }
 
-static int take_while_1(
-    const uint8_t in[CODE_SIZE],
-    int* in_i,
-    struct memory *m,
-    int *string,
-    const uint8_t match[256]) {
+static int take_while_1(const uint8_t in[CODE_SIZE], int *in_i,
+                        struct memory *m, int *string,
+                        const uint8_t match[256]) {
 
   int start = *in_i;
 
@@ -98,22 +94,27 @@ static int take_while_1(
   return 0;
 }
 
-const uint8_t is_digit[256] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+const uint8_t is_digit[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-static int parse_int_literal(
-    const uint8_t in[CODE_SIZE],
-    int* in_i,
-    struct memory *m,
-    int* int_literal) {
+static int parse_int_literal(const uint8_t in[CODE_SIZE], int *in_i,
+                             struct memory *m, int *int_literal) {
 
   return take_while_1(in, in_i, m, int_literal, is_digit);
 }
 
-static int write_text(
-    uint8_t out[CODE_SIZE],
-    int out_i,
-    int text,
-    struct memory* m) {
+static int write_text(uint8_t out[CODE_SIZE], int out_i, int text,
+                      struct memory *m) {
 
   int i = 0;
   for (; m->text[text + i] != 0; ++i) {
@@ -123,7 +124,8 @@ static int write_text(
   return out_i + i;
 }
 
-int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
+int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
+           struct memory *m) {
 
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n");

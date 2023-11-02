@@ -8,10 +8,10 @@ void run_positive_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                         struct memory *);
 void run_no_change_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
                          struct memory *);
-void run_one_positive_test(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                           struct memory *);
-void run_one_no_change_test(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                            struct memory *);
+void run_one_positive_test(char *, uint8_t in[CODE_SIZE],
+                           uint8_t out[CODE_SIZE], struct memory *);
+void run_one_no_change_test(char *, uint8_t in[CODE_SIZE],
+                            uint8_t out[CODE_SIZE], struct memory *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
 void check_expected(char *, uint8_t out[CODE_SIZE]);
@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
-void run_no_change_tests(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                         struct memory *memory) {
+void run_no_change_tests(char *path, uint8_t in[CODE_SIZE],
+                         uint8_t out[CODE_SIZE], struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -77,8 +77,8 @@ void run_no_change_tests(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZ
   run_one_no_change_test(path, in, out, memory);
 }
 
-void run_positive_tests(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                        struct memory *memory) {
+void run_positive_tests(char *path, uint8_t in[CODE_SIZE],
+                        uint8_t out[CODE_SIZE], struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -126,7 +126,8 @@ void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
   check_unchanged(in_path, in, out);
 }
 
-void check_unchanged(char *in_path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE]) {
+void check_unchanged(char *in_path, uint8_t in[CODE_SIZE],
+                     uint8_t out[CODE_SIZE]) {
   for (int i = 0; i < CODE_SIZE; ++i) {
     if (in[i] == 0 && out[i] == 0) {
       break;
