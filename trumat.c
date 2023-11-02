@@ -1,7 +1,9 @@
 #include "trumat.h"
 #include <stdio.h>
 
-void zero_memory(struct memory *m) {}
+void zero_memory(struct memory *m) {
+  m->text_head = 0;
+}
 
 // Write a string to an array of bytes at a particular index. The return
 // value is the first index after the end of the new section.
@@ -50,6 +52,77 @@ static int parse_chunk(
   return -1;
 }
 
+static int text_from_bytes(const uint8_t in[CODE_SIZE], int start, int end, struct memory *m) {
+  int string = m->text_head;
+  int i = 0;
+  for (; start + i < end && m->text_head + i < TEXT_SIZE; ++i) {
+    m->text[m->text_head + i] = in[start + i];
+  }
+
+  if (i + start + 1 < end || m->text_head == TEXT_SIZE) {
+    return -1;
+  }
+
+  m->text_head += i;
+
+  m->text[m->text_head] = 0;
+  ++m->text_head;
+
+  return string;
+}
+
+static int take_while_1(
+    const uint8_t in[CODE_SIZE],
+    int* in_i,
+    struct memory *m,
+    int *string,
+    const uint8_t match[256]) {
+
+  int start = *in_i;
+
+  if (!(*in_i < CODE_SIZE && match[in[*in_i]])) {
+    return -1;
+  }
+  ++*in_i;
+
+  for (; match[in[*in_i]] && *in_i < CODE_SIZE; ++*in_i) {
+  }
+
+  int result = text_from_bytes(in, start, *in_i, m);
+  if (result < 0) {
+    return result;
+  }
+
+  *string = result;
+
+  return 0;
+}
+
+const uint8_t is_digit[256] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+static int parse_int_literal(
+    const uint8_t in[CODE_SIZE],
+    int* in_i,
+    struct memory *m,
+    int* int_literal) {
+
+  return take_while_1(in, in_i, m, int_literal, is_digit);
+}
+
+static int write_text(
+    uint8_t out[CODE_SIZE],
+    int out_i,
+    int text,
+    struct memory* m) {
+
+  int i = 0;
+  for (; m->text[text + i] != 0; ++i) {
+    out[out_i + i] = m->text[text + i];
+  }
+
+  return out_i + i;
+}
+
 int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m) {
 
   int in_i = 0;
@@ -62,12 +135,21 @@ int format(const uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE], struct memory *m
   for (; in[in_i] == ' '; ++in_i) {
   }
 
-  result = parse_chunk(in, in_i, "0\n\0");
+  int int_literal;
+  result = parse_int_literal(in, &in_i, m, &int_literal);
   if (result < 0) {
     return result;
   }
 
-  write_chunk(out, 0, "module X exposing (x)\n\n\nx =\n    0\n\0");
+  result = parse_chunk(in, in_i, "\n\0");
+  if (result < 0) {
+    return result;
+  }
+
+  int out_i = write_chunk(out, 0, "module X exposing (x)\n\n\nx =\n    ");
+  out_i = write_text(out, out_i, int_literal, m);
+  out_i = write_chunk(out, out_i, "\n");
+  out[out_i] = 0;
 
   return 0;
 }

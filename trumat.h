@@ -1,6 +1,8 @@
 #include <stdint.h>
 // I found an elm file in elm-review that was approx 700 KB.
 #define CODE_SIZE 2000 * 1000
+// This is all the text that is created while formatting one file.
+#define TEXT_SIZE 20 * 1000 * 1000
 
 // This is all the memory that is used by the formatter except stack. It
 // can be allocated when the program starts up and reused whenever the
@@ -9,7 +11,10 @@
 // The format function does no dynamic memory allocation.
 //
 // You should call zero_memory on it before passing it in.
-struct memory {};
+struct memory {
+  uint8_t text[TEXT_SIZE];
+  int text_head;
+};
 
 // Clears the memory used by the formatter. It doesn't necessarily overwrite
 // it but it will set lengths and counters to zero.
