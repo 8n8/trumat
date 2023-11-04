@@ -34,12 +34,12 @@ int text_slice(struct text parent, int start, int end, struct text *result) {
   return 0;
 }
 
-int text_index(struct text t, int index, struct text_memory m) {
+int text_index(struct text t, int index, struct text_memory* m) {
   if (index < 0 || t.start + index >= t.end) {
     return -1;
   }
 
-  return m.bytes[t.start + index];
+  return m->bytes[t.start + index];
 }
 
 static int append_char(char ch, struct text_memory *m) {
@@ -54,7 +54,7 @@ static int append_char(char ch, struct text_memory *m) {
 
 static int copy_to_head(struct text t, struct text_memory *m) {
   for (int i = 0;; ++i) {
-    int result = text_index(t, i, *m);
+    int result = text_index(t, i, m);
     if (result < 0) {
       break;
     }

@@ -16,7 +16,7 @@ static int parse_chunk(
     // The position to start the search.
     int in_i,
     // The string to search for.
-    const char *chunk, const struct text_memory m) {
+    const char *chunk, struct text_memory* m) {
 
   int i = 0;
   for (; text_index(in, i + in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
@@ -29,7 +29,7 @@ static int parse_chunk(
   return -1;
 }
 
-static int take_while_1(const struct text in, int *in_i, struct text_memory m,
+static int take_while_1(const struct text in, int *in_i, struct text_memory* m,
                         struct text *matching, const uint8_t match[256]) {
 
   int start = *in_i;
@@ -61,22 +61,22 @@ const uint8_t is_digit[256] = {
 int format(struct text in, struct text *out, struct memory *m) {
   int in_i = 0;
   int result =
-      parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m->text);
+      parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", &m->text);
   if (result < 0) {
     return result;
   }
   in_i = result;
 
-  for (; text_index(in, in_i, m->text) == ' '; ++in_i) {
+  for (; text_index(in, in_i, &m->text) == ' '; ++in_i) {
   }
 
   struct text int_literal;
-  result = take_while_1(in, &in_i, m->text, &int_literal, is_digit);
+  result = take_while_1(in, &in_i, &m->text, &int_literal, is_digit);
   if (result < 0) {
     return result;
   }
 
-  result = parse_chunk(in, in_i, "\n\0", m->text);
+  result = parse_chunk(in, in_i, "\n\0", &m->text);
   if (result < 0) {
     return result;
   }

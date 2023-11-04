@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-void check_unchanged(char *, struct text, struct text, struct text_memory);
+void check_unchanged(char *, struct text, struct text, struct text_memory*);
 void run_positive_tests(char *, struct memory *);
 void run_no_change_tests(char *, struct memory *);
 void run_one_positive_test(char *, struct memory *);
 void run_one_no_change_test(char *, struct memory *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
-void check_expected(char *, struct text, struct text_memory);
+void check_expected(char *, struct text, struct text_memory*);
 
 void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "test_expected/";
@@ -120,11 +120,11 @@ void run_one_no_change_test(char *in_path, struct memory *m) {
     return;
   }
 
-  check_unchanged(in_path, in, out, m->text);
+  check_unchanged(in_path, in, out, &m->text);
 }
 
 void check_unchanged(char *in_path, struct text in, struct text out,
-                     struct text_memory m) {
+                     struct text_memory* m) {
   if (text_length(in) != text_length(out)) {
     char error_message[300];
     sprintf(error_message,
@@ -182,10 +182,10 @@ void run_one_positive_test(char *in_path, struct memory *m) {
     return;
   }
 
-  check_expected(in_path, out, m->text);
+  check_expected(in_path, out, &m->text);
 }
 
-void check_expected(char *in_path, struct text out, struct text_memory m) {
+void check_expected(char *in_path, struct text out, struct text_memory* m) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
