@@ -4,7 +4,7 @@ void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
 int text_length(struct text t) { return t.end - t.start; }
 
-int text_from_file(FILE *file, struct text *t, struct text_memory* m) {
+int text_from_file(FILE *file, struct text *t, struct text_memory *m) {
   t->start = m->head;
   int i = 0;
   for (; i < TEXT_SIZE; ++i) {
@@ -34,7 +34,7 @@ int text_slice(struct text parent, int start, int end, struct text *result) {
   return 0;
 }
 
-int text_index(struct text t, int index, struct text_memory* m) {
+int text_index(struct text t, int index, struct text_memory *m) {
   if (index < 0 || t.start + index >= t.end) {
     return -1;
   }

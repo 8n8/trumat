@@ -16,7 +16,7 @@ static int parse_chunk(
     // The position to start the search.
     int in_i,
     // The string to search for.
-    const char *chunk, struct text_memory* m) {
+    const char *chunk, struct text_memory *m) {
 
   int i = 0;
   for (; text_index(in, i + in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
@@ -29,7 +29,7 @@ static int parse_chunk(
   return -1;
 }
 
-static int take_while_1(const struct text in, int *in_i, struct text_memory* m,
+static int take_while_1(const struct text in, int *in_i, struct text_memory *m,
                         struct text *matching, const uint8_t match[256]) {
 
   int start = *in_i;
