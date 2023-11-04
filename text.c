@@ -34,6 +34,12 @@ int text_slice(struct text parent, int start, int end, struct text *result) {
   return 0;
 }
 
+void text_to_file(FILE* f, struct text t, struct text_memory *m) {
+  for (int i = t.start; i < t.end; ++i) {
+    fputc(m->bytes[i], f);
+  }
+}
+
 int text_index(struct text t, int index, struct text_memory *m) {
   if (index < 0 || t.start + index >= t.end) {
     return -1;

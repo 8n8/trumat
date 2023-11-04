@@ -3,29 +3,24 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-uint8_t IN[CODE_SIZE];
-uint8_t OUT[CODE_SIZE];
 struct memory MEMORY;
 
-static int code_length(const uint8_t code[CODE_SIZE]) {
-  int i = 0;
-  for (; code[i] != 0; ++i) {
-  }
-  return i;
-}
-
-void format_file(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                 struct memory *memory) {
+void format_file(char *path, struct memory *m) {
+  struct text out;
   {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
       return;
     }
-    int size = fread(in, 1, CODE_SIZE, file);
-    in[size] = 0;
-    fclose(file);
+    struct text in;
+    if (text_from_file(file, &in, &m->text)) {
+      fprintf(stderr,
+          "could not read the file: %s\n",
+          path);
+      return;
+    }
 
-    int result = format(in, out, memory);
+    int result = format(in, &out, m);
 
     if (result != 0) {
       fprintf(stderr,
@@ -37,13 +32,12 @@ void format_file(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
   }
 
   FILE *file = fopen(path, "wb");
-  fwrite(out, 1, code_length(out), file);
+  text_to_file(file, out, &m->text);
 
   printf("Processing %s\n", path);
 }
 
-void format_directory(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                      struct memory *memory) {
+void format_directory(char *path, struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -52,7 +46,7 @@ void format_directory(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        format_directory(sub_path, in, out, memory);
+        format_directory(sub_path, memory);
       }
       item_in_directory = readdir(directory);
     }
@@ -63,7 +57,7 @@ void format_directory(char *path, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
   }
 
   zero_memory(memory);
-  format_file(path, in, out, memory);
+  format_file(path, memory);
 }
 
 char *usage =
@@ -91,5 +85,5 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  format_directory(".", IN, OUT, &MEMORY);
+  format_directory(".", &MEMORY);
 }
