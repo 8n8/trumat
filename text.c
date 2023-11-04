@@ -2,6 +2,14 @@
 
 void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
+int text_index(struct text t, int index, struct text_memory m) {
+  if (index < 0 || t.start + index >= t.end) {
+    return -1;
+  }
+
+  return m.bytes[t.start + index];
+}
+
 static int append_char(char ch, struct text_memory *m) {
   if (m->head == TEXT_SIZE) {
     return -1;
