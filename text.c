@@ -2,6 +2,17 @@
 
 void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
+int text_slice(struct text parent, int start, int end, struct text* result, struct text_memory m) {
+  int parent_size = text_length(parent);
+  if (start >= parent_size || end > parent_size || start > end) {
+    return -1;
+  }
+
+  result->start = parent.start + start;
+  result->end = parent.start + end;
+  return 0;
+}
+
 int text_index(struct text t, int index, struct text_memory m) {
   if (index < 0 || t.start + index >= t.end) {
     return -1;
