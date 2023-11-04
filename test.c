@@ -5,7 +5,7 @@
 
 static void check_unchanged(char *, struct text, struct text, struct text_memory *);
 static void run_positive_tests(char *, struct memory *);
-void run_no_change_tests(char *, struct memory *);
+static void run_no_change_tests(char *, struct memory *);
 void run_one_positive_test(char *, struct memory *);
 void run_one_no_change_test(char *, struct memory *);
 void make_expected_path(char *, char *);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
-void run_no_change_tests(char *path, struct memory *memory) {
+static void run_no_change_tests(char *path, struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
