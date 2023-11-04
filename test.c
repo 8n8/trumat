@@ -123,15 +123,18 @@ void run_one_no_change_test(char *in_path, struct memory *m) {
   check_unchanged(in_path, in, out, m->text);
 }
 
-void check_unchanged(char *in_path, struct text in, struct text out, struct text_memory m) {
+void check_unchanged(char *in_path, struct text in, struct text out,
+                     struct text_memory m) {
   if (text_length(in) != text_length(out)) {
-      char error_message[300];
-      sprintf(error_message, "expected equal length texts but got input length of %d and output length of %d", text_length(in), text_length(out));
-      print_error(in_path, error_message);
-      return;
-
+    char error_message[300];
+    sprintf(error_message,
+            "expected equal length texts but got input length of %d and output "
+            "length of %d",
+            text_length(in), text_length(out));
+    print_error(in_path, error_message);
+    return;
   }
-  for (int i = 0; ; ++i) {
+  for (int i = 0;; ++i) {
     int in_result = text_index(in, i, m);
     int out_result = text_index(out, i, m);
     if (in_result < 0 && out_result < 0) {
@@ -140,8 +143,8 @@ void check_unchanged(char *in_path, struct text in, struct text out, struct text
 
     if (in_result != out_result) {
       char error_message[300];
-      sprintf(error_message, "expected '%c' but got '%c' at position %d", in_result,
-              out_result, i);
+      sprintf(error_message, "expected '%c' but got '%c' at position %d",
+              in_result, out_result, i);
       print_error(in_path, error_message);
       return;
     }
@@ -194,7 +197,7 @@ void check_expected(char *in_path, struct text out, struct text_memory m) {
     return;
   }
 
-  for (int i = 0; ; ++i) {
+  for (int i = 0;; ++i) {
     int expected = fgetc(expected_file);
     if (expected == EOF && text_index(out, i, m) < 0) {
       break;

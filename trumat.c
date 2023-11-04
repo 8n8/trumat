@@ -16,12 +16,10 @@ static int parse_chunk(
     // The position to start the search.
     int in_i,
     // The string to search for.
-    const char *chunk,
-    const struct text_memory m) {
+    const char *chunk, const struct text_memory m) {
 
   int i = 0;
-  for (; text_index(in, i + in_i, m) == chunk[i] && chunk[i] != 0;
-       ++i) {
+  for (; text_index(in, i + in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
   }
 
   if (chunk[i] == 0) {
@@ -31,9 +29,8 @@ static int parse_chunk(
   return -1;
 }
 
-static int take_while_1(const struct text in, int *in_i,
-                        struct text_memory m, struct text *matching,
-                        const uint8_t match[256]) {
+static int take_while_1(const struct text in, int *in_i, struct text_memory m,
+                        struct text *matching, const uint8_t match[256]) {
 
   int start = *in_i;
 
@@ -64,7 +61,8 @@ const uint8_t is_digit[256] = {
 int format(struct text in, struct text *out, struct memory *m) {
 
   int in_i = 0;
-  int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m->text);
+  int result =
+      parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m->text);
   if (result < 0) {
     return result;
   }
@@ -84,7 +82,8 @@ int format(struct text in, struct text *out, struct memory *m) {
     return result;
   }
 
-  result = text_append_ascii(*out, "module X exposing (x)\n\n\nx =\n    ", out, &m->text);
+  result = text_append_ascii(*out, "module X exposing (x)\n\n\nx =\n    ", out,
+                             &m->text);
   if (result) {
     return result;
   }

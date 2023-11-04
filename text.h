@@ -12,11 +12,13 @@ struct text_memory {
   uint32_t head;
 };
 
-int text_from_file(FILE*, struct text*);
-void text_zero_memory(struct text_memory*);
-int text_append_ascii_char(struct text, char, struct text*, struct text_memory*);
-int text_append_ascii(struct text, const char*, struct text*, struct text_memory*);
-int text_join(struct text, struct text, struct text*, struct text_memory*);
+int text_from_file(FILE *, struct text *);
+void text_zero_memory(struct text_memory *);
+int text_append_ascii_char(struct text, char, struct text *,
+                           struct text_memory *);
+int text_append_ascii(struct text, const char *, struct text *,
+                      struct text_memory *);
+int text_join(struct text, struct text, struct text *, struct text_memory *);
 int text_index(struct text, int, struct text_memory);
-int text_slice(struct text, int, int, struct text*, struct text_memory);
+int text_slice(struct text, int, int, struct text *, struct text_memory);
 int text_length(struct text);
