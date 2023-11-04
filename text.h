@@ -20,5 +20,5 @@ int text_append_ascii(struct text, const char *, struct text *,
                       struct text_memory *);
 int text_join(struct text, struct text, struct text *, struct text_memory *);
 int text_index(struct text, int, struct text_memory);
-int text_slice(struct text, int, int, struct text *, struct text_memory);
+int text_slice(struct text, int, int, struct text *);
 int text_length(struct text);

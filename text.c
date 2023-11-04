@@ -2,7 +2,7 @@
 
 void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
-int text_slice(struct text parent, int start, int end, struct text* result, struct text_memory m) {
+int text_slice(struct text parent, int start, int end, struct text* result) {
   int parent_size = text_length(parent);
   if (start >= parent_size || end > parent_size || start > end) {
     return -1;

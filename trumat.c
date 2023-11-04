@@ -42,7 +42,7 @@ static int take_while_1(const struct text in, int *in_i, struct text_memory m,
   for (; match[text_index(in, *in_i, m)]; ++*in_i) {
   }
 
-  return text_slice(in, start, *in_i, matching, m);
+  return text_slice(in, start, *in_i, matching);
 }
 
 const uint8_t is_digit[256] = {
