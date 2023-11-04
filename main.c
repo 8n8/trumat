@@ -14,9 +14,7 @@ void format_file(char *path, struct memory *m) {
     }
     struct text in;
     if (text_from_file(file, &in, &m->text)) {
-      fprintf(stderr,
-          "could not read the file: %s\n",
-          path);
+      fprintf(stderr, "could not read the file: %s\n", path);
       return;
     }
 

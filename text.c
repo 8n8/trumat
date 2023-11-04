@@ -34,7 +34,7 @@ int text_slice(struct text parent, int start, int end, struct text *result) {
   return 0;
 }
 
-void text_to_file(FILE* f, struct text t, struct text_memory *m) {
+void text_to_file(FILE *f, struct text t, struct text_memory *m) {
   for (int i = t.start; i < t.end; ++i) {
     fputc(m->bytes[i], f);
   }

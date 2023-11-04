@@ -12,7 +12,7 @@ struct text_memory {
   uint32_t head;
 };
 
-void text_to_file(FILE*, struct text, struct text_memory *);
+void text_to_file(FILE *, struct text, struct text_memory *);
 int text_from_file(FILE *, struct text *, struct text_memory *);
 void text_zero_memory(struct text_memory *);
 int text_append_ascii_char(struct text, char, struct text *,
