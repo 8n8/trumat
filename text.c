@@ -27,6 +27,27 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
+int text_join(struct text left, struct text right, struct text* result, struct text_memory* m) {
+  if (left.end == m->head) {
+    result->start = left.start;
+  } else {
+    result->start = m->head;
+  }
+
+  if (left.end != m->head) {
+    if (copy_to_head(left, m)) {
+      return -1;
+    }
+  }
+
+  if (copy_to_head(right, m)) {
+    return -1;
+  }
+
+  result->end = m->head;
+  return 0;
+}
+
 int text_append_ascii_char(struct text left, char right, struct text *result,
                            struct text_memory *m) {
 
