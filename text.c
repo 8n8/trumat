@@ -4,6 +4,25 @@ void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
 int text_length(struct text t) { return t.end - t.start; }
 
+int text_from_file(FILE *file, struct text *t, struct text_memory* m) {
+  t->start = m->head;
+  int i = 0;
+  for (; i < TEXT_SIZE; ++i) {
+    int result = fgetc(file);
+    if (result == EOF) {
+      break;
+    }
+    m->bytes[m->head] = result;
+    ++m->head;
+  }
+
+  if (i == TEXT_SIZE - 1) {
+    return -1;
+  }
+  t->end = m->head;
+  return 0;
+}
+
 int text_slice(struct text parent, int start, int end, struct text *result) {
   int parent_size = text_length(parent);
   if (start >= parent_size || end > parent_size || start > end) {

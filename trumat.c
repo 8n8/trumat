@@ -59,7 +59,6 @@ const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 int format(struct text in, struct text *out, struct memory *m) {
-
   int in_i = 0;
   int result =
       parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m->text);
