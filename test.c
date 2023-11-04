@@ -3,18 +3,14 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-void check_unchanged(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE]);
-void run_positive_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                        struct memory *);
-void run_no_change_tests(char *, uint8_t in[CODE_SIZE], uint8_t out[CODE_SIZE],
-                         struct memory *);
-void run_one_positive_test(char *, uint8_t in[CODE_SIZE],
-                           uint8_t out[CODE_SIZE], struct memory *);
-void run_one_no_change_test(char *, uint8_t in[CODE_SIZE],
-                            uint8_t out[CODE_SIZE], struct memory *);
+void check_unchanged(char *, struct text, struct text, struct text_memory);
+void run_positive_tests(char *, struct memory *);
+void run_no_change_tests(char *, struct memory *);
+void run_one_positive_test(char *, struct memory *);
+void run_one_no_change_test(char *, struct memory *);
 void make_expected_path(char *, char *);
 void print_error(char *, char *);
-void check_expected(char *, uint8_t out[CODE_SIZE]);
+void check_expected(char *, struct text, struct text_memory);
 
 void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "test_expected/";
@@ -37,22 +33,19 @@ void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-uint8_t IN[CODE_SIZE];
-uint8_t OUT[CODE_SIZE];
 struct memory MEMORY;
 int NUM_PASSED = 0;
 int NUM_IGNORED = 0;
 
 int main(int argc, char *argv[]) {
-  run_positive_tests("test_input", IN, OUT, &MEMORY);
+  run_positive_tests("test_input", &MEMORY);
   zero_memory(&MEMORY);
-  run_no_change_tests("test_formatted", IN, OUT, &MEMORY);
+  run_no_change_tests("test_formatted", &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
 
-void run_no_change_tests(char *path, uint8_t in[CODE_SIZE],
-                         uint8_t out[CODE_SIZE], struct memory *memory) {
+void run_no_change_tests(char *path, struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -61,7 +54,7 @@ void run_no_change_tests(char *path, uint8_t in[CODE_SIZE],
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_no_change_tests(sub_path, in, out, memory);
+        run_no_change_tests(sub_path, memory);
       }
       item_in_directory = readdir(directory);
     }
@@ -74,11 +67,10 @@ void run_no_change_tests(char *path, uint8_t in[CODE_SIZE],
   }
 
   zero_memory(memory);
-  run_one_no_change_test(path, in, out, memory);
+  run_one_no_change_test(path, memory);
 }
 
-void run_positive_tests(char *path, uint8_t in[CODE_SIZE],
-                        uint8_t out[CODE_SIZE], struct memory *memory) {
+void run_positive_tests(char *path, struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -87,7 +79,7 @@ void run_positive_tests(char *path, uint8_t in[CODE_SIZE],
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_positive_tests(sub_path, in, out, memory);
+        run_positive_tests(sub_path, memory);
       }
       item_in_directory = readdir(directory);
     }
@@ -100,11 +92,10 @@ void run_positive_tests(char *path, uint8_t in[CODE_SIZE],
   }
 
   zero_memory(memory);
-  run_one_positive_test(path, in, out, memory);
+  run_one_positive_test(path, memory);
 }
 
-void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
-                            uint8_t out[CODE_SIZE], struct memory *memory) {
+void run_one_no_change_test(char *in_path, struct memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -112,41 +103,45 @@ void run_one_no_change_test(char *in_path, uint8_t in[CODE_SIZE],
     print_error(in_path, error_message);
     return;
   }
-  int in_size = fread(in, 1, CODE_SIZE, in_file);
-  in[in_size] = 0;
+  struct text in;
+  int result = text_from_file(in_file, &in);
   fclose(in_file);
+  if (result) {
+    char error_message[256];
+    sprintf(error_message, "could not read the file: %s", in_path);
+    print_error(in_path, error_message);
+    return;
+  }
 
-  int result = format(in, out, memory);
-
+  struct text out;
+  result = format(in, &out, m);
   if (result != 0) {
     ++NUM_IGNORED;
     return;
   }
 
-  check_unchanged(in_path, in, out);
+  check_unchanged(in_path, in, out, m->text);
 }
 
-void check_unchanged(char *in_path, uint8_t in[CODE_SIZE],
-                     uint8_t out[CODE_SIZE]) {
-  for (int i = 0; i < CODE_SIZE; ++i) {
-    if (in[i] == 0 && out[i] == 0) {
+void check_unchanged(char *in_path, struct text in, struct text out, struct text_memory m) {
+  if (text_length(in) != text_length(out)) {
+      char error_message[300];
+      sprintf(error_message, "expected equal length texts but got input length of %d and output length of %d", text_length(in), text_length(out));
+      print_error(in_path, error_message);
+      return;
+
+  }
+  for (int i = 0; ; ++i) {
+    int in_result = text_index(in, i, m);
+    int out_result = text_index(out, i, m);
+    if (in_result < 0 && out_result < 0) {
       break;
     }
 
-    if (in[i] == 0) {
-      print_error(in_path, "output is too long");
-      return;
-    }
-
-    if (out[i] == 0) {
-      print_error(in_path, "output is too short");
-      return;
-    }
-
-    if (in[i] != out[i]) {
+    if (in_result != out_result) {
       char error_message[300];
-      sprintf(error_message, "expected '%c' but got '%c' at position %d", in[i],
-              out[i], i);
+      sprintf(error_message, "expected '%c' but got '%c' at position %d", in_result,
+              out_result, i);
       print_error(in_path, error_message);
       return;
     }
@@ -155,8 +150,7 @@ void check_unchanged(char *in_path, uint8_t in[CODE_SIZE],
   ++NUM_PASSED;
 }
 
-void run_one_positive_test(char *in_path, uint8_t in[CODE_SIZE],
-                           uint8_t out[CODE_SIZE], struct memory *memory) {
+void run_one_positive_test(char *in_path, struct memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -164,11 +158,19 @@ void run_one_positive_test(char *in_path, uint8_t in[CODE_SIZE],
     print_error(in_path, error_message);
     return;
   }
-  int in_size = fread(in, 1, CODE_SIZE, in_file);
-  in[in_size] = 0;
-  fclose(in_file);
 
-  int result = format(in, out, memory);
+  struct text in;
+  int result = text_from_file(in_file, &in);
+  fclose(in_file);
+  if (result) {
+    char error_message[256];
+    sprintf(error_message, "could not read the file: %s", in_path);
+    print_error(in_path, error_message);
+    return;
+  }
+
+  struct text out;
+  result = format(in, &out, m);
 
   if (result != 0) {
     char error_message[256];
@@ -177,10 +179,10 @@ void run_one_positive_test(char *in_path, uint8_t in[CODE_SIZE],
     return;
   }
 
-  check_expected(in_path, out);
+  check_expected(in_path, out, m->text);
 }
 
-void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
+void check_expected(char *in_path, struct text out, struct text_memory m) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
@@ -192,16 +194,16 @@ void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
     return;
   }
 
-  for (int i = 0; i < CODE_SIZE; ++i) {
+  for (int i = 0; ; ++i) {
     int expected = fgetc(expected_file);
-    if (expected == EOF && out[i] == 0) {
+    if (expected == EOF && text_index(out, i, m) < 0) {
       break;
     }
 
-    if (expected != out[i]) {
+    if (expected != text_index(out, i, m)) {
       char error_message[300];
       sprintf(error_message, "expected '%c' but got '%c' at position %d",
-              expected, out[i], i);
+              expected, text_index(out, i, m), i);
       print_error(in_path, error_message);
       fclose(expected_file);
       return;
@@ -213,5 +215,5 @@ void check_expected(char *in_path, uint8_t out[CODE_SIZE]) {
 }
 
 void print_error(char *path, char *message) {
-  printf("FAILED: %s: %s\n", path, message);
+  fprintf(stderr, "FAILED: %s: %s\n", path, message);
 }
