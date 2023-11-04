@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 static void check_unchanged(char *, struct text, struct text, struct text_memory *);
-void run_positive_tests(char *, struct memory *);
+static void run_positive_tests(char *, struct memory *);
 void run_no_change_tests(char *, struct memory *);
 void run_one_positive_test(char *, struct memory *);
 void run_one_no_change_test(char *, struct memory *);
@@ -70,7 +70,7 @@ void run_no_change_tests(char *path, struct memory *memory) {
   run_one_no_change_test(path, memory);
 }
 
-void run_positive_tests(char *path, struct memory *memory) {
+static void run_positive_tests(char *path, struct memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
