@@ -27,7 +27,8 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
-int text_append_ascii(struct text left, const char * right, struct text* result, struct text_memory* m) {
+int text_append_ascii(struct text left, const char *right, struct text *result,
+                      struct text_memory *m) {
 
   if (left.end == m->head) {
     result->start = left.start;
