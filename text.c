@@ -6,11 +6,19 @@ int text_length(struct text t) { return t.end - t.start; }
 
 int text_from_file(FILE *file, struct text *t, struct text_memory *m) {
   t->start = m->head;
-  size_t size = fread(m->bytes + m->head, 1, TEXT_SIZE - m->head, file);
-  if (!feof(file)) {
+  int i = 0;
+  for (; i < TEXT_SIZE; ++i) {
+    int result = fgetc(file);
+    if (result == EOF) {
+      break;
+    }
+    m->bytes[m->head] = result;
+    ++m->head;
+  }
+
+  if (i == TEXT_SIZE - 1) {
     return -1;
   }
-  m->head += size;
   t->end = m->head;
   return 0;
 }
