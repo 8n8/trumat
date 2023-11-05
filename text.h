@@ -23,3 +23,4 @@ int text_join(struct text, struct text, struct text *, struct text_memory *);
 int text_index(struct text, int, struct text_memory *);
 int text_slice(struct text, int, int, struct text *);
 int text_length(struct text);
+int text_from_ascii(char*, struct text*, struct text_memory*);

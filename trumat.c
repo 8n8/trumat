@@ -1,7 +1,7 @@
 #include "trumat.h"
 #include <stdio.h>
 
-void zero_memory(struct memory *m) { text_zero_memory(&m->text); }
+void zero_memory(struct text_memory *m) { text_zero_memory(m); }
 
 // Checks that some text contains an ASCII string, starting at an index.
 //
@@ -58,39 +58,38 @@ const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-int format(struct text in, struct text *out, struct memory *m) {
+int format(struct text in, struct text *out, struct text_memory *m) {
   int in_i = 0;
   int result =
-      parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", &m->text);
+      parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m);
   if (result < 0) {
     return result;
   }
   in_i = result;
 
-  for (; text_index(in, in_i, &m->text) == ' '; ++in_i) {
+  for (; text_index(in, in_i, m) == ' '; ++in_i) {
   }
 
   struct text int_literal;
-  result = take_while_1(in, &in_i, &m->text, &int_literal, is_digit);
+  result = take_while_1(in, &in_i, m, &int_literal, is_digit);
   if (result < 0) {
     return result;
   }
 
-  result = parse_chunk(in, in_i, "\n\0", &m->text);
+  result = parse_chunk(in, in_i, "\n\0", m);
   if (result < 0) {
     return result;
   }
 
-  result = text_append_ascii(*out, "module X exposing (x)\n\n\nx =\n    ", out,
-                             &m->text);
+  result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out, m);
   if (result) {
     return result;
   }
-  result = text_join(*out, int_literal, out, &m->text);
+  result = text_join(*out, int_literal, out, m);
   if (result) {
     return result;
   }
-  result = text_append_ascii_char(*out, '\n', out, &m->text);
+  result = text_append_ascii_char(*out, '\n', out, m);
   if (result) {
     return result;
   }

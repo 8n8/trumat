@@ -41,7 +41,7 @@ void text_to_file(FILE *f, struct text t, struct text_memory *m) {
 }
 
 int text_index(struct text t, int index, struct text_memory *m) {
-  if (index < 0 || t.start + index >= t.end) {
+  if (index < 0 || t.start + index >= t.end || t.start + index >= TEXT_SIZE) {
     return -1;
   }
 
@@ -75,7 +75,6 @@ static int copy_to_head(struct text t, struct text_memory *m) {
 
 int text_append_ascii(struct text left, const char *right, struct text *result,
                       struct text_memory *m) {
-
   if (left.end == m->head) {
     result->start = left.start;
   } else {
@@ -138,6 +137,18 @@ int text_append_ascii_char(struct text left, char right, struct text *result,
   if (append_char(right, m)) {
     return -1;
   }
+  result->end = m->head;
+  return 0;
+}
+
+int text_from_ascii(char *ascii, struct text *result, struct text_memory* m) {
+  result->start = m->head;
+  for (int i = 0; ascii[i] != '\0'; ++i) {
+    if (append_char(ascii[i], m)) {
+      return -1;
+    }
+  }
+
   result->end = m->head;
   return 0;
 }
