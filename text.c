@@ -141,7 +141,7 @@ int text_append_ascii_char(struct text left, char right, struct text *result,
   return 0;
 }
 
-int text_from_ascii(char *ascii, struct text *result, struct text_memory* m) {
+int text_from_ascii(char *ascii, struct text *result, struct text_memory *m) {
   result->start = m->head;
   for (int i = 0; ascii[i] != '\0'; ++i) {
     if (append_char(ascii[i], m)) {
