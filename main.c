@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-struct memory MEMORY;
+struct text_memory MEMORY;
 
-void format_file(char *path, struct memory *m) {
+void format_file(char *path, struct text_memory *m) {
   struct text out;
   {
     FILE *file = fopen(path, "rb");
@@ -13,7 +13,7 @@ void format_file(char *path, struct memory *m) {
       return;
     }
     struct text in;
-    if (text_from_file(file, &in, &m->text)) {
+    if (text_from_file(file, &in, m)) {
       fprintf(stderr, "could not read the file: %s\n", path);
       return;
     }
@@ -30,12 +30,12 @@ void format_file(char *path, struct memory *m) {
   }
 
   FILE *file = fopen(path, "wb");
-  text_to_file(file, out, &m->text);
+  text_to_file(file, out, m);
 
   printf("Processing %s\n", path);
 }
 
-void format_directory(char *path, struct memory *memory) {
+void format_directory(char *path, struct text_memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -49,12 +49,13 @@ void format_directory(char *path, struct memory *memory) {
       item_in_directory = readdir(directory);
     }
   }
+  closedir(directory);
 
   if (!is_elm_path(path)) {
     return;
   }
 
-  zero_memory(memory);
+  text_zero_memory(memory);
   format_file(path, memory);
 }
 
