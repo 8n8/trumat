@@ -58,6 +58,58 @@ const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
+  int got = text_index(in, *in_i, m);
+  if (got < 0) {
+    return -1;
+  }
+
+  if (got != ch) {
+    return -1;
+  }
+
+  ++*in_i;
+  return 0;
+}
+
+int parse_float(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+
+  int start = *in_i;
+
+  int result = take_while_1(in, in_i, m, expression, is_digit);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  result = parse_char(in, in_i, m, '.');
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+  result = text_append_ascii_char(*expression, '.', expression, m);
+  if (result) {
+    return result;
+  }
+
+  text_dbg(*expression, m);
+  result = take_while_1(in, in_i, m, expression, is_digit);
+  text_dbg(*expression, m);
+  return result;
+}
+
+static int parse_expression(struct text in, int *in_i, struct text_memory *m,
+                     struct text *expression) {
+
+
+  int result = parse_float(in, in_i, m, expression);
+  if (result == 0) {
+    return 0;
+  }
+
+  return take_while_1(in, in_i, m, expression, is_digit);
+}
+
 int format(struct text in, struct text *out, struct text_memory *m) {
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m);
@@ -69,8 +121,8 @@ int format(struct text in, struct text *out, struct text_memory *m) {
   for (; text_index(in, in_i, m) == ' '; ++in_i) {
   }
 
-  struct text int_literal;
-  result = take_while_1(in, &in_i, m, &int_literal, is_digit);
+  struct text expression;
+  result = parse_expression(in, &in_i, m, &expression);
   if (result < 0) {
     return result;
   }
@@ -84,7 +136,7 @@ int format(struct text in, struct text *out, struct text_memory *m) {
   if (result) {
     return result;
   }
-  result = text_join(*out, int_literal, out, m);
+  result = text_join(*out, expression, out, m);
   if (result) {
     return result;
   }

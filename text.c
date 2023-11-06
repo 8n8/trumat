@@ -139,3 +139,11 @@ int text_from_ascii(char *ascii, struct text *result, struct text_memory *m) {
   result->end = m->head;
   return 0;
 }
+
+void text_dbg(struct text t, struct text_memory *m) {
+  printf("DBG: ");
+  for (int i = t.start; i < t.end; ++i) {
+    putchar(m->bytes[i]);
+  }
+  printf("\n");
+}
