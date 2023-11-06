@@ -233,6 +233,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                       ]
                   line <- takeWhile1P Nothing (\ch -> ch /= '\n')
                   return $ newlines <> replicate (numSpaces + 2) " " <> line
+        let isGreaterIndent = isUnorderedListGreaterIndent accumulated formatted
         choice
           [ try $ do
               _ <- takeWhile1P Nothing (\ch -> ch == '\n')
@@ -249,7 +250,7 @@ parseUnorderedListItemHelp nesting indent accumulated isGappy =
                            then ""
                            else
                              (if accumulated == "" then "" else "\n")
-                               <> (if accumulated /= "" && isGappy && newIndent == indent then "\n" else "")
+                               <> (if accumulated /= "" && isGappy && newIndent == indent && not isGreaterIndent then "\n" else "")
                                <> formatted
                                <> otherLines
                        )
@@ -284,6 +285,19 @@ parseTypedBacktickedCodeBlock =
     _ <- chunk "```"
     let code = mconcat pieces
     return $ "```" <> type_ <> code <> "```"
+
+isUnorderedListGreaterIndent :: Text -> Text -> Bool
+isUnorderedListGreaterIndent accumulated formatted =
+  Text.length (getLeadingSpaces formatted) > Text.length (getLeadingSpaces (getLastLine accumulated))
+
+getLastLine :: Text -> Text
+getLastLine text =
+  case reverse (Text.lines text) of
+    [] ->
+      ""
+
+    last : _ ->
+      last
 
 parseBacktickedCodeBlock :: Parser Text
 parseBacktickedCodeBlock =
