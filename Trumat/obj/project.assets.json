@@ -32,11 +32,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/t/files/g/Ghiassi_T/myprograms/trumat/Trumat/Trumat.csproj",
+      "projectUniqueName": "/home/t/trumat/Trumat/Trumat.csproj",
       "projectName": "Trumat",
-      "projectPath": "/home/t/files/g/Ghiassi_T/myprograms/trumat/Trumat/Trumat.csproj",
+      "projectPath": "/home/t/trumat/Trumat/Trumat.csproj",
       "packagesPath": "/home/t/.nuget/packages/",
-      "outputPath": "/home/t/files/g/Ghiassi_T/myprograms/trumat/Trumat/obj/",
+      "outputPath": "/home/t/trumat/Trumat/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/t/.nuget/NuGet/NuGet.Config"
@@ -51,8 +51,8 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "projectReferences": {
-            "/home/t/files/g/Ghiassi_T/myprograms/trumat/Format/Format.csproj": {
-              "projectPath": "/home/t/files/g/Ghiassi_T/myprograms/trumat/Format/Format.csproj"
+            "/home/t/trumat/Format/Format.csproj": {
+              "projectPath": "/home/t/trumat/Format/Format.csproj"
             }
           }
         }

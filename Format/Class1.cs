@@ -1,4 +1,4 @@
-﻿namespace Format;
+﻿namespace FormatLibrary;
 
 public static class Format
 {
