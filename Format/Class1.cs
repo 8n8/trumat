@@ -1,4 +1,4 @@
-﻿namespace UtilityLibraries;
+﻿namespace Format;
 
 public static class Format
 {
