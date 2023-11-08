@@ -8,6 +8,12 @@ namespace Test;
 public class TestClass
 {
     [TestMethod]
+    public void MoreSpaceAfterModule()
+    {
+      RunOneTest("MoreSpaceAfterModule.elm");
+    }
+
+    [TestMethod]
     public void HelloWorldFormatted()
     {
       RunOneTest("HelloWorld.elm");
