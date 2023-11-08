@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 namespace Test;
 
 [TestClass]
-public class UnitTest1
+public class TestClass
 {
     [TestMethod]
     public void HelloWorldFormatted()
