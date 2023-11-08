@@ -1,13 +1,8 @@
 ﻿namespace FormatLibrary;
 
-public static class Format
+public static class FormatClass
 {
-  public static bool StartsWithUpper(this string? str)
-  {
-    if (string.IsNullOrWhiteSpace(str))
-      return false;
-
-    char ch = str[0];
-    return char.IsUpper(ch);
+  public static string Format(string unformatted) {
+    return unformatted;
   }
 }
