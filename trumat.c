@@ -1,8 +1,6 @@
 #include "trumat.h"
 #include <stdio.h>
 
-void zero_memory(struct text_memory *m) { text_zero_memory(m); }
-
 // Checks that some text contains an ASCII string, starting at an index.
 //
 // It returns a negative number if it's not there.
