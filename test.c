@@ -38,9 +38,9 @@ static void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-struct text_memory MEMORY;
-int NUM_PASSED = 0;
-int NUM_IGNORED = 0;
+static struct text_memory MEMORY;
+static int NUM_PASSED = 0;
+static int NUM_IGNORED = 0;
 
 static void check_unchanged(char *in_path, struct text in, struct text out,
                             struct text_memory *m) {
@@ -72,7 +72,7 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
   ++NUM_PASSED;
 }
 
-void run_one_no_change_test(char *in_path, struct text_memory *m) {
+static void run_one_no_change_test(char *in_path, struct text_memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -129,7 +129,8 @@ static void run_no_change_tests(char *path, struct text_memory *memory) {
   run_one_no_change_test(path, memory);
 }
 
-void check_expected(char *in_path, struct text out, struct text_memory *m) {
+static void check_expected(char *in_path, struct text out,
+                           struct text_memory *m) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
@@ -161,7 +162,7 @@ void check_expected(char *in_path, struct text out, struct text_memory *m) {
   ++NUM_PASSED;
 }
 
-void run_one_positive_test(char *in_path, struct text_memory *m) {
+static void run_one_positive_test(char *in_path, struct text_memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
