@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-struct text_memory MEMORY;
+static struct text_memory MEMORY;
 
-void format_file(char *path, struct text_memory *m) {
+static void format_file(char *path, struct text_memory *m) {
   struct text out;
   {
     FILE *file = fopen(path, "rb");
@@ -35,7 +35,7 @@ void format_file(char *path, struct text_memory *m) {
   printf("Processing %s\n", path);
 }
 
-void format_directory(char *path, struct text_memory *memory) {
+static void format_directory(char *path, struct text_memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -59,11 +59,11 @@ void format_directory(char *path, struct text_memory *memory) {
   format_file(path, memory);
 }
 
-char *usage =
+static char *usage =
     "you need to provide the --overwrite flag to confirm you are happy to "
     "recursively overwrite all the Elm files in this directory\n";
 
-int is_valid_args(int argc, char *argv[]) {
+static int is_valid_args(int argc, char *argv[]) {
   if (argc != 2) {
     return 0;
   }

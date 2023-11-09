@@ -1,6 +1,6 @@
 #include "text.h"
 
-int string_equal(char*, char*);
+int string_equal(char *, char *);
 
 // This is the formatter.
 int format(
