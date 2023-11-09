@@ -73,7 +73,7 @@ int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
 }
 
 int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
-                struct text *expression) {
+                       struct text *expression) {
 
   int start = *in_i;
 
@@ -104,7 +104,9 @@ int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
   return text_join(*expression, after_dot, expression, m);
 }
 
-int parse_non_dot_exponent_float(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+int parse_non_dot_exponent_float(struct text in, int *in_i,
+                                 struct text_memory *m,
+                                 struct text *expression) {
 
   int start = *in_i;
 
