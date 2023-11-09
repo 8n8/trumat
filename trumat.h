@@ -5,7 +5,7 @@ int string_equal(const char *, const char *);
 // This is the formatter.
 int format(
     // This should contain the unformatted source code.
-    struct text in,
+    const struct text in,
     // This will be overwritten with the formatted code.
     struct text *out, struct text_memory *m);
 

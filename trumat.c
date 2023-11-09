@@ -165,7 +165,7 @@ static int parse_expression(struct text in, int *in_i, struct text_memory *m,
   return take_while_1(in, in_i, m, expression, is_digit);
 }
 
-int format(struct text in, struct text *out, struct text_memory *m) {
+int format(const struct text in, struct text *out, struct text_memory *m) {
   int in_i = 0;
   int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m);
   if (result < 0) {
