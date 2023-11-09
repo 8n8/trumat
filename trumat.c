@@ -56,7 +56,8 @@ static const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-static int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
+static int parse_char(struct text in, int *in_i, struct text_memory *m,
+                      char ch) {
   int got = text_index(in, *in_i, m);
   if (got < 0) {
     return -1;
@@ -71,7 +72,7 @@ static int parse_char(struct text in, int *in_i, struct text_memory *m, char ch)
 }
 
 static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
-                       struct text *expression) {
+                              struct text *expression) {
 
   int start = *in_i;
 
@@ -103,8 +104,8 @@ static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
 }
 
 static int parse_non_dot_exponent_float(struct text in, int *in_i,
-                                 struct text_memory *m,
-                                 struct text *expression) {
+                                        struct text_memory *m,
+                                        struct text *expression) {
 
   int start = *in_i;
 
