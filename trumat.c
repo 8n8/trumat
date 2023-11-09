@@ -90,11 +90,18 @@ int parse_float(struct text in, int *in_i, struct text_memory *m,
   }
   result = text_append_ascii_char(*expression, '.', expression, m);
   if (result) {
+    *in_i = start;
     return result;
   }
 
-  result = take_while_1(in, in_i, m, expression, is_digit);
-  return result;
+  struct text after_dot;
+  result = take_while_1(in, in_i, m, &after_dot, is_digit);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  return text_join(*expression, after_dot, expression, m);
 }
 
 static int parse_expression(struct text in, int *in_i, struct text_memory *m,
