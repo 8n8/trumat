@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-static char *test_only = "test_input/Float/0_1.elm";
+static char *test_only = "";
 
 static int string_equal(char *a, char *b) {
   int i = 0;
