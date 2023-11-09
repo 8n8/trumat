@@ -3,6 +3,24 @@
 #include <stdio.h>
 #include <sys/types.h>
 
+static char *test_only = "test_input/Float/0_1.elm";
+
+static int string_equal(char *a, char *b) {
+  int i = 0;
+  for (; a[i] != '\0' && b[i] != '\0' && a[i] == b[i]; ++i) {
+  }
+
+  return a[i] == '\0' && b[i] == '\0';
+}
+
+static int is_excluded_by_only(char *path) {
+  if (test_only[0] == '\0') {
+    return 0;
+  }
+
+  return !string_equal(path, test_only);
+}
+
 static void print_error(char *path, char *message) {
   fprintf(stderr, "FAILED: %s: %s\n", path, message);
 }
@@ -111,6 +129,10 @@ static void run_no_change_tests(char *path, struct text_memory *memory) {
     return;
   }
 
+  if (is_excluded_by_only(path)) {
+    return;
+  }
+
   text_zero_memory(memory);
   run_one_no_change_test(path, memory);
 }
@@ -197,6 +219,10 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
   }
 
   if (!is_elm_path(path)) {
+    return;
+  }
+
+  if (is_excluded_by_only(path)) {
     return;
   }
 

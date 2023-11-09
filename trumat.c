@@ -72,7 +72,8 @@ int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
   return 0;
 }
 
-int parse_float(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+int parse_float(struct text in, int *in_i, struct text_memory *m,
+                struct text *expression) {
 
   int start = *in_i;
 
@@ -97,8 +98,7 @@ int parse_float(struct text in, int *in_i, struct text_memory *m, struct text *e
 }
 
 static int parse_expression(struct text in, int *in_i, struct text_memory *m,
-                     struct text *expression) {
-
+                            struct text *expression) {
 
   int result = parse_float(in, in_i, m, expression);
   if (result == 0) {
