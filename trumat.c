@@ -72,7 +72,7 @@ int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
   return 0;
 }
 
-int parse_float(struct text in, int *in_i, struct text_memory *m,
+int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
                 struct text *expression) {
 
   int start = *in_i;
@@ -104,10 +104,46 @@ int parse_float(struct text in, int *in_i, struct text_memory *m,
   return text_join(*expression, after_dot, expression, m);
 }
 
+int parse_non_dot_exponent_float(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+
+  int start = *in_i;
+
+  int result = take_while_1(in, in_i, m, expression, is_digit);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  result = parse_char(in, in_i, m, 'e');
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+  result = text_append_ascii_char(*expression, 'e', expression, m);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  struct text after_e;
+  result = take_while_1(in, in_i, m, &after_e, is_digit);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  return text_join(*expression, after_e, expression, m);
+}
+
 static int parse_expression(struct text in, int *in_i, struct text_memory *m,
                             struct text *expression) {
 
-  int result = parse_float(in, in_i, m, expression);
+  int result = parse_simple_float(in, in_i, m, expression);
+  if (result == 0) {
+    return 0;
+  }
+
+  result = parse_non_dot_exponent_float(in, in_i, m, expression);
   if (result == 0) {
     return 0;
   }
