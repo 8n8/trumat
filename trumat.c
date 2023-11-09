@@ -137,8 +137,9 @@ int parse_non_dot_exponent_float(struct text in, int *in_i,
   return text_join(*expression, after_e, expression, m);
 }
 
-static int parse_expression(struct text in, int *in_i, struct text_memory *m,
-                            struct text *expression) {
+static int parse_float(struct text in, int *in_i, struct text_memory *m,
+                       struct text *expression) {
+  int start = *in_i;
 
   int result = parse_simple_float(in, in_i, m, expression);
   if (result == 0) {
@@ -146,6 +147,18 @@ static int parse_expression(struct text in, int *in_i, struct text_memory *m,
   }
 
   result = parse_non_dot_exponent_float(in, in_i, m, expression);
+  if (result == 0) {
+    return 0;
+  }
+
+  *in_i = start;
+  return -1;
+}
+
+static int parse_expression(struct text in, int *in_i, struct text_memory *m,
+                            struct text *expression) {
+
+  int result = parse_float(in, in_i, m, expression);
   if (result == 0) {
     return 0;
   }
