@@ -45,7 +45,7 @@ static int take_while_1(const struct text in, int *in_i, struct text_memory *m,
   return text_slice(in, start, *in_i, matching);
 }
 
-const uint8_t is_digit[256] = {
+static const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -58,7 +58,7 @@ const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
+static int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
   int got = text_index(in, *in_i, m);
   if (got < 0) {
     return -1;
@@ -72,7 +72,7 @@ int parse_char(struct text in, int *in_i, struct text_memory *m, char ch) {
   return 0;
 }
 
-int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
+static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
                        struct text *expression) {
 
   int start = *in_i;
@@ -104,7 +104,7 @@ int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
   return text_join(*expression, after_dot, expression, m);
 }
 
-int parse_non_dot_exponent_float(struct text in, int *in_i,
+static int parse_non_dot_exponent_float(struct text in, int *in_i,
                                  struct text_memory *m,
                                  struct text *expression) {
 
