@@ -17,7 +17,7 @@ You need a C compiler, such as gcc or clang. You may have one already. Run `cc -
 Then:
 
 - clone this repository
-- in the root of this repository run `cc -c -O2 trumat.c && cc -O2 trumat.o main.c --output=trumat`
+- in the root of this repository run `./build.sh`
 - you should now have a binary called `trumat` which can be run where it is with `./trumat`, or you can copy it to somewhere on your PATH, such as `/usr/local/bin`
 
 (The PATH is an environment variable that specifies the directories that contain the programs you can run directly by name from your terminal. To see your current PATH run `echo $PATH`.)
@@ -32,7 +32,7 @@ Note that it will currently fail to do anything and print an error message for m
 
 ## Test
 
-To test the code for development work, run `cc -c -Wall -Werror -O2 -std=c99 trumat.c && cc -Wall -O2 -Werror -std=c99 trumat.o test.c && ./a.out`.
+To test the code for development work, run `./test.sh`.
 
 The test data is kept in `test_formatted`, `test_expected` and `test_input`.
 
