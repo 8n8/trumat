@@ -63,13 +63,6 @@ char *usage =
     "you need to provide the --overwrite flag to confirm you are happy to "
     "recursively overwrite all the Elm files in this directory\n";
 
-int string_equal(char *a, char *b) {
-  for (; *a == *b && *a != 0 && *b != 0; ++a, ++b) {
-  }
-
-  return *a == 0 && *b == 0;
-}
-
 int is_valid_args(int argc, char *argv[]) {
   if (argc != 2) {
     return 0;

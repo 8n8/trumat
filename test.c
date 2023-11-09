@@ -5,14 +5,6 @@
 
 static char *test_only = "";
 
-static int string_equal(char *a, char *b) {
-  int i = 0;
-  for (; a[i] != '\0' && b[i] != '\0' && a[i] == b[i]; ++i) {
-  }
-
-  return a[i] == '\0' && b[i] == '\0';
-}
-
 static int is_excluded_by_only(char *path) {
   if (test_only[0] == '\0') {
     return 0;

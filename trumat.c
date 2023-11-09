@@ -187,3 +187,10 @@ int is_elm_path(const char *path) {
   return length >= 4 && path[length - 1] == 'm' && path[length - 2] == 'l' &&
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
+
+int string_equal(char *a, char *b) {
+  for (; *a == *b && *a != 0 && *b != 0; ++a, ++b) {
+  }
+
+  return *a == 0 && *b == 0;
+}
