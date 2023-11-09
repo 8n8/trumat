@@ -92,9 +92,7 @@ int parse_float(struct text in, int *in_i, struct text_memory *m, struct text *e
     return result;
   }
 
-  text_dbg(*expression, m);
   result = take_while_1(in, in_i, m, expression, is_digit);
-  text_dbg(*expression, m);
   return result;
 }
 
