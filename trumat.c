@@ -238,7 +238,7 @@ int is_elm_path(const char *path) {
          path[length - 3] == 'e' && path[length - 4] == '.';
 }
 
-int string_equal(char *a, char *b) {
+int string_equal(const char *a, const char *b) {
   for (; *a == *b && *a != 0 && *b != 0; ++a, ++b) {
   }
 
