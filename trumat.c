@@ -1,6 +1,15 @@
 #include "trumat.h"
 #include <stdio.h>
 
+void text_dbg(struct text, struct text_memory *);
+int text_from_ascii(char *, struct text *, struct text_memory *);
+int text_slice(struct text, int, int, struct text *);
+int text_join(struct text, struct text, struct text *, struct text_memory *);
+int text_append_ascii(struct text, const char *, struct text *,
+                      struct text_memory *);
+int text_append_ascii_char(struct text, char, struct text *,
+                           struct text_memory *);
+
 // Checks that some text contains an ASCII string, starting at an index.
 //
 // It returns a negative number if it's not there.
