@@ -18,13 +18,13 @@ static void print_error(char *path, char *message) {
 }
 
 static void make_expected_path(char *in_path, char *expected_path) {
-  char *expected_root = "test_expected/";
+  char *expected_root = "test_data/expected/";
   int expected_i = 0;
   for (; expected_root[expected_i] != 0; ++expected_i) {
     expected_path[expected_i] = expected_root[expected_i];
   }
 
-  char *in_root = "test_input/";
+  char *in_root = "test_data/input/";
   int in_i = 0;
   for (; in_root[in_i] != 0; ++in_i) {
   }
@@ -224,7 +224,7 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
 }
 
 int main(int argc, char *argv[]) {
-  run_positive_tests("test_input", &MEMORY);
+  run_positive_tests("test_data/input", &MEMORY);
   text_zero_memory(&MEMORY);
   run_no_change_tests("test_formatted", &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
