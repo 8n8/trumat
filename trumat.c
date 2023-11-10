@@ -19,7 +19,8 @@ static int append_char(char ch, struct text_memory *m) {
   return 0;
 }
 
-int text_slice(struct text parent, int start, int end, struct text *result) {
+static int text_slice(struct text parent, int start, int end,
+                      struct text *result) {
   int parent_size = text_length(parent);
   if (start >= parent_size || end > parent_size || start > end) {
     return -1;
@@ -45,8 +46,8 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
-int text_join(struct text left, struct text right, struct text *result,
-              struct text_memory *m) {
+static int text_join(struct text left, struct text right, struct text *result,
+                     struct text_memory *m) {
   if (left.end == m->head) {
     result->start = left.start;
   } else {
@@ -67,8 +68,8 @@ int text_join(struct text left, struct text right, struct text *result,
   return 0;
 }
 
-int text_append_ascii(struct text left, const char *right, struct text *result,
-                      struct text_memory *m) {
+static int text_append_ascii(struct text left, const char *right,
+                             struct text *result, struct text_memory *m) {
   if (left.end == m->head) {
     result->start = left.start;
   } else {
@@ -91,8 +92,8 @@ int text_append_ascii(struct text left, const char *right, struct text *result,
   return 0;
 }
 
-int text_append_ascii_char(struct text left, char right, struct text *result,
-                           struct text_memory *m) {
+static int text_append_ascii_char(struct text left, char right,
+                                  struct text *result, struct text_memory *m) {
 
   if (left.end == m->head) {
     result->start = left.start;
@@ -113,7 +114,8 @@ int text_append_ascii_char(struct text left, char right, struct text *result,
   return 0;
 }
 
-int text_from_ascii(char *ascii, struct text *result, struct text_memory *m) {
+static int text_from_ascii(char *ascii, struct text *result,
+                           struct text_memory *m) {
   result->start = m->head;
   for (int i = 0; ascii[i] != '\0'; ++i) {
     if (append_char(ascii[i], m)) {
