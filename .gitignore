@@ -3,3 +3,4 @@ trumat.o
 text.o
 trumat
 test
+test.elm
