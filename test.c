@@ -72,6 +72,43 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
   ++NUM_PASSED;
 }
 
+static void run_one_formatted_test(char *in_path, struct text_memory *m) {
+  FILE *in_file = fopen(in_path, "rb");
+  if (in_file == NULL) {
+    char error_message[256];
+    sprintf(error_message, "could not open file: %s", in_path);
+    print_error(in_path, error_message);
+    return;
+  }
+  struct text in;
+  int result = text_from_file(in_file, &in, m);
+  fclose(in_file);
+  if (result) {
+    char error_message[256];
+    sprintf(error_message, "could not read the file: %s", in_path);
+    print_error(in_path, error_message);
+    return;
+  }
+
+  if (result != 0) {
+    char error_message[256];
+    sprintf(error_message, "formatter failed with non-zero result: %d", result);
+    print_error(in_path, error_message);
+    return;
+  }
+
+  struct text out;
+  result = format(in, &out, m);
+  if (result != 0) {
+    char error_message[256];
+    sprintf(error_message, "formatter failed with non-zero result: %d", result);
+    print_error(in_path, error_message);
+    return;
+  }
+
+  check_unchanged(in_path, in, out, m);
+}
+
 static void run_one_no_change_test(char *in_path, struct text_memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
@@ -98,6 +135,35 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m) {
   }
 
   check_unchanged(in_path, in, out, m);
+}
+
+static void run_formatted_tests(char *path, struct text_memory *memory) {
+  DIR *directory = opendir(path);
+  struct dirent *item_in_directory;
+  if (directory != NULL) {
+    item_in_directory = readdir(directory);
+    while (item_in_directory != NULL) {
+      if (!is_dot_path(item_in_directory->d_name)) {
+        char sub_path[256];
+        make_sub_path(path, item_in_directory->d_name, sub_path);
+        run_formatted_tests(sub_path, memory);
+      }
+      item_in_directory = readdir(directory);
+    }
+    closedir(directory);
+    return;
+  }
+
+  if (!is_elm_path(path)) {
+    return;
+  }
+
+  if (is_excluded_by_only(path)) {
+    return;
+  }
+
+  text_zero_memory(memory);
+  run_one_formatted_test(path, memory);
 }
 
 static void run_no_change_tests(char *path, struct text_memory *memory) {
@@ -226,6 +292,7 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
 int main(int argc, char *argv[]) {
   run_positive_tests("test_data/input", &MEMORY);
   run_no_change_tests("test_data/dont_change", &MEMORY);
+  run_formatted_tests("test_data/formatted", &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
