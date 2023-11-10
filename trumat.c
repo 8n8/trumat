@@ -129,7 +129,7 @@ static int parse_non_dot_exponent_float(struct text in, int *in_i,
     *in_i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, 'e', expression, m);
+  result = text_append_ascii(*expression, ".0e", expression, m);
   if (result) {
     *in_i = start;
     return result;
