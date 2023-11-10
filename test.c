@@ -226,7 +226,7 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
 int main(int argc, char *argv[]) {
   run_positive_tests("test_data/input", &MEMORY);
   text_zero_memory(&MEMORY);
-  run_no_change_tests("test_formatted", &MEMORY);
+  run_no_change_tests("test_data/dont_change", &MEMORY);
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
