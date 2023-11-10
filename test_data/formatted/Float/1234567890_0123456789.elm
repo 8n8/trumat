@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    5
+    1234567890.0123458
