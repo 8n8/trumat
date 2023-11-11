@@ -46,8 +46,8 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
-static int text_join(struct text left, struct text right, struct text *result,
-                     struct text_memory *m) {
+static int text_join(struct text left, struct text right, struct text_memory *m,
+                     struct text *result) {
   if (left.end == m->head) {
     result->start = left.start;
   } else {
@@ -92,7 +92,8 @@ static int text_append_ascii(struct text left, const char *right,
   return 0;
 }
 
-static int text_prepend_ascii_char(char left, struct text right, struct text *result, struct text_memory *m) {
+static int text_prepend_ascii_char(char left, struct text right,
+                                   struct text_memory *m, struct text *result) {
   result->start = m->head;
   if (append_char(left, m)) {
     return -1;
@@ -106,7 +107,7 @@ static int text_prepend_ascii_char(char left, struct text right, struct text *re
 }
 
 static int text_append_ascii_char(struct text left, char right,
-                                  struct text *result, struct text_memory *m) {
+                                  struct text_memory *m, struct text *result) {
 
   if (left.end == m->head) {
     result->start = left.start;
@@ -226,7 +227,7 @@ static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
     *in_i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, '.', expression, m);
+  result = text_append_ascii_char(*expression, '.', m, expression);
   if (result) {
     *in_i = start;
     return result;
@@ -239,7 +240,7 @@ static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
     return result;
   }
 
-  return text_join(*expression, after_dot, expression, m);
+  return text_join(*expression, after_dot, m, expression);
 }
 
 static int parse_dot_exponent_float(struct text in, int *in_i,
@@ -258,7 +259,7 @@ static int parse_dot_exponent_float(struct text in, int *in_i,
     *in_i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, '.', expression, m);
+  result = text_append_ascii_char(*expression, '.', m, expression);
   if (result) {
     *in_i = start;
     return result;
@@ -271,7 +272,7 @@ static int parse_dot_exponent_float(struct text in, int *in_i,
     return result;
   }
 
-  result = text_join(*expression, after_dot, expression, m);
+  result = text_join(*expression, after_dot, m, expression);
   if (result) {
     *in_i = start;
     return result;
@@ -282,7 +283,7 @@ static int parse_dot_exponent_float(struct text in, int *in_i,
     *in_i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, 'e', expression, m);
+  result = text_append_ascii_char(*expression, 'e', m, expression);
   if (result) {
     *in_i = start;
     return result;
@@ -295,7 +296,7 @@ static int parse_dot_exponent_float(struct text in, int *in_i,
     return result;
   }
 
-  return text_join(*expression, after_e, expression, m);
+  return text_join(*expression, after_e, m, expression);
 }
 
 static int parse_non_dot_exponent_float(struct text in, int *in_i,
@@ -328,11 +329,12 @@ static int parse_non_dot_exponent_float(struct text in, int *in_i,
     return result;
   }
 
-  return text_join(*expression, after_e, expression, m);
+  return text_join(*expression, after_e, m, expression);
 }
 
-static int parse_positive_float(struct text in, int *in_i, struct text_memory *m,
-                       struct text *expression) {
+static int parse_positive_float(struct text in, int *in_i,
+                                struct text_memory *m,
+                                struct text *expression) {
   int start = *in_i;
 
   int result = parse_dot_exponent_float(in, in_i, m, expression);
@@ -354,7 +356,9 @@ static int parse_positive_float(struct text in, int *in_i, struct text_memory *m
   return -1;
 }
 
-static int parse_negative_float(struct text in, int *in_i, struct text *expression, struct text_memory *m) {
+static int parse_negative_float(struct text in, int *in_i,
+                                struct text_memory *m,
+                                struct text *expression) {
   int start = *in_i;
 
   int result = parse_char(in, in_i, m, '-');
@@ -370,16 +374,17 @@ static int parse_negative_float(struct text in, int *in_i, struct text *expressi
     return result;
   }
 
-  return text_prepend_ascii_char('-', positive, expression, m);
+  return text_prepend_ascii_char('-', positive, m, expression);
 }
 
-static int parse_float(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+static int parse_float(struct text in, int *in_i, struct text_memory *m,
+                       struct text *expression) {
   int result = parse_positive_float(in, in_i, m, expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_negative_float(in, in_i, expression, m);
+  return parse_negative_float(in, in_i, m, expression);
 }
 
 static int parse_expression(struct text in, int *in_i, struct text_memory *m,
@@ -419,11 +424,11 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
   if (result) {
     return result;
   }
-  result = text_join(*out, expression, out, m);
+  result = text_join(*out, expression, m, out);
   if (result) {
     return result;
   }
-  result = text_append_ascii_char(*out, '\n', out, m);
+  result = text_append_ascii_char(*out, '\n', m, out);
   if (result) {
     return result;
   }
