@@ -4,3 +4,5 @@ text.o
 trumat
 test
 test.elm
+elm-stuff/
+elm.json
