@@ -30,7 +30,7 @@ Run `trumat --overwrite` to recursively format and overwrite all the Elm files i
 
 Note that it will currently fail to do anything and print an error message for most files as there is a lot of Elm that is not supported yet. You can suppress these error messages by redirecting them to `/dev/null` as follows: `trumat --overwrite 2> /dev/null`.
 
-## Test
+## Development
 
 To test the code for development work, run `./test.sh`.
 
@@ -39,3 +39,7 @@ The test data is kept in `test_formatted`, `test_expected` and `test_input`.
 The `test_formatted` directory contains a lot of Elm files that are already formatted with `elm_format`. The test runner passes all these through `trumat` and checks it doesn't change any of them.
 
 The `test_input` directory contains unformatted Elm code. The `test_expected` directory contains the same paths as `test_input`, but all the files are formatted. The test runner passes each file in `test_input` through `trumat` and checks the result against the corresponding file in `test_expected`.
+
+If you need to check for memory bugs, you can build the tests and run them in Valgrind with `./valgrind.sh`.
+
+If you need to run a debugger you can build the tests and run them with `./debug.sh`.
