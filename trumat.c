@@ -211,11 +211,13 @@ static int parse_char(struct text in, int *in_i, struct text_memory *m,
   return 0;
 }
 
-static int parse_positive_int(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+static int parse_positive_int(struct text in, int *in_i, struct text_memory *m,
+                              struct text *expression) {
   return take_while_1(in, in_i, m, expression, is_digit);
 }
 
-static int parse_negative_int(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+static int parse_negative_int(struct text in, int *in_i, struct text_memory *m,
+                              struct text *expression) {
   int start = *in_i;
 
   int result = parse_char(in, in_i, m, '-');
@@ -234,7 +236,8 @@ static int parse_negative_int(struct text in, int *in_i, struct text_memory *m, 
   return text_prepend_ascii_char('-', exponent, m, expression);
 }
 
-static int parse_int(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+static int parse_int(struct text in, int *in_i, struct text_memory *m,
+                     struct text *expression) {
 
   int result = parse_positive_int(in, in_i, m, expression);
   if (result == 0) {
@@ -276,7 +279,9 @@ static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
   return text_join(*expression, after_dot, m, expression);
 }
 
-static int parse_float_exponent(struct text in, int *in_i, struct text_memory *m, struct text *expression) {
+static int parse_float_exponent(struct text in, int *in_i,
+                                struct text_memory *m,
+                                struct text *expression) {
   int start = *in_i;
 
   int result = parse_char(in, in_i, m, 'e');
