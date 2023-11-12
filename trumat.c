@@ -1,7 +1,13 @@
 #include "trumat.h"
 #include <stdio.h>
 
-static int parse_int(struct text, int *, struct text_memory *, struct text *);
+struct parser {
+  struct text in;
+  int i;
+  struct text_memory *m;
+};
+
+static int parse_int(struct parser *, struct text *);
 
 void text_dbg(struct text t, struct text_memory *m) {
   printf("DBG: ");
@@ -143,47 +149,37 @@ static int text_from_ascii(char *ascii, struct text *result,
   return 0;
 }
 
-// Checks that some text contains an ASCII string, starting at an index.
-//
-// It returns a negative number if it's not there.
-//
-// It returns the position of end of the searched-for string.
-//
-// To be clear, the searched for string must start at the provided position.
-static int parse_chunk(
-    // The text that is searched.
-    struct text in,
-    // The position to start the search.
-    int *in_i,
-    // The string to search for.
-    const char *chunk, struct text_memory *m) {
+static int parse_chunk(struct parser *p, const char *chunk) {
+
+  int start = p->i;
 
   int i = 0;
-  for (; text_index(in, i + *in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
+  for (; text_index(p->in, p->i, p->m) == chunk[i] && chunk[i] != 0;
+       ++p->i, ++i) {
   }
 
   if (chunk[i] == 0) {
-    *in_i += i;
     return 0;
   }
 
+  p->i = start;
   return -1;
 }
 
-static int take_while_1(const struct text in, int *in_i, struct text_memory *m,
-                        struct text *matching, const uint8_t match[256]) {
+static int take_while_1(struct parser *p, struct text *matching,
+                        const uint8_t match[256]) {
 
-  int start = *in_i;
+  int start = p->i;
 
-  if (!(match[text_index(in, *in_i, m)])) {
+  if (!(match[text_index(p->in, p->i, p->m)])) {
     return -1;
   }
-  ++*in_i;
+  ++p->i;
 
-  for (; match[text_index(in, *in_i, m)]; ++*in_i) {
+  for (; match[text_index(p->in, p->i, p->m)]; ++p->i) {
   }
 
-  return text_slice(in, start, *in_i, matching);
+  return text_slice(p->in, start, p->i, matching);
 }
 
 static const uint8_t is_digit[256] = {
@@ -199,9 +195,8 @@ static const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-static int parse_char(struct text in, int *in_i, struct text_memory *m,
-                      char ch) {
-  int got = text_index(in, *in_i, m);
+static int parse_char(struct parser *p, char ch) {
+  int got = text_index(p->in, p->i, p->m);
   if (got < 0) {
     return -1;
   }
@@ -210,268 +205,252 @@ static int parse_char(struct text in, int *in_i, struct text_memory *m,
     return -1;
   }
 
-  ++*in_i;
+  ++p->i;
   return 0;
 }
 
-static int parse_positive_int(struct text in, int *in_i, struct text_memory *m,
-                              struct text *expression) {
-  return take_while_1(in, in_i, m, expression, is_digit);
+static int parse_positive_int(struct parser *p, struct text *expression) {
+  return take_while_1(p, expression, is_digit);
 }
 
-static int parse_negative_int(struct text in, int *in_i, struct text_memory *m,
-                              struct text *expression) {
-  int start = *in_i;
+static int parse_negative_int(struct parser *p, struct text *expression) {
+  int start = p->i;
 
-  int result = parse_char(in, in_i, m, '-');
+  int result = parse_char(p, '-');
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_positive_int(in, in_i, m, &exponent);
+  result = parse_positive_int(p, &exponent);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_prepend_ascii_char('-', exponent, m, expression);
+  return text_prepend_ascii_char('-', exponent, p->m, expression);
 }
 
-static int parse_int(struct text in, int *in_i, struct text_memory *m,
-                     struct text *expression) {
+static int parse_int(struct parser *p, struct text *expression) {
 
-  int result = parse_positive_int(in, in_i, m, expression);
+  int result = parse_positive_int(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_negative_int(in, in_i, m, expression);
+  return parse_negative_int(p, expression);
 }
 
-static int parse_simple_float(struct text in, int *in_i, struct text_memory *m,
-                              struct text *expression) {
+static int parse_simple_float(struct parser *p, struct text *expression) {
 
-  int start = *in_i;
+  int start = p->i;
 
-  int result = take_while_1(in, in_i, m, expression, is_digit);
+  int result = take_while_1(p, expression, is_digit);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  result = parse_char(in, in_i, m, '.');
+  result = parse_char(p, '.');
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, '.', m, expression);
+  result = text_append_ascii_char(*expression, '.', p->m, expression);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text after_dot;
-  result = take_while_1(in, in_i, m, &after_dot, is_digit);
+  result = take_while_1(p, &after_dot, is_digit);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_join(*expression, after_dot, m, expression);
+  return text_join(*expression, after_dot, p->m, expression);
 }
 
-static int parse_float_exponent(struct text in, int *in_i,
-                                struct text_memory *m,
-                                struct text *expression) {
-  int start = *in_i;
+static int parse_float_exponent(struct parser *p, struct text *expression) {
+  int start = p->i;
 
-  int result = parse_char(in, in_i, m, 'e');
+  int result = parse_char(p, 'e');
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_int(in, in_i, m, &exponent);
+  result = parse_int(p, &exponent);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_prepend_ascii_char('e', exponent, m, expression);
+  return text_prepend_ascii_char('e', exponent, p->m, expression);
 }
 
-static int parse_dot_exponent_float(struct text in, int *in_i,
-                                    struct text_memory *m,
-                                    struct text *expression) {
-  int start = *in_i;
+static int parse_dot_exponent_float(struct parser *p, struct text *expression) {
+  int start = p->i;
 
   struct text before_exponent;
-  int result = parse_simple_float(in, in_i, m, &before_exponent);
+  int result = parse_simple_float(p, &before_exponent);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  result = text_join(*expression, before_exponent, m, expression);
+  result = text_join(*expression, before_exponent, p->m, expression);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_float_exponent(in, in_i, m, &exponent);
+  result = parse_float_exponent(p, &exponent);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
-  return text_join(*expression, exponent, m, expression);
+  return text_join(*expression, exponent, p->m, expression);
 }
 
-static int parse_non_dot_exponent_float(struct text in, int *in_i,
-                                        struct text_memory *m,
+static int parse_non_dot_exponent_float(struct parser *p,
                                         struct text *expression) {
 
-  int start = *in_i;
+  int start = p->i;
 
-  int result = take_while_1(in, in_i, m, expression, is_digit);
+  int result = take_while_1(p, expression, is_digit);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_float_exponent(in, in_i, m, &exponent);
+  result = parse_float_exponent(p, &exponent);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  result = text_append_ascii(*expression, ".0", expression, m);
+  result = text_append_ascii(*expression, ".0", expression, p->m);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_join(*expression, exponent, m, expression);
+  return text_join(*expression, exponent, p->m, expression);
 }
 
-static int parse_positive_float(struct text in, int *in_i,
-                                struct text_memory *m,
-                                struct text *expression) {
-  int start = *in_i;
+static int parse_positive_float(struct parser *p, struct text *expression) {
+  int start = p->i;
 
-  int result = parse_dot_exponent_float(in, in_i, m, expression);
+  int result = parse_dot_exponent_float(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_simple_float(in, in_i, m, expression);
+  result = parse_simple_float(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_non_dot_exponent_float(in, in_i, m, expression);
+  result = parse_non_dot_exponent_float(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  *in_i = start;
+  p->i = start;
   return -1;
 }
 
-static int parse_negative_float(struct text in, int *in_i,
-                                struct text_memory *m,
-                                struct text *expression) {
-  int start = *in_i;
+static int parse_negative_float(struct parser *p, struct text *expression) {
+  int start = p->i;
 
-  int result = parse_char(in, in_i, m, '-');
+  int result = parse_char(p, '-');
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
   struct text positive;
-  result = parse_positive_float(in, in_i, m, &positive);
+  result = parse_positive_float(p, &positive);
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_prepend_ascii_char('-', positive, m, expression);
+  return text_prepend_ascii_char('-', positive, p->m, expression);
 }
 
-static int parse_float(struct text in, int *in_i, struct text_memory *m,
-                       struct text *expression) {
-  int result = parse_positive_float(in, in_i, m, expression);
+static int parse_float(struct parser *p, struct text *expression) {
+  int result = parse_positive_float(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_negative_float(in, in_i, m, expression);
+  return parse_negative_float(p, expression);
 }
 
-static int parse_simple_string(struct text in, int *in_i, struct text_memory *m,
-                               struct text *expression) {
-  int start = *in_i;
+static int parse_simple_string(struct parser *p, struct text *expression) {
+  int start = p->i;
 
-  int result = parse_chunk(in, in_i, "\"\"", m);
+  int result = parse_chunk(p, "\"\"");
   if (result) {
-    *in_i = start;
+    p->i = start;
     return result;
   }
 
-  return text_append_ascii(*expression, "\"\"", expression, m);
+  return text_append_ascii(*expression, "\"\"", expression, p->m);
 }
 
-static int parse_expression(struct text in, int *in_i, struct text_memory *m,
-                            struct text *expression) {
+static int parse_expression(struct parser *p, struct text *expression) {
 
-  int result = parse_float(in, in_i, m, expression);
+  int result = parse_float(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_int(in, in_i, m, expression);
+  result = parse_int(p, expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_simple_string(in, in_i, m, expression);
+  return parse_simple_string(p, expression);
 }
 
 int format(const struct text in, struct text *out, struct text_memory *m) {
-  int in_i = 0;
-  int result = parse_chunk(in, &in_i, "module X exposing (x)\n\n\nx =\n", m);
+  struct parser p = {.in = in, .i = 0, .m = m};
+  int result = parse_chunk(&p, "module X exposing (x)\n\n\nx =\n");
   if (result < 0) {
     return result;
   }
 
-  for (; text_index(in, in_i, m) == ' '; ++in_i) {
+  for (; text_index(p.in, p.i, p.m) == ' '; ++p.i) {
   }
 
   struct text expression;
-  result = parse_expression(in, &in_i, m, &expression);
+  result = parse_expression(&p, &expression);
   if (result < 0) {
     return result;
   }
 
-  result = parse_chunk(in, &in_i, "\n\0", m);
+  result = parse_chunk(&p, "\n\0");
   if (result < 0) {
     return result;
   }
 
-  result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out, m);
+  result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out, p.m);
   if (result) {
     return result;
   }
-  result = text_join(*out, expression, m, out);
+  result = text_join(*out, expression, p.m, out);
   if (result) {
     return result;
   }
-  result = text_append_ascii_char(*out, '\n', m, out);
+  result = text_append_ascii_char(*out, '\n', p.m, out);
   if (result) {
     return result;
   }
