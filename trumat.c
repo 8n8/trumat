@@ -307,31 +307,14 @@ static int parse_dot_exponent_float(struct text in, int *in_i,
                                     struct text *expression) {
   int start = *in_i;
 
-  int result = take_while_1(in, in_i, m, expression, is_digit);
+  struct text before_exponent;
+  int result = parse_simple_float(in, in_i, m, &before_exponent);
   if (result) {
     *in_i = start;
     return result;
   }
 
-  result = parse_char(in, in_i, m, '.');
-  if (result) {
-    *in_i = start;
-    return result;
-  }
-  result = text_append_ascii_char(*expression, '.', m, expression);
-  if (result) {
-    *in_i = start;
-    return result;
-  }
-
-  struct text after_dot;
-  result = take_while_1(in, in_i, m, &after_dot, is_digit);
-  if (result) {
-    *in_i = start;
-    return result;
-  }
-
-  result = text_join(*expression, after_dot, m, expression);
+  result = text_join(*expression, before_exponent, m, expression);
   if (result) {
     *in_i = start;
     return result;
