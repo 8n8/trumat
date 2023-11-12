@@ -1,6 +1,8 @@
 #include "trumat.h"
 #include <stdio.h>
 
+static int parse_int(struct text, int *, struct text_memory *, struct text *);
+
 void text_dbg(struct text t, struct text_memory *m) {
   printf("DBG: ");
   for (int i = t.start; i < t.end; ++i) {
@@ -435,7 +437,7 @@ static int parse_expression(struct text in, int *in_i, struct text_memory *m,
     return 0;
   }
 
-  return take_while_1(in, in_i, m, expression, is_digit);
+  return parse_int(in, in_i, m, expression);
 }
 
 int format(const struct text in, struct text *out, struct text_memory *m) {
