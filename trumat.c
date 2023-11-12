@@ -149,6 +149,17 @@ static int text_from_ascii(char *ascii, struct text *result,
   return 0;
 }
 
+static int text_from_ascii_char(char ascii, struct text *result,
+                           struct text_memory *m) {
+  result->start = m->head;
+  if (append_char(ascii, m)) {
+    return -1;
+  }
+
+  result->end = m->head;
+  return 0;
+}
+
 static int parse_chunk(struct parser *p, const char *chunk) {
 
   int start = p->i;
@@ -164,6 +175,17 @@ static int parse_chunk(struct parser *p, const char *chunk) {
 
   p->i = start;
   return -1;
+}
+
+static int take_while(struct parser *p, struct text *matching,
+                        const uint8_t match[256]) {
+
+  int start = p->i;
+
+  for (; match[text_index(p->in, p->i, p->m)]; ++p->i) {
+  }
+
+  return text_slice(p->in, start, p->i, matching);
 }
 
 static int take_while_1(struct parser *p, struct text *matching,
@@ -194,6 +216,8 @@ static const uint8_t is_digit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+static const uint8_t is_alpha_num[256] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 static int parse_char(struct parser *p, char ch) {
   int got = text_index(p->in, p->i, p->m);
@@ -397,13 +421,43 @@ static int parse_float(struct parser *p, struct text *expression) {
 static int parse_simple_string(struct parser *p, struct text *expression) {
   int start = p->i;
 
-  int result = parse_chunk(p, "\"\"");
+  int result = parse_char(p, '"');
   if (result) {
     p->i = start;
     return result;
   }
 
-  return text_append_ascii(*expression, "\"\"", expression, p->m);
+  result = text_from_ascii_char('"', expression, p->m);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  struct text contents;
+  result = take_while(p, &contents, is_alpha_num);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  result = text_join(*expression, contents, p->m, expression);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = parse_char(p, '"');
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_append_ascii_char(*expression, '"', p->m, expression);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return 0;
 }
 
 static int parse_expression(struct parser *p, struct text *expression) {
