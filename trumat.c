@@ -154,16 +154,17 @@ static int parse_chunk(
     // The text that is searched.
     struct text in,
     // The position to start the search.
-    int in_i,
+    int *in_i,
     // The string to search for.
     const char *chunk, struct text_memory *m) {
 
   int i = 0;
-  for (; text_index(in, i + in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
+  for (; text_index(in, i + *in_i, m) == chunk[i] && chunk[i] != 0; ++i) {
   }
 
   if (chunk[i] == 0) {
-    return in_i + i;
+    *in_i += i;
+    return 0;
   }
 
   return -1;
@@ -412,6 +413,19 @@ static int parse_float(struct text in, int *in_i, struct text_memory *m,
   return parse_negative_float(in, in_i, m, expression);
 }
 
+static int parse_simple_string(struct text in, int *in_i, struct text_memory *m,
+                               struct text *expression) {
+  int start = *in_i;
+
+  int result = parse_chunk(in, in_i, "\"\"", m);
+  if (result) {
+    *in_i = start;
+    return result;
+  }
+
+  return text_append_ascii(*expression, "\"\"", expression, m);
+}
+
 static int parse_expression(struct text in, int *in_i, struct text_memory *m,
                             struct text *expression) {
 
@@ -420,16 +434,20 @@ static int parse_expression(struct text in, int *in_i, struct text_memory *m,
     return 0;
   }
 
-  return parse_int(in, in_i, m, expression);
+  result = parse_int(in, in_i, m, expression);
+  if (result == 0) {
+    return 0;
+  }
+
+  return parse_simple_string(in, in_i, m, expression);
 }
 
 int format(const struct text in, struct text *out, struct text_memory *m) {
   int in_i = 0;
-  int result = parse_chunk(in, in_i, "module X exposing (x)\n\n\nx =\n", m);
+  int result = parse_chunk(in, &in_i, "module X exposing (x)\n\n\nx =\n", m);
   if (result < 0) {
     return result;
   }
-  in_i = result;
 
   for (; text_index(in, in_i, m) == ' '; ++in_i) {
   }
@@ -440,7 +458,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
     return result;
   }
 
-  result = parse_chunk(in, in_i, "\n\0", m);
+  result = parse_chunk(in, &in_i, "\n\0", m);
   if (result < 0) {
     return result;
   }
