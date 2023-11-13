@@ -437,7 +437,6 @@ static int parse_simple_string(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-
   result = text_from_ascii_char('"', expression, p->m);
   if (result) {
     p->i = start;
@@ -461,7 +460,6 @@ static int parse_simple_string(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-
   result = text_append_ascii_char(*expression, '"', p->m, expression);
   if (result) {
     p->i = start;
