@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-static struct text_memory MEMORY;
 
 static void format_file(char *path, struct text_memory *m) {
   struct text out;
@@ -77,5 +76,6 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  format_directory(".", &MEMORY);
+  static struct text_memory m;
+  format_directory(".", &m);
 }
