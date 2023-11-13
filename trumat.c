@@ -177,17 +177,6 @@ static int parse_chunk(struct parser *p, const char *chunk) {
   return -1;
 }
 
-static int take_while(struct parser *p, struct text *matching,
-                      const uint8_t match[256]) {
-
-  int start = p->i;
-
-  for (; match[text_index(p->in, p->i, p->m)]; ++p->i) {
-  }
-
-  return text_slice(p->in, start, p->i, matching);
-}
-
 static int take_while_1(struct parser *p, struct text *matching,
                         const uint8_t match[256]) {
 
@@ -535,6 +524,22 @@ static int parse_float(struct parser *p, struct text *expression) {
   return parse_negative_float(p, expression);
 }
 
+static int parse_simple_string_piece(struct parser *p,
+                                     struct text *expression) {
+  int start = p->i;
+  int result = take_while_1(p, expression, is_normal_string_char);
+  if (result == 0) {
+    return result;
+  }
+
+  result = parse_chunk(p, "\\\"");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  return text_from_ascii("\\\"", expression, p->m);
+}
+
 static int parse_simple_string(struct parser *p, struct text *expression) {
   int start = p->i;
 
@@ -550,15 +555,12 @@ static int parse_simple_string(struct parser *p, struct text *expression) {
   }
 
   struct text contents;
-  result = take_while(p, &contents, is_normal_string_char);
-  if (result) {
-    p->i = start;
-    return result;
-  }
-  result = text_join(*expression, contents, p->m, expression);
-  if (result) {
-    p->i = start;
-    return result;
+  while (parse_simple_string_piece(p, &contents) == 0) {
+    result = text_join(*expression, contents, p->m, expression);
+    if (result) {
+      p->i = start;
+      return result;
+    }
   }
 
   result = parse_char(p, '"');
