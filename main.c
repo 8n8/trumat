@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-
 static void format_file(char *path, struct text_memory *m) {
   struct text out;
   {
