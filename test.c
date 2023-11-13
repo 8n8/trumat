@@ -38,7 +38,6 @@ static void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-static struct text_memory MEMORY;
 static int NUM_PASSED = 0;
 static int NUM_IGNORED = 0;
 
@@ -290,9 +289,10 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
 }
 
 int main(int argc, char *argv[]) {
-  run_positive_tests("test_data/input", &MEMORY);
-  run_no_change_tests("test_data/dont_change", &MEMORY);
-  run_formatted_tests("test_data/formatted", &MEMORY);
+  static struct text_memory m;
+  run_positive_tests("test_data/input", &m);
+  run_no_change_tests("test_data/dont_change", &m);
+  run_formatted_tests("test_data/formatted", &m);
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
 }
