@@ -38,7 +38,6 @@ static void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-
 static void check_unchanged(char *in_path, struct text in, struct text out,
                             struct text_memory *m, int *num_passed) {
   if (text_length(in) != text_length(out)) {
@@ -69,7 +68,8 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
   ++*num_passed;
 }
 
-static void run_one_formatted_test(char *in_path, struct text_memory *m, int *num_passed) {
+static void run_one_formatted_test(char *in_path, struct text_memory *m,
+                                   int *num_passed) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -106,7 +106,8 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m, int *nu
   check_unchanged(in_path, in, out, m, num_passed);
 }
 
-static void run_one_no_change_test(char *in_path, struct text_memory *m, int *num_ignored, int* num_passed) {
+static void run_one_no_change_test(char *in_path, struct text_memory *m,
+                                   int *num_ignored, int *num_passed) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -134,7 +135,8 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m, int *nu
   check_unchanged(in_path, in, out, m, num_passed);
 }
 
-static void run_formatted_tests(char *path, struct text_memory *memory, int *num_passed) {
+static void run_formatted_tests(char *path, struct text_memory *memory,
+                                int *num_passed) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -163,7 +165,8 @@ static void run_formatted_tests(char *path, struct text_memory *memory, int *num
   run_one_formatted_test(path, memory, num_passed);
 }
 
-static void run_no_change_tests(char *path, struct text_memory *memory, int *num_ignored, int *num_passed) {
+static void run_no_change_tests(char *path, struct text_memory *memory,
+                                int *num_ignored, int *num_passed) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -225,7 +228,8 @@ static void check_expected(char *in_path, struct text out,
   ++*num_passed;
 }
 
-static void run_one_positive_test(char *in_path, struct text_memory *m, int* num_passed) {
+static void run_one_positive_test(char *in_path, struct text_memory *m,
+                                  int *num_passed) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -257,7 +261,8 @@ static void run_one_positive_test(char *in_path, struct text_memory *m, int* num
   check_expected(in_path, out, m, num_passed);
 }
 
-static void run_positive_tests(char *path, struct text_memory *memory, int *num_passed) {
+static void run_positive_tests(char *path, struct text_memory *memory,
+                               int *num_passed) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
