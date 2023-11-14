@@ -541,6 +541,11 @@ static int parse_simple_string_piece(struct parser *p,
     return text_from_ascii("\\\\", expression, p->m);
   }
 
+  result = parse_chunk(p, "\\n");
+  if (result == 0) {
+    return text_from_ascii("\\n", expression, p->m);
+  }
+
   return -1;
 }
 
