@@ -16,7 +16,7 @@ int text_from_file(struct text_memory *, FILE *, struct text *);
 void text_zero_memory(struct text_memory *);
 int text_index(struct text_memory *, struct text, int);
 int text_length(struct text);
-void text_to_file(FILE *, struct text, struct text_memory *);
+void text_to_file(struct text_memory*, FILE *, struct text);
 
 int string_equal(const char *, const char *);
 

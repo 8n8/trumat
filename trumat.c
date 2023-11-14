@@ -803,7 +803,7 @@ int text_from_file(struct text_memory *m, FILE *file, struct text *t) {
   return 0;
 }
 
-void text_to_file(FILE *f, struct text t, struct text_memory *m) {
+void text_to_file(struct text_memory *m, FILE *f, struct text t) {
   fwrite(m->bytes + t.start, 1, t.end - t.start, f);
 }
 

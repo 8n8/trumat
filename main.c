@@ -11,7 +11,7 @@ static void format_file(char *path, struct text_memory *m) {
       return;
     }
     struct text in;
-    if (text_from_file(file, &in, m)) {
+    if (text_from_file(m, file, &in)) {
       fprintf(stderr, "could not read the file: %s\n", path);
       return;
     }
@@ -28,7 +28,7 @@ static void format_file(char *path, struct text_memory *m) {
   }
 
   FILE *file = fopen(path, "wb");
-  text_to_file(file, out, m);
+  text_to_file(m, file, out);
 
   printf("Processing %s\n", path);
 }
