@@ -78,7 +78,7 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m,
     return;
   }
   struct text in;
-  int result = text_from_file(in_file, &in, m);
+  int result = text_from_file(m, in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];
@@ -116,7 +116,7 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m,
     return;
   }
   struct text in;
-  int result = text_from_file(in_file, &in, m);
+  int result = text_from_file(m, in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];
@@ -239,7 +239,7 @@ static void run_one_positive_test(char *in_path, struct text_memory *m,
   }
 
   struct text in;
-  int result = text_from_file(in_file, &in, m);
+  int result = text_from_file(m, in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];

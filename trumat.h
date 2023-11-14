@@ -12,7 +12,7 @@ struct text_memory {
   uint32_t head;
 };
 
-int text_from_file(FILE *, struct text *, struct text_memory *);
+int text_from_file(struct text_memory *, FILE *, struct text *);
 void text_zero_memory(struct text_memory *);
 int text_index(struct text_memory *, struct text, int);
 int text_length(struct text);

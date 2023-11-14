@@ -795,7 +795,7 @@ void text_zero_memory(struct text_memory *m) { m->head = 0; }
 
 int text_length(struct text t) { return t.end - t.start; }
 
-int text_from_file(FILE *file, struct text *t, struct text_memory *m) {
+int text_from_file(struct text_memory *m, FILE *file, struct text *t) {
   t->start = m->head;
   size_t size = fread(m->bytes + t->start, 1, TEXT_SIZE - t->start, file);
   m->head += size;
