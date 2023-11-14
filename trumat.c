@@ -193,6 +193,72 @@ static int take_while_1(struct parser *p, struct text *matching,
   return text_slice(p->in, start, p->i, matching);
 }
 
+static const uint8_t is_hex[256] = {
+    0 /*NUL*/, 0 /*SOH*/,   0 /*STX*/, 0 /*ETX*/,
+    0 /*EOT*/, 0 /*ENQ*/,   0 /*ACK*/, 0 /*BEL*/,
+    0 /*BS*/,  0 /*TAB*/,   0 /*LF*/,  0 /*VT*/,
+    0 /*FF*/,  0 /*CR*/,    0 /*SO*/,  0 /*SI*/,
+    0 /*DLE*/, 0 /*DC1*/,   0 /*DC2*/, 0 /*DC3*/,
+    0 /*DC4*/, 0 /*NAK*/,   0 /*SYN*/, 0 /*ETB*/,
+    0 /*CAN*/, 0 /*EM*/,    0 /*SUB*/, 0 /*ESC*/,
+    0 /*FS*/,  0 /*GS*/,    0 /*RS*/,  0 /*RS*/,
+    0 /*US*/,  0 /*Space*/, 0 /*!*/,   0 /*"*/,
+    0 /*#*/,   0 /*$*/,     0 /*&*/,   0 /*'*/,
+    0 /*(*/,   0 /*)*/,     0 /***/,   0 /*+*/,
+    0 /*,*/,   0 /*-*/,     0 /*.*/,   0 /*forward slash*/,
+    1 /*0*/,   1 /*1*/,     1 /*2*/,   1 /*3*/,
+    1 /*4*/,   1 /*5*/,     1 /*6*/,   1 /*7*/,
+    1 /*8*/,   1 /*9*/,     0 /*:*/,   0 /*;*/,
+    0 /*<*/,   0 /*=*/,     0 /*>*/,   0 /*?*/,
+    0 /*@*/,   1 /*A*/,     1 /*B*/,   1 /*C*/,
+    1 /*D*/,   1 /*E*/,     1 /*F*/,   0 /*G*/,
+    0 /*H*/,   0 /*I*/,     0 /*J*/,   0 /*K*/,
+    0 /*L*/,   0 /*M*/,     0 /*N*/,   0 /*O*/,
+    0 /*P*/,   0 /*Q*/,     0 /*R*/,   0 /*S*/,
+    0 /*T*/,   0 /*U*/,     0 /*V*/,   0 /*W*/,
+    0 /*X*/,   0 /*Y*/,     0 /*Z*/,   0 /*[*/,
+    0 /*\*/,   0 /*]*/,     0 /*^*/,   0 /*_*/,
+    0 /*`*/,   1 /*a*/,     1 /*b*/,   1 /*c*/,
+    1 /*d*/,   1 /*e*/,     1 /*f*/,   0 /*g*/,
+    0 /*h*/,   0 /*i*/,     0 /*j*/,   0 /*k*/,
+    0 /*l*/,   0 /*m*/,     0 /*n*/,   0 /*o*/,
+    0 /*p*/,   0 /*q*/,     0 /*r*/,   0 /*s*/,
+    0 /*t*/,   0 /*u*/,     0 /*v*/,   0 /*w*/,
+    0 /*x*/,   0 /*y*/,     0 /*z*/,   0 /*{*/,
+    0 /*|*/,   0 /*}*/,     0 /*~*/,   0 /*DEL*/,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0,
+    0,         0,           0,         0};
+
 static const uint8_t is_digit[256] = {
     0 /*NUL*/, 0 /*SOH*/,   0 /*STX*/, 0 /*ETX*/,
     0 /*EOT*/, 0 /*ENQ*/,   0 /*ACK*/, 0 /*BEL*/,
@@ -524,6 +590,47 @@ static int parse_float(struct parser *p, struct text *expression) {
   return parse_negative_float(p, expression);
 }
 
+static int parse_unicode_hex(struct parser *p, struct text *formatted) {
+  int start = p->i;
+
+  int result = parse_chunk(p, "\\u{");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  struct text unicode;   
+  result = take_while_1(p, &unicode, is_hex);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = parse_char(p, '}');
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_from_ascii("\\u{", formatted, p->m);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  result = text_join(*formatted, unicode, p->m, formatted);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  result = text_append_ascii_char(*formatted, '}', p->m, formatted);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return 0;
+}
+
 static int parse_simple_string_piece(struct parser *p,
                                      struct text *expression) {
   int result = take_while_1(p, expression, is_normal_string_char);
@@ -554,6 +661,12 @@ static int parse_simple_string_piece(struct parser *p,
   result = parse_chunk(p, "\\r");
   if (result == 0) {
     return text_from_ascii("\\u{000D}", expression, p->m);
+  }
+
+  struct text unicode;
+  result = parse_unicode_hex(p, &unicode);
+  if (result == 0) {
+    return text_join(*expression, unicode, p->m, expression);
   }
 
   return -1;

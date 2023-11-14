@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    123.456e78
+    1.23456e80

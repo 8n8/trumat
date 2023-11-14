@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    1e0
+    1.0e0
