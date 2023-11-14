@@ -50,8 +50,8 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
     return;
   }
   for (int i = 0;; ++i) {
-    int in_result = text_index(in, i, m);
-    int out_result = text_index(out, i, m);
+    int in_result = text_index(m, in, i);
+    int out_result = text_index(m, out, i);
     if (in_result < 0 && out_result < 0) {
       break;
     }
@@ -210,14 +210,14 @@ static void check_expected(char *in_path, struct text out,
 
   for (int i = 0;; ++i) {
     int expected = fgetc(expected_file);
-    if (expected == EOF && text_index(out, i, m) < 0) {
+    if (expected == EOF && text_index(m, out, i) < 0) {
       break;
     }
 
-    if (expected != text_index(out, i, m)) {
+    if (expected != text_index(m, out, i)) {
       char error_message[300];
       sprintf(error_message, "expected '%c' but got '%c' at position %d",
-              expected, text_index(out, i, m), i);
+              expected, text_index(m, out, i), i);
       print_error(in_path, error_message);
       fclose(expected_file);
       return;

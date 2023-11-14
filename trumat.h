@@ -14,7 +14,7 @@ struct text_memory {
 
 int text_from_file(FILE *, struct text *, struct text_memory *);
 void text_zero_memory(struct text_memory *);
-int text_index(struct text, int, struct text_memory *);
+int text_index(struct text_memory *, struct text, int);
 int text_length(struct text);
 void text_to_file(FILE *, struct text, struct text_memory *);
 

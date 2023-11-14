@@ -41,7 +41,7 @@ static int text_slice(struct text parent, int start, int end,
 
 static int copy_to_head(struct text t, struct text_memory *m) {
   for (int i = 0;; ++i) {
-    int result = text_index(t, i, m);
+    int result = text_index(m, t, i);
     if (result < 0) {
       break;
     }
@@ -165,7 +165,7 @@ static int parse_chunk(struct parser *p, const char *chunk) {
   int start = p->i;
 
   int i = 0;
-  for (; text_index(p->in, p->i, p->m) == chunk[i] && chunk[i] != 0;
+  for (; text_index(p->m, p->in, p->i) == chunk[i] && chunk[i] != 0;
        ++p->i, ++i) {
   }
 
@@ -182,12 +182,12 @@ static int take_while_1(struct parser *p, struct text *matching,
 
   int start = p->i;
 
-  if (!(match[text_index(p->in, p->i, p->m)])) {
+  if (!(match[text_index(p->m, p->in, p->i)])) {
     return -1;
   }
   ++p->i;
 
-  for (; match[text_index(p->in, p->i, p->m)]; ++p->i) {
+  for (; match[text_index(p->m, p->in, p->i)]; ++p->i) {
   }
 
   return text_slice(p->in, start, p->i, matching);
@@ -392,7 +392,7 @@ static const uint8_t is_normal_string_char[256] = {
     1,           1,         1,         1};
 
 static int parse_char(struct parser *p, char ch) {
-  int got = text_index(p->in, p->i, p->m);
+  int got = text_index(p->m, p->in, p->i);
   if (got < 0) {
     return -1;
   }
@@ -663,13 +663,7 @@ static int parse_simple_string_piece(struct parser *p,
     return text_from_ascii("\\u{000D}", expression, p->m);
   }
 
-  struct text unicode;
-  result = parse_unicode_hex(p, &unicode);
-  if (result == 0) {
-    return text_join(*expression, unicode, p->m, expression);
-  }
-
-  return -1;
+  return parse_unicode_hex(p, expression);
 }
 
 static int parse_simple_string(struct parser *p, struct text *expression) {
@@ -725,7 +719,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
     return result;
   }
 
-  for (; text_index(p.in, p.i, p.m) == ' '; ++p.i) {
+  for (; text_index(p.m, p.in, p.i) == ' '; ++p.i) {
   }
 
   struct text expression;
@@ -813,7 +807,7 @@ void text_to_file(FILE *f, struct text t, struct text_memory *m) {
   fwrite(m->bytes + t.start, 1, t.end - t.start, f);
 }
 
-int text_index(struct text t, int index, struct text_memory *m) {
+int text_index(struct text_memory *m, struct text t, int index) {
   if (index < 0 || t.start + index >= t.end || t.start + index >= TEXT_SIZE) {
     return -1;
   }
