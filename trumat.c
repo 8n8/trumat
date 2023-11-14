@@ -599,7 +599,7 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
     return result;
   }
 
-  struct text unicode;   
+  struct text unicode;
   result = take_while_1(p, &unicode, is_hex);
   if (result) {
     p->i = start;
