@@ -526,18 +526,22 @@ static int parse_float(struct parser *p, struct text *expression) {
 
 static int parse_simple_string_piece(struct parser *p,
                                      struct text *expression) {
-  int start = p->i;
   int result = take_while_1(p, expression, is_normal_string_char);
   if (result == 0) {
     return result;
   }
 
   result = parse_chunk(p, "\\\"");
-  if (result) {
-    p->i = start;
-    return result;
+  if (result == 0) {
+    return text_from_ascii("\\\"", expression, p->m);
   }
-  return text_from_ascii("\\\"", expression, p->m);
+
+  result = parse_chunk(p, "\\\\");
+  if (result == 0) {
+    return text_from_ascii("\\\\", expression, p->m);
+  }
+
+  return -1;
 }
 
 static int parse_simple_string(struct parser *p, struct text *expression) {
