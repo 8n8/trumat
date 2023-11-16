@@ -583,6 +583,12 @@ static int parse_float(struct parser *p, struct text *expression) {
   return parse_negative_float(p, expression);
 }
 
+uint8_t is_lower_hex(uint8_t byte) { return byte > 96 && byte < 103; }
+
+uint8_t hex_to_upper(uint8_t byte) {
+  return byte - (is_lower_hex(byte) * (97 - 65));
+}
+
 static int parse_unicode_hex(struct parser *p, struct text *formatted) {
   int start = p->i;
 
@@ -597,6 +603,11 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
   if (result) {
     p->i = start;
     return result;
+  }
+
+  uint8_t *bytes = p->m->bytes;
+  for (int i = 0; i + unicode.start < unicode.end; ++i) {
+    bytes[unicode.start + i] = hex_to_upper(bytes[unicode.start + i]);
   }
 
   result = parse_char(p, '}');
