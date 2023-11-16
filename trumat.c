@@ -56,7 +56,7 @@ static int copy_to_head(struct text t, struct text_memory *m) {
 
 static int text_join(struct text left, struct text right, struct text_memory *m,
                      struct text *result) {
-  if (left.end == m->head) {
+  if (m->head == left.end) {
     result->start = left.start;
   } else {
     result->start = m->head;
@@ -491,14 +491,7 @@ static int parse_float_exponent(struct parser *p, struct text *expression) {
 static int parse_dot_exponent_float(struct parser *p, struct text *expression) {
   int start = p->i;
 
-  struct text before_exponent;
-  int result = parse_simple_float(p, &before_exponent);
-  if (result) {
-    p->i = start;
-    return result;
-  }
-
-  result = text_join(*expression, before_exponent, p->m, expression);
+  int result = parse_simple_float(p, expression);
   if (result) {
     p->i = start;
     return result;
