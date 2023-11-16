@@ -4,15 +4,15 @@
 
 A code formatter for Elm. The aim is to replicate the rules used in [elm-format](https://github.com/avh4/elm-format).
 
-Currently it doesn't do much, but is well tested and shouldn't do any damage.
+Currently it doesn't do much but it shouldn't do any damage.
 
 ## Install
 
 You need to build it from source.
 
-It's currently only tested on Ubuntu Linux, but should work on MacOS. I think it won't work on Windows.
+It's currently only tested on Ubuntu Linux, but should work on MacOS. I think it won't work on Windows yet.
 
-You need a C compiler, such as gcc or clang. You may have one already. Run `cc --version` to find out.
+You need to have clang (C compiler) installed.
 
 Then:
 
