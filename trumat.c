@@ -819,7 +819,7 @@ static int parse_triple_string_piece(struct parser *p,
     return text_from_ascii("\\u{000D}", expression, p->m);
   }
 
-  return -1;
+  return parse_unicode_hex(p, expression);
 }
 
 static int parse_simple_string_piece(struct parser *p,
