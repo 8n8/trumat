@@ -353,6 +353,72 @@ static const uint8_t is_digit[256] = {
     0,         0,           0,         0,
     0,         0,           0,         0};
 
+static const uint8_t is_triple_string_char[256] = {
+    0 /*NUL*/,   0 /*SOH*/, 0 /*STX*/, 0 /*ETX*/,
+    0 /*EOT*/,   0 /*ENQ*/, 0 /*ACK*/, 0 /*BEL*/,
+    0 /*BS*/,    0 /*TAB*/, 1 /*LF*/,  0 /*VT*/,
+    0 /*FF*/,    0 /*CR*/,  0 /*SO*/,  0 /*SI*/,
+    0 /*DLE*/,   0 /*DC1*/, 0 /*DC2*/, 0 /*DC3*/,
+    0 /*DC4*/,   0 /*NAK*/, 0 /*SYN*/, 0 /*ETB*/,
+    0 /*CAN*/,   0 /*EM*/,  0 /*SUB*/, 0 /*ESC*/,
+    0 /*FS*/,    0 /*GS*/,  0 /*RS*/,  0 /*US*/,
+    1 /*Space*/, 1 /*!*/,   0 /*"*/,   1 /*#*/,
+    1 /*$*/,     1 /*%*/,   1 /*&*/,   1 /*'*/,
+    1 /*(*/,     1 /*)*/,   1 /***/,   1 /*+*/,
+    1 /*,*/,     1 /*-*/,   1 /*.*/,   1 /*forward slash*/,
+    1 /*0*/,     1 /*1*/,   1 /*2*/,   1 /*3*/,
+    1 /*4*/,     1 /*5*/,   1 /*6*/,   1 /*7*/,
+    1 /*8*/,     1 /*9*/,   1 /*:*/,   1 /*;*/,
+    1 /*<*/,     1 /*=*/,   1 /*>*/,   1 /*?*/,
+    1 /*@*/,     1 /*A*/,   1 /*B*/,   1 /*C*/,
+    1 /*D*/,     1 /*E*/,   1 /*F*/,   1 /*G*/,
+    1 /*H*/,     1 /*I*/,   1 /*J*/,   1 /*K*/,
+    1 /*L*/,     1 /*M*/,   1 /*N*/,   1 /*O*/,
+    1 /*P*/,     1 /*Q*/,   1 /*R*/,   1 /*S*/,
+    1 /*T*/,     1 /*U*/,   1 /*V*/,   1 /*W*/,
+    1 /*X*/,     1 /*Y*/,   1 /*Z*/,   1 /*[*/,
+    0 /*\*/,     1 /*]*/,   1 /*^*/,   1 /*_*/,
+    1 /*`*/,     1 /*a*/,   1 /*b*/,   1 /*c*/,
+    1 /*d*/,     1 /*e*/,   1 /*f*/,   1 /*g*/,
+    1 /*h*/,     1 /*i*/,   1 /*j*/,   1 /*k*/,
+    1 /*l*/,     1 /*m*/,   1 /*n*/,   1 /*o*/,
+    1 /*p*/,     1 /*q*/,   1 /*r*/,   1 /*s*/,
+    1 /*t*/,     1 /*u*/,   1 /*v*/,   1 /*w*/,
+    1 /*x*/,     1 /*y*/,   1 /*z*/,   1 /*{*/,
+    1 /*|*/,     1 /*}*/,   1 /*~*/,   0 /*DEL*/,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1};
+
 static const uint8_t is_normal_string_char[256] = {
     0 /*NUL*/,   0 /*SOH*/, 0 /*STX*/, 0 /*ETX*/,
     0 /*EOT*/,   0 /*ENQ*/, 0 /*ACK*/, 0 /*BEL*/,
@@ -692,6 +758,11 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
   return 0;
 }
 
+static int parse_triple_string_piece(struct parser *p,
+                                     struct text *expression) {
+  return take_while_1(p, expression, is_triple_string_char);
+}
+
 static int parse_simple_string_piece(struct parser *p,
                                      struct text *expression) {
   int result = take_while_1(p, expression, is_normal_string_char);
@@ -730,13 +801,33 @@ static int parse_simple_string_piece(struct parser *p,
 static int parse_triple_string(struct parser *p, struct text *expression) {
   int start = p->i;
 
-  int result = parse_chunk(p, "\"\"\"\"\"\"");
+  int result = parse_chunk(p, "\"\"\"");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  result = text_from_ascii("\"\"\"", expression, p->m);
   if (result) {
     p->i = start;
     return result;
   }
 
-  return text_from_ascii("\"\"\"\"\"\"", expression, p->m);
+  struct text contents;
+  while (parse_triple_string_piece(p, &contents) == 0) {
+    result = text_join(*expression, contents, p->m, expression);
+    if (result) {
+      p->i = start;
+      return result;
+    }
+  }
+
+  result = parse_chunk(p, "\"\"\"");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return text_append_ascii(*expression, "\"\"\"", expression, p->m);
 }
 
 static int parse_simple_string(struct parser *p, struct text *expression) {
