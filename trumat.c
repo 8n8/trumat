@@ -758,7 +758,8 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
   return 0;
 }
 
-static int parse_double_quote_in_triple_string(struct parser *p, struct text *expression) {
+static int parse_double_quote_in_triple_string(struct parser *p,
+                                               struct text *expression) {
   int start = p->i;
 
   int result = parse_char(p, '"');
