@@ -758,6 +758,29 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
   return 0;
 }
 
+static int parse_double_quote_in_triple_string(struct parser *p, struct text *expression) {
+  int start = p->i;
+
+  int result = parse_char(p, '"');
+  if (result) {
+    p->i = start;
+    return result;
+  }
+  result = text_from_ascii_char('"', expression, p->m);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = parse_chunk(p, "\"\"");
+  if (result == 0) {
+    p->i = start;
+    return -1;
+  }
+
+  return 0;
+}
+
 static int parse_triple_string_piece(struct parser *p,
                                      struct text *expression) {
   int result = take_while_1(p, expression, is_triple_string_char);
@@ -773,6 +796,11 @@ static int parse_triple_string_piece(struct parser *p,
   result = parse_chunk(p, "\\\"");
   if (result == 0) {
     return text_from_ascii("\\\"", expression, p->m);
+  }
+
+  result = parse_double_quote_in_triple_string(p, expression);
+  if (result == 0) {
+    return 0;
   }
 
   return -1;
