@@ -405,7 +405,43 @@ static int parse_char(struct parser *p, char ch) {
   return 0;
 }
 
+static int parse_positive_hex_int(struct parser *p, struct text *expression) {
+  int start = p->i;
+
+  int result = parse_chunk(p, "0x");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_from_ascii("0x", expression, p->m);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  struct text after_0x;
+  result = take_while_1(p, &after_0x, is_hex);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_join(*expression, after_0x, p->m, expression);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return 0;
+}
+
 static int parse_positive_int(struct parser *p, struct text *expression) {
+  int result = parse_positive_hex_int(p, expression);
+  if (result == 0) {
+    return result;
+  }
+
   return take_while_1(p, expression, is_digit);
 }
 
