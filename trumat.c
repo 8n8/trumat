@@ -760,7 +760,17 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
 
 static int parse_triple_string_piece(struct parser *p,
                                      struct text *expression) {
-  return take_while_1(p, expression, is_triple_string_char);
+  int result = take_while_1(p, expression, is_triple_string_char);
+  if (result == 0) {
+    return result;
+  }
+
+  result = parse_chunk(p, "\\n");
+  if (result == 0) {
+    return text_from_ascii_char('\n', expression, p->m);
+  }
+
+  return -1;
 }
 
 static int parse_simple_string_piece(struct parser *p,
