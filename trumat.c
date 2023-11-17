@@ -804,6 +804,11 @@ static int parse_triple_string_piece(struct parser *p,
     return 0;
   }
 
+  result = parse_chunk(p, "\\\\");
+  if (result == 0) {
+    return text_from_ascii("\\\\", expression, p->m);
+  }
+
   return -1;
 }
 
