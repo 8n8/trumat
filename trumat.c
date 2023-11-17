@@ -814,6 +814,11 @@ static int parse_triple_string_piece(struct parser *p,
     return text_from_ascii("\\t", expression, p->m);
   }
 
+  result = parse_chunk(p, "\\r");
+  if (result == 0) {
+    return text_from_ascii("\\u{000D}", expression, p->m);
+  }
+
   return -1;
 }
 
