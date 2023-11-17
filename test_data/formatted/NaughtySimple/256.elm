@@ -1,0 +1,5 @@
+module X exposing (x)
+
+
+x =
+    "<a href="\xC2\xA0javascript:javascript:alert(1)" id="fuzzelement1">test</a>"

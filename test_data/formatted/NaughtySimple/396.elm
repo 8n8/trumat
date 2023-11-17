@@ -1,0 +1,5 @@
+module X exposing (x)
+
+
+x =
+    "<a href=http://foo.bar/#x=`y></a><img alt="`><img src=x:x onerror=javascript:alert(1)></a>">"

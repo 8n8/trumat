@@ -1,0 +1,5 @@
+module X exposing (x)
+
+
+x =
+    "ABC<div style="x:\xC2\xA0expression(javascript:alert(1)">DEF"
