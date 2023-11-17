@@ -727,6 +727,18 @@ static int parse_simple_string_piece(struct parser *p,
   return parse_unicode_hex(p, expression);
 }
 
+static int parse_triple_string(struct parser *p, struct text *expression) {
+  int start = p->i;
+
+  int result = parse_chunk(p, "\"\"\"\"\"\"");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return text_from_ascii("\"\"\"\"\"\"", expression, p->m);
+}
+
 static int parse_simple_string(struct parser *p, struct text *expression) {
   int start = p->i;
 
@@ -766,6 +778,11 @@ static int parse_expression(struct parser *p, struct text *expression) {
   }
 
   result = parse_int(p, expression);
+  if (result == 0) {
+    return 0;
+  }
+
+  result = parse_triple_string(p, expression);
   if (result == 0) {
     return 0;
   }
