@@ -82,7 +82,7 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
-static int text_join(struct text left, struct text right, struct text_memory *m,
+static int text_join(struct text_memory *m, struct text left, struct text right,
                      struct text *result) {
   if (m->head == left.end) {
     result->start = left.start;
@@ -599,7 +599,7 @@ static int parse_positive_hex_int(struct parser *p, struct text *expression) {
 
   abcdef_to_upper(p->m->bytes, after_0x);
 
-  result = text_join(*expression, after_0x, p->m, expression);
+  result = text_join(p->m, *expression, after_0x, expression);
   if (result) {
     p->i = start;
     return result;
@@ -674,7 +674,7 @@ static int parse_simple_float(struct parser *p, struct text *expression) {
     return result;
   }
 
-  return text_join(*expression, after_dot, p->m, expression);
+  return text_join(p->m, *expression, after_dot, expression);
 }
 
 static int parse_float_exponent(struct parser *p, struct text *expression) {
@@ -711,7 +711,7 @@ static int parse_dot_exponent_float(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-  return text_join(*expression, exponent, p->m, expression);
+  return text_join(p->m, *expression, exponent, expression);
 }
 
 static int parse_non_dot_exponent_float(struct parser *p,
@@ -738,7 +738,7 @@ static int parse_non_dot_exponent_float(struct parser *p,
     return result;
   }
 
-  return text_join(*expression, exponent, p->m, expression);
+  return text_join(p->m, *expression, exponent, expression);
 }
 
 static int parse_positive_float(struct parser *p, struct text *expression) {
@@ -820,7 +820,7 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
     p->i = start;
     return result;
   }
-  result = text_join(*formatted, unicode, p->m, formatted);
+  result = text_join(p->m, *formatted, unicode, formatted);
   if (result) {
     p->i = start;
     return result;
@@ -949,7 +949,7 @@ static int parse_triple_string(struct parser *p, struct text *expression) {
 
   struct text contents;
   while (parse_triple_string_piece(p, &contents) == 0) {
-    result = text_join(*expression, contents, p->m, expression);
+    result = text_join(p->m, *expression, contents, expression);
     if (result) {
       p->i = start;
       return result;
@@ -981,7 +981,7 @@ static int parse_simple_string(struct parser *p, struct text *expression) {
 
   struct text contents;
   while (parse_simple_string_piece(p, &contents) == 0) {
-    result = text_join(*expression, contents, p->m, expression);
+    result = text_join(p->m, *expression, contents, expression);
     if (result) {
       p->i = start;
       return result;
@@ -1045,7 +1045,7 @@ static int parse_line_comment(struct parser *p, struct text *comment) {
     return result;
   }
 
-  result = text_join(*comment, contents, p->m, comment);
+  result = text_join(p->m, *comment, contents, comment);
   if (result) {
     p->i = start;
     return result;
@@ -1090,7 +1090,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
   if (result) {
     return result;
   }
-  result = text_join(*out, commentBefore, p.m, out);
+  result = text_join(p.m, *out, commentBefore, out);
   if (result) {
     return result;
   }
@@ -1100,7 +1100,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
       return result;
     }
   }
-  result = text_join(*out, expression, p.m, out);
+  result = text_join(p.m, *out, expression, out);
   if (result) {
     return result;
   }
