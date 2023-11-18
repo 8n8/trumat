@@ -45,6 +45,10 @@ void text_dbg(struct text t, struct text_memory *m) {
   printf("\n");
 }
 
+void p_dbg(struct parser *p) {
+  printf("current char: %c\n", text_index(p->m, p->in, p->i));
+}
+
 static int append_char(char ch, struct text_memory *m) {
   if (m->head == TEXT_SIZE) {
     return -1;
@@ -221,6 +225,16 @@ static int take_while_1(struct parser *p, struct text *matching,
   return text_slice(p->in, start, p->i, matching);
 }
 
+static int take_while(struct parser *p, struct text *matching,
+                      const uint8_t match[256]) {
+  int start = p->i;
+
+  for (; match[text_index(p->m, p->in, p->i)]; ++p->i) {
+  }
+
+  return text_slice(p->in, start, p->i, matching);
+}
+
 static const uint8_t is_hex[256] = {
     0 /*NUL*/, 0 /*SOH*/,   0 /*STX*/, 0 /*ETX*/,
     0 /*EOT*/, 0 /*ENQ*/,   0 /*ACK*/, 0 /*BEL*/,
@@ -378,6 +392,72 @@ static const uint8_t is_triple_string_char[256] = {
     1 /*T*/,     1 /*U*/,   1 /*V*/,   1 /*W*/,
     1 /*X*/,     1 /*Y*/,   1 /*Z*/,   1 /*[*/,
     0 /*\*/,     1 /*]*/,   1 /*^*/,   1 /*_*/,
+    1 /*`*/,     1 /*a*/,   1 /*b*/,   1 /*c*/,
+    1 /*d*/,     1 /*e*/,   1 /*f*/,   1 /*g*/,
+    1 /*h*/,     1 /*i*/,   1 /*j*/,   1 /*k*/,
+    1 /*l*/,     1 /*m*/,   1 /*n*/,   1 /*o*/,
+    1 /*p*/,     1 /*q*/,   1 /*r*/,   1 /*s*/,
+    1 /*t*/,     1 /*u*/,   1 /*v*/,   1 /*w*/,
+    1 /*x*/,     1 /*y*/,   1 /*z*/,   1 /*{*/,
+    1 /*|*/,     1 /*}*/,   1 /*~*/,   0 /*DEL*/,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1,
+    1,           1,         1,         1};
+
+static const uint8_t is_line_comment_char[256] = {
+    0 /*NUL*/,   0 /*SOH*/, 0 /*STX*/, 0 /*ETX*/,
+    0 /*EOT*/,   0 /*ENQ*/, 0 /*ACK*/, 0 /*BEL*/,
+    0 /*BS*/,    0 /*TAB*/, 0 /*LF*/,  0 /*VT*/,
+    0 /*FF*/,    0 /*CR*/,  0 /*SO*/,  0 /*SI*/,
+    0 /*DLE*/,   0 /*DC1*/, 0 /*DC2*/, 0 /*DC3*/,
+    0 /*DC4*/,   0 /*NAK*/, 0 /*SYN*/, 0 /*ETB*/,
+    0 /*CAN*/,   0 /*EM*/,  0 /*SUB*/, 0 /*ESC*/,
+    0 /*FS*/,    0 /*GS*/,  0 /*RS*/,  0 /*US*/,
+    1 /*Space*/, 1 /*!*/,   1 /*"*/,   1 /*#*/,
+    1 /*$*/,     1 /*%*/,   1 /*&*/,   1 /*'*/,
+    1 /*(*/,     1 /*)*/,   1 /***/,   1 /*+*/,
+    1 /*,*/,     1 /*-*/,   1 /*.*/,   1 /*forward slash*/,
+    1 /*0*/,     1 /*1*/,   1 /*2*/,   1 /*3*/,
+    1 /*4*/,     1 /*5*/,   1 /*6*/,   1 /*7*/,
+    1 /*8*/,     1 /*9*/,   1 /*:*/,   1 /*;*/,
+    1 /*<*/,     1 /*=*/,   1 /*>*/,   1 /*?*/,
+    1 /*@*/,     1 /*A*/,   1 /*B*/,   1 /*C*/,
+    1 /*D*/,     1 /*E*/,   1 /*F*/,   1 /*G*/,
+    1 /*H*/,     1 /*I*/,   1 /*J*/,   1 /*K*/,
+    1 /*L*/,     1 /*M*/,   1 /*N*/,   1 /*O*/,
+    1 /*P*/,     1 /*Q*/,   1 /*R*/,   1 /*S*/,
+    1 /*T*/,     1 /*U*/,   1 /*V*/,   1 /*W*/,
+    1 /*X*/,     1 /*Y*/,   1 /*Z*/,   1 /*[*/,
+    1 /*\*/,     1 /*]*/,   1 /*^*/,   1 /*_*/,
     1 /*`*/,     1 /*a*/,   1 /*b*/,   1 /*c*/,
     1 /*d*/,     1 /*e*/,   1 /*f*/,   1 /*g*/,
     1 /*h*/,     1 /*i*/,   1 /*j*/,   1 /*k*/,
@@ -940,6 +1020,52 @@ static int parse_expression(struct parser *p, struct text *expression) {
   return parse_simple_string(p, expression);
 }
 
+static void parse_spaces_and_newlines(struct parser *p) {
+  for (; text_index(p->m, p->in, p->i) == ' ' ||
+         text_index(p->m, p->in, p->i) == '\n';
+       ++p->i) {
+  }
+}
+
+static int parse_line_comment(struct parser *p, struct text *comment) {
+  int start = p->i;
+
+  int result = parse_chunk(p, "--");
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_from_ascii("--", comment, p->m);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  struct text contents;
+  result = take_while(p, &contents, is_line_comment_char);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  result = text_join(*comment, contents, p->m, comment);
+  if (result) {
+    p->i = start;
+    return result;
+  }
+
+  return 0;
+}
+
+static int parse_comment(struct parser *p, struct text *comments) {
+  parse_spaces_and_newlines(p);
+  parse_line_comment(p, comments);
+  parse_spaces_and_newlines(p);
+
+  return 0;
+}
+
 int format(const struct text in, struct text *out, struct text_memory *m) {
   struct parser p = {.in = in, .i = 0, .m = m};
   int result = parse_chunk(&p, "module X exposing (x)\n\n\nx =\n");
@@ -947,7 +1073,10 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
     return result;
   }
 
-  for (; text_index(p.m, p.in, p.i) == ' '; ++p.i) {
+  struct text commentBefore = {.start = 0, .end = 0};
+  result = parse_comment(&p, &commentBefore);
+  if (result) {
+    return result;
   }
 
   struct text expression;
@@ -964,6 +1093,16 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
   result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out, p.m);
   if (result) {
     return result;
+  }
+  result = text_join(*out, commentBefore, p.m, out);
+  if (result) {
+    return result;
+  }
+  if (text_length(commentBefore) > 0) {
+    result = text_append_ascii(*out, "\n    ", out, p.m);
+    if (result) {
+      return result;
+    }
   }
   result = text_join(*out, expression, p.m, out);
   if (result) {
