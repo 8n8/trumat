@@ -104,8 +104,8 @@ static int text_join(struct text_memory *m, struct text left, struct text right,
   return 0;
 }
 
-static int text_append_ascii(struct text left, const char *right,
-                             struct text *result, struct text_memory *m) {
+static int text_append_ascii(struct text_memory *m, struct text left,
+                             const char *right, struct text *result) {
   if (left.end == m->head) {
     result->start = left.start;
   } else {
@@ -732,7 +732,7 @@ static int parse_non_dot_exponent_float(struct parser *p,
     return result;
   }
 
-  result = text_append_ascii(*expression, ".0", expression, p->m);
+  result = text_append_ascii(p->m, *expression, ".0", expression);
   if (result) {
     p->i = start;
     return result;
@@ -962,7 +962,7 @@ static int parse_triple_string(struct parser *p, struct text *expression) {
     return result;
   }
 
-  return text_append_ascii(*expression, "\"\"\"", expression, p->m);
+  return text_append_ascii(p->m, *expression, "\"\"\"", expression);
 }
 
 static int parse_simple_string(struct parser *p, struct text *expression) {
@@ -1095,7 +1095,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
     return result;
   }
   if (text_length(commentBefore) > 0) {
-    result = text_append_ascii(*out, "\n    ", out, p.m);
+    result = text_append_ascii(p.m, *out, "\n    ", out);
     if (result) {
       return result;
     }
