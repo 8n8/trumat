@@ -142,8 +142,8 @@ static int text_prepend_ascii_char(struct text_memory *m, char left,
   return 0;
 }
 
-static int text_append_ascii_char(struct text left, char right,
-                                  struct text_memory *m, struct text *result) {
+static int text_append_ascii_char(struct text_memory *m, struct text left,
+                                  char right, struct text *result) {
 
   if (left.end == m->head) {
     result->start = left.start;
@@ -661,7 +661,7 @@ static int parse_simple_float(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-  result = text_append_ascii_char(*expression, '.', p->m, expression);
+  result = text_append_ascii_char(p->m, *expression, '.', expression);
   if (result) {
     p->i = start;
     return result;
@@ -825,7 +825,7 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
     p->i = start;
     return result;
   }
-  result = text_append_ascii_char(*formatted, '}', p->m, formatted);
+  result = text_append_ascii_char(p->m, *formatted, '}', formatted);
   if (result) {
     p->i = start;
     return result;
@@ -993,7 +993,7 @@ static int parse_simple_string(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-  return text_append_ascii_char(*expression, '"', p->m, expression);
+  return text_append_ascii_char(p->m, *expression, '"', expression);
 }
 
 static int parse_expression(struct parser *p, struct text *expression) {
@@ -1104,7 +1104,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
   if (result) {
     return result;
   }
-  result = text_append_ascii_char(*out, '\n', p.m, out);
+  result = text_append_ascii_char(p.m, *out, '\n', out);
   if (result) {
     return result;
   }
