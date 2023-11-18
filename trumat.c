@@ -45,10 +45,6 @@ void text_dbg(struct text t, struct text_memory *m) {
   printf("\n");
 }
 
-void p_dbg(struct parser *p) {
-  printf("current char: %c\n", text_index(p->m, p->in, p->i));
-}
-
 static int append_char(char ch, struct text_memory *m) {
   if (m->head == TEXT_SIZE) {
     return -1;
