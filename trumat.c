@@ -164,8 +164,8 @@ static int text_append_ascii_char(struct text_memory *m, struct text left,
   return 0;
 }
 
-static int text_from_ascii(char *ascii, struct text *result,
-                           struct text_memory *m) {
+static int text_from_ascii(struct text_memory *m, char *ascii,
+                           struct text *result) {
   result->start = m->head;
   for (int i = 0; ascii[i] != '\0'; ++i) {
     if (append_char(ascii[i], m)) {
@@ -584,7 +584,7 @@ static int parse_positive_hex_int(struct parser *p, struct text *expression) {
     return result;
   }
 
-  result = text_from_ascii("0x", expression, p->m);
+  result = text_from_ascii(p->m, "0x", expression);
   if (result) {
     p->i = start;
     return result;
@@ -815,7 +815,7 @@ static int parse_unicode_hex(struct parser *p, struct text *formatted) {
     return result;
   }
 
-  result = text_from_ascii("\\u{", formatted, p->m);
+  result = text_from_ascii(p->m, "\\u{", formatted);
   if (result) {
     p->i = start;
     return result;
@@ -872,7 +872,7 @@ static int parse_triple_string_piece(struct parser *p,
 
   result = parse_chunk(p, "\\\"");
   if (result == 0) {
-    return text_from_ascii("\\\"", expression, p->m);
+    return text_from_ascii(p->m, "\\\"", expression);
   }
 
   result = parse_double_quote_in_triple_string(p, expression);
@@ -882,17 +882,17 @@ static int parse_triple_string_piece(struct parser *p,
 
   result = parse_chunk(p, "\\\\");
   if (result == 0) {
-    return text_from_ascii("\\\\", expression, p->m);
+    return text_from_ascii(p->m, "\\\\", expression);
   }
 
   result = parse_chunk(p, "\\t");
   if (result == 0) {
-    return text_from_ascii("\\t", expression, p->m);
+    return text_from_ascii(p->m, "\\t", expression);
   }
 
   result = parse_chunk(p, "\\r");
   if (result == 0) {
-    return text_from_ascii("\\u{000D}", expression, p->m);
+    return text_from_ascii(p->m, "\\u{000D}", expression);
   }
 
   return parse_unicode_hex(p, expression);
@@ -907,27 +907,27 @@ static int parse_simple_string_piece(struct parser *p,
 
   result = parse_chunk(p, "\\\"");
   if (result == 0) {
-    return text_from_ascii("\\\"", expression, p->m);
+    return text_from_ascii(p->m, "\\\"", expression);
   }
 
   result = parse_chunk(p, "\\\\");
   if (result == 0) {
-    return text_from_ascii("\\\\", expression, p->m);
+    return text_from_ascii(p->m, "\\\\", expression);
   }
 
   result = parse_chunk(p, "\\n");
   if (result == 0) {
-    return text_from_ascii("\\n", expression, p->m);
+    return text_from_ascii(p->m, "\\n", expression);
   }
 
   result = parse_chunk(p, "\\t");
   if (result == 0) {
-    return text_from_ascii("\\t", expression, p->m);
+    return text_from_ascii(p->m, "\\t", expression);
   }
 
   result = parse_chunk(p, "\\r");
   if (result == 0) {
-    return text_from_ascii("\\u{000D}", expression, p->m);
+    return text_from_ascii(p->m, "\\u{000D}", expression);
   }
 
   return parse_unicode_hex(p, expression);
@@ -941,7 +941,7 @@ static int parse_triple_string(struct parser *p, struct text *expression) {
     p->i = start;
     return result;
   }
-  result = text_from_ascii("\"\"\"", expression, p->m);
+  result = text_from_ascii(p->m, "\"\"\"", expression);
   if (result) {
     p->i = start;
     return result;
@@ -1032,7 +1032,7 @@ static int parse_line_comment(struct parser *p, struct text *comment) {
     return result;
   }
 
-  result = text_from_ascii("--", comment, p->m);
+  result = text_from_ascii(p->m, "--", comment);
   if (result) {
     p->i = start;
     return result;
@@ -1086,7 +1086,7 @@ int format(const struct text in, struct text *out, struct text_memory *m) {
     return result;
   }
 
-  result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out, p.m);
+  result = text_from_ascii(p.m, "module X exposing (x)\n\n\nx =\n    ", out);
   if (result) {
     return result;
   }
