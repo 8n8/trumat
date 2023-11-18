@@ -128,8 +128,8 @@ static int text_append_ascii(struct text_memory *m, struct text left,
   return 0;
 }
 
-static int text_prepend_ascii_char(char left, struct text right,
-                                   struct text_memory *m, struct text *result) {
+static int text_prepend_ascii_char(struct text_memory *m, char left,
+                                   struct text right, struct text *result) {
   result->start = m->head;
   if (append_char(left, m)) {
     return -1;
@@ -633,7 +633,7 @@ static int parse_negative_int(struct parser *p, struct text *expression) {
     return result;
   }
 
-  return text_prepend_ascii_char('-', exponent, p->m, expression);
+  return text_prepend_ascii_char(p->m, '-', exponent, expression);
 }
 
 static int parse_int(struct parser *p, struct text *expression) {
@@ -693,7 +693,7 @@ static int parse_float_exponent(struct parser *p, struct text *expression) {
     return result;
   }
 
-  return text_prepend_ascii_char('e', exponent, p->m, expression);
+  return text_prepend_ascii_char(p->m, 'e', exponent, expression);
 }
 
 static int parse_dot_exponent_float(struct parser *p, struct text *expression) {
@@ -779,7 +779,7 @@ static int parse_negative_float(struct parser *p, struct text *expression) {
     return result;
   }
 
-  return text_prepend_ascii_char('-', positive, p->m, expression);
+  return text_prepend_ascii_char(p->m, '-', positive, expression);
 }
 
 static int parse_float(struct parser *p, struct text *expression) {
