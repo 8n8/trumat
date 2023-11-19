@@ -1093,10 +1093,6 @@ static int parse_comment(struct parser *p, struct text *comments) {
     if (result) {
       break;
     }
-    result = parse_char(p, '\n');
-    if (result) {
-      break;
-    }
     result = text_append_ascii(p->m, *comments, "\n    ", comments);
     if (result) {
       break;
@@ -1106,8 +1102,6 @@ static int parse_comment(struct parser *p, struct text *comments) {
       break;
     }
   }
-
-  parse_spaces_and_newlines(p);
 
   return 0;
 }
