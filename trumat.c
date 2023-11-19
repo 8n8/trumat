@@ -7,6 +7,8 @@ struct parser {
   struct text_memory *m;
 };
 
+static int text_slice(struct text, int, int, struct text *);
+
 static int parse_int(struct parser *, struct text *);
 
 // It maps uppercase ASCII hex ABCDEF to lowercase hex abcdef. All other bytes
@@ -43,6 +45,15 @@ void text_dbg(struct text t, struct text_memory *m) {
     putchar(m->bytes[i]);
   }
   printf("\n");
+}
+
+static int text_strip_end(struct text_memory *m, struct text t, struct text *stripped) {
+  int i = 0;
+  int len = text_length(t);
+  for (; text_index(m, t, len - i - 1) == ' '; ++i) {
+  }
+
+  return text_slice(t, 0, len - i, stripped);
 }
 
 static int append_char(char ch, struct text_memory *m) {
@@ -1044,6 +1055,7 @@ static int parse_line_comment(struct parser *p, struct text *comment) {
     p->i = start;
     return result;
   }
+  text_strip_end(p->m, contents, &contents);
 
   result = text_join(p->m, *comment, contents, comment);
   if (result) {
