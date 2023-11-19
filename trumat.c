@@ -47,7 +47,8 @@ void text_dbg(struct text t, struct text_memory *m) {
   printf("\n");
 }
 
-static int text_strip_end(struct text_memory *m, struct text t, struct text *stripped) {
+static int text_strip_end(struct text_memory *m, struct text t,
+                          struct text *stripped) {
   int i = 0;
   int len = text_length(t);
   for (; text_index(m, t, len - i - 1) == ' '; ++i) {
