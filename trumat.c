@@ -1,5 +1,4 @@
 #include "trumat.h"
-#include <stdio.h>
 
 static uint8_t TEXT[TEXT_SIZE];
 static uint32_t HEAD;
