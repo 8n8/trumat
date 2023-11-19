@@ -7,6 +7,7 @@ static char *test_only = "";
 
 static int NUM_FAILED = 0;
 static int NUM_PASSED = 0;
+static int NUM_IGNORED = 0;
 
 static int is_excluded_by_only(char *path) {
   if (test_only[0] == '\0') {
@@ -109,8 +110,7 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m) {
   check_unchanged(in_path, in, out, m);
 }
 
-static void run_one_no_change_test(char *in_path, struct text_memory *m,
-                                   int *num_ignored) {
+static void run_one_no_change_test(char *in_path, struct text_memory *m) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -131,7 +131,7 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m,
   struct text out;
   result = format(in, &out, m);
   if (result != 0) {
-    ++*num_ignored;
+    ++NUM_IGNORED;
     return;
   }
 
@@ -167,8 +167,7 @@ static void run_formatted_tests(char *path, struct text_memory *memory) {
   run_one_formatted_test(path, memory);
 }
 
-static void run_no_change_tests(char *path, struct text_memory *memory,
-                                int *num_ignored) {
+static void run_no_change_tests(char *path, struct text_memory *memory) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -177,7 +176,7 @@ static void run_no_change_tests(char *path, struct text_memory *memory,
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_no_change_tests(sub_path, memory, num_ignored);
+        run_no_change_tests(sub_path, memory);
       }
       item_in_directory = readdir(directory);
     }
@@ -194,7 +193,7 @@ static void run_no_change_tests(char *path, struct text_memory *memory,
   }
 
   text_zero_memory(memory);
-  run_one_no_change_test(path, memory, num_ignored);
+  run_one_no_change_test(path, memory);
 }
 
 static void check_expected(char *in_path, struct text out,
@@ -293,11 +292,10 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
 
 int main(int argc, char *argv[]) {
   static struct text_memory m;
-  int num_ignored = 0;
   run_positive_tests("test_data/input", &m);
-  run_no_change_tests("test_data/dont_change", &m, &num_ignored);
+  run_no_change_tests("test_data/dont_change", &m);
   run_formatted_tests("test_data/formatted", &m);
   printf("%d tests passed\n", NUM_PASSED);
-  printf("%d tests successfully ignored\n", num_ignored);
+  printf("%d tests successfully ignored\n", NUM_IGNORED);
   return NUM_FAILED;
 }
