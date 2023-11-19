@@ -1082,7 +1082,31 @@ static int parse_line_comment(struct parser *p, struct text *comment) {
 
 static int parse_comment(struct parser *p, struct text *comments) {
   parse_spaces_and_newlines(p);
-  parse_line_comment(p, comments);
+  int result = parse_line_comment(p, comments);
+  if (result) {
+    return 0;
+  }
+  struct text line_comment;
+  while (1) {
+    parse_spaces_and_newlines(p);
+    result = parse_line_comment(p, &line_comment);
+    if (result) {
+      break;
+    }
+    result = parse_char(p, '\n');
+    if (result) {
+      break;
+    }
+    result = text_append_ascii(p->m, *comments, "\n    ", comments);
+    if (result) {
+      break;
+    }
+    result = text_join(p->m, *comments, line_comment, comments);
+    if (result) {
+      break;
+    }
+  }
+
   parse_spaces_and_newlines(p);
 
   return 0;
