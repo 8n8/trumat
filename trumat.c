@@ -1,15 +1,14 @@
 #include "trumat.h"
 #include <stdio.h>
 
-struct parser {
-  struct text in;
-  int i;
-  struct text_memory *m;
-};
+static uint8_t TEXT[TEXT_SIZE];
+static uint32_t HEAD;
+static int I;
+static struct text IN;
 
 static int text_slice(struct text, int, int, struct text *);
 
-static int parse_int(struct parser *, struct text *);
+static int parse_int(struct text *);
 
 // It maps uppercase ASCII hex ABCDEF to lowercase hex abcdef. All other bytes
 // are left unchanged.
@@ -33,50 +32,48 @@ const uint8_t hex_to_upper[256] = {
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
     255};
 
-int text_equal(struct text_memory *m, struct text a, struct text b) {
+int text_equal(struct text a, struct text b) {
   if (text_length(a) != text_length(b)) {
     return 0;
   }
 
   int i = 0;
-  for (; text_index(m, a, i) >= 0 && text_index(m, a, i) == text_index(m, b, i);
-       ++i) {
+  for (; text_index(a, i) >= 0 && text_index(a, i) == text_index(b, i); ++i) {
   }
 
   return text_length(a) == i;
 }
 
-void abcdef_to_upper(uint8_t bytes[TEXT_SIZE], struct text t) {
+void abcdef_to_upper(struct text t) {
   for (int i = 0; i + t.start < t.end; ++i) {
-    bytes[t.start + i] = hex_to_upper[bytes[t.start + i]];
+    TEXT[t.start + i] = hex_to_upper[TEXT[t.start + i]];
   }
 }
 
-void text_dbg(struct text t, struct text_memory *m) {
+void text_dbg(struct text t) {
   printf("DBG: ");
   for (int i = t.start; i < t.end; ++i) {
-    putchar(m->bytes[i]);
+    putchar(TEXT[i]);
   }
   printf("\n");
 }
 
-static int text_strip_end(struct text_memory *m, struct text t,
-                          struct text *stripped) {
+static int text_strip_end(struct text t, struct text *stripped) {
   int i = 0;
   int len = text_length(t);
-  for (; text_index(m, t, len - i - 1) == ' '; ++i) {
+  for (; text_index(t, len - i - 1) == ' '; ++i) {
   }
 
   return text_slice(t, 0, len - i, stripped);
 }
 
-static int append_char(char ch, struct text_memory *m) {
-  if (m->head == TEXT_SIZE) {
+static int append_char(char ch) {
+  if (HEAD == TEXT_SIZE) {
     return -1;
   }
 
-  m->bytes[m->head] = ch;
-  ++m->head;
+  TEXT[HEAD] = ch;
+  ++HEAD;
   return 0;
 }
 
@@ -92,14 +89,14 @@ static int text_slice(struct text parent, int start, int end,
   return 0;
 }
 
-static int copy_to_head(struct text t, struct text_memory *m) {
+static int copy_to_head(struct text t) {
   for (int i = 0;; ++i) {
-    int result = text_index(m, t, i);
+    int result = text_index(t, i);
     if (result < 0) {
       break;
     }
 
-    int err = append_char(result, m);
+    int err = append_char(result);
     if (err) {
       return err;
     }
@@ -107,153 +104,147 @@ static int copy_to_head(struct text t, struct text_memory *m) {
   return 0;
 }
 
-static int text_join(struct text_memory *m, struct text left, struct text right,
-                     struct text *result) {
-  if (m->head == left.end) {
+static int text_join(struct text left, struct text right, struct text *result) {
+  if (HEAD == left.end) {
     result->start = left.start;
   } else {
-    result->start = m->head;
+    result->start = HEAD;
   }
 
-  if (left.end != m->head) {
-    if (copy_to_head(left, m)) {
+  if (left.end != HEAD) {
+    if (copy_to_head(left)) {
       return -1;
     }
   }
 
-  if (copy_to_head(right, m)) {
+  if (copy_to_head(right)) {
     return -1;
   }
 
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int text_append_ascii(struct text_memory *m, struct text left,
-                             const char *right, struct text *result) {
-  if (left.end == m->head) {
+static int text_append_ascii(struct text left, const char *right,
+                             struct text *result) {
+  if (left.end == HEAD) {
     result->start = left.start;
   } else {
-    result->start = m->head;
+    result->start = HEAD;
   }
 
-  if (left.end != m->head) {
-    if (copy_to_head(left, m)) {
+  if (left.end != HEAD) {
+    if (copy_to_head(left)) {
       return -1;
     }
   }
 
   for (int i = 0; right[i] != '\0'; ++i) {
-    if (append_char(right[i], m)) {
+    if (append_char(right[i])) {
       return -1;
     }
   }
 
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int text_prepend_ascii_char(struct text_memory *m, char left,
-                                   struct text right, struct text *result) {
-  result->start = m->head;
-  if (append_char(left, m)) {
+static int text_prepend_ascii_char(char left, struct text right,
+                                   struct text *result) {
+  result->start = HEAD;
+  if (append_char(left)) {
     return -1;
   }
 
-  if (copy_to_head(right, m)) {
+  if (copy_to_head(right)) {
     return -1;
   }
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int text_append_ascii_char(struct text_memory *m, struct text left,
-                                  char right, struct text *result) {
+static int text_append_ascii_char(struct text left, char right,
+                                  struct text *result) {
 
-  if (left.end == m->head) {
+  if (left.end == HEAD) {
     result->start = left.start;
   } else {
-    result->start = m->head;
+    result->start = HEAD;
   }
 
-  if (left.end != m->head) {
-    if (copy_to_head(left, m)) {
+  if (left.end != HEAD) {
+    if (copy_to_head(left)) {
       return -1;
     }
   }
 
-  if (append_char(right, m)) {
+  if (append_char(right)) {
     return -1;
   }
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int text_from_ascii(struct text_memory *m, char *ascii,
-                           struct text *result) {
-  result->start = m->head;
+static int text_from_ascii(char *ascii, struct text *result) {
+  result->start = HEAD;
   for (int i = 0; ascii[i] != '\0'; ++i) {
-    if (append_char(ascii[i], m)) {
+    if (append_char(ascii[i])) {
       return -1;
     }
   }
 
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int text_from_ascii_char(struct text_memory *m, char ascii,
-                                struct text *result) {
-  result->start = m->head;
-  if (append_char(ascii, m)) {
+static int text_from_ascii_char(char ascii, struct text *result) {
+  result->start = HEAD;
+  if (append_char(ascii)) {
     return -1;
   }
 
-  result->end = m->head;
+  result->end = HEAD;
   return 0;
 }
 
-static int parse_chunk(struct parser *p, const char *chunk) {
+static int parse_chunk(const char *chunk) {
 
-  int start = p->i;
+  int start = I;
 
   int i = 0;
-  for (; text_index(p->m, p->in, p->i) == chunk[i] && chunk[i] != 0;
-       ++p->i, ++i) {
+  for (; text_index(IN, I) == chunk[i] && chunk[i] != 0; ++I, ++i) {
   }
 
   if (chunk[i] == 0) {
     return 0;
   }
 
-  p->i = start;
+  I = start;
   return -1;
 }
 
-static int take_while_1(struct parser *p, struct text *matching,
-                        const uint8_t match[256]) {
+static int take_while_1(struct text *matching, const uint8_t match[256]) {
 
-  int start = p->i;
+  int start = I;
 
-  if (!(match[text_index(p->m, p->in, p->i)])) {
+  if (!(match[text_index(IN, I)])) {
     return -1;
   }
-  ++p->i;
+  ++I;
 
-  for (; match[text_index(p->m, p->in, p->i)]; ++p->i) {
+  for (; match[text_index(IN, I)]; ++I) {
   }
 
-  return text_slice(p->in, start, p->i, matching);
+  return text_slice(IN, start, I, matching);
 }
 
-static int take_while(struct parser *p, struct text *matching,
-                      const uint8_t match[256]) {
-  int start = p->i;
+static int take_while(struct text *matching, const uint8_t match[256]) {
+  int start = I;
 
-  for (; match[text_index(p->m, p->in, p->i)]; ++p->i) {
+  for (; match[text_index(IN, I)]; ++I) {
   }
 
-  return text_slice(p->in, start, p->i, matching);
+  return text_slice(IN, start, I, matching);
 }
 
 static const uint8_t is_hex[256] = {
@@ -586,8 +577,8 @@ static const uint8_t is_normal_string_char[256] = {
     1,           1,         1,         1,
     1,           1,         1,         1};
 
-static int parse_char(struct parser *p, char ch) {
-  int got = text_index(p->m, p->in, p->i);
+static int parse_char(char ch) {
+  int got = text_index(IN, I);
   if (got < 0) {
     return -1;
   }
@@ -596,508 +587,502 @@ static int parse_char(struct parser *p, char ch) {
     return -1;
   }
 
-  ++p->i;
+  ++I;
   return 0;
 }
 
-static int parse_positive_hex_int(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_positive_hex_int(struct text *expression) {
+  int start = I;
 
-  int result = parse_chunk(p, "0x");
+  int result = parse_chunk("0x");
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = text_from_ascii(p->m, "0x", expression);
+  result = text_from_ascii("0x", expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text after_0x;
-  result = take_while_1(p, &after_0x, is_hex);
+  result = take_while_1(&after_0x, is_hex);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  abcdef_to_upper(p->m->bytes, after_0x);
+  abcdef_to_upper(after_0x);
 
-  result = text_join(p->m, *expression, after_0x, expression);
+  result = text_join(*expression, after_0x, expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   return 0;
 }
 
-static int parse_positive_int(struct parser *p, struct text *expression) {
-  int result = parse_positive_hex_int(p, expression);
+static int parse_positive_int(struct text *expression) {
+  int result = parse_positive_hex_int(expression);
   if (result == 0) {
     return result;
   }
 
-  return take_while_1(p, expression, is_digit);
+  return take_while_1(expression, is_digit);
 }
 
-static int parse_negative_int(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_negative_int(struct text *expression) {
+  int start = I;
 
-  int result = parse_char(p, '-');
+  int result = parse_char('-');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_positive_int(p, &exponent);
+  result = parse_positive_int(&exponent);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_prepend_ascii_char(p->m, '-', exponent, expression);
+  return text_prepend_ascii_char('-', exponent, expression);
 }
 
-static int parse_int(struct parser *p, struct text *expression) {
+static int parse_int(struct text *expression) {
 
-  int result = parse_positive_int(p, expression);
+  int result = parse_positive_int(expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_negative_int(p, expression);
+  return parse_negative_int(expression);
 }
 
-static int parse_simple_float(struct parser *p, struct text *expression) {
+static int parse_simple_float(struct text *expression) {
 
-  int start = p->i;
+  int start = I;
 
-  int result = take_while_1(p, expression, is_digit);
+  int result = take_while_1(expression, is_digit);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = parse_char(p, '.');
+  result = parse_char('.');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_append_ascii_char(p->m, *expression, '.', expression);
+  result = text_append_ascii_char(*expression, '.', expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text after_dot;
-  result = take_while_1(p, &after_dot, is_digit);
+  result = take_while_1(&after_dot, is_digit);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_join(p->m, *expression, after_dot, expression);
+  return text_join(*expression, after_dot, expression);
 }
 
-static int parse_float_exponent(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_float_exponent(struct text *expression) {
+  int start = I;
 
-  int result = parse_char(p, 'e');
+  int result = parse_char('e');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_int(p, &exponent);
+  result = parse_int(&exponent);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_prepend_ascii_char(p->m, 'e', exponent, expression);
+  return text_prepend_ascii_char('e', exponent, expression);
 }
 
-static int parse_dot_exponent_float(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_dot_exponent_float(struct text *expression) {
+  int start = I;
 
-  int result = parse_simple_float(p, expression);
+  int result = parse_simple_float(expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_float_exponent(p, &exponent);
+  result = parse_float_exponent(&exponent);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  return text_join(p->m, *expression, exponent, expression);
+  return text_join(*expression, exponent, expression);
 }
 
-static int parse_non_dot_exponent_float(struct parser *p,
-                                        struct text *expression) {
+static int parse_non_dot_exponent_float(struct text *expression) {
 
-  int start = p->i;
+  int start = I;
 
-  int result = take_while_1(p, expression, is_digit);
+  int result = take_while_1(expression, is_digit);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text exponent;
-  result = parse_float_exponent(p, &exponent);
+  result = parse_float_exponent(&exponent);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = text_append_ascii(p->m, *expression, ".0", expression);
+  result = text_append_ascii(*expression, ".0", expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_join(p->m, *expression, exponent, expression);
+  return text_join(*expression, exponent, expression);
 }
 
-static int parse_positive_float(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_positive_float(struct text *expression) {
+  int start = I;
 
-  int result = parse_dot_exponent_float(p, expression);
+  int result = parse_dot_exponent_float(expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_simple_float(p, expression);
+  result = parse_simple_float(expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_non_dot_exponent_float(p, expression);
+  result = parse_non_dot_exponent_float(expression);
   if (result == 0) {
     return 0;
   }
 
-  p->i = start;
+  I = start;
   return -1;
 }
 
-static int parse_negative_float(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_negative_float(struct text *expression) {
+  int start = I;
 
-  int result = parse_char(p, '-');
+  int result = parse_char('-');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text positive;
-  result = parse_positive_float(p, &positive);
+  result = parse_positive_float(&positive);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_prepend_ascii_char(p->m, '-', positive, expression);
+  return text_prepend_ascii_char('-', positive, expression);
 }
 
-static int parse_float(struct parser *p, struct text *expression) {
-  int result = parse_positive_float(p, expression);
+static int parse_float(struct text *expression) {
+  int result = parse_positive_float(expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_negative_float(p, expression);
+  return parse_negative_float(expression);
 }
 
-static int parse_unicode_hex(struct parser *p, struct text *formatted) {
-  int start = p->i;
+static int parse_unicode_hex(struct text *formatted) {
+  int start = I;
 
-  int result = parse_chunk(p, "\\u{");
+  int result = parse_chunk("\\u{");
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text unicode;
-  result = take_while_1(p, &unicode, is_hex);
+  result = take_while_1(&unicode, is_hex);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  abcdef_to_upper(p->m->bytes, unicode);
+  abcdef_to_upper(unicode);
 
-  result = parse_char(p, '}');
+  result = parse_char('}');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = text_from_ascii(p->m, "\\u{", formatted);
+  result = text_from_ascii("\\u{", formatted);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_join(p->m, *formatted, unicode, formatted);
+  result = text_join(*formatted, unicode, formatted);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_append_ascii_char(p->m, *formatted, '}', formatted);
+  result = text_append_ascii_char(*formatted, '}', formatted);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   return 0;
 }
 
-static int parse_double_quote_in_triple_string(struct parser *p,
-                                               struct text *expression) {
-  int start = p->i;
+static int parse_double_quote_in_triple_string(struct text *expression) {
+  int start = I;
 
-  int result = parse_char(p, '"');
+  int result = parse_char('"');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_from_ascii_char(p->m, '"', expression);
+  result = text_from_ascii_char('"', expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = parse_chunk(p, "\"\"");
+  result = parse_chunk("\"\"");
   if (result == 0) {
-    p->i = start;
+    I = start;
     return -1;
   }
 
   return 0;
 }
 
-static int parse_triple_string_piece(struct parser *p,
-                                     struct text *expression) {
-  int result = take_while_1(p, expression, is_triple_string_char);
+static int parse_triple_string_piece(struct text *expression) {
+  int result = take_while_1(expression, is_triple_string_char);
   if (result == 0) {
     return result;
   }
 
-  result = parse_chunk(p, "\\n");
+  result = parse_chunk("\\n");
   if (result == 0) {
-    return text_from_ascii_char(p->m, '\n', expression);
+    return text_from_ascii_char('\n', expression);
   }
 
-  result = parse_chunk(p, "\\\"");
+  result = parse_chunk("\\\"");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\\"", expression);
+    return text_from_ascii("\\\"", expression);
   }
 
-  result = parse_double_quote_in_triple_string(p, expression);
+  result = parse_double_quote_in_triple_string(expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_chunk(p, "\\\\");
+  result = parse_chunk("\\\\");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\\\", expression);
+    return text_from_ascii("\\\\", expression);
   }
 
-  result = parse_chunk(p, "\\t");
+  result = parse_chunk("\\t");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\t", expression);
+    return text_from_ascii("\\t", expression);
   }
 
-  result = parse_chunk(p, "\\r");
+  result = parse_chunk("\\r");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\u{000D}", expression);
+    return text_from_ascii("\\u{000D}", expression);
   }
 
-  return parse_unicode_hex(p, expression);
+  return parse_unicode_hex(expression);
 }
 
-static int parse_simple_string_piece(struct parser *p,
-                                     struct text *expression) {
-  int result = take_while_1(p, expression, is_normal_string_char);
+static int parse_simple_string_piece(struct text *expression) {
+  int result = take_while_1(expression, is_normal_string_char);
   if (result == 0) {
     return result;
   }
 
-  result = parse_chunk(p, "\\\"");
+  result = parse_chunk("\\\"");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\\"", expression);
+    return text_from_ascii("\\\"", expression);
   }
 
-  result = parse_chunk(p, "\\\\");
+  result = parse_chunk("\\\\");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\\\", expression);
+    return text_from_ascii("\\\\", expression);
   }
 
-  result = parse_chunk(p, "\\n");
+  result = parse_chunk("\\n");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\n", expression);
+    return text_from_ascii("\\n", expression);
   }
 
-  result = parse_chunk(p, "\\t");
+  result = parse_chunk("\\t");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\t", expression);
+    return text_from_ascii("\\t", expression);
   }
 
-  result = parse_chunk(p, "\\r");
+  result = parse_chunk("\\r");
   if (result == 0) {
-    return text_from_ascii(p->m, "\\u{000D}", expression);
+    return text_from_ascii("\\u{000D}", expression);
   }
 
-  return parse_unicode_hex(p, expression);
+  return parse_unicode_hex(expression);
 }
 
-static int parse_triple_string(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_triple_string(struct text *expression) {
+  int start = I;
 
-  int result = parse_chunk(p, "\"\"\"");
+  int result = parse_chunk("\"\"\"");
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_from_ascii(p->m, "\"\"\"", expression);
+  result = text_from_ascii("\"\"\"", expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text contents;
-  while (parse_triple_string_piece(p, &contents) == 0) {
-    result = text_join(p->m, *expression, contents, expression);
+  while (parse_triple_string_piece(&contents) == 0) {
+    result = text_join(*expression, contents, expression);
     if (result) {
-      p->i = start;
+      I = start;
       return result;
     }
   }
 
-  result = parse_chunk(p, "\"\"\"");
+  result = parse_chunk("\"\"\"");
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  return text_append_ascii(p->m, *expression, "\"\"\"", expression);
+  return text_append_ascii(*expression, "\"\"\"", expression);
 }
 
-static int parse_simple_string(struct parser *p, struct text *expression) {
-  int start = p->i;
+static int parse_simple_string(struct text *expression) {
+  int start = I;
 
-  int result = parse_char(p, '"');
+  int result = parse_char('"');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  result = text_from_ascii_char(p->m, '"', expression);
+  result = text_from_ascii_char('"', expression);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text contents;
-  while (parse_simple_string_piece(p, &contents) == 0) {
-    result = text_join(p->m, *expression, contents, expression);
+  while (parse_simple_string_piece(&contents) == 0) {
+    result = text_join(*expression, contents, expression);
     if (result) {
-      p->i = start;
+      I = start;
       return result;
     }
   }
 
-  result = parse_char(p, '"');
+  result = parse_char('"');
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  return text_append_ascii_char(p->m, *expression, '"', expression);
+  return text_append_ascii_char(*expression, '"', expression);
 }
 
-static int parse_expression(struct parser *p, struct text *expression) {
+static int parse_expression(struct text *expression) {
 
-  int result = parse_float(p, expression);
+  int result = parse_float(expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_int(p, expression);
+  result = parse_int(expression);
   if (result == 0) {
     return 0;
   }
 
-  result = parse_triple_string(p, expression);
+  result = parse_triple_string(expression);
   if (result == 0) {
     return 0;
   }
 
-  return parse_simple_string(p, expression);
+  return parse_simple_string(expression);
 }
 
-static void parse_spaces_and_newlines(struct parser *p) {
-  for (; text_index(p->m, p->in, p->i) == ' ' ||
-         text_index(p->m, p->in, p->i) == '\n';
-       ++p->i) {
+static void parse_spaces_and_newlines() {
+  for (; text_index(IN, I) == ' ' || text_index(IN, I) == '\n'; ++I) {
   }
 }
 
-static int parse_line_comment(struct parser *p, struct text *comment) {
-  int start = p->i;
+static int parse_line_comment(struct text *comment) {
+  int start = I;
 
-  int result = parse_chunk(p, "--");
+  int result = parse_chunk("--");
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
-  result = text_from_ascii(p->m, "--", comment);
+  result = text_from_ascii("--", comment);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   struct text contents;
-  result = take_while(p, &contents, is_line_comment_char);
+  result = take_while(&contents, is_line_comment_char);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
-  text_strip_end(p->m, contents, &contents);
+  text_strip_end(contents, &contents);
 
-  result = text_join(p->m, *comment, contents, comment);
+  result = text_join(*comment, contents, comment);
   if (result) {
-    p->i = start;
+    I = start;
     return result;
   }
 
   return 0;
 }
 
-static int parse_comment(struct parser *p, struct text *comments) {
-  parse_spaces_and_newlines(p);
-  int result = parse_line_comment(p, comments);
+static int parse_comment(struct text *comments) {
+  parse_spaces_and_newlines();
+  int result = parse_line_comment(comments);
   if (result) {
     return 0;
   }
   struct text line_comment;
   while (1) {
-    parse_spaces_and_newlines(p);
-    result = parse_line_comment(p, &line_comment);
+    parse_spaces_and_newlines();
+    result = parse_line_comment(&line_comment);
     if (result) {
       break;
     }
-    result = text_append_ascii(p->m, *comments, "\n    ", comments);
+    result = text_append_ascii(*comments, "\n    ", comments);
     if (result) {
       break;
     }
-    result = text_join(p->m, *comments, line_comment, comments);
+    result = text_join(*comments, line_comment, comments);
     if (result) {
       break;
     }
@@ -1106,49 +1091,50 @@ static int parse_comment(struct parser *p, struct text *comments) {
   return 0;
 }
 
-int format(const struct text in, struct text *out, struct text_memory *m) {
-  struct parser p = {.in = in, .i = 0, .m = m};
-  int result = parse_chunk(&p, "module X exposing (x)\n\n\nx =\n");
+int format(const struct text in, struct text *out) {
+  IN = in;
+  I = 0;
+  int result = parse_chunk("module X exposing (x)\n\n\nx =\n");
   if (result < 0) {
     return result;
   }
 
   struct text commentBefore = {.start = 0, .end = 0};
-  result = parse_comment(&p, &commentBefore);
+  result = parse_comment(&commentBefore);
   if (result) {
     return result;
   }
 
   struct text expression;
-  result = parse_expression(&p, &expression);
+  result = parse_expression(&expression);
   if (result < 0) {
     return result;
   }
 
-  result = parse_chunk(&p, "\n\0");
+  result = parse_chunk("\n\0");
   if (result < 0) {
     return result;
   }
 
-  result = text_from_ascii(p.m, "module X exposing (x)\n\n\nx =\n    ", out);
+  result = text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out);
   if (result) {
     return result;
   }
-  result = text_join(p.m, *out, commentBefore, out);
+  result = text_join(*out, commentBefore, out);
   if (result) {
     return result;
   }
   if (text_length(commentBefore) > 0) {
-    result = text_append_ascii(p.m, *out, "\n    ", out);
+    result = text_append_ascii(*out, "\n    ", out);
     if (result) {
       return result;
     }
   }
-  result = text_join(p.m, *out, expression, out);
+  result = text_join(*out, expression, out);
   if (result) {
     return result;
   }
-  result = text_append_ascii_char(p.m, *out, '\n', out);
+  result = text_append_ascii_char(*out, '\n', out);
   if (result) {
     return result;
   }
@@ -1198,26 +1184,24 @@ int string_equal(const char *a, const char *b) {
   return *a == 0 && *b == 0;
 }
 
-void text_zero_memory(struct text_memory *m) { m->head = 0; }
-
 int text_length(struct text t) { return t.end - t.start; }
 
-int text_from_file(struct text_memory *m, FILE *file, struct text *t) {
-  t->start = m->head;
-  size_t size = fread(m->bytes + t->start, 1, TEXT_SIZE - t->start, file);
-  m->head += size;
-  t->end = m->head;
+int text_from_file(FILE *file, struct text *t) {
+  t->start = HEAD;
+  size_t size = fread(TEXT + t->start, 1, TEXT_SIZE - t->start, file);
+  HEAD += size;
+  t->end = HEAD;
   return 0;
 }
 
-void text_to_file(struct text_memory *m, FILE *f, struct text t) {
-  fwrite(m->bytes + t.start, 1, t.end - t.start, f);
+void text_to_file(FILE *f, struct text t) {
+  fwrite(TEXT + t.start, 1, t.end - t.start, f);
 }
 
-int text_index(struct text_memory *m, struct text t, int index) {
+int text_index(struct text t, int index) {
   if (index < 0 || t.start + index >= t.end || t.start + index >= TEXT_SIZE) {
     return -1;
   }
 
-  return m->bytes[t.start + index];
+  return TEXT[t.start + index];
 }

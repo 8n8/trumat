@@ -7,29 +7,18 @@ struct text {
   uint32_t end;
 };
 
-struct text_memory {
-  uint8_t bytes[TEXT_SIZE];
-  uint32_t head;
-};
-
-int text_from_file(struct text_memory *, FILE *, struct text *);
-void text_zero_memory(struct text_memory *);
-int text_index(struct text_memory *, struct text, int);
+int text_from_file(FILE *, struct text *);
+void text_zero_memory();
+int text_index(struct text, int);
 int text_length(struct text);
-void text_to_file(struct text_memory *, FILE *, struct text);
-void text_to_string(struct text_memory *, struct text, char string[300]);
-int text_equal(struct text_memory *, struct text, struct text);
+void text_to_file(FILE *, struct text);
+void text_to_string(struct text, char string[300]);
+int text_equal(struct text, struct text);
 
 int string_equal(const char *, const char *);
 
-// This is the formatter.
-int format(
-    // This should contain the unformatted source code.
-    const struct text in,
-    // This will be overwritten with the formatted code.
-    struct text *out, struct text_memory *m);
+int format(const struct text in, struct text *out);
 
-// Writes "parent" and "child" to "result", separated by a forward slash.
 void make_sub_path(const char *parent, const char *child, char *result);
 
 // Checks if the path is "." or "..".

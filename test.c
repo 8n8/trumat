@@ -43,8 +43,7 @@ static void make_expected_path(char *in_path, char *expected_path) {
   expected_path[expected_i] = 0;
 }
 
-static void check_unchanged(char *in_path, struct text in, struct text out,
-                            struct text_memory *m) {
+static void check_unchanged(char *in_path, struct text in, struct text out) {
   if (text_length(in) != text_length(out)) {
     char error_message[300];
     sprintf(error_message,
@@ -55,8 +54,8 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
     return;
   }
   for (int i = 0;; ++i) {
-    int in_result = text_index(m, in, i);
-    int out_result = text_index(m, out, i);
+    int in_result = text_index(in, i);
+    int out_result = text_index(out, i);
     if (in_result < 0 && out_result < 0) {
       break;
     }
@@ -73,7 +72,7 @@ static void check_unchanged(char *in_path, struct text in, struct text out,
   ++NUM_PASSED;
 }
 
-static void run_one_formatted_test(char *in_path, struct text_memory *m) {
+static void run_one_formatted_test(char *in_path) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -82,7 +81,7 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m) {
     return;
   }
   struct text in;
-  int result = text_from_file(m, in_file, &in);
+  int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];
@@ -99,7 +98,7 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m) {
   }
 
   struct text out;
-  result = format(in, &out, m);
+  result = format(in, &out);
   if (result != 0) {
     char error_message[256];
     sprintf(error_message, "formatter failed with non-zero result: %d", result);
@@ -107,10 +106,10 @@ static void run_one_formatted_test(char *in_path, struct text_memory *m) {
     return;
   }
 
-  check_unchanged(in_path, in, out, m);
+  check_unchanged(in_path, in, out);
 }
 
-static void run_one_no_change_test(char *in_path, struct text_memory *m) {
+static void run_one_no_change_test(char *in_path) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -119,7 +118,7 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m) {
     return;
   }
   struct text in;
-  int result = text_from_file(m, in_file, &in);
+  int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];
@@ -129,16 +128,16 @@ static void run_one_no_change_test(char *in_path, struct text_memory *m) {
   }
 
   struct text out;
-  result = format(in, &out, m);
+  result = format(in, &out);
   if (result != 0) {
     ++NUM_IGNORED;
     return;
   }
 
-  check_unchanged(in_path, in, out, m);
+  check_unchanged(in_path, in, out);
 }
 
-static void run_formatted_tests(char *path, struct text_memory *memory) {
+static void run_formatted_tests(char *path) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -147,7 +146,7 @@ static void run_formatted_tests(char *path, struct text_memory *memory) {
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_formatted_tests(sub_path, memory);
+        run_formatted_tests(sub_path);
       }
       item_in_directory = readdir(directory);
     }
@@ -163,11 +162,10 @@ static void run_formatted_tests(char *path, struct text_memory *memory) {
     return;
   }
 
-  text_zero_memory(memory);
-  run_one_formatted_test(path, memory);
+  run_one_formatted_test(path);
 }
 
-static void run_no_change_tests(char *path, struct text_memory *memory) {
+static void run_no_change_tests(char *path) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -176,7 +174,7 @@ static void run_no_change_tests(char *path, struct text_memory *memory) {
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_no_change_tests(sub_path, memory);
+        run_no_change_tests(sub_path);
       }
       item_in_directory = readdir(directory);
     }
@@ -192,29 +190,27 @@ static void run_no_change_tests(char *path, struct text_memory *memory) {
     return;
   }
 
-  text_zero_memory(memory);
-  run_one_no_change_test(path, memory);
+  run_one_no_change_test(path);
 }
 
-static void print_text(struct text_memory *m, struct text t) {
-  for (int i = 0; text_index(m, t, i) >= 0; ++i) {
-    if (text_index(m, t, i) == '\n') {
+static void print_text(struct text t) {
+  for (int i = 0; text_index(t, i) >= 0; ++i) {
+    if (text_index(t, i) == '\n') {
       fputs("\\n", stderr);
       continue;
     }
-    fputc(text_index(m, t, i), stderr);
+    fputc(text_index(t, i), stderr);
   }
   fputc('\n', stderr);
 }
 
-static void print_diff_error(struct text_memory *m, struct text got,
-                             struct text exp) {
+static void print_diff_error(struct text got, struct text exp) {
   ++NUM_FAILED;
 
   fputs("GOT: ", stderr);
-  print_text(m, got);
+  print_text(got);
   fputs("EXP: ", stderr);
-  print_text(m, exp);
+  print_text(exp);
 
   struct text maximum = got;
   if (text_length(exp) > text_length(got)) {
@@ -223,19 +219,19 @@ static void print_diff_error(struct text_memory *m, struct text got,
 
   fputs("     ", stderr);
   int i = 0;
-  for (; (text_index(m, got, i) == text_index(m, exp, i)) &&
-         (text_index(m, maximum, i) >= 0);
+  for (; (text_index(got, i) == text_index(exp, i)) &&
+         (text_index(maximum, i) >= 0);
        ++i) {
 
-    if (text_index(m, got, i) == '\n') {
+    if (text_index(got, i) == '\n') {
       fputc(' ', stderr);
     }
 
     fputc(' ', stderr);
   }
 
-  for (; text_index(m, maximum, i) >= 0; ++i) {
-    if (text_index(m, maximum, i) == '\n') {
+  for (; text_index(maximum, i) >= 0; ++i) {
+    if (text_index(maximum, i) == '\n') {
       fputc('^', stderr);
     }
     fputc('^', stderr);
@@ -243,8 +239,7 @@ static void print_diff_error(struct text_memory *m, struct text got,
   fputc('\n', stderr);
 }
 
-static void check_expected(char *in_path, struct text out,
-                           struct text_memory *m) {
+static void check_expected(char *in_path, struct text out) {
   char expected_path[256];
   make_expected_path(in_path, expected_path);
 
@@ -257,7 +252,7 @@ static void check_expected(char *in_path, struct text out,
   }
 
   struct text expected;
-  int result = text_from_file(m, expected_file, &expected);
+  int result = text_from_file(expected_file, &expected);
   if (result) {
     char error_message[300];
     sprintf(error_message, "could not read file; %s", expected_path);
@@ -267,16 +262,16 @@ static void check_expected(char *in_path, struct text out,
   }
   fclose(expected_file);
 
-  if (!text_equal(m, out, expected)) {
+  if (!text_equal(out, expected)) {
     print_error(in_path, "output not as expected");
-    print_diff_error(m, out, expected);
+    print_diff_error(out, expected);
     return;
   }
 
   ++NUM_PASSED;
 }
 
-static void run_one_positive_test(char *in_path, struct text_memory *m) {
+static void run_one_positive_test(char *in_path) {
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -286,7 +281,7 @@ static void run_one_positive_test(char *in_path, struct text_memory *m) {
   }
 
   struct text in;
-  int result = text_from_file(m, in_file, &in);
+  int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
     char error_message[256];
@@ -296,7 +291,7 @@ static void run_one_positive_test(char *in_path, struct text_memory *m) {
   }
 
   struct text out;
-  result = format(in, &out, m);
+  result = format(in, &out);
 
   if (result != 0) {
     char error_message[256];
@@ -305,10 +300,10 @@ static void run_one_positive_test(char *in_path, struct text_memory *m) {
     return;
   }
 
-  check_expected(in_path, out, m);
+  check_expected(in_path, out);
 }
 
-static void run_positive_tests(char *path, struct text_memory *memory) {
+static void run_positive_tests(char *path) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -317,7 +312,7 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        run_positive_tests(sub_path, memory);
+        run_positive_tests(sub_path);
       }
       item_in_directory = readdir(directory);
     }
@@ -333,15 +328,13 @@ static void run_positive_tests(char *path, struct text_memory *memory) {
     return;
   }
 
-  text_zero_memory(memory);
-  run_one_positive_test(path, memory);
+  run_one_positive_test(path);
 }
 
 int main(int argc, char *argv[]) {
-  static struct text_memory m;
-  run_positive_tests("test_data/input", &m);
-  run_no_change_tests("test_data/dont_change", &m);
-  run_formatted_tests("test_data/formatted", &m);
+  run_positive_tests("test_data/input");
+  run_no_change_tests("test_data/dont_change");
+  run_formatted_tests("test_data/formatted");
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
   return NUM_FAILED;

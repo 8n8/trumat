@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-static void format_file(char *path, struct text_memory *m) {
+static void format_file(char *path) {
   struct text out;
   {
     FILE *file = fopen(path, "rb");
@@ -11,12 +11,12 @@ static void format_file(char *path, struct text_memory *m) {
       return;
     }
     struct text in;
-    if (text_from_file(m, file, &in)) {
+    if (text_from_file(file, &in)) {
       fprintf(stderr, "could not read the file: %s\n", path);
       return;
     }
 
-    int result = format(in, &out, m);
+    int result = format(in, &out);
 
     if (result != 0) {
       fprintf(stderr,
@@ -28,12 +28,12 @@ static void format_file(char *path, struct text_memory *m) {
   }
 
   FILE *file = fopen(path, "wb");
-  text_to_file(m, file, out);
+  text_to_file(file, out);
 
   printf("Processing %s\n", path);
 }
 
-static void format_directory(char *path, struct text_memory *memory) {
+static void format_directory(char *path) {
   DIR *directory = opendir(path);
   struct dirent *item_in_directory;
   if (directory != NULL) {
@@ -42,7 +42,7 @@ static void format_directory(char *path, struct text_memory *memory) {
       if (!is_dot_path(item_in_directory->d_name)) {
         char sub_path[256];
         make_sub_path(path, item_in_directory->d_name, sub_path);
-        format_directory(sub_path, memory);
+        format_directory(sub_path);
       }
       item_in_directory = readdir(directory);
     }
@@ -53,8 +53,7 @@ static void format_directory(char *path, struct text_memory *memory) {
     return;
   }
 
-  text_zero_memory(memory);
-  format_file(path, memory);
+  format_file(path);
 }
 
 static char *usage =
@@ -75,6 +74,5 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  static struct text_memory m;
-  format_directory(".", &m);
+  format_directory(".");
 }
