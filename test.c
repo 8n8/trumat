@@ -196,6 +196,53 @@ static void run_no_change_tests(char *path, struct text_memory *memory) {
   run_one_no_change_test(path, memory);
 }
 
+static void print_text(struct text_memory *m, struct text t) {
+  for (int i = 0; text_index(m, t, i) >= 0; ++i) {
+    if (text_index(m, t, i) == '\n') {
+      fputs("\\n", stderr);
+      continue;
+    }
+    fputc(text_index(m, t, i), stderr);
+  }
+  fputc('\n', stderr);
+}
+
+static void print_diff_error(struct text_memory *m, struct text got,
+                             struct text exp) {
+  ++NUM_FAILED;
+
+  fputs("GOT: ", stderr);
+  print_text(m, got);
+  fputs("EXP: ", stderr);
+  print_text(m, exp);
+
+  struct text maximum = got;
+  if (text_length(exp) > text_length(got)) {
+    maximum = exp;
+  }
+
+  fputs("     ", stderr);
+  int i = 0;
+  for (; (text_index(m, got, i) == text_index(m, exp, i)) &&
+         (text_index(m, maximum, i) >= 0);
+       ++i) {
+
+    if (text_index(m, got, i) == '\n') {
+      fputc(' ', stderr);
+    }
+
+    fputc(' ', stderr);
+  }
+
+  for (; text_index(m, maximum, i) >= 0; ++i) {
+    if (text_index(m, maximum, i) == '\n') {
+      fputc('^', stderr);
+    }
+    fputc('^', stderr);
+  }
+  fputc('\n', stderr);
+}
+
 static void check_expected(char *in_path, struct text out,
                            struct text_memory *m) {
   char expected_path[256];
@@ -209,22 +256,22 @@ static void check_expected(char *in_path, struct text out,
     return;
   }
 
-  for (int i = 0;; ++i) {
-    int expected = fgetc(expected_file);
-    if (expected == EOF && text_index(m, out, i) < 0) {
-      break;
-    }
-
-    if (expected != text_index(m, out, i)) {
-      char error_message[300];
-      sprintf(error_message, "expected '%c' but got '%c' at position %d",
-              expected, text_index(m, out, i), i);
-      print_error(in_path, error_message);
-      fclose(expected_file);
-      return;
-    }
+  struct text expected;
+  int result = text_from_file(m, expected_file, &expected);
+  if (result) {
+    char error_message[300];
+    sprintf(error_message, "could not read file; %s", expected_path);
+    print_error(expected_path, error_message);
+    fclose(expected_file);
+    return;
   }
   fclose(expected_file);
+
+  if (!text_equal(m, out, expected)) {
+    print_error(in_path, "output not as expected");
+    print_diff_error(m, out, expected);
+    return;
+  }
 
   ++NUM_PASSED;
 }

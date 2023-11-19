@@ -33,6 +33,19 @@ const uint8_t hex_to_upper[256] = {
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
     255};
 
+int text_equal(struct text_memory *m, struct text a, struct text b) {
+  if (text_length(a) != text_length(b)) {
+    return 0;
+  }
+
+  int i = 0;
+  for (; text_index(m, a, i) >= 0 && text_index(m, a, i) == text_index(m, b, i);
+       ++i) {
+  }
+
+  return text_length(a) == i;
+}
+
 void abcdef_to_upper(uint8_t bytes[TEXT_SIZE], struct text t) {
   for (int i = 0; i + t.start < t.end; ++i) {
     bytes[t.start + i] = hex_to_upper[bytes[t.start + i]];
