@@ -1160,15 +1160,42 @@ static int parse_block_comment_space(struct text *comment) {
   return text_from_ascii("{- -}", comment);
 }
 
+static void text_trim(struct text untrimmed, struct text *trimmed) {
+  *trimmed = untrimmed;
+  for (; TEXT[trimmed->start] == ' ' || TEXT[trimmed->start] == '\n';
+       ++trimmed->start) {
+  }
+
+  for (; TEXT[trimmed->end - 1] == ' ' || TEXT[trimmed->end - 1] == '\n';
+       --trimmed->end) {
+  }
+}
+
 static int parse_non_empty_block_comment(struct text *comment) {
   int start = I;
   int result = parse_chunk("{-");
   if (result) {
+    I = start;
+    return result;
+  }
+
+  struct text untrimmed;
+  result = take_while_1(&untrimmed, is_block_comment_char);
+  if (result) {
+    I = start;
     return result;
   }
 
   struct text contents;
-  result = take_while_1(&contents, is_block_comment_char);
+  text_trim(untrimmed, &contents);
+
+  result = text_prepend_ascii_char(' ', contents, &contents);
+  if (result) {
+    I = start;
+    return result;
+  }
+
+  result = text_append_ascii_char(contents, ' ', &contents);
   if (result) {
     I = start;
     return result;
