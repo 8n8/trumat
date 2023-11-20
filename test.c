@@ -23,13 +23,13 @@ static void print_error(char *path, char *message) {
 }
 
 static void make_expected_path(char *in_path, char *expected_path) {
-  char *expected_root = "test_data/expected/";
+  char *expected_root = "expected/";
   int expected_i = 0;
   for (; expected_root[expected_i] != 0; ++expected_i) {
     expected_path[expected_i] = expected_root[expected_i];
   }
 
-  char *in_root = "test_data/input/";
+  char *in_root = "input/";
   int in_i = 0;
   for (; in_root[in_i] != 0; ++in_i) {
   }
@@ -332,9 +332,9 @@ static void run_positive_tests(char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  run_positive_tests("test_data/input");
-  run_no_change_tests("test_data/dont_change");
-  run_formatted_tests("test_data/formatted");
+  run_positive_tests("input");
+  run_no_change_tests("dont_change");
+  run_formatted_tests("formatted");
   printf("%d tests passed\n", NUM_PASSED);
   printf("%d tests successfully ignored\n", NUM_IGNORED);
   return NUM_FAILED;
