@@ -75,6 +75,7 @@ static void check_unchanged(char *in_path, struct text in, struct text out) {
 }
 
 static void run_one_formatted_test(char *in_path) {
+  init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -112,6 +113,7 @@ static void run_one_formatted_test(char *in_path) {
 }
 
 static void run_one_no_change_test(char *in_path) {
+  init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];
@@ -274,6 +276,7 @@ static void check_expected(char *in_path, struct text out) {
 }
 
 static void run_one_positive_test(char *in_path) {
+  init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
     char error_message[256];

@@ -5,6 +5,8 @@ static uint32_t HEAD;
 static int I;
 static struct text IN;
 
+void init_memory() { HEAD = 0; }
+
 static int text_slice(struct text, int, int, struct text *);
 
 static int parse_int(struct text *);
@@ -1074,8 +1076,18 @@ int parse_empty_block_comment(struct text *comment) {
 }
 
 static int parse_block_comment_space(struct text *comment) {
-  int result = parse_chunk("{- -}");
+  int start = I;
+  int result = parse_chunk("{-");
   if (result) {
+    return result;
+  }
+
+  for (; TEXT[I] == ' '; ++I) {
+  }
+
+  result = parse_chunk("-}");
+  if (result) {
+    I = start;
     return result;
   }
 

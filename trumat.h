@@ -7,6 +7,7 @@ struct text {
   uint32_t end;
 };
 
+void init_memory();
 int text_from_file(FILE *, struct text *);
 void text_zero_memory();
 int text_index(struct text, int);
