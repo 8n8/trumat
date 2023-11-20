@@ -1064,16 +1064,34 @@ static int parse_line_comment(struct text *comment) {
   return 0;
 }
 
-static int parse_comment(struct text *comments) {
+static int parse_block_comment(struct text *comment) {
+  int result = parse_chunk("{--}");
+  if (result) {
+    return result;
+  }
+
+  return text_from_ascii("{--}", comment);
+}
+
+static int parse_one_comment(struct text *comment) {
+  int result = parse_line_comment(comment);
+  if (result == 0) {
+    return 0;
+  }
+
+  return parse_block_comment(comment);
+}
+
+static int parse_some_comments(struct text *comments) {
   parse_spaces_and_newlines();
-  int result = parse_line_comment(comments);
+  int result = parse_one_comment(comments);
   if (result) {
     return 0;
   }
   struct text line_comment;
   while (1) {
     parse_spaces_and_newlines();
-    result = parse_line_comment(&line_comment);
+    result = parse_one_comment(&line_comment);
     if (result) {
       break;
     }
@@ -1099,7 +1117,7 @@ int format(const struct text in, struct text *out) {
   }
 
   struct text commentBefore = {.start = 0, .end = 0};
-  result = parse_comment(&commentBefore);
+  result = parse_some_comments(&commentBefore);
   if (result) {
     return result;
   }

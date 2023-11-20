@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 static char *test_only = "";
+static void print_diff_error(struct text, struct text);
 
 static int NUM_FAILED = 0;
 static int NUM_PASSED = 0;
@@ -51,6 +52,7 @@ static void check_unchanged(char *in_path, struct text in, struct text out) {
             "length of %d",
             text_length(in), text_length(out));
     print_error(in_path, error_message);
+    print_diff_error(out, in);
     return;
   }
   for (int i = 0;; ++i) {
