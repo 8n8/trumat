@@ -78,18 +78,14 @@ static void run_one_formatted_test(char *in_path) {
   init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
-    char error_message[256];
-    sprintf(error_message, "could not open file: %s", in_path);
-    print_error(in_path, error_message);
+    print_error(in_path, "could not open file");
     return;
   }
   struct text in;
   int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
-    char error_message[256];
-    sprintf(error_message, "could not read the file: %s", in_path);
-    print_error(in_path, error_message);
+    print_error(in_path, "could not read the file");
     return;
   }
 
@@ -116,18 +112,14 @@ static void run_one_no_change_test(char *in_path) {
   init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {
-    char error_message[256];
-    sprintf(error_message, "could not open file: %s", in_path);
-    print_error(in_path, error_message);
+    print_error(in_path, "could not open file");
     return;
   }
   struct text in;
   int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
-    char error_message[256];
-    sprintf(error_message, "could not read the file: %s", in_path);
-    print_error(in_path, error_message);
+    print_error(in_path, "could not read the file");
     return;
   }
 
@@ -289,9 +281,7 @@ static void run_one_positive_test(char *in_path) {
   int result = text_from_file(in_file, &in);
   fclose(in_file);
   if (result) {
-    char error_message[256];
-    sprintf(error_message, "could not read the file: %s", in_path);
-    print_error(in_path, error_message);
+    print_error(in_path, "could not read the file");
     return;
   }
 
