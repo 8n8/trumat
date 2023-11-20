@@ -1075,7 +1075,7 @@ int parse_empty_block_comment(struct text *comment) {
   return text_from_ascii("{--}", comment);
 }
 
-static int parse_block_comment_space(struct text *comment) {
+static int parse_non_empty_block_comment(struct text *comment) {
   int start = I;
   int result = parse_chunk("{-");
   if (result) {
@@ -1100,7 +1100,7 @@ static int parse_block_comment(struct text *comment) {
     return 0;
   }
 
-  return parse_block_comment_space(comment);
+  return parse_non_empty_block_comment(comment);
 }
 
 static int parse_one_comment(struct text *comment) {
