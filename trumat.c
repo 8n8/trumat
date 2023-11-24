@@ -1161,11 +1161,27 @@ static int parse_block_comment_space(struct text *comment) {
   return text_from_ascii("{- -}", comment);
 }
 
-static int parse_paragraph(struct text* item) {
-  return take_while_1(item, is_paragraph_char);
+static void text_strip(struct text untrimmed, struct text *trimmed) {
+  *trimmed = untrimmed;
+  for (; TEXT[trimmed->start] == ' ' || TEXT[trimmed->start] == '\n';
+       ++trimmed->start) {
+  }
+  for (; TEXT[trimmed->end - 1] == ' ' || TEXT[trimmed->end - 1] == '\n';
+       --trimmed->end) {
+  }
 }
 
-static int parse_block_comment_item(struct text* item) {
+static int parse_paragraph(struct text *item) {
+  struct text contents = {0, 0};
+  int result = take_while_1(&contents, is_paragraph_char);
+  if (result) {
+    return result;
+  }
+  text_strip(contents, item);
+  return 0;
+}
+
+static int parse_block_comment_item(struct text *item) {
   int result = parse_paragraph(item);
   if (result == 0) {
     return 0;
@@ -1192,16 +1208,6 @@ static int parse_block_comment_contents(struct text *contents) {
   return 0;
 }
 
-static void text_trim(struct text untrimmed, struct text *trimmed) {
-  *trimmed = untrimmed;
-  for (; TEXT[trimmed->start] == ' ' || TEXT[trimmed->start] == '\n';
-       ++trimmed->start) {
-  }
-  for (; TEXT[trimmed->end - 1] == ' ' || TEXT[trimmed->end - 1] == '\n';
-        --trimmed->end) {
-  }
-}
-
 static int parse_non_empty_block_comment(struct text *comment) {
   int start = I;
   int result = parse_chunk("{-");
@@ -1214,14 +1220,12 @@ static int parse_non_empty_block_comment(struct text *comment) {
     I = start;
     return result;
   }
-  struct text untrimmed = {0, 0};
-  result = parse_block_comment_contents(&untrimmed);
+  struct text contents = {0, 0};
+  result = parse_block_comment_contents(&contents);
   if (result) {
     I = start;
     return result;
   }
-  struct text contents;
-  text_trim(untrimmed, &contents);
   result = text_join(*comment, contents, comment);
   if (result) {
     I = start;
