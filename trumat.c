@@ -8,7 +8,7 @@ static struct text IN;
 
 void init_memory() { HEAD = 0; }
 
-static void text_slice(struct text, int, int, struct text *);
+static struct text text_slice(struct text, int, int);
 static int parse_block_comment(struct text *);
 
 static int parse_int(struct text *);
@@ -61,13 +61,13 @@ void text_dbg(struct text t) {
   printf("\n");
 }
 
-static void text_strip_end(struct text t, struct text *stripped) {
+static struct text text_strip_end(struct text t) {
   int i = 0;
   int len = text_length(t);
   for (; text_index(t, len - i - 1) == ' '; ++i) {
   }
 
-  text_slice(t, 0, len - i, stripped);
+  return text_slice(t, 0, len - i);
 }
 
 static void append_char(char ch) {
@@ -79,15 +79,16 @@ static void append_char(char ch) {
   ++HEAD;
 }
 
-static void text_slice(struct text parent, int start, int end,
-                       struct text *result) {
+static struct text text_slice(struct text parent, int start, int end) {
+  struct text result;
   int parent_size = text_length(parent);
   if (start >= parent_size || end > parent_size || start > end) {
     exit(-1);
   }
 
-  result->start = parent.start + start;
-  result->end = parent.start + end;
+  result.start = parent.start + start;
+  result.end = parent.start + end;
+  return result;
 }
 
 static void copy_to_head(struct text t) {
@@ -206,17 +207,17 @@ static int take_while_1(struct text *matching, const uint8_t match[256]) {
   for (; match[text_index(IN, I)]; ++I) {
   }
 
-  text_slice(IN, start, I, matching);
+  *matching = text_slice(IN, start, I);
   return 0;
 }
 
-static void take_while(struct text *matching, const uint8_t match[256]) {
+static struct text take_while(const uint8_t match[256]) {
   int start = I;
 
   for (; match[text_index(IN, I)]; ++I) {
   }
 
-  text_slice(IN, start, I, matching);
+  return text_slice(IN, start, I);
 }
 
 static const uint8_t is_paragraph_char[256] = {
@@ -1052,9 +1053,8 @@ static int parse_line_comment(struct text *comment) {
 
   text_from_ascii("--", comment);
 
-  struct text contents;
-  take_while(&contents, is_line_comment_char);
-  text_strip_end(contents, &contents);
+  struct text contents = take_while(is_line_comment_char);
+  contents = text_strip_end(contents);
 
   text_join(*comment, contents, comment);
 
