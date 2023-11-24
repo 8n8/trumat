@@ -1161,14 +1161,16 @@ static int parse_block_comment_space(struct text *comment) {
   return text_from_ascii("{- -}", comment);
 }
 
-static void text_strip(struct text untrimmed, struct text *trimmed) {
-  *trimmed = untrimmed;
-  for (; TEXT[trimmed->start] == ' ' || TEXT[trimmed->start] == '\n';
-       ++trimmed->start) {
+static struct text text_strip(struct text untrimmed) {
+  struct text trimmed;
+  trimmed = untrimmed;
+  for (; TEXT[trimmed.start] == ' ' || TEXT[trimmed.start] == '\n';
+       ++trimmed.start) {
   }
-  for (; TEXT[trimmed->end - 1] == ' ' || TEXT[trimmed->end - 1] == '\n';
-       --trimmed->end) {
+  for (; TEXT[trimmed.end - 1] == ' ' || TEXT[trimmed.end - 1] == '\n';
+       --trimmed.end) {
   }
+  return trimmed;
 }
 
 static int parse_paragraph(struct text *item) {
@@ -1177,7 +1179,7 @@ static int parse_paragraph(struct text *item) {
   if (result) {
     return result;
   }
-  text_strip(contents, item);
+  *item = text_strip(contents);
   return 0;
 }
 
