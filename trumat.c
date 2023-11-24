@@ -8,6 +8,7 @@ static struct text IN;
 void init_memory() { HEAD = 0; }
 
 static int text_slice(struct text, int, int, struct text *);
+static int parse_block_comment(struct text *);
 
 static int parse_int(struct text *);
 
@@ -248,10 +249,10 @@ static int take_while(struct text *matching, const uint8_t match[256]) {
   return text_slice(IN, start, I, matching);
 }
 
-static const uint8_t is_block_comment_char[256] = {
+static const uint8_t is_paragraph_char[256] = {
     0 /*NUL*/,   0 /*SOH*/, 0 /*STX*/, 0 /*ETX*/,
     0 /*EOT*/,   0 /*ENQ*/, 0 /*ACK*/, 0 /*BEL*/,
-    0 /*BS*/,    0 /*TAB*/, 1 /*LF*/,  0 /*VT*/,
+    0 /*BS*/,    0 /*TAB*/, 0 /*LF*/,  0 /*VT*/,
     0 /*FF*/,    0 /*CR*/,  0 /*SO*/,  0 /*SI*/,
     0 /*DLE*/,   0 /*DC1*/, 0 /*DC2*/, 0 /*DC3*/,
     0 /*DC4*/,   0 /*NAK*/, 0 /*SYN*/, 0 /*ETB*/,
@@ -259,28 +260,28 @@ static const uint8_t is_block_comment_char[256] = {
     0 /*FS*/,    0 /*GS*/,  0 /*RS*/,  0 /*US*/,
     1 /*Space*/, 1 /*!*/,   1 /*"*/,   1 /*#*/,
     1 /*$*/,     1 /*%*/,   1 /*&*/,   1 /*'*/,
-    1 /*(*/,     1 /*)*/,   1 /***/,   1 /*+*/,
-    1 /*,*/,     0 /*-*/,   1 /*.*/,   1 /*forward slash*/,
+    1 /*(*/,     1 /*)*/,   0 /***/,   1 /*+*/,
+    1 /*,*/,     0 /*-*/,   1 /*.*/,   0 /*forward slash*/,
     1 /*0*/,     1 /*1*/,   1 /*2*/,   1 /*3*/,
     1 /*4*/,     1 /*5*/,   1 /*6*/,   1 /*7*/,
-    1 /*8*/,     1 /*9*/,   1 /*:*/,   1 /*;*/,
-    1 /*<*/,     1 /*=*/,   1 /*>*/,   1 /*?*/,
-    1 /*@*/,     1 /*A*/,   1 /*B*/,   1 /*C*/,
+    1 /*8*/,     1 /*9*/,   0 /*:*/,   1 /*;*/,
+    0 /*<*/,     1 /*=*/,   0 /*>*/,   1 /*?*/,
+    0 /*@*/,     1 /*A*/,   1 /*B*/,   1 /*C*/,
     1 /*D*/,     1 /*E*/,   1 /*F*/,   1 /*G*/,
     1 /*H*/,     1 /*I*/,   1 /*J*/,   1 /*K*/,
     1 /*L*/,     1 /*M*/,   1 /*N*/,   1 /*O*/,
     1 /*P*/,     1 /*Q*/,   1 /*R*/,   1 /*S*/,
     1 /*T*/,     1 /*U*/,   1 /*V*/,   1 /*W*/,
-    1 /*X*/,     1 /*Y*/,   1 /*Z*/,   1 /*[*/,
-    0 /*\*/,     1 /*]*/,   1 /*^*/,   1 /*_*/,
-    1 /*`*/,     1 /*a*/,   1 /*b*/,   1 /*c*/,
+    1 /*X*/,     1 /*Y*/,   1 /*Z*/,   0 /*[*/,
+    0 /*\*/,     0 /*]*/,   1 /*^*/,   0 /*_*/,
+    0 /*`*/,     1 /*a*/,   1 /*b*/,   1 /*c*/,
     1 /*d*/,     1 /*e*/,   1 /*f*/,   1 /*g*/,
     1 /*h*/,     1 /*i*/,   1 /*j*/,   1 /*k*/,
     1 /*l*/,     1 /*m*/,   1 /*n*/,   1 /*o*/,
     1 /*p*/,     1 /*q*/,   1 /*r*/,   1 /*s*/,
     1 /*t*/,     1 /*u*/,   1 /*v*/,   1 /*w*/,
-    1 /*x*/,     1 /*y*/,   1 /*z*/,   1 /*{*/,
-    1 /*|*/,     1 /*}*/,   1 /*~*/,   0 /*DEL*/,
+    1 /*x*/,     1 /*y*/,   1 /*z*/,   0 /*{*/,
+    1 /*|*/,     0 /*}*/,   1 /*~*/,   0 /*DEL*/,
     1,           1,         1,         1,
     1,           1,         1,         1,
     1,           1,         1,         1,
@@ -1160,14 +1161,44 @@ static int parse_block_comment_space(struct text *comment) {
   return text_from_ascii("{- -}", comment);
 }
 
+static int parse_paragraph(struct text* item) {
+  return take_while_1(item, is_paragraph_char);
+}
+
+static int parse_block_comment_item(struct text* item) {
+  int result = parse_paragraph(item);
+  if (result == 0) {
+    return 0;
+  }
+  return parse_block_comment(item);
+}
+
+static int parse_block_comment_contents(struct text *contents) {
+  int start = I;
+  while (1) {
+    struct text item;
+    int result = parse_block_comment_item(&item);
+    if (result == 0) {
+      int join_result = text_join(*contents, item, contents);
+      if (join_result) {
+        I = start;
+        return join_result;
+      }
+    }
+    if (result) {
+      return 0;
+    }
+  }
+  return 0;
+}
+
 static void text_trim(struct text untrimmed, struct text *trimmed) {
   *trimmed = untrimmed;
   for (; TEXT[trimmed->start] == ' ' || TEXT[trimmed->start] == '\n';
        ++trimmed->start) {
   }
-
   for (; TEXT[trimmed->end - 1] == ' ' || TEXT[trimmed->end - 1] == '\n';
-       --trimmed->end) {
+        --trimmed->end) {
   }
 }
 
@@ -1178,53 +1209,34 @@ static int parse_non_empty_block_comment(struct text *comment) {
     I = start;
     return result;
   }
-
-  struct text untrimmed;
-  result = take_while_1(&untrimmed, is_block_comment_char);
+  result = text_from_ascii("{- ", comment);
   if (result) {
     I = start;
     return result;
   }
-
+  struct text untrimmed = {0, 0};
+  result = parse_block_comment_contents(&untrimmed);
+  if (result) {
+    I = start;
+    return result;
+  }
   struct text contents;
   text_trim(untrimmed, &contents);
-
-  result = text_prepend_ascii_char(' ', contents, &contents);
-  if (result) {
-    I = start;
-    return result;
-  }
-
-  result = text_append_ascii_char(contents, ' ', &contents);
-  if (result) {
-    I = start;
-    return result;
-  }
-
-  result = parse_chunk("-}");
-  if (result) {
-    I = start;
-    return result;
-  }
-
-  result = text_from_ascii("{-", comment);
-  if (result) {
-    I = start;
-    return result;
-  }
-
   result = text_join(*comment, contents, comment);
   if (result) {
     I = start;
     return result;
   }
-
-  result = text_append_ascii(*comment, "-}", comment);
+  result = parse_chunk("-}");
   if (result) {
     I = start;
     return result;
   }
-
+  result = text_append_ascii(*comment, " -}", comment);
+  if (result) {
+    I = start;
+    return result;
+  }
   return 0;
 }
 
