@@ -102,12 +102,12 @@ static void copy_to_head(struct text t) {
   }
 }
 
-static void text_join(struct text left, struct text right,
-                      struct text *result) {
+static struct text text_join(struct text left, struct text right) {
+  struct text result;
   if (HEAD == left.end) {
-    result->start = left.start;
+    result.start = left.start;
   } else {
-    result->start = HEAD;
+    result.start = HEAD;
   }
 
   if (left.end != HEAD) {
@@ -116,7 +116,8 @@ static void text_join(struct text left, struct text right,
 
   copy_to_head(right);
 
-  result->end = HEAD;
+  result.end = HEAD;
+  return result;
 }
 
 static void text_append_ascii(struct text left, const char *right,
@@ -650,7 +651,7 @@ static int parse_positive_hex_int(struct text *expression) {
 
   abcdef_to_upper(after_0x);
 
-  text_join(*expression, after_0x, expression);
+  *expression = text_join(*expression, after_0x);
 
   return 0;
 }
@@ -718,7 +719,7 @@ static int parse_simple_float(struct text *expression) {
     return result;
   }
 
-  text_join(*expression, after_dot, expression);
+  *expression = text_join(*expression, after_dot);
   return 0;
 }
 
@@ -757,7 +758,7 @@ static int parse_dot_exponent_float(struct text *expression) {
     I = start;
     return result;
   }
-  text_join(*expression, exponent, expression);
+  *expression = text_join(*expression, exponent);
   return 0;
 }
 
@@ -780,7 +781,7 @@ static int parse_non_dot_exponent_float(struct text *expression) {
 
   text_append_ascii(*expression, ".0", expression);
 
-  text_join(*expression, exponent, expression);
+  *expression = text_join(*expression, exponent);
   return 0;
 }
 
@@ -860,7 +861,7 @@ static int parse_unicode_hex(struct text *formatted) {
   }
 
   text_from_ascii("\\u{", formatted);
-  text_join(*formatted, unicode, formatted);
+  *formatted = text_join(*formatted, unicode);
   text_append_ascii_char(*formatted, '}', formatted);
 
   return 0;
@@ -980,7 +981,7 @@ static int parse_triple_string(struct text *expression) {
 
   struct text contents;
   while (parse_triple_string_piece(&contents) == 0) {
-    text_join(*expression, contents, expression);
+    *expression = text_join(*expression, contents);
   }
 
   result = parse_chunk("\"\"\"");
@@ -1005,7 +1006,7 @@ static int parse_simple_string(struct text *expression) {
 
   struct text contents;
   while (parse_simple_string_piece(&contents) == 0) {
-    text_join(*expression, contents, expression);
+    *expression = text_join(*expression, contents);
   }
 
   result = parse_char('"');
@@ -1056,7 +1057,7 @@ static int parse_line_comment(struct text *comment) {
   struct text contents = take_while(is_line_comment_char);
   contents = text_strip_end(contents);
 
-  text_join(*comment, contents, comment);
+  *comment = text_join(*comment, contents);
 
   return 0;
 }
@@ -1126,7 +1127,7 @@ static void parse_block_comment_contents(struct text *contents) {
     struct text item;
     int result = parse_block_comment_item(&item);
     if (result == 0) {
-      text_join(*contents, item, contents);
+      *contents = text_join(*contents, item);
     }
     if (result) {
       break;
@@ -1144,7 +1145,7 @@ static int parse_non_empty_block_comment(struct text *comment) {
   text_from_ascii("{- ", comment);
   struct text contents = {0, 0};
   parse_block_comment_contents(&contents);
-  text_join(*comment, contents, comment);
+  *comment = text_join(*comment, contents);
   result = parse_chunk("-}");
   if (result) {
     I = start;
@@ -1191,7 +1192,7 @@ static int parse_some_comments(struct text *comments) {
       break;
     }
     text_append_ascii(*comments, "\n    ", comments);
-    text_join(*comments, line_comment, comments);
+    *comments = text_join(*comments, line_comment);
   }
 
   return 0;
@@ -1223,11 +1224,11 @@ int format(const struct text in, struct text *out) {
   }
 
   text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out);
-  text_join(*out, commentBefore, out);
+  *out = text_join(*out, commentBefore);
   if (text_length(commentBefore) > 0) {
     text_append_ascii(*out, "\n    ", out);
   }
-  text_join(*out, expression, out);
+  *out = text_join(*out, expression);
   text_append_ascii_char(*out, '\n', out);
 
   return 0;
