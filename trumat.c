@@ -169,13 +169,15 @@ static struct text text_append_ascii_char(struct text left, char right) {
   return result;
 }
 
-static void text_from_ascii(char *ascii, struct text *result) {
-  result->start = HEAD;
+static struct text text_from_ascii(char *ascii) {
+  struct text result;
+  result.start = HEAD;
   for (int i = 0; ascii[i] != '\0'; ++i) {
     append_char(ascii[i]);
   }
 
-  result->end = HEAD;
+  result.end = HEAD;
+  return result;
 }
 
 static void text_from_ascii_char(char ascii, struct text *result) {
@@ -644,7 +646,7 @@ static int parse_positive_hex_int(struct text *expression) {
     return result;
   }
 
-  text_from_ascii("0x", expression);
+  *expression = text_from_ascii("0x");
 
   struct text after_0x;
   result = take_while_1(&after_0x, is_hex);
@@ -864,7 +866,7 @@ static int parse_unicode_hex(struct text *formatted) {
     return result;
   }
 
-  text_from_ascii("\\u{", formatted);
+  *formatted = text_from_ascii("\\u{");
   *formatted = text_join(*formatted, unicode);
   *formatted = text_append_ascii_char(*formatted, '}');
 
@@ -904,7 +906,7 @@ static int parse_triple_string_piece(struct text *expression) {
 
   result = parse_chunk("\\\"");
   if (result == 0) {
-    text_from_ascii("\\\"", expression);
+    *expression = text_from_ascii("\\\"");
     return 0;
   }
 
@@ -915,19 +917,19 @@ static int parse_triple_string_piece(struct text *expression) {
 
   result = parse_chunk("\\\\");
   if (result == 0) {
-    text_from_ascii("\\\\", expression);
+    *expression = text_from_ascii("\\\\");
     return 0;
   }
 
   result = parse_chunk("\\t");
   if (result == 0) {
-    text_from_ascii("\\t", expression);
+    *expression = text_from_ascii("\\t");
     return 0;
   }
 
   result = parse_chunk("\\r");
   if (result == 0) {
-    text_from_ascii("\\u{000D}", expression);
+    *expression = text_from_ascii("\\u{000D}");
     return 0;
   }
 
@@ -942,31 +944,31 @@ static int parse_simple_string_piece(struct text *expression) {
 
   result = parse_chunk("\\\"");
   if (result == 0) {
-    text_from_ascii("\\\"", expression);
+    *expression = text_from_ascii("\\\"");
     return 0;
   }
 
   result = parse_chunk("\\\\");
   if (result == 0) {
-    text_from_ascii("\\\\", expression);
+    *expression = text_from_ascii("\\\\");
     return 0;
   }
 
   result = parse_chunk("\\n");
   if (result == 0) {
-    text_from_ascii("\\n", expression);
+    *expression = text_from_ascii("\\n");
     return 0;
   }
 
   result = parse_chunk("\\t");
   if (result == 0) {
-    text_from_ascii("\\t", expression);
+    *expression = text_from_ascii("\\t");
     return 0;
   }
 
   result = parse_chunk("\\r");
   if (result == 0) {
-    text_from_ascii("\\u{000D}", expression);
+    *expression = text_from_ascii("\\u{000D}");
     return 0;
   }
 
@@ -981,7 +983,7 @@ static int parse_triple_string(struct text *expression) {
     I = start;
     return result;
   }
-  text_from_ascii("\"\"\"", expression);
+  *expression = text_from_ascii("\"\"\"");
 
   struct text contents;
   while (parse_triple_string_piece(&contents) == 0) {
@@ -1056,7 +1058,7 @@ static int parse_line_comment(struct text *comment) {
     return result;
   }
 
-  text_from_ascii("--", comment);
+  *comment = text_from_ascii("--");
 
   struct text contents = take_while(is_line_comment_char);
   contents = text_strip_end(contents);
@@ -1072,7 +1074,7 @@ int parse_empty_block_comment(struct text *comment) {
     return result;
   }
 
-  text_from_ascii("{--}", comment);
+  *comment = text_from_ascii("{--}");
   return 0;
 }
 
@@ -1092,7 +1094,7 @@ static int parse_block_comment_space(struct text *comment) {
     return result;
   }
 
-  text_from_ascii("{- -}", comment);
+  *comment = text_from_ascii("{- -}");
   return 0;
 }
 
@@ -1146,7 +1148,7 @@ static int parse_non_empty_block_comment(struct text *comment) {
     I = start;
     return result;
   }
-  text_from_ascii("{- ", comment);
+  *comment = text_from_ascii("{- ");
   struct text contents = {0, 0};
   parse_block_comment_contents(&contents);
   *comment = text_join(*comment, contents);
@@ -1227,7 +1229,7 @@ int format(const struct text in, struct text *out) {
     return result;
   }
 
-  text_from_ascii("module X exposing (x)\n\n\nx =\n    ", out);
+  *out = text_from_ascii("module X exposing (x)\n\n\nx =\n    ");
   *out = text_join(*out, commentBefore);
   if (text_length(commentBefore) > 0) {
     *out = text_append_ascii(*out, "\n    ");
