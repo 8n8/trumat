@@ -83,7 +83,8 @@ static struct text text_slice(struct text parent, int start, int end) {
   struct text result;
   int parent_size = text_length(parent);
   if (start > parent_size || end > parent_size || start > end) {
-    fprintf(stderr, "bad slice: start %d, parent_size %d, end %d\n", start, parent_size, end);
+    fprintf(stderr, "bad slice: start %d, parent_size %d, end %d\n", start,
+            parent_size, end);
     exit(-1);
   }
 
