@@ -140,13 +140,14 @@ static struct text text_append_ascii(struct text left, const char *right) {
   return result;
 }
 
-static void text_prepend_ascii_char(char left, struct text right,
-                                    struct text *result) {
-  result->start = HEAD;
+static struct text text_prepend_ascii_char(char left, struct text right) {
+  struct text result;
+  result.start = HEAD;
   append_char(left);
 
   copy_to_head(right);
-  result->end = HEAD;
+  result.end = HEAD;
+  return result;
 }
 
 static void text_append_ascii_char(struct text left, char right,
@@ -682,7 +683,7 @@ static int parse_negative_int(struct text *expression) {
     return result;
   }
 
-  text_prepend_ascii_char('-', exponent, expression);
+  *expression = text_prepend_ascii_char('-', exponent);
   return 0;
 }
 
@@ -740,7 +741,7 @@ static int parse_float_exponent(struct text *expression) {
     return result;
   }
 
-  text_prepend_ascii_char('e', exponent, expression);
+  *expression = text_prepend_ascii_char('e', exponent);
   return 0;
 }
 
@@ -824,7 +825,7 @@ static int parse_negative_float(struct text *expression) {
     return result;
   }
 
-  text_prepend_ascii_char('-', positive, expression);
+  *expression = text_prepend_ascii_char('-', positive);
   return 0;
 }
 
