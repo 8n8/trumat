@@ -1130,17 +1130,19 @@ static int parse_block_comment_item(struct text *item) {
   return parse_block_comment(item);
 }
 
-static void parse_block_comment_contents(struct text *contents) {
+static struct text parse_block_comment_contents() {
+  struct text contents = {0, 0};
   while (1) {
     struct text item;
     int result = parse_block_comment_item(&item);
     if (result == 0) {
-      *contents = text_join(*contents, item);
+      contents = text_join(contents, item);
     }
     if (result) {
       break;
     }
   }
+  return contents;
 }
 
 static int parse_non_empty_block_comment(struct text *comment) {
@@ -1151,8 +1153,7 @@ static int parse_non_empty_block_comment(struct text *comment) {
     return result;
   }
   *comment = text_from_ascii("{- ");
-  struct text contents = {0, 0};
-  parse_block_comment_contents(&contents);
+  struct text contents = parse_block_comment_contents();
   *comment = text_join(*comment, contents);
   result = parse_chunk("-}");
   if (result) {
