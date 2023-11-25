@@ -180,10 +180,12 @@ static struct text text_from_ascii(char *ascii) {
   return result;
 }
 
-static void text_from_ascii_char(char ascii, struct text *result) {
-  result->start = HEAD;
+static struct text text_from_ascii_char(char ascii) {
+  struct text result;
+  result.start = HEAD;
   append_char(ascii);
-  result->end = HEAD;
+  result.end = HEAD;
+  return result;
 }
 
 static int parse_chunk(const char *chunk) {
@@ -881,7 +883,7 @@ static int parse_double_quote_in_triple_string(struct text *expression) {
     I = start;
     return result;
   }
-  text_from_ascii_char('"', expression);
+  *expression = text_from_ascii_char('"');
 
   result = parse_chunk("\"\"");
   if (result == 0) {
@@ -900,7 +902,7 @@ static int parse_triple_string_piece(struct text *expression) {
 
   result = parse_chunk("\\n");
   if (result == 0) {
-    text_from_ascii_char('\n', expression);
+    *expression = text_from_ascii_char('\n');
     return 0;
   }
 
@@ -1008,7 +1010,7 @@ static int parse_simple_string(struct text *expression) {
     I = start;
     return result;
   }
-  text_from_ascii_char('"', expression);
+  *expression = text_from_ascii_char('"');
 
   struct text contents;
   while (parse_simple_string_piece(&contents) == 0) {
