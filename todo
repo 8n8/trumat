@@ -1,0 +1,1 @@
+Try removing parse_empty_block_comment. I think the one for the block comment only containing spaces might do the job.

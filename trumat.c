@@ -1087,7 +1087,7 @@ static int parse_block_comment_space(struct text *comment) {
     return result;
   }
 
-  for (; text_index(IN, I) == ' '; ++I) {
+  for (; text_index(IN, I) == ' ' || text_index(IN, I) == '\n'; ++I) {
   }
 
   result = parse_chunk("-}");
@@ -1125,6 +1125,11 @@ static int parse_paragraph(struct text *item) {
 static int parse_block_comment_item(struct text *item) {
   int result = parse_paragraph(item);
   if (result == 0) {
+    return 0;
+  }
+  result = parse_char('\n');
+  if (result == 0) {
+    *item = text_from_ascii_char('\n');
     return 0;
   }
   return parse_block_comment(item);
