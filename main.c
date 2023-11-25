@@ -1,6 +1,5 @@
 #include "trumat.h"
 #include <dirent.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 static void format_file(char *path) {

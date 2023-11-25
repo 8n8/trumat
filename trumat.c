@@ -1,5 +1,4 @@
 #include "trumat.h"
-#include <stdlib.h>
 
 static uint8_t TEXT[TEXT_SIZE];
 static uint32_t HEAD;
@@ -72,6 +71,7 @@ static struct text text_strip_end(struct text t) {
 
 static void append_char(char ch) {
   if (HEAD == TEXT_SIZE) {
+    fputs("HEAD == TEXT_SIZE in append_char", stderr);
     exit(-1);
   }
 
@@ -82,7 +82,8 @@ static void append_char(char ch) {
 static struct text text_slice(struct text parent, int start, int end) {
   struct text result;
   int parent_size = text_length(parent);
-  if (start >= parent_size || end > parent_size || start > end) {
+  if (start > parent_size || end > parent_size || start > end) {
+    fprintf(stderr, "bad slice: start %d, parent_size %d, end %d\n", start, parent_size, end);
     exit(-1);
   }
 

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #define TEXT_SIZE 50 * 1000 * 1000
 
 struct text {
