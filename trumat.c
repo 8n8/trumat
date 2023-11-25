@@ -150,13 +150,14 @@ static struct text text_prepend_ascii_char(char left, struct text right) {
   return result;
 }
 
-static void text_append_ascii_char(struct text left, char right,
-                                   struct text *result) {
+static struct text text_append_ascii_char(struct text left, char right) {
+
+  struct text result;
 
   if (left.end == HEAD) {
-    result->start = left.start;
+    result.start = left.start;
   } else {
-    result->start = HEAD;
+    result.start = HEAD;
   }
 
   if (left.end != HEAD) {
@@ -164,7 +165,8 @@ static void text_append_ascii_char(struct text left, char right,
   }
 
   append_char(right);
-  result->end = HEAD;
+  result.end = HEAD;
+  return result;
 }
 
 static void text_from_ascii(char *ascii, struct text *result) {
@@ -712,7 +714,7 @@ static int parse_simple_float(struct text *expression) {
     I = start;
     return result;
   }
-  text_append_ascii_char(*expression, '.', expression);
+  *expression = text_append_ascii_char(*expression, '.');
 
   struct text after_dot;
   result = take_while_1(&after_dot, is_digit);
@@ -864,7 +866,7 @@ static int parse_unicode_hex(struct text *formatted) {
 
   text_from_ascii("\\u{", formatted);
   *formatted = text_join(*formatted, unicode);
-  text_append_ascii_char(*formatted, '}', formatted);
+  *formatted = text_append_ascii_char(*formatted, '}');
 
   return 0;
 }
@@ -1016,7 +1018,7 @@ static int parse_simple_string(struct text *expression) {
     I = start;
     return result;
   }
-  text_append_ascii_char(*expression, '"', expression);
+  *expression = text_append_ascii_char(*expression, '"');
   return 0;
 }
 
@@ -1231,7 +1233,7 @@ int format(const struct text in, struct text *out) {
     *out = text_append_ascii(*out, "\n    ");
   }
   *out = text_join(*out, expression);
-  text_append_ascii_char(*out, '\n', out);
+  *out = text_append_ascii_char(*out, '\n');
 
   return 0;
 }
