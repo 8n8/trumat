@@ -1260,7 +1260,7 @@ static struct text parse_block_comment_contents() {
   struct text contents = {0, 0};
   for (int i = 0; i < num_items - 1; ++i) {
     contents = text_join(contents, items[i]);
-    contents = text_append_ascii(contents, "\n      ");
+    contents = text_append_ascii(contents, "\n\n       ");
   }
 
   if (num_items > 0) {
