@@ -1115,12 +1115,11 @@ static struct text text_strip(struct text untrimmed) {
 }
 
 static int parse_paragraph(struct text *item) {
-  struct text contents = {0, 0};
-  int result = take_while_1(&contents, is_paragraph_char);
+  int result = take_while_1(item, is_paragraph_char);
   if (result) {
     return result;
   }
-  *item = text_strip(contents);
+  *item = text_strip(*item);
   return 0;
 }
 
