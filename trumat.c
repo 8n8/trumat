@@ -1285,7 +1285,7 @@ static int parse_hanging_block_comment(struct text *comment) {
   }
   *comment = text_from_ascii("{-\n       ");
   struct text contents = parse_block_comment_contents();
-  while (parse_char(' ') == 0 || parse_char('\n') == 0) {
+  while (!parse_char(' ') || !parse_char('\n')) {
   }
   *comment = text_join(*comment, contents);
   result = parse_chunk("-}");
