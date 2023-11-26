@@ -1134,8 +1134,12 @@ static int parse_block_comment_space(struct text *comment) {
   if (result) {
     return result;
   }
+  if (parse_char('\n') && parse_char(' ')) {
+    I = start;
+    return -1;
+  }
 
-  for (; text_index(IN, I) == ' ' || text_index(IN, I) == '\n'; ++I) {
+  while (!parse_char('\n') || !parse_char(' ')) {
   }
 
   result = parse_chunk("-}");
