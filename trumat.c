@@ -1214,7 +1214,7 @@ static int parse_paragraph(struct text *item) {
       I = start;
       return 0;
     }
-    *item = text_append_ascii(*item, "\n      ");
+    *item = text_append_ascii(*item, "\n       ");
     *item = text_join(*item, line);
   }
   return 0;

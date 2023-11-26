@@ -1,5 +1,0 @@
-- Remove contents variable in parse_paragraph function.
-- write a test for a multiline paragraph in a block comment
-- write a test for multiple paragraphs in a block comment
-- write a test for a block comment and a paragraph inside a block comment
-- write a test for a paragraph inside a block comment inside a block comment
