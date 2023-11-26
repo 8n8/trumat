@@ -12,6 +12,36 @@ static int parse_block_comment(struct text *);
 
 static int parse_int(struct text *);
 
+void dbg() {
+  int start = 0;
+  if (I > 10) {
+    start = I - 10;
+  }
+
+  int end = TEXT_SIZE;
+  if (TEXT_SIZE - I > 10) {
+    end = I + 10;
+  }
+
+  for (int i = start; i < end; ++i) {
+    if (TEXT[i] == '\n') {
+      fputs("\\n", stdout);
+    } else {
+      putchar(TEXT[i]);
+    }
+  }
+
+  putchar('\n');
+
+  for (int i = start; i < I; ++i) {
+    if (TEXT[i] == '\n') {
+      putchar(' ');
+    }
+    putchar(' ');
+  }
+  fputs("^\n", stdout);
+}
+
 // It maps uppercase ASCII hex ABCDEF to lowercase hex abcdef. All other bytes
 // are left unchanged.
 const uint8_t hex_to_upper[256] = {
@@ -52,12 +82,28 @@ void abcdef_to_upper(struct text t) {
   }
 }
 
-void text_dbg(struct text t) {
-  printf("DBG: ");
+void text_dbg(char *label, struct text t) {
+  printf("%s: ", label);
   for (int i = t.start; i < t.end; ++i) {
-    putchar(TEXT[i]);
+    if (TEXT[i] == '\n') {
+      fputs("\\n", stdout);
+    } else {
+      putchar(TEXT[i]);
+    }
   }
-  printf("\n");
+  putchar('\n');
+  for (int i = 0; label[i] != 0; ++i) {
+    putchar(' ');
+  }
+  fputs("  ", stdout);
+  for (int i = t.start; i < t.end; ++i) {
+    if (TEXT[i] == '\n') {
+      fputs("^^", stdout);
+    } else {
+      putchar('^');
+    }
+  }
+  putchar('\n');
 }
 
 static struct text text_strip_end(struct text t) {
@@ -1102,24 +1148,71 @@ static int parse_block_comment_space(struct text *comment) {
   return 0;
 }
 
-static struct text text_strip(struct text untrimmed) {
-  struct text trimmed;
-  trimmed = untrimmed;
-  for (; TEXT[trimmed.start] == ' ' || TEXT[trimmed.start] == '\n';
-       ++trimmed.start) {
-  }
-  for (; TEXT[trimmed.end - 1] == ' ' || TEXT[trimmed.end - 1] == '\n';
-       --trimmed.end) {
-  }
-  return trimmed;
-}
-
-static int parse_paragraph(struct text *item) {
-  int result = take_while_1(item, is_paragraph_char);
+static int parse_paragraph_line_break() {
+  int result = parse_char('\n');
   if (result) {
     return result;
   }
-  *item = text_strip(*item);
+
+  while (parse_char(' ') == 0) {
+  }
+
+  return 0;
+}
+
+static struct text text_strip(struct text untrimmed) {
+  struct text trimmed = untrimmed;
+  for (; (TEXT[trimmed.start] == ' ' || TEXT[trimmed.start] == '\n') &&
+         trimmed.start < trimmed.end;
+       ++trimmed.start) {
+  }
+  for (; (TEXT[trimmed.end - 1] == ' ' || TEXT[trimmed.end - 1] == '\n') &&
+         trimmed.end > trimmed.start;
+       --trimmed.end) {
+  }
+
+  return trimmed;
+}
+
+static int parse_paragraph_line(struct text *line) {
+  int start = I;
+  int result = take_while_1(line, is_paragraph_char);
+  if (result) {
+    I = start;
+    return result;
+  }
+  *line = text_strip(*line);
+  if (text_length(*line) == 0) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int parse_paragraph(struct text *item) {
+  int start = I;
+  int result = parse_paragraph_line(item);
+  if (result) {
+    I = start;
+    return result;
+  }
+
+  while (1) {
+    start = I;
+    result = parse_paragraph_line_break();
+    if (result) {
+      I = start;
+      return 0;
+    }
+    struct text line;
+    result = parse_paragraph_line(&line);
+    if (result) {
+      I = start;
+      return 0;
+    }
+    *item = text_append_ascii(*item, "\n      ");
+    *item = text_join(*item, line);
+  }
   return 0;
 }
 
@@ -1128,39 +1221,107 @@ static int parse_block_comment_item(struct text *item) {
   if (result == 0) {
     return 0;
   }
-  result = parse_char('\n');
-  if (result == 0) {
-    *item = text_from_ascii_char('\n');
-    return 0;
-  }
   return parse_block_comment(item);
 }
 
+static int parse_empty_line() {
+  int start = I;
+  while (parse_char(' ') == 0) {
+  }
+  if (parse_char('\n')) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static struct text parse_block_comment_contents() {
-  struct text contents = {0, 0};
-  while (1) {
-    struct text item;
+  struct text items[200];
+  int num_items = 0;
+  while (num_items < 200) {
+    struct text item = {0, 0};
     int result = parse_block_comment_item(&item);
     if (result == 0) {
-      contents = text_join(contents, item);
+      items[num_items] = item;
+      ++num_items;
+    }
+    if (result) {
+      result = parse_empty_line();
     }
     if (result) {
       break;
     }
   }
+
+  struct text contents = {0, 0};
+  for (int i = 0; i < num_items - 1; ++i) {
+    contents = text_join(contents, items[i]);
+    contents = text_append_ascii(contents, "\n      ");
+  }
+
+  if (num_items > 0) {
+    contents = text_join(contents, items[num_items - 1]);
+  }
+
   return contents;
 }
 
-static int parse_non_empty_block_comment(struct text *comment) {
+static int parse_hanging_block_comment(struct text *comment) {
   int start = I;
   int result = parse_chunk("{-");
   if (result) {
     I = start;
     return result;
   }
-  *comment = text_from_ascii("{- ");
+  while (parse_char(' ') == 0) {
+  }
+  if (parse_char('\n')) {
+    I = start;
+    return -1;
+  }
+  *comment = text_from_ascii("{-\n       ");
   struct text contents = parse_block_comment_contents();
+  while (parse_char(' ') == 0 || parse_char('\n') == 0) {
+  }
   *comment = text_join(*comment, contents);
+  result = parse_chunk("-}");
+  if (result) {
+    I = start;
+    return result;
+  }
+  *comment = text_append_ascii(*comment, "\n    -}");
+  return 0;
+}
+
+static int text_is_multiline(struct text t) {
+  for (int i = t.start; i < t.end; ++i) {
+    if (TEXT[i] == '\n') {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+static int parse_single_line_block_comment(struct text *comment) {
+  int start = I;
+  int result = parse_chunk("{-");
+  if (result) {
+    I = start;
+    return result;
+  }
+
+  *comment = text_from_ascii("{- ");
+  while (!parse_char(' ')) {
+  }
+  struct text contents = parse_block_comment_contents();
+  if (text_is_multiline(contents)) {
+    I = start;
+    return -1;
+  }
+  *comment = text_join(*comment, contents);
+  while (!parse_char(' ')) {
+  }
   result = parse_chunk("-}");
   if (result) {
     I = start;
@@ -1181,7 +1342,12 @@ static int parse_block_comment(struct text *comment) {
     return 0;
   }
 
-  return parse_non_empty_block_comment(comment);
+  result = parse_hanging_block_comment(comment);
+  if (result == 0) {
+    return 0;
+  }
+
+  return parse_single_line_block_comment(comment);
 }
 
 static int parse_one_comment(struct text *comment) {

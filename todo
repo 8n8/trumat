@@ -1,2 +1,7 @@
 - Try removing parse_empty_block_comment. I think the one for the block comment only containing spaces might do the job.
 - Remove contents variable in parse_paragraph function.
+- write a test for a multiline paragraph in a block comment
+- write a test for multiple paragraphs in a block comment
+- write a test for a block comment and a paragraph inside a block comment
+- write a test for a paragraph inside a block comment inside a block comment
+- have a careful look at the block comment formatter
