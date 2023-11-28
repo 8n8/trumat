@@ -9,6 +9,7 @@ struct text {
 };
 
 void dbg();
+void dbg_verbose();
 void init_memory();
 int text_from_file(FILE *, struct text *);
 void text_zero_memory();

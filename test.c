@@ -22,6 +22,13 @@ static void print_error(char *path, char *message) {
   fprintf(stderr, "FAILED: %s: %s\n", path, message);
 }
 
+static void print_error_code(char *path, int result) {
+  ++NUM_FAILED;
+  fprintf(stderr, "FAILED: %s: formatter failed with non-zero result: %d\n",
+          path, result);
+  dbg_verbose();
+}
+
 static void make_expected_path(char *in_path, char *expected_path) {
   char *expected_root = "expected/";
   int expected_i = 0;
@@ -89,18 +96,14 @@ static void run_one_formatted_test(char *in_path) {
   }
 
   if (result != 0) {
-    char error_message[256];
-    sprintf(error_message, "formatter failed with non-zero result: %d", result);
-    print_error(in_path, error_message);
+    print_error_code(in_path, result);
     return;
   }
 
   struct text out;
   result = format(in, &out);
   if (result != 0) {
-    char error_message[256];
-    sprintf(error_message, "formatter failed with non-zero result: %d", result);
-    print_error(in_path, error_message);
+    print_error_code(in_path, result);
     return;
   }
 
@@ -288,9 +291,7 @@ static void run_one_positive_test(char *in_path) {
   result = format(in, &out);
 
   if (result != 0) {
-    char error_message[256];
-    sprintf(error_message, "formatter failed with non-zero result: %d", result);
-    print_error(in_path, error_message);
+    print_error_code(in_path, result);
     return;
   }
 

@@ -12,6 +12,26 @@ static int parse_block_comment(struct text *);
 
 static int parse_int(struct text *);
 
+void dbg_verbose() {
+  for (int i = IN.start; i < IN.end; ++i) {
+    if (TEXT[i] == '\n') {
+      fputs("\\n", stdout);
+    } else {
+      putchar(TEXT[i]);
+    }
+  }
+
+  putchar('\n');
+
+  for (int i = IN.start; i < I; ++i) {
+    if (TEXT[i] == '\n') {
+      putchar(' ');
+    }
+    putchar(' ');
+  }
+  fputs("^\n", stdout);
+}
+
 void dbg() {
   int start = 0;
   if (I > 10) {
