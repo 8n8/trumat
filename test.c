@@ -327,6 +327,7 @@ static void run_positive_tests(char *path) {
 }
 
 int main(int argc, char *argv[]) {
+  printf("sizeof(struct ast): %lu\n", sizeof(struct ast));
   run_positive_tests("input");
   run_no_change_tests("dont_change");
   run_formatted_tests("formatted");
