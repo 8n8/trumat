@@ -269,7 +269,9 @@ static void check_expected(char *in_path, struct text out) {
   ++NUM_PASSED;
 }
 
-static void run_one_positive_test(char *in_path) {
+static void run_one_positive_test(
+  uint8_t[NUM_SRC]
+  char *in_path) {
   init_memory();
   FILE *in_file = fopen(in_path, "rb");
   if (in_file == NULL) {

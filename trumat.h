@@ -15,10 +15,6 @@ struct ast {
   // The node counters are the indexes. The items are the start indexes in
   // the source code. It aligns with src_size.
   uint32_t src_start[NUM_NODES];
-
-  // The node counters are the indexes. The items are the sizes of the text
-  // chunks in the source code. It aligns with src_start.
-  uint16_t src_size[NUM_NODES];
 };
 
 struct text {
@@ -39,13 +35,13 @@ int text_equal(struct text, struct text);
 
 int string_equal(const char *, const char *);
 
-int format(
-    const uint8_t[NUM_SRC],
-    const int,
-    uint8_t[NUM_SRC],
-    int *,
-    struct ast *);
-
+int format(uint8_t* src, uint32_t* parent, uint32_t* src_index, uint16_t* src_size, FILE* out);
+//     uint8_t[NUM_SRC],
+//     int,
+//     uint8_t[NUM_SRC],
+//     int *,
+//     struct ast *);
+// 
 // int format(const struct text in, struct text *out);
 
 void make_sub_path(const char *parent, const char *child, char *result);
