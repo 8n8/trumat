@@ -1,4 +1,9 @@
 #include <stdio.h>
+#include <stdint.h>
+// Should be enough to fit even a massive codebase
+#define SRC_SIZE 100 * 1000 * 1000
+
+uint8_t SRC[SRC_SIZE];
 
 const char *usage = "expecting two arguments:\n"
                     "1. --overwrite to confirm it's OK to recursively "
@@ -16,12 +21,7 @@ int string_equal(char *a, char *b) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
-    fputs(usage, stderr);
-    return -1;
-  }
-
-  if (!string_equal(argv[1], "--overwrite")) {
+  if (argc != 3 || !string_equal(argv[1], "--overwrite")) {
     fputs(usage, stderr);
     return -1;
   }
