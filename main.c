@@ -88,7 +88,7 @@ int NUM_FILES = 0;
 uint8_t TOKENS[MAX_TOKENS];
 int NUM_TOKENS = 0;
 
-#define MAX_TEXT_TOKENS  5000 * 1000
+#define MAX_TEXT_TOKENS 5000 * 1000
 uint32_t TEXT_TOKENS[MAX_TEXT_TOKENS]; // IDs of tokens that have text
 uint32_t TEXT_TOKEN_START[MAX_TEXT_TOKENS];
 uint16_t TEXT_TOKEN_SIZE[MAX_TEXT_TOKENS];
@@ -136,13 +136,13 @@ void dbg_src() {
 }
 
 static const char *usage = "expecting two arguments:\n"
-                    "1. --overwrite to confirm it's OK to recursively "
-                    "overwrite all the Elm files in the path\n"
-                    "2. the path to format\n"
-                    "\n"
-                    "for example:\n"
-                    "  $ trumat --overwrite Hello.elm\n"
-                    "  $ trumat --overwrite some/directory/name\n";
+                           "1. --overwrite to confirm it's OK to recursively "
+                           "overwrite all the Elm files in the path\n"
+                           "2. the path to format\n"
+                           "\n"
+                           "for example:\n"
+                           "  $ trumat --overwrite Hello.elm\n"
+                           "  $ trumat --overwrite some/directory/name\n";
 
 static int string_length(char *s) {
   int n = 0;
