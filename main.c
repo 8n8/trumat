@@ -102,6 +102,39 @@ uint32_t TEXT_NODE_START[MAX_TEXT_TOKENS];
 uint16_t TEXT_NODE_SIZE[MAX_TEXT_TOKENS];
 int NUM_TEXT_NODES = 0;
 
+void print_path(int file_id) {
+  int start = 0;
+  if (file_id > 0) {
+    start = PATH_END[file_id - 1];
+  }
+  for (int i = start; i < PATH_END[file_id]; ++i) {
+    fputc(PATH[i], stdout);
+  }
+  fputc('\n', stdout);
+}
+
+void print_elm_module(int file_id) {
+  int start = 0;
+  if (file_id > 0) {
+    start = FILE_END[file_id - 1];
+  }
+  for (int i = start; i < FILE_END[file_id]; ++i) {
+    if (SRC[i] == '\n') {
+      fputs("\\n", stdout);
+      continue;
+    }
+    fputc(SRC[i], stdout);
+  }
+  fputc('\n', stdout);
+}
+
+void dbg_src() {
+  for (int i = 0; i < NUM_FILES; ++i) {
+    print_path(i);
+    print_elm_module(i);
+  }
+}
+
 static const char *usage = "expecting two arguments:\n"
                     "1. --overwrite to confirm it's OK to recursively "
                     "overwrite all the Elm files in the path\n"
@@ -223,6 +256,8 @@ int main(int argc, char *argv[]) {
   }
 
   read_src(argv[2]);
+
+  dbg_src();
 
   return 0;
 }
