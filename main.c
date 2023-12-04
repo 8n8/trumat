@@ -80,7 +80,8 @@ uint8_t SRC[MAX_SRC];
 uint8_t PATH[MAX_PATH];
 
 #define MAX_FILES 8250
-uint32_t FILE_END[MAX_FILES];
+uint32_t FILE_SRC_END[MAX_FILES];
+uint32_t FILE_TOKEN_END[MAX_FILES];
 uint16_t PATH_END[MAX_FILES];
 int NUM_FILES = 0;
 
@@ -116,9 +117,9 @@ void print_path(int file_id) {
 void print_elm_module(int file_id) {
   int start = 0;
   if (file_id > 0) {
-    start = FILE_END[file_id - 1];
+    start = FILE_SRC_END[file_id - 1];
   }
-  for (int i = start; i < FILE_END[file_id]; ++i) {
+  for (int i = start; i < FILE_SRC_END[file_id]; ++i) {
     if (SRC[i] == '\n') {
       fputs("\\n", stdout);
       continue;
@@ -179,7 +180,7 @@ static void save_path(char *path) {
 static void save_file(FILE *file) {
   int src_index = 0;
   if (NUM_FILES > 0) {
-    src_index = FILE_END[NUM_FILES - 1];
+    src_index = FILE_SRC_END[NUM_FILES - 1];
   }
 
   int n = fread(SRC + src_index, 1, MAX_SRC - src_index, file);
@@ -188,7 +189,7 @@ static void save_file(FILE *file) {
     exit(-1);
   }
 
-  FILE_END[NUM_FILES] = src_index + n;
+  FILE_SRC_END[NUM_FILES] = src_index + n;
 }
 
 static void read_one_src(char *path) {
