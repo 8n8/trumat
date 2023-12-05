@@ -75,6 +75,13 @@
 // are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
 #define MAX_SRC 86 * 1000 * 1000
 uint8_t SRC[MAX_SRC];
+#define MAX_MASK 1343750 // 86M / 64
+uint64_t LINE_COMMENT_MASK[MAX_MASK];
+uint64_t BLOCK_COMMENT_MASK[MAX_MASK];
+uint64_t DOC_COMMENT_MASK[MAX_MASK];
+uint64_t TRIPLE_QUOTE_MASK[MAX_MASK];
+uint64_t DOUBLE_QUOTE_MASK[MAX_MASK];
+uint64_t CHAR_MASK[MAX_MASK];
 
 #define MAX_PATH 2100 * 1000
 uint8_t PATH[MAX_PATH];
@@ -102,6 +109,18 @@ uint32_t TEXT_NODES[MAX_TEXT_TOKENS]; // IDs of nodes that have text
 uint32_t TEXT_NODE_START[MAX_TEXT_TOKENS];
 uint16_t TEXT_NODE_SIZE[MAX_TEXT_TOKENS];
 int NUM_TEXT_NODES = 0;
+
+void set_mask(int index, uint8_t mask[MAX_MASK]) {
+  int byte_index = index / 64;
+  int bit_index = index % 64;
+  mask[byte_index] |= 1 << bit_index;
+}
+
+int get_mask(int index, uint8_t mask[MAX_MASK]) {
+  int byte_index = index / 8;
+  int bit_index = index % 8;
+  return mask[byte_index] & (1 << bit_index);
+}
 
 void print_path(int file_id) {
   int start = 0;
@@ -250,6 +269,90 @@ static void read_src(char *path) {
   closedir(directory_handle);
 }
 
+enum quote_state {
+  QUOTE_OUTSIDE = 0,
+  QUOTE_IN_NORMAL_STRING = 1,
+  QUOTE_IN_TRIPLE_STRING = 2,
+  QUOTE_IN_LINE_COMMENT = 3,
+  QUOTE_IN_BLOCK_COMMENT_1 = 4,
+  QUOTE_IN_BLOCK_COMMENT_2 = 5,
+  QUOTE_IN_BLOCK_COMMENT_3 = 6,
+  QUOTE_IN_BLOCK_COMMENT_4 = 7,
+  QUOTE_IN_BLOCK_COMMENT_5 = 8,
+  QUOTE_IN_DOC_COMMENT_1 = 9,
+  QUOTE_IN_DOC_COMMENT_2 = 10,
+  QUOTE_IN_DOC_COMMENT_3 = 11,
+  QUOTE_IN_DOC_COMMENT_4 = 12,
+  QUOTE_IN_DOC_COMMENT_5 = 13,
+  QUOTE_IN_CHAR = 14,
+};
+
+enum quote_char {
+  QUOTE_DOUBLE_QUOTE = 0,
+  QUOTE_SINGLE_QUOTE = 1,
+  QUOTE_OPEN_CURLY = 2,
+  QUOTE_CLOSE_CURLY = 3,
+  QUOTE_HYPHEN = 4,
+  QUOTE_PIPE = 5,
+  QUOTE_NEWLINE = 6,
+  QUOTE_OTHER = 7,
+};
+
+enum quote_state decode_state(int output) {
+  return output & 0x0F;
+}
+
+uint8_t line_comment_state_table[120] =
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  };
+
+enum quote_action decode_action(int output) {
+  return (output >> 4) & 0x0F;
+}
+
+int encode_input(enum quote_state state, enum quote_char ch) {
+  return (state << 3) | ch;
+}
+
+void make_file_quote_mask(int file_index, uint64_t mask[MAX_MASK], uint8_t state_table[120], uint8_t action_table[120]) {
+  int start = 0;
+  if (file_index > 0) {
+    start = FILE_SRC_END[file_index - 1];
+  }
+  int end = FILE_SRC_END[file_index];
+  enum quote_state state = QUOTE_OUTSIDE;
+  for (int i = start; i < end; ++i) {
+    enum quote_char ch = classify_quote_char[SRC[i]];
+    int input = encode_input(state, ch);
+    state = state_table[input];
+    set_mask(i, mask); 
+  }
+}
+
+void make_one_quote_mask(uint8_t state_table[120], uint8_t action_table[120]) {
+  for (int i = 0; i < NUM_FILES; ++i) {
+    make_one_quote_mask(i, state_table, action_table);
+  }
+}
+
+void make_quote_masks(uint64_t mask[MAX_MASK], uint8_t state_table[120], uint8_t action_table[120]) {
+  make_one_quote_mask(line_comment_state_table, line_comment_action_table);
+  make_one_quote_mask(block_comment_state_table, block_comment_action_table);
+  make_one_quote_mask(doc_comment_state_table, doc_comment_action_table);
+  make_one_quote_mask(triple_quote_state_table, triple_quote_action_table);
+  make_one_quote_mask(double_quote_state_table, double_quote_action_table);
+  make_one_quote_mask(char_state_table, char_action_table);
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 3 || !string_equal(argv[1], "--overwrite")) {
     fputs(usage, stderr);
@@ -257,8 +360,9 @@ int main(int argc, char *argv[]) {
   }
 
   read_src(argv[2]);
-
   dbg_src();
+
+  make_quote_masks();
 
   return 0;
 }
