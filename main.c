@@ -290,19 +290,6 @@ enum quote_state decode_state(int output) {
   return output & 0x0F;
 }
 
-uint8_t line_comment_state_table[120] =
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  };
-
 int encode_input(enum quote_state state, enum quote_char ch) {
   return (state << 3) | ch;
 }
