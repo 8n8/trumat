@@ -626,6 +626,7 @@ static void mark_module_token_file(int file_index) {
         (state == MODULE_STATE_MODULE && c == MODULE_NEWLINE)) {
 
       SRC[i-6] = SRC_MODULE;
+      return; // There should only be one module token per file
     }
     int table_key = state * 9 + c;
     state = module_state_table[table_key];
