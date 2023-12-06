@@ -257,43 +257,6 @@ static void read_src(char *path) {
   closedir(directory_handle);
 }
 
-enum quote_state {
-  QUOTE_OUTSIDE = 0,
-  QUOTE_IN_NORMAL_STRING = 1,
-  QUOTE_IN_TRIPLE_STRING = 2,
-  QUOTE_IN_LINE_COMMENT = 3,
-  QUOTE_IN_BLOCK_COMMENT_1 = 4,
-  QUOTE_IN_BLOCK_COMMENT_2 = 5,
-  QUOTE_IN_BLOCK_COMMENT_3 = 6,
-  QUOTE_IN_BLOCK_COMMENT_4 = 7,
-  QUOTE_IN_BLOCK_COMMENT_5 = 8,
-  QUOTE_IN_DOC_COMMENT_1 = 9,
-  QUOTE_IN_DOC_COMMENT_2 = 10,
-  QUOTE_IN_DOC_COMMENT_3 = 11,
-  QUOTE_IN_DOC_COMMENT_4 = 12,
-  QUOTE_IN_DOC_COMMENT_5 = 13,
-  QUOTE_IN_CHAR = 14,
-};
-
-enum quote_char {
-  QUOTE_DOUBLE_QUOTE = 0,
-  QUOTE_SINGLE_QUOTE = 1,
-  QUOTE_OPEN_CURLY = 2,
-  QUOTE_CLOSE_CURLY = 3,
-  QUOTE_HYPHEN = 4,
-  QUOTE_PIPE = 5,
-  QUOTE_NEWLINE = 6,
-  QUOTE_OTHER = 7,
-};
-
-enum quote_state decode_state(int output) {
-  return output & 0x0F;
-}
-
-int encode_input(enum quote_state state, enum quote_char ch) {
-  return (state << 3) | ch;
-}
-
 int main(int argc, char *argv[]) {
   if (argc != 3 || !string_equal(argv[1], "--overwrite")) {
     fputs(usage, stderr);
