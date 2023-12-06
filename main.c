@@ -110,18 +110,6 @@ uint32_t TEXT_NODE_START[MAX_TEXT_TOKENS];
 uint16_t TEXT_NODE_SIZE[MAX_TEXT_TOKENS];
 int NUM_TEXT_NODES = 0;
 
-void set_mask(int index, uint8_t mask[MAX_MASK]) {
-  int byte_index = index / 64;
-  int bit_index = index % 64;
-  mask[byte_index] |= 1 << bit_index;
-}
-
-int get_mask(int index, uint8_t mask[MAX_MASK]) {
-  int byte_index = index / 8;
-  int bit_index = index % 8;
-  return mask[byte_index] & (1 << bit_index);
-}
-
 void print_path(int file_id) {
   int start = 0;
   if (file_id > 0) {
@@ -315,42 +303,8 @@ uint8_t line_comment_state_table[120] =
   , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
 
-enum quote_action decode_action(int output) {
-  return (output >> 4) & 0x0F;
-}
-
 int encode_input(enum quote_state state, enum quote_char ch) {
   return (state << 3) | ch;
-}
-
-void make_file_quote_mask(int file_index, uint64_t mask[MAX_MASK], uint8_t state_table[120], uint8_t action_table[120]) {
-  int start = 0;
-  if (file_index > 0) {
-    start = FILE_SRC_END[file_index - 1];
-  }
-  int end = FILE_SRC_END[file_index];
-  enum quote_state state = QUOTE_OUTSIDE;
-  for (int i = start; i < end; ++i) {
-    enum quote_char ch = classify_quote_char[SRC[i]];
-    int input = encode_input(state, ch);
-    state = state_table[input];
-    set_mask(i, mask); 
-  }
-}
-
-void make_one_quote_mask(uint8_t state_table[120], uint8_t action_table[120]) {
-  for (int i = 0; i < NUM_FILES; ++i) {
-    make_one_quote_mask(i, state_table, action_table);
-  }
-}
-
-void make_quote_masks(uint64_t mask[MAX_MASK], uint8_t state_table[120], uint8_t action_table[120]) {
-  make_one_quote_mask(line_comment_state_table, line_comment_action_table);
-  make_one_quote_mask(block_comment_state_table, block_comment_action_table);
-  make_one_quote_mask(doc_comment_state_table, doc_comment_action_table);
-  make_one_quote_mask(triple_quote_state_table, triple_quote_action_table);
-  make_one_quote_mask(double_quote_state_table, double_quote_action_table);
-  make_one_quote_mask(char_state_table, char_action_table);
 }
 
 int main(int argc, char *argv[]) {
@@ -361,8 +315,6 @@ int main(int argc, char *argv[]) {
 
   read_src(argv[2]);
   dbg_src();
-
-  make_quote_masks();
 
   return 0;
 }
