@@ -109,7 +109,41 @@ static int parse_keyword(char *keyword) {
   return 0;
 }
 
-static int parse_module_declaration() { return parse_keyword("module"); }
+static void parse_whitespace() {
+  for (; SRC[SRC_INDEX] == ' ' || SRC[SRC_INDEX] == '\n'; ++SRC_INDEX) {
+  }
+}
+
+static int parse_upper_name() {
+  const int start = SRC_INDEX;
+  if (SRC[SRC_INDEX] < 'A' || SRC[SRC_INDEX] > 'Z') {
+    SRC_INDEX = start;
+    return -1;
+  }
+  ++SRC_INDEX;
+  for (; SRC[SRC_INDEX] >= 'a' && SRC[SRC_INDEX] <= 'z'; ++SRC_INDEX) {
+  }
+  return 0;
+}
+
+static int parse_module_declaration() {
+  const int start = SRC_INDEX;
+  int result = parse_keyword("module");
+  if (result) {
+    SRC_INDEX = start;
+    return result;
+  }
+
+  parse_whitespace();
+
+  result = parse_upper_name();
+  if (result) {
+    SRC_INDEX = start;
+    return result;
+  }
+
+  return 0;
+}
 
 static int parse_file() {
   SRC_INDEX = (FILE_INDEX > 0) ? FILE_ENDS[FILE_INDEX - 1] : 0;
