@@ -11,6 +11,7 @@ ghc-options:
 - -Wno-implicit-prelude
 - -Wno-missing-safe-haskell-mode
 - -Wno-safe
+- -Wno-missing-kind-signatures
 
 library:
   source-dirs: src
@@ -30,6 +31,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - directory
+    - text
+    - bytestring
 
 tests:
   trumat-test:
