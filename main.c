@@ -75,29 +75,24 @@
 // There are more nodes than there are text tokens, so let's assume there
 // are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
 #define MAX_SRC 86 * 1000 * 1000
-uint8_t SRC[MAX_SRC];
+static uint8_t SRC[MAX_SRC];
 
 #define MAX_PATH 2100 * 1000
-uint8_t PATH[MAX_PATH];
+static uint8_t PATH[MAX_PATH];
 
 #define MAX_FILES 8250
-uint32_t FILE_SRC_END[MAX_FILES];
-uint32_t FILE_TOKEN_END[MAX_FILES];
-uint16_t PATH_END[MAX_FILES];
-int NUM_FILES = 0;
-
-#define MAX_TOKENS 43 * 1000 * 1000
-uint8_t TOKENS[MAX_TOKENS];
-int NUM_TOKENS = 0;
+static uint32_t FILE_SRC_END[MAX_FILES];
+static uint16_t PATH_END[MAX_FILES];
+static int NUM_FILES = 0;
 
 #define MAX_NODES 10 * 1000 * 1000
 uint32_t PARENT[MAX_NODES];
-int NUM_NODES = 0;
 uint32_t TEXT_START[MAX_NODES];
 uint16_t TEXT_SIZE[MAX_NODES];
 uint8_t NODE_TYPE[MAX_NODES];
+int NUM_NODES = 0;
 
-void print_path(int file_id) {
+static void print_path(int file_id) {
   int start = 0;
   if (file_id > 0) {
     start = PATH_END[file_id - 1];
@@ -108,7 +103,7 @@ void print_path(int file_id) {
   fputc('\n', stdout);
 }
 
-void print_elm_module(int file_id) {
+static void print_elm_module(int file_id) {
   int start = 0;
   if (file_id > 0) {
     start = FILE_SRC_END[file_id - 1];
