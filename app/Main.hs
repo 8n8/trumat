@@ -38,7 +38,7 @@ usage =
   \\n\
   \It expects two arguments:\n\
   \1. --overwrite to confirm it is OK to recursivly overwrite the Elm files\n\
-  \2. The path to the Elm file or directory of Elm files to format.\n\
+  \2. the path to the Elm file or directory of Elm files to format\n\
   \"
 
 formatPath :: FilePath -> IO ()
