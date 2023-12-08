@@ -76,13 +76,6 @@
 // are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
 #define MAX_SRC 86 * 1000 * 1000
 uint8_t SRC[MAX_SRC];
-#define MAX_MASK 1343750 // 86M / 64
-uint64_t LINE_COMMENT_MASK[MAX_MASK];
-uint64_t BLOCK_COMMENT_MASK[MAX_MASK];
-uint64_t DOC_COMMENT_MASK[MAX_MASK];
-uint64_t TRIPLE_QUOTE_MASK[MAX_MASK];
-uint64_t DOUBLE_QUOTE_MASK[MAX_MASK];
-uint64_t CHAR_MASK[MAX_MASK];
 
 #define MAX_PATH 2100 * 1000
 uint8_t PATH[MAX_PATH];
@@ -97,19 +90,12 @@ int NUM_FILES = 0;
 uint8_t TOKENS[MAX_TOKENS];
 int NUM_TOKENS = 0;
 
-#define MAX_TEXT_TOKENS 5000 * 1000
-uint32_t TEXT_TOKENS[MAX_TEXT_TOKENS]; // IDs of tokens that have text
-uint32_t TEXT_TOKEN_START[MAX_TEXT_TOKENS];
-uint16_t TEXT_TOKEN_SIZE[MAX_TEXT_TOKENS];
-int NUM_TEXT_TOKENS = 0;
-
 #define MAX_NODES 10 * 1000 * 1000
 uint32_t PARENT[MAX_NODES];
 int NUM_NODES = 0;
-uint32_t TEXT_NODES[MAX_TEXT_TOKENS]; // IDs of nodes that have text
-uint32_t TEXT_NODE_START[MAX_TEXT_TOKENS];
-uint16_t TEXT_NODE_SIZE[MAX_TEXT_TOKENS];
-int NUM_TEXT_NODES = 0;
+uint32_t TEXT_START[MAX_NODES];
+uint16_t TEXT_SIZE[MAX_NODES];
+uint8_t NODE_TYPE[MAX_NODES];
 
 void print_path(int file_id) {
   int start = 0;
