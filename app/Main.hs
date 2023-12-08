@@ -23,10 +23,6 @@ main =
 parseArgs :: [String] -> Maybe FilePath
 parseArgs args =
   case args of
-    ["--overwrite", "."] ->
-      Nothing
-    ["--overwrite", ".."] ->
-      Nothing
     ["--overwrite", path] ->
       Just path
     _ ->
