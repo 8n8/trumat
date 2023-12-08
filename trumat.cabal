@@ -11,7 +11,6 @@ build-type:     Simple
 library
   exposed-modules:
       ElmPath
-      Lib
       Trumat
   other-modules:
       Paths_trumat
