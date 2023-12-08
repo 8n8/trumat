@@ -76,12 +76,14 @@
 // are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
 #define MAX_SRC 86 * 1000 * 1000
 static uint8_t SRC[MAX_SRC];
+static int SRC_INDEX;
+static int FILE_INDEX;
 
 #define MAX_PATH 2100 * 1000
 static uint8_t PATH[MAX_PATH];
 
 #define MAX_FILES 8250
-static uint32_t FILE_SRC_END[MAX_FILES];
+static uint32_t FILE_ENDS[MAX_FILES];
 static uint16_t PATH_END[MAX_FILES];
 static int NUM_FILES = 0;
 
@@ -91,6 +93,28 @@ uint32_t TEXT_START[MAX_NODES];
 uint16_t TEXT_SIZE[MAX_NODES];
 uint8_t NODE_TYPE[MAX_NODES];
 int NUM_NODES = 0;
+
+static int parse_keyword(char *keyword) {
+  const int start = SRC_INDEX;
+  int i = 0;
+  for (; keyword[i] != '\0'; ++i) {
+    if (SRC[i] != keyword[i]) {
+      return -1;
+    }
+  }
+  if (SRC[i] != ' ' && SRC[i] != '\n') {
+    SRC_INDEX = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int parse_module_declaration() { return parse_keyword("module"); }
+
+static int parse_file() {
+  SRC_INDEX = (FILE_INDEX > 0) ? FILE_ENDS[FILE_INDEX - 1] : 0;
+  return parse_module_declaration();
+}
 
 static void print_path(int file_id) {
   int start = 0;
@@ -106,9 +130,9 @@ static void print_path(int file_id) {
 static void print_elm_module(int file_id) {
   int start = 0;
   if (file_id > 0) {
-    start = FILE_SRC_END[file_id - 1];
+    start = FILE_ENDS[file_id - 1];
   }
-  for (int i = start; i < FILE_SRC_END[file_id]; ++i) {
+  for (int i = start; i < FILE_ENDS[file_id]; ++i) {
     if (SRC[i] == '\n') {
       fputs("\\n", stdout);
       continue;
@@ -173,7 +197,7 @@ static void save_path(char *path) {
 static void save_file(FILE *file) {
   int src_index = 0;
   if (NUM_FILES > 0) {
-    src_index = FILE_SRC_END[NUM_FILES - 1];
+    src_index = FILE_ENDS[NUM_FILES - 1];
   }
 
   int n = fread(SRC + src_index, 1, MAX_SRC - src_index, file);
@@ -182,7 +206,7 @@ static void save_file(FILE *file) {
     exit(-1);
   }
 
-  FILE_SRC_END[NUM_FILES] = src_index + n;
+  FILE_ENDS[NUM_FILES] = src_index + n;
 }
 
 static void read_one_src(char *path) {
@@ -243,7 +267,16 @@ static void read_src(char *path) {
   closedir(directory_handle);
 }
 
-static int parse() { return 0; }
+static int parse() {
+  for (int i = 0; i < NUM_FILES; ++i) {
+    FILE_INDEX = i;
+    const int result = parse_file();
+    if (result) {
+      return result;
+    }
+  }
+  return 0;
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 3 || !string_equal(argv[1], "--overwrite")) {
@@ -252,11 +285,12 @@ int main(int argc, char *argv[]) {
   }
 
   read_src(argv[2]);
-  dbg_src();
   int result = parse();
   if (result) {
     return result;
   }
+
+  dbg_src();
 
   return 0;
 }
