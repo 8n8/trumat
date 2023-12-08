@@ -243,9 +243,7 @@ static void read_src(char *path) {
   closedir(directory_handle);
 }
 
-static int parse() {
-  return 0;
-}
+static int parse() { return 0; }
 
 int main(int argc, char *argv[]) {
   if (argc != 3 || !string_equal(argv[1], "--overwrite")) {
