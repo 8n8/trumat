@@ -17,6 +17,8 @@ library:
   source-dirs: src
   dependencies:
     - text
+    - megaparsec
+    - containers
 
 default-extensions:
   - OverloadedStrings

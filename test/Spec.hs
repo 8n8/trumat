@@ -1,4 +1,4 @@
-module Main (main) where
+jmodule Main (main) where
 
 import Data.Text (Text)
 import Test.Tasty (TestTree)
