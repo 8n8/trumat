@@ -246,8 +246,7 @@ static void read_src(char *path) {
 
 static int parse() {
   for (int i = 0;; ++i) {
-    const int position_result = position_init(i);
-    if (position_result) {
+    if (position_init(i)) {
       return 0;
     }
 
