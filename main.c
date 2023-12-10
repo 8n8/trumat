@@ -59,6 +59,13 @@
 #define MAX_SRC 86 * 1000 * 1000
 static uint8_t SRC[MAX_SRC];
 
+struct position {
+  int index;
+  int file_end;
+};
+
+static struct position POSITION;
+
 #define MAX_PATH 2100 * 1000
 static uint8_t PATH[MAX_PATH];
 
@@ -73,6 +80,16 @@ uint32_t TEXT_START[MAX_NODES];
 uint16_t TEXT_SIZE[MAX_NODES];
 uint8_t NODE_TYPE[MAX_NODES];
 int NUM_NODES = 0;
+
+static int position_init(int file_index) {
+  if (file_index >= NUM_FILES) {
+    return -1;
+  }
+  const int start = (file_index == 0) ? 0 : FILE_ENDS[file_index - 1];
+  const int end = FILE_ENDS[file_index];
+  POSITION = (struct position){.index = start, .file_end = end};
+  return 0;
+}
 
 static int parse_file() { return 0; }
 
@@ -228,10 +245,15 @@ static void read_src(char *path) {
 }
 
 static int parse() {
-  for (int i = 0; i < NUM_FILES; ++i) {
-    const int result = parse_file();
-    if (result) {
-      return result;
+  for (int i = 0;; ++i) {
+    const int position_result = position_init(i);
+    if (position_result) {
+      return 0;
+    }
+
+    const int file_parse_result = parse_file();
+    if (file_parse_result) {
+      return file_parse_result;
     }
   }
   return 0;
