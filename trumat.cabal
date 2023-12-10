@@ -10,13 +10,11 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Ast
-      Base10Int
+      Array
+      Capacity
       Digit
+      Effect
       ElmPath
-      Expression
-      Int
-      TopBind
       Trumat
   other-modules:
       Paths_trumat
@@ -24,9 +22,10 @@ library
       src
   default-extensions:
       OverloadedStrings
-  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures
+  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -Wno-missing-local-signatures -Wno-missing-signatures -Wno-missing-exported-signatures
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
     , megaparsec
     , text
@@ -40,7 +39,7 @@ executable trumat-exe
       app
   default-extensions:
       OverloadedStrings
-  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -Wno-missing-local-signatures -Wno-missing-signatures -Wno-missing-exported-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -58,7 +57,7 @@ test-suite trumat-test
       test
   default-extensions:
       OverloadedStrings
-  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -Wno-missing-local-signatures -Wno-missing-signatures -Wno-missing-exported-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , tasty

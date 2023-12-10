@@ -1,11 +1,20 @@
-module Trumat (format) where
+module Trumat (update, initModel, initCmd) where
 
-import Data.Text (Text)
-import qualified Ast
+-- import Array (Array)
+import qualified Effect
+import Data.ByteString (ByteString)
 
-format :: Text -> Either String Text
-format input =
-  case Ast.parse input of
-    Left err -> Left $ show err
-    Right ast ->
-      Right $ Ast.toString ast
+data Msg
+  = FileContents (Either IOError ByteString)
+
+-- type Model = ()
+
+initModel =
+  ()
+
+initCmd =
+  Effect.ReadFile "data.txt" FileContents
+
+-- update :: Model -> Msg -> (Int -> Array a -> Maybe a) -> (Model, Effect.Cmd Msg b)
+update model _ _ =
+  (model, Effect.ReadFile "data.txt" FileContents)
