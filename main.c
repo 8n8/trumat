@@ -58,8 +58,6 @@
 // are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
 #define MAX_SRC 86 * 1000 * 1000
 static uint8_t SRC[MAX_SRC];
-static int SRC_INDEX;
-static int FILE_INDEX;
 
 #define MAX_PATH 2100 * 1000
 static uint8_t PATH[MAX_PATH];
@@ -76,61 +74,7 @@ uint16_t TEXT_SIZE[MAX_NODES];
 uint8_t NODE_TYPE[MAX_NODES];
 int NUM_NODES = 0;
 
-static int parse_keyword(char *keyword) {
-  const int start = SRC_INDEX;
-  int i = 0;
-  for (; keyword[i] != '\0'; ++i) {
-    if (SRC[i] != keyword[i]) {
-      return -1;
-    }
-  }
-  if (SRC[i] != ' ' && SRC[i] != '\n') {
-    SRC_INDEX = start;
-    return -1;
-  }
-  return 0;
-}
-
-static void parse_whitespace() {
-  for (; SRC[SRC_INDEX] == ' ' || SRC[SRC_INDEX] == '\n'; ++SRC_INDEX) {
-  }
-}
-
-static int parse_upper_name() {
-  const int start = SRC_INDEX;
-  if (SRC[SRC_INDEX] < 'A' || SRC[SRC_INDEX] > 'Z') {
-    SRC_INDEX = start;
-    return -1;
-  }
-  ++SRC_INDEX;
-  for (; SRC[SRC_INDEX] >= 'a' && SRC[SRC_INDEX] <= 'z'; ++SRC_INDEX) {
-  }
-  return 0;
-}
-
-static int parse_module_declaration() {
-  const int start = SRC_INDEX;
-  int result = parse_keyword("module");
-  if (result) {
-    SRC_INDEX = start;
-    return result;
-  }
-
-  parse_whitespace();
-
-  result = parse_upper_name();
-  if (result) {
-    SRC_INDEX = start;
-    return result;
-  }
-
-  return 0;
-}
-
-static int parse_file() {
-  SRC_INDEX = (FILE_INDEX > 0) ? FILE_ENDS[FILE_INDEX - 1] : 0;
-  return parse_module_declaration();
-}
+static int parse_file() { return 0; }
 
 static void print_path(int file_id) {
   int start = 0;
@@ -285,7 +229,6 @@ static void read_src(char *path) {
 
 static int parse() {
   for (int i = 0; i < NUM_FILES; ++i) {
-    FILE_INDEX = i;
     const int result = parse_file();
     if (result) {
       return result;
@@ -306,7 +249,7 @@ int main(int argc, char *argv[]) {
     return result;
   }
 
-  dbg_src();
+  // dbg_src();
 
   return 0;
 }
