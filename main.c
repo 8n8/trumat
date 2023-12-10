@@ -29,14 +29,6 @@
 // - 1.4M lines of code
 // - 86MB of code
 //
-// There are four main types of ID:
-//
-// - source characters (u32)
-// - path characters (u32)
-// - files (u16)
-// - tokens (u32)
-// - nodes (u32)
-//
 //
 // Source characters
 // -----------------
@@ -55,16 +47,6 @@
 // -----
 //
 // A file ID is a 16 bit integer.
-//
-//
-// Tokens
-// ------
-//
-// A token ID is a 32 bit integer.
-//
-// The tokens are mostly single characters. Let's assume half as many
-// tokens as source code bytes. That's 43M tokens. And let's assume 5M
-// text tokens.
 //
 //
 // Nodes
