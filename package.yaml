@@ -12,9 +12,6 @@ ghc-options:
 - -Wno-missing-safe-haskell-mode
 - -Wno-safe
 - -Wno-missing-kind-signatures
-- -Wno-missing-local-signatures
-- -Wno-missing-signatures
-- -Wno-missing-exported-signatures
 
 library:
   source-dirs: src
@@ -22,7 +19,6 @@ library:
     - text
     - megaparsec
     - containers
-    - bytestring
 
 default-extensions:
   - OverloadedStrings
