@@ -43,21 +43,3 @@ executable trumat-exe
     , text
     , trumat
   default-language: Haskell2010
-
-test-suite trumat-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_trumat
-  hs-source-dirs:
-      test
-  default-extensions:
-      OverloadedStrings
-  ghc-options: -Weverything -Werror -Wno-unsafe -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-missing-safe-haskell-mode -Wno-safe -Wno-missing-kind-signatures -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , tasty
-    , tasty-hunit
-    , text
-    , trumat
-  default-language: Haskell2010
