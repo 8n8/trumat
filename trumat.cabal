@@ -10,13 +10,8 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Ast
-      Base10Int
       Digit
       ElmPath
-      Expression
-      Int
-      TopBind
       Trumat
   other-modules:
       Paths_trumat
