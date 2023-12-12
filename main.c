@@ -97,10 +97,10 @@ static int position_increment() {
 }
 
 static int char_parse(uint8_t c) {
-  if (position_increment()) {
+  if (SRC[POSITION.index] != c) {
     return -1;
   }
-  return SRC[POSITION.index] == c;
+  return position_increment();
 }
 
 static int position_init(int file_index) {
@@ -136,11 +136,8 @@ static int keyword_parse(char *keyword) {
 }
 
 static int any_char_parse(uint8_t *c) {
-  if (position_increment()) {
-    return -1;
-  }
   *c = SRC[POSITION.index];
-  return 0;
+  return position_increment();
 }
 
 static int is_subsequent_name_char(uint8_t c) {
@@ -227,7 +224,8 @@ static int upper_name_parse(uint32_t *name) {
 }
 
 static void parse_many_whitespace() {
-  while (char_parse(' ') == 0) {}
+  while (char_parse(' ') == 0) {
+  }
 }
 
 static int parse_export(uint32_t *export) {
@@ -277,6 +275,7 @@ static int module_declaration_parse_help(uint32_t *module_declaration) {
   if (keyword_parse("exposing")) {
     return -1;
   }
+  parse_many_whitespace();
   uint32_t exports;
   if (module_exports_parse(&exports)) {
     return -1;
