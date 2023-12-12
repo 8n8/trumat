@@ -81,6 +81,28 @@ uint16_t TEXT_SIZE[MAX_NODES];
 uint8_t NODE_TYPE[MAX_NODES];
 int NUM_NODES = 0;
 
+enum node_type {
+  MODULE_DECLARATION_NODE,
+  UPPER_NAME_NODE,
+  LOWER_NAME_NODE,
+  MODULE_EXPORTS_NODE,
+};
+
+static int position_increment() {
+  if (POSITION.index >= POSITION.file_end) {
+    return -1;
+  }
+  ++POSITION.index;
+  return 0;
+}
+
+static int char_parse(uint8_t c) {
+  if (position_increment()) {
+    return -1;
+  }
+  return SRC[POSITION.index] == c;
+}
+
 static int position_init(int file_index) {
   if (file_index >= NUM_FILES) {
     return -1;
@@ -91,7 +113,197 @@ static int position_init(int file_index) {
   return 0;
 }
 
-static int parse_file() { return 0; }
+static int node_init(uint32_t *node, enum node_type type) {
+  if (NUM_NODES >= MAX_NODES) {
+    return -1;
+  }
+  *node = NUM_NODES;
+  ++NUM_NODES;
+  NODE_TYPE[*node] = type;
+  return 0;
+}
+
+static int keyword_parse(char *keyword) {
+  const struct position start = POSITION;
+  int i = 0;
+  for (; keyword[i] != '\0' && char_parse(keyword[i]) == 0; ++i) {
+  }
+  if (keyword[i] != '\0') {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int any_char_parse(uint8_t *c) {
+  if (position_increment()) {
+    return -1;
+  }
+  *c = SRC[POSITION.index];
+  return 0;
+}
+
+static int is_subsequent_name_char(uint8_t c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' ||
+         (c >= '0' && c <= '9');
+}
+
+static int first_lower_name_char_parse() {
+  const struct position start = POSITION;
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    POSITION = start;
+    return -1;
+  }
+  if (c != '_' && (c < 'a' || c > 'z')) {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int subsequent_name_char_parse() {
+  const struct position start = POSITION;
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    POSITION = start;
+    return -1;
+  }
+  if (!is_subsequent_name_char(c)) {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int upper_char_parse() {
+  const struct position start = POSITION;
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    POSITION = start;
+    return -1;
+  };
+  if (c < 'A' || c > 'Z') {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int lower_name_parse(uint32_t *name) {
+  const struct position start = POSITION;
+  if (first_lower_name_char_parse()) {
+    POSITION = start;
+    return -1;
+  }
+  while (subsequent_name_char_parse() == 0) {}
+  const int node_result = node_init(name, LOWER_NAME_NODE);
+  if (node_result) {
+    POSITION = start;
+    return -1;
+  }
+  uint16_t size = POSITION.index - start.index;
+  TEXT_START[*name] = start.index;
+  TEXT_SIZE[*name] = size;
+  return 0;
+}
+
+static int upper_name_parse(uint32_t *name) {
+  const struct position start = POSITION;
+  if (upper_char_parse()) {
+    POSITION = start;
+    return -1;
+  }
+  while (subsequent_name_char_parse() == 0) {}
+  const int node_result = node_init(name, UPPER_NAME_NODE);
+  if (node_result) {
+    POSITION = start;
+    return -1;
+  }
+  uint16_t size = POSITION.index - start.index;
+  TEXT_START[*name] = start.index;
+  TEXT_SIZE[*name] = size;
+  return 0;
+}
+
+static void parse_many_whitespace() {
+  while (char_parse(' ') == 0) {}
+}
+
+static int parse_export(uint32_t *export) {
+  const struct position start = POSITION;
+  if (lower_name_parse(export)) {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int module_exports_parse_help(uint32_t *exports) {
+  if (char_parse('(')) {
+    return -1;
+  }
+  if (node_init(exports, MODULE_EXPORTS_NODE)) {
+    return -1;
+  }
+
+  uint32_t export;
+  if (parse_export(&export)) {
+    return -1;
+  }
+  PARENT[export] = *exports;
+  return char_parse(')');
+}
+
+static int module_exports_parse(uint32_t *exports) {
+  const struct position start = POSITION;
+  const int result = module_exports_parse_help(exports);
+  if (result) {
+    POSITION = start;
+  }
+  return result;
+}
+
+static int module_declaration_parse_help(uint32_t *module_declaration) {
+  if (keyword_parse("module")) {
+    return -1;
+  }
+  parse_many_whitespace();
+  uint32_t name;
+  if (upper_name_parse(&name)) {
+    return -1;
+  }
+  parse_many_whitespace();
+  if (keyword_parse("exposing")) {
+    return -1;
+  }
+  uint32_t exports;
+  if (module_exports_parse(&exports)) {
+    return -1;
+  }
+  uint32_t id;
+  if (node_init(&id, MODULE_DECLARATION_NODE)) {
+    return -1;
+  }
+  PARENT[name] = id;
+  PARENT[exports] = id;
+  return 0;
+}
+
+static int module_declaration_parse(uint32_t *module_declaration) {
+  const struct position start = POSITION;
+  const int result = module_declaration_parse_help(module_declaration);
+
+  if (result) {
+    POSITION = start;
+  }
+  return result;
+}
+
+static int parse_file() {
+  uint32_t module_declaration;
+  return module_declaration_parse(&module_declaration);
+}
 
 static void print_path(int file_id) {
   int start = 0;
@@ -267,6 +479,7 @@ int main(int argc, char *argv[]) {
   read_src(argv[2]);
   int result = parse();
   if (result) {
+    fprintf(stderr, "formatting failed with exit code %d\n", result);
     return result;
   }
 
