@@ -63,6 +63,17 @@ struct position {
   int file_end;
 };
 
+enum node_type {
+  MODULE_DECLARATION_NODE,
+  UPPER_NAME_NODE,
+  LOWER_NAME_NODE,
+  MODULE_EXPORTS_NODE,
+  FILE_NODE,
+  BIND_NODE,
+  PLAIN_BASE10_NODE,
+  EMPTY_NODE,
+};
+
 static struct position POSITION;
 
 #define MAX_PATH 2100 * 1000
@@ -71,21 +82,62 @@ static uint8_t PATH[MAX_PATH];
 #define MAX_FILES 8250
 static uint32_t FILE_ENDS[MAX_FILES];
 static uint16_t PATH_END[MAX_FILES];
+static uint32_t FILE_NODE_ID[MAX_FILES];
 static int NUM_FILES = 0;
 
 #define MAX_NODES 10 * 1000 * 1000
 uint32_t PARENT[MAX_NODES];
 uint32_t TEXT_START[MAX_NODES];
 uint16_t TEXT_SIZE[MAX_NODES];
-uint8_t NODE_TYPE[MAX_NODES];
-int NUM_NODES = 0;
+uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
+// The first node (index 0) means the node has no parent
+int NUM_NODES = 1;
 
-enum node_type {
-  MODULE_DECLARATION_NODE,
-  UPPER_NAME_NODE,
-  LOWER_NAME_NODE,
-  MODULE_EXPORTS_NODE,
-};
+char *node_type_to_string(enum node_type type) {
+  switch (type) {
+  case MODULE_DECLARATION_NODE:
+    return "MODU";
+  case UPPER_NAME_NODE:
+    return "UPNA";
+  case LOWER_NAME_NODE:
+    return "LONA";
+  case MODULE_EXPORTS_NODE:
+    return "EXPO";
+  case FILE_NODE:
+    return "FILE";
+  case BIND_NODE:
+    return "BIND";
+  case PLAIN_BASE10_NODE:
+    return "NUMB";
+  case EMPTY_NODE:
+    return "NULL";
+  }
+}
+
+void dbg_parent() {
+  fputs("indexes: ", stdout);
+  for (int i = 0; i < NUM_NODES; ++i) {
+    printf("%03d  ", i);
+  }
+  fputc('\n', stdout);
+
+  fputs("types:   ", stdout);
+  for (int i = 0; i < NUM_NODES; ++i) {
+    printf("%s ", node_type_to_string(NODE_TYPE[i]));
+  }
+  fputc('\n', stdout);
+
+  fputs("parents: ", stdout);
+  for (int i = 0; i < NUM_NODES; ++i) {
+    printf("%03d  ", PARENT[i]);
+  }
+  fputc('\n', stdout);
+}
+
+void dbg_ast() {
+  fputs("PARENT\n", stdout);
+  dbg_parent();
+}
 
 static int position_increment() {
   if (POSITION.index >= POSITION.file_end) {
@@ -192,7 +244,8 @@ static int lower_name_parse(uint32_t *name) {
     POSITION = start;
     return -1;
   }
-  while (subsequent_name_char_parse() == 0) {}
+  while (subsequent_name_char_parse() == 0) {
+  }
   const int node_result = node_init(name, LOWER_NAME_NODE);
   if (node_result) {
     POSITION = start;
@@ -210,7 +263,8 @@ static int upper_name_parse(uint32_t *name) {
     POSITION = start;
     return -1;
   }
-  while (subsequent_name_char_parse() == 0) {}
+  while (subsequent_name_char_parse() == 0) {
+  }
   const int node_result = node_init(name, UPPER_NAME_NODE);
   if (node_result) {
     POSITION = start;
@@ -223,7 +277,7 @@ static int upper_name_parse(uint32_t *name) {
 }
 
 static void parse_many_whitespace() {
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
 }
 
@@ -261,7 +315,7 @@ static int module_exports_parse(uint32_t *exports) {
   return result;
 }
 
-static int module_declaration_parse_help(uint32_t *module_declaration) {
+static int module_declaration_parse_help(uint32_t *id) {
   if (keyword_parse("module")) {
     return -1;
   }
@@ -279,12 +333,11 @@ static int module_declaration_parse_help(uint32_t *module_declaration) {
   if (module_exports_parse(&exports)) {
     return -1;
   }
-  uint32_t id;
-  if (node_init(&id, MODULE_DECLARATION_NODE)) {
+  if (node_init(id, MODULE_DECLARATION_NODE)) {
     return -1;
   }
-  PARENT[name] = id;
-  PARENT[exports] = id;
+  PARENT[name] = *id;
+  PARENT[exports] = *id;
   return 0;
 }
 
@@ -298,9 +351,103 @@ static int module_declaration_parse(uint32_t *module_declaration) {
   return result;
 }
 
-static int parse_file() {
+static int parse_eof() { return POSITION.index == POSITION.file_end; }
+
+static int digit_parse() {
+  const struct position start = POSITION;
+  uint8_t c;
+  if (any_char_parse(&c) || c < '0' || c > '9') {
+    POSITION = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int plain_base10_parse_help(uint32_t *number) {
+  const struct position start = POSITION;
+  if (digit_parse()) {
+    return -1;
+  }
+
+  if (node_init(number, PLAIN_BASE10_NODE)) {
+    return -1;
+  }
+  TEXT_START[*number] = start.index;
+  TEXT_SIZE[*number] = 1;
+  return 0;
+}
+
+static int plain_base10_parse(uint32_t *id) {
+  const struct position start = POSITION;
+  const int result = plain_base10_parse_help(id);
+  if (result) {
+    POSITION = start;
+  }
+  return result;
+}
+
+static int parse_bind_help(uint32_t *id) {
+  uint32_t name;
+  if (lower_name_parse(&name)) {
+    return -1;
+  }
+
+  parse_many_whitespace();
+
+  if (char_parse('=')) {
+    return -1;
+  }
+
+  parse_many_whitespace();
+
+  uint32_t body;
+  if (plain_base10_parse(&body)) {
+    return -1;
+  }
+
+  if (node_init(id, BIND_NODE)) {
+    return -1;
+  }
+  PARENT[name] = *id;
+  PARENT[body] = *id;
+  return 0;
+}
+
+static int parse_bind(uint32_t *id) {
+  const struct position start = POSITION;
+  const int result = parse_bind_help(id);
+  if (result) {
+    POSITION = start;
+  }
+  return result;
+}
+
+static int parse_file(uint32_t *file) {
+  if (node_init(file, FILE_NODE)) {
+    return -1;
+  }
+
   uint32_t module_declaration;
-  return module_declaration_parse(&module_declaration);
+  if (module_declaration_parse(&module_declaration)) {
+    return -1;
+  }
+  PARENT[module_declaration] = *file;
+
+  parse_many_whitespace();
+
+  while (1) {
+    uint32_t top_level;
+    if (parse_bind(&top_level)) {
+      break;
+    }
+    PARENT[top_level] = *file;
+  }
+
+  if (parse_eof()) {
+    return -1;
+  }
+
+  return 0;
 }
 
 static void print_path(int file_id) {
@@ -451,15 +598,13 @@ static void read_src(char *path) {
 }
 
 static int parse() {
-  for (int i = 0;; ++i) {
-    if (position_init(i)) {
-      return 0;
+  for (int i = 0; position_init(i) == 0; ++i) {
+    uint32_t file;
+    if (parse_file(&file)) {
+      return -1;
     }
 
-    const int file_parse_result = parse_file();
-    if (file_parse_result) {
-      return file_parse_result;
-    }
+    FILE_NODE_ID[i] = file;
   }
   return 0;
 }
@@ -478,6 +623,7 @@ int main(int argc, char *argv[]) {
   }
 
   // dbg_src();
+  dbg_ast();
 
   return 0;
 }
