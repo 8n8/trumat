@@ -93,6 +93,17 @@ uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
 // The first node (index 0) means the node has no parent
 int NUM_NODES = 1;
 
+static void print_path(int file_id) {
+  int start = 0;
+  if (file_id > 0) {
+    start = PATH_END[file_id - 1];
+  }
+  for (int i = start; i < PATH_END[file_id]; ++i) {
+    fputc(PATH[i], stdout);
+  }
+  fputc('\n', stdout);
+}
+
 void dbg_text_nodes() {
   printf("text nodes:\n");
   for (int i = 0; i < NUM_NODES; ++i) {
@@ -128,6 +139,17 @@ char *node_type_to_string(enum node_type type) {
   }
 }
 
+void dbg_files() {
+  printf("files:\n");
+  for (int i = 0; i < NUM_FILES; ++i) {
+    if (FILE_NODE_ID[i] == 0) {
+      continue;
+    }
+    printf("%03d: ", FILE_NODE_ID[i]);
+    print_path(i);
+  }
+}
+
 void dbg_ast() {
   fputs("indexes:  ", stdout);
   for (int i = 0; i < NUM_NODES; ++i) {
@@ -147,6 +169,7 @@ void dbg_ast() {
   }
   fputc('\n', stdout);
   dbg_text_nodes();
+  dbg_files();
   fputc('\n', stdout);
 }
 
@@ -459,17 +482,6 @@ static int parse_file(uint32_t *file) {
   }
 
   return 0;
-}
-
-static void print_path(int file_id) {
-  int start = 0;
-  if (file_id > 0) {
-    start = PATH_END[file_id - 1];
-  }
-  for (int i = start; i < PATH_END[file_id]; ++i) {
-    fputc(PATH[i], stdout);
-  }
-  fputc('\n', stdout);
 }
 
 static void print_elm_module(int file_id) {
