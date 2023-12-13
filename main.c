@@ -475,6 +475,7 @@ void dbg_src() {
   for (int i = 0; i < NUM_FILES; ++i) {
     print_path(i);
     print_elm_module(i);
+    fputc('\n', stdout);
   }
 }
 
@@ -617,8 +618,8 @@ int main(int argc, char *argv[]) {
     return result;
   }
 
-  // dbg_src();
-  dbg_ast();
+  dbg_src();
+  // dbg_ast();
 
   return 0;
 }
