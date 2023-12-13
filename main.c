@@ -115,7 +115,7 @@ char *node_type_to_string(enum node_type type) {
 }
 
 void dbg_parent() {
-  fputs("indexes: ", stdout);
+  fputs("indexes:  ", stdout);
   for (int i = 0; i < NUM_NODES; ++i) {
     printf("%03d  ", i);
   }
@@ -127,7 +127,7 @@ void dbg_parent() {
   }
   fputc('\n', stdout);
 
-  fputs("parents: ", stdout);
+  fputs("parents:  ", stdout);
   for (int i = 0; i < NUM_NODES; ++i) {
     printf("%03d  ", PARENT[i]);
   }
