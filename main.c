@@ -114,7 +114,7 @@ char *node_type_to_string(enum node_type type) {
   }
 }
 
-void dbg_parent() {
+void dbg_ast() {
   fputs("indexes:  ", stdout);
   for (int i = 0; i < NUM_NODES; ++i) {
     printf("%03d  ", i);
@@ -131,12 +131,7 @@ void dbg_parent() {
   for (int i = 0; i < NUM_NODES; ++i) {
     printf("%03d  ", PARENT[i]);
   }
-  fputc('\n', stdout);
-}
-
-void dbg_ast() {
-  fputs("PARENT\n", stdout);
-  dbg_parent();
+  fputs("\n\n", stdout);
 }
 
 static int position_increment() {
