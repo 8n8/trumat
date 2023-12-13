@@ -93,6 +93,20 @@ uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
 // The first node (index 0) means the node has no parent
 int NUM_NODES = 1;
 
+void dbg_text_nodes() {
+  printf("text nodes:\n");
+  for (int i = 0; i < NUM_NODES; ++i) {
+    if (TEXT_SIZE[i] == 0) {
+      continue;
+    }
+    printf("%03d: ", i);
+    for (int j = 0; j < TEXT_SIZE[i]; ++j) {
+      printf("%c", SRC[TEXT_START[i] + j]);
+    }
+    printf("\n");
+  }
+}
+
 char *node_type_to_string(enum node_type type) {
   switch (type) {
   case MODULE_DECLARATION_NODE:
@@ -131,7 +145,9 @@ void dbg_ast() {
   for (int i = 0; i < NUM_NODES; ++i) {
     printf("%03d  ", PARENT[i]);
   }
-  fputs("\n\n", stdout);
+  fputc('\n', stdout);
+  dbg_text_nodes();
+  fputc('\n', stdout);
 }
 
 static int position_increment() {
@@ -618,8 +634,8 @@ int main(int argc, char *argv[]) {
     return result;
   }
 
-  dbg_src();
-  // dbg_ast();
+  // dbg_src();
+  dbg_ast();
 
   return 0;
 }
