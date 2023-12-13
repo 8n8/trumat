@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define SRC_OPEN_BLOCK 1
 
 // DATA
 // ====
@@ -323,10 +322,6 @@ static void print_elm_module(int file_id) {
   for (int i = start; i < FILE_ENDS[file_id]; ++i) {
     if (SRC[i] == '\n') {
       fputs("\\n", stdout);
-      continue;
-    }
-    if (SRC[i] == SRC_OPEN_BLOCK) {
-      fputc('{', stdout);
       continue;
     }
     fputc(SRC[i], stdout);
