@@ -167,7 +167,7 @@ static void file_format(uint32_t file_id) {
   fclose(out);
 }
 
-void ast_format() {
+static void ast_format() {
   for (int i = 0; i < NUM_FILES; ++i) {
     file_format(i);
   }
