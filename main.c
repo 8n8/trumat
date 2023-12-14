@@ -469,9 +469,12 @@ static int plain_base10_parse_help(uint32_t *number) {
     return -1;
   }
 
+  while (digit_parse() == 0) {
+  }
+
   *number = node_init(PLAIN_BASE10_NODE);
   TEXT_START[*number] = start.index;
-  TEXT_SIZE[*number] = 1;
+  TEXT_SIZE[*number] = POSITION.index - start.index;
   return 0;
 }
 
