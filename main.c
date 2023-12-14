@@ -113,47 +113,47 @@ static uint32_t find_child(uint32_t parent, enum node_type type) {
   exit(-1);
 }
 
-static void format_literal(FILE *handle, uint32_t literal) {
+static void literal_format(FILE *handle, uint32_t literal) {
   for (int i = 0; i < TEXT_SIZE[literal]; ++i) {
     fputc(SRC[TEXT_START[literal] + i], handle);
   }
 }
 
-static void format_module_exports(FILE *handle, uint32_t exports) {
+static void module_exports_format(FILE *handle, uint32_t exports) {
   fputs("(", handle);
   uint32_t export = find_child(exports, LOWER_NAME_NODE);
-  format_literal(handle, export);
+  literal_format(handle, export);
   fputs(")", handle);
 }
 
-static void format_module_declaration(FILE *handle, uint32_t root) {
+static void module_declaration_format(FILE *handle, uint32_t root) {
   uint32_t module_declaration = find_child(root, MODULE_DECLARATION_NODE);
   uint32_t module_name = find_child(module_declaration, UPPER_NAME_NODE);
   uint32_t exports = find_child(module_declaration, MODULE_EXPORTS_NODE);
   fputs("module ", handle);
-  format_literal(handle, module_name);
+  literal_format(handle, module_name);
   fputs(" exposing ", handle);
-  format_module_exports(handle, exports);
+  module_exports_format(handle, exports);
 }
 
-static void format_top_levels(FILE *handle, uint32_t root) {
+static void top_levels_format(FILE *handle, uint32_t root) {
   uint32_t bind = find_child(root, BIND_NODE);
   uint32_t name = find_child(bind, LOWER_NAME_NODE);
   uint32_t body = find_child(bind, PLAIN_BASE10_NODE);
-  format_literal(handle, name);
+  literal_format(handle, name);
   fputs(" =\n    ", handle);
-  format_literal(handle, body);
+  literal_format(handle, body);
 }
 
-static void format_file_handle(FILE *handle, uint32_t file_id) {
+static void file_handle_format(FILE *handle, uint32_t file_id) {
   uint32_t root = FILE_NODE_ID[file_id];
-  format_module_declaration(handle, root);
+  module_declaration_format(handle, root);
   fputs("\n\n\n", handle);
-  format_top_levels(handle, root);
+  top_levels_format(handle, root);
   fputc('\n', handle);
 }
 
-static void format_file(uint32_t file_id) {
+static void file_format(uint32_t file_id) {
   char path[256];
   get_path(file_id, path);
 
@@ -163,13 +163,13 @@ static void format_file(uint32_t file_id) {
     return;
   }
 
-  format_file_handle(out, file_id);
+  file_handle_format(out, file_id);
   fclose(out);
 }
 
-void format_ast() {
+void ast_format() {
   for (int i = 0; i < NUM_FILES; ++i) {
-    format_file(i);
+    file_format(i);
   }
 }
 
@@ -708,7 +708,7 @@ int main(int argc, char *argv[]) {
 
   // dbg_src();
   // dbg_ast();
-  format_ast();
+  ast_format();
 
   return 0;
 }
