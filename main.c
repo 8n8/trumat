@@ -86,12 +86,12 @@ static uint32_t FILE_NODE_ID[MAX_FILES];
 static int NUM_FILES = 0;
 
 #define MAX_NODES 10 * 1000 * 1000
-uint32_t PARENT[MAX_NODES];
-uint32_t TEXT_START[MAX_NODES];
-uint16_t TEXT_SIZE[MAX_NODES];
-uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
+static uint32_t PARENT[MAX_NODES];
+static uint32_t TEXT_START[MAX_NODES];
+static uint16_t TEXT_SIZE[MAX_NODES];
+static uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
 // The first node (index 0) means the node has no parent
-int NUM_NODES = 1;
+static int NUM_NODES = 1;
 
 void get_path(uint32_t file_id, char path[256]) {
   const int start = (file_id == 0) ? 0 : PATH_END[file_id - 1];
