@@ -93,7 +93,7 @@ static uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
 // The first node (index 0) means the node has no parent
 static int NUM_NODES = 1;
 
-void get_path(uint32_t file_id, char path[256]) {
+static void get_path(uint32_t file_id, char path[256]) {
   const int start = (file_id == 0) ? 0 : PATH_END[file_id - 1];
   const int end = PATH_END[file_id];
 
