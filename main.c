@@ -53,8 +53,8 @@
 //
 // A node ID is a 32 bit integer.
 //
-// There are more nodes than there are text tokens, so let's assume there
-// are 10M nodes. That means 10/1.4 = 7 nodes per line of code.
+// Let's assume there are 10M nodes. That means 10/1.4 = 7 nodes per line
+// of code.
 #define MAX_SRC 86 * 1000 * 1000
 static uint8_t SRC[MAX_SRC];
 
