@@ -93,6 +93,86 @@ uint8_t NODE_TYPE[MAX_NODES] = {EMPTY_NODE};
 // The first node (index 0) means the node has no parent
 int NUM_NODES = 1;
 
+void get_path(uint32_t file_id, char path[256]) {
+  const int start = (file_id == 0) ? 0 : PATH_END[file_id - 1];
+  const int end = PATH_END[file_id];
+
+  for (int i = start; i < end; ++i) {
+    path[i - start] = PATH[i];
+  }
+  path[end - start] = '\0';
+}
+
+static uint32_t find_child(uint32_t parent, enum node_type type) {
+  for (int i = 0; i < NUM_NODES; ++i) {
+    if (PARENT[i] == parent && NODE_TYPE[i] == type) {
+      return i;
+    }
+  }
+  fprintf(stderr, "could not find child of %d\n", parent);
+  exit(-1);
+}
+
+static void format_literal(FILE *handle, uint32_t literal) {
+  for (int i = 0; i < TEXT_SIZE[literal]; ++i) {
+    fputc(SRC[TEXT_START[literal] + i], handle);
+  }
+}
+
+static void format_module_exports(FILE *handle, uint32_t exports) {
+  fputs("(", handle);
+  uint32_t export = find_child(exports, LOWER_NAME_NODE);
+  format_literal(handle, export);
+  fputs(")", handle);
+}
+
+static void format_module_declaration(FILE *handle, uint32_t root) {
+  uint32_t module_declaration = find_child(root, MODULE_DECLARATION_NODE);
+  uint32_t module_name = find_child(module_declaration, UPPER_NAME_NODE);
+  uint32_t exports = find_child(module_declaration, MODULE_EXPORTS_NODE);
+  fputs("module ", handle);
+  format_literal(handle, module_name);
+  fputs(" exposing ", handle);
+  format_module_exports(handle, exports);
+}
+
+static void format_top_levels(FILE* handle, uint32_t root) {
+  uint32_t bind = find_child(root, BIND_NODE);
+  uint32_t name = find_child(bind, LOWER_NAME_NODE);
+  uint32_t body = find_child(bind, PLAIN_BASE10_NODE);
+  format_literal(handle, name);
+  fputs(" =\n    ", handle);
+  format_literal(handle, body);
+}
+
+static void format_file_handle(FILE *handle, uint32_t file_id) {
+  uint32_t root = FILE_NODE_ID[file_id];
+  format_module_declaration(handle, root);
+  fputs("\n\n\n", handle);
+  format_top_levels(handle, root);
+  fputc('\n', handle);
+}
+
+static void format_file(uint32_t file_id) {
+  char path[256];
+  get_path(file_id, path);
+
+  FILE *out = fopen(path, "w");
+  if (out == NULL) {
+    fprintf(stderr, "failed to open %s\n", path);
+    return;
+  }
+
+  format_file_handle(out, file_id);
+  fclose(out);
+}
+
+void format_ast() {
+  for (int i = 0; i < NUM_FILES; ++i) {
+    format_file(i);
+  }
+}
+
 static void print_path(int file_id) {
   int start = 0;
   if (file_id > 0) {
@@ -142,9 +222,6 @@ char *node_type_to_string(enum node_type type) {
 void dbg_files() {
   printf("files:\n");
   for (int i = 0; i < NUM_FILES; ++i) {
-    if (FILE_NODE_ID[i] == 0) {
-      continue;
-    }
     printf("%03d: ", FILE_NODE_ID[i]);
     print_path(i);
   }
@@ -647,7 +724,8 @@ int main(int argc, char *argv[]) {
   }
 
   // dbg_src();
-  dbg_ast();
+  // dbg_ast();
+  format_ast();
 
   return 0;
 }
