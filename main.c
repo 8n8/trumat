@@ -136,7 +136,7 @@ static void format_module_declaration(FILE *handle, uint32_t root) {
   format_module_exports(handle, exports);
 }
 
-static void format_top_levels(FILE* handle, uint32_t root) {
+static void format_top_levels(FILE *handle, uint32_t root) {
   uint32_t bind = find_child(root, BIND_NODE);
   uint32_t name = find_child(bind, LOWER_NAME_NODE);
   uint32_t body = find_child(bind, PLAIN_BASE10_NODE);
