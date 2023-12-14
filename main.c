@@ -275,14 +275,15 @@ static int position_init(int file_index) {
   return 0;
 }
 
-static int node_init(uint32_t *node, enum node_type type) {
+static uint32_t node_init(enum node_type type) {
   if (NUM_NODES >= MAX_NODES) {
-    return -1;
+    fprintf(stderr, "not enough node memory\n");
+    exit(-1);
   }
-  *node = NUM_NODES;
+  const uint32_t node = NUM_NODES;
   ++NUM_NODES;
-  NODE_TYPE[*node] = type;
-  return 0;
+  NODE_TYPE[node] = type;
+  return node;
 }
 
 static int keyword_parse(char *keyword) {
@@ -357,11 +358,7 @@ static int lower_name_parse(uint32_t *name) {
   }
   while (subsequent_name_char_parse() == 0) {
   }
-  const int node_result = node_init(name, LOWER_NAME_NODE);
-  if (node_result) {
-    POSITION = start;
-    return -1;
-  }
+  *name = node_init(LOWER_NAME_NODE);
   uint16_t size = POSITION.index - start.index;
   TEXT_START[*name] = start.index;
   TEXT_SIZE[*name] = size;
@@ -376,11 +373,7 @@ static int upper_name_parse(uint32_t *name) {
   }
   while (subsequent_name_char_parse() == 0) {
   }
-  const int node_result = node_init(name, UPPER_NAME_NODE);
-  if (node_result) {
-    POSITION = start;
-    return -1;
-  }
+  *name = node_init(UPPER_NAME_NODE);
   uint16_t size = POSITION.index - start.index;
   TEXT_START[*name] = start.index;
   TEXT_SIZE[*name] = size;
@@ -405,9 +398,7 @@ static int module_exports_parse_help(uint32_t *exports) {
   if (char_parse('(')) {
     return -1;
   }
-  if (node_init(exports, MODULE_EXPORTS_NODE)) {
-    return -1;
-  }
+  *exports = node_init(MODULE_EXPORTS_NODE);
 
   uint32_t export;
   if (parse_export(&export)) {
@@ -444,9 +435,7 @@ static int module_declaration_parse_help(uint32_t *id) {
   if (module_exports_parse(&exports)) {
     return -1;
   }
-  if (node_init(id, MODULE_DECLARATION_NODE)) {
-    return -1;
-  }
+  *id = node_init(MODULE_DECLARATION_NODE);
   PARENT[name] = *id;
   PARENT[exports] = *id;
   return 0;
@@ -480,9 +469,7 @@ static int plain_base10_parse_help(uint32_t *number) {
     return -1;
   }
 
-  if (node_init(number, PLAIN_BASE10_NODE)) {
-    return -1;
-  }
+  *number = node_init(PLAIN_BASE10_NODE);
   TEXT_START[*number] = start.index;
   TEXT_SIZE[*number] = 1;
   return 0;
@@ -516,9 +503,7 @@ static int parse_bind_help(uint32_t *id) {
     return -1;
   }
 
-  if (node_init(id, BIND_NODE)) {
-    return -1;
-  }
+  *id = node_init(BIND_NODE);
   PARENT[name] = *id;
   PARENT[body] = *id;
   return 0;
@@ -534,9 +519,7 @@ static int parse_bind(uint32_t *id) {
 }
 
 static int parse_file(uint32_t *file) {
-  if (node_init(file, FILE_NODE)) {
-    return -1;
-  }
+  *file = node_init(FILE_NODE);
 
   uint32_t module_declaration;
   if (module_declaration_parse(&module_declaration)) {
