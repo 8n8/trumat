@@ -380,12 +380,12 @@ static int upper_name_parse(uint32_t *name) {
   return 0;
 }
 
-static void parse_many_whitespace() {
+static void many_whitespace_parse() {
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
 }
 
-static int parse_export(uint32_t *export) {
+static int export_parse(uint32_t *export) {
   const struct position start = POSITION;
   if (lower_name_parse(export)) {
     POSITION = start;
@@ -401,7 +401,7 @@ static int module_exports_parse_help(uint32_t *exports) {
   *exports = node_init(MODULE_EXPORTS_NODE);
 
   uint32_t export;
-  if (parse_export(&export)) {
+  if (export_parse(&export)) {
     return -1;
   }
   PARENT[export] = *exports;
@@ -421,16 +421,16 @@ static int module_declaration_parse_help(uint32_t *id) {
   if (keyword_parse("module")) {
     return -1;
   }
-  parse_many_whitespace();
+  many_whitespace_parse();
   uint32_t name;
   if (upper_name_parse(&name)) {
     return -1;
   }
-  parse_many_whitespace();
+  many_whitespace_parse();
   if (keyword_parse("exposing")) {
     return -1;
   }
-  parse_many_whitespace();
+  many_whitespace_parse();
   uint32_t exports;
   if (module_exports_parse(&exports)) {
     return -1;
@@ -451,7 +451,7 @@ static int module_declaration_parse(uint32_t *module_declaration) {
   return result;
 }
 
-static int parse_eof() { return POSITION.index == POSITION.file_end; }
+static int eof_parse() { return POSITION.index == POSITION.file_end; }
 
 static int digit_parse() {
   const struct position start = POSITION;
@@ -484,19 +484,19 @@ static int plain_base10_parse(uint32_t *id) {
   return result;
 }
 
-static int parse_bind_help(uint32_t *id) {
+static int bind_parse_help(uint32_t *id) {
   uint32_t name;
   if (lower_name_parse(&name)) {
     return -1;
   }
 
-  parse_many_whitespace();
+  many_whitespace_parse();
 
   if (char_parse('=')) {
     return -1;
   }
 
-  parse_many_whitespace();
+  many_whitespace_parse();
 
   uint32_t body;
   if (plain_base10_parse(&body)) {
@@ -509,16 +509,16 @@ static int parse_bind_help(uint32_t *id) {
   return 0;
 }
 
-static int parse_bind(uint32_t *id) {
+static int bind_parse(uint32_t *id) {
   const struct position start = POSITION;
-  const int result = parse_bind_help(id);
+  const int result = bind_parse_help(id);
   if (result) {
     POSITION = start;
   }
   return result;
 }
 
-static int parse_file(uint32_t *file) {
+static int file_parse(uint32_t *file) {
   *file = node_init(FILE_NODE);
 
   uint32_t module_declaration;
@@ -527,17 +527,17 @@ static int parse_file(uint32_t *file) {
   }
   PARENT[module_declaration] = *file;
 
-  parse_many_whitespace();
+  many_whitespace_parse();
 
   while (1) {
     uint32_t top_level;
-    if (parse_bind(&top_level)) {
+    if (bind_parse(&top_level)) {
       break;
     }
     PARENT[top_level] = *file;
   }
 
-  if (parse_eof()) {
+  if (eof_parse()) {
     return -1;
   }
 
@@ -684,7 +684,7 @@ static void read_src(char *path) {
 static int parse() {
   for (int i = 0; position_init(i) == 0; ++i) {
     uint32_t file;
-    if (parse_file(&file)) {
+    if (file_parse(&file)) {
       return -1;
     }
 
