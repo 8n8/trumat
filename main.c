@@ -398,6 +398,7 @@ static int module_exports_parse_help(uint32_t *exports) {
   if (char_parse('(')) {
     return -1;
   }
+  many_whitespace_parse();
   *exports = node_init(MODULE_EXPORTS_NODE);
 
   uint32_t export;
