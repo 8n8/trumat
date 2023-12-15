@@ -524,16 +524,14 @@ static int bind_parse(uint32_t *id) {
 }
 
 static int file_parse(uint32_t *file) {
+  many_whitespace_parse();
   *file = node_init(FILE_NODE);
-
   uint32_t module_declaration;
   if (module_declaration_parse(&module_declaration)) {
     return -1;
   }
   PARENT[module_declaration] = *file;
-
   many_whitespace_parse();
-
   while (1) {
     uint32_t top_level;
     if (bind_parse(&top_level)) {
@@ -541,11 +539,9 @@ static int file_parse(uint32_t *file) {
     }
     PARENT[top_level] = *file;
   }
-
   if (eof_parse()) {
     return -1;
   }
-
   return 0;
 }
 
