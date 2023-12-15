@@ -406,6 +406,7 @@ static int module_exports_parse_help(uint32_t *exports) {
     return -1;
   }
   PARENT[export] = *exports;
+  many_whitespace_parse();
   return char_parse(')');
 }
 
