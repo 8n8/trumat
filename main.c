@@ -103,6 +103,17 @@ static void get_path(uint32_t file_id, char path[256]) {
   path[end - start] = '\0';
 }
 
+static int find_child_after(uint32_t parent, enum node_type type, int start,
+                            uint32_t *result) {
+  for (int i = start + 1; i < NUM_NODES; ++i) {
+    if (PARENT[i] == parent && NODE_TYPE[i] == type) {
+      *result = i;
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static uint32_t find_child(uint32_t parent, enum node_type type) {
   for (int i = 0; i < NUM_NODES; ++i) {
     if (PARENT[i] == parent && NODE_TYPE[i] == type) {
@@ -120,9 +131,18 @@ static void literal_format(FILE *handle, uint32_t literal) {
 }
 
 static void module_exports_format(FILE *handle, uint32_t exports) {
-  fputs("(", handle);
-  uint32_t export = find_child(exports, LOWER_NAME_NODE);
+  fputc('(', handle);
+  uint32_t export;
+  if (find_child_after(exports, LOWER_NAME_NODE, 0, &export)) {
+    fprintf(stderr, "module exports has no children\n");
+    exit(-1);
+  }
   literal_format(handle, export);
+
+  while (find_child_after(exports, LOWER_NAME_NODE, export, &export) == 0) {
+    fputs(", ", handle);
+    literal_format(handle, export);
+  }
   fputs(")", handle);
 }
 
@@ -136,13 +156,28 @@ static void module_declaration_format(FILE *handle, uint32_t root) {
   module_exports_format(handle, exports);
 }
 
-static void top_levels_format(FILE *handle, uint32_t root) {
-  uint32_t bind = find_child(root, BIND_NODE);
+static int top_level_format(FILE *handle, uint32_t root, int *start) {
+  uint32_t bind;
+  if (find_child_after(root, BIND_NODE, *start, &bind)) {
+    return -1;
+  }
+  *start = bind;
   uint32_t name = find_child(bind, LOWER_NAME_NODE);
   uint32_t body = find_child(bind, PLAIN_BASE10_NODE);
   literal_format(handle, name);
   fputs(" =\n    ", handle);
   literal_format(handle, body);
+  return 0;
+}
+
+static void top_levels_format(FILE *handle, uint32_t root) {
+  int start = 0;
+  while (top_level_format(handle, root, &start) == 0) {
+    uint32_t dont_care;
+    if (find_child_after(root, BIND_NODE, start, &dont_care) == 0) {
+      fputs("\n\n\n", handle);
+    }
+  }
 }
 
 static void file_handle_format(FILE *handle, uint32_t file_id) {
@@ -398,15 +433,20 @@ static int module_exports_parse_help(uint32_t *exports) {
   if (char_parse('(')) {
     return -1;
   }
-  many_whitespace_parse();
   *exports = node_init(MODULE_EXPORTS_NODE);
 
-  uint32_t export;
-  if (export_parse(&export)) {
-    return -1;
+  while (1) {
+    many_whitespace_parse();
+    uint32_t export;
+    if (export_parse(&export)) {
+      break;
+    }
+    PARENT[export] = *exports;
+    many_whitespace_parse();
+    if (char_parse(',')) {
+      break;
+    }
   }
-  PARENT[export] = *exports;
-  many_whitespace_parse();
   return char_parse(')');
 }
 
@@ -523,6 +563,24 @@ static int bind_parse(uint32_t *id) {
   return result;
 }
 
+void dbg_around() {
+  const int start = POSITION.index > 10 ? POSITION.index - 10 : 0;
+  const int end = POSITION.index + 10 < POSITION.file_end ? POSITION.index + 10
+                                                          : POSITION.file_end;
+  for (int i = start; i < end; ++i) {
+    if (SRC[i] == '\n') {
+      fputs("\\n", stdout);
+      continue;
+    }
+    fputc(SRC[i], stdout);
+  }
+  fputc('\n', stdout);
+  for (int i = start; i < POSITION.index; ++i) {
+    fputc(' ', stdout);
+  }
+  fputs("^\n", stdout);
+}
+
 static int file_parse(uint32_t *file) {
   many_whitespace_parse();
   *file = node_init(FILE_NODE);
@@ -531,15 +589,16 @@ static int file_parse(uint32_t *file) {
     return -1;
   }
   PARENT[module_declaration] = *file;
-  many_whitespace_parse();
   while (1) {
+    many_whitespace_parse();
     uint32_t top_level;
     if (bind_parse(&top_level)) {
       break;
     }
     PARENT[top_level] = *file;
   }
-  if (eof_parse()) {
+  many_whitespace_parse();
+  if (eof_parse() == 0) {
     return -1;
   }
   return 0;
