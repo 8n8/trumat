@@ -198,7 +198,7 @@ static void file_format(uint32_t file_id) {
   fclose(out);
 }
 
-static void ast_format() {
+static void format() {
   for (int i = 0; i < NUM_FILES; ++i) {
     file_format(i);
   }
@@ -764,7 +764,7 @@ int main(int argc, char *argv[]) {
 
   // dbg_src();
   // dbg_ast();
-  ast_format();
+  format();
 
   return 0;
 }
