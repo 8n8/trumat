@@ -164,6 +164,7 @@ static int top_level_format(FILE *handle, uint32_t root, int *start) {
   *start = bind;
   uint32_t name = find_child(bind, LOWER_NAME_NODE);
   uint32_t body = find_child(bind, PLAIN_BASE10_NODE);
+  fputs("\n\n\n", handle);
   literal_format(handle, name);
   fputs(" =\n    ", handle);
   literal_format(handle, body);
@@ -173,17 +174,12 @@ static int top_level_format(FILE *handle, uint32_t root, int *start) {
 static void top_levels_format(FILE *handle, uint32_t root) {
   int start = 0;
   while (top_level_format(handle, root, &start) == 0) {
-    uint32_t dont_care;
-    if (find_child_after(root, BIND_NODE, start, &dont_care) == 0) {
-      fputs("\n\n\n", handle);
-    }
   }
 }
 
 static void file_handle_format(FILE *handle, uint32_t file_id) {
   uint32_t root = FILE_NODE_ID[file_id];
   module_declaration_format(handle, root);
-  fputs("\n\n\n", handle);
   top_levels_format(handle, root);
   fputc('\n', handle);
 }
