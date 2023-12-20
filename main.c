@@ -7,7 +7,7 @@ static void literal_write(uint16_t id);
 // The formatter works on top level definitions, so this state should be
 // enough to contain everything that is needed to format the largest top
 // level definition.
-// 
+//
 // Basic assumptions:
 //
 // - max 5000 lines of code in a single top-level definition
@@ -24,7 +24,8 @@ static uint16_t SRC_SIZE[MAX_NODES];
 #define ROOT 1
 // So the first non-root node is 2
 static int NUM_NODE = 2;
-#define MAX_SRC 1400 * 1000 // Twice the size of the largest Elm file I have seen.
+#define MAX_SRC                                                                \
+  1400 * 1000 // Twice the size of the largest Elm file I have seen.
 static uint8_t SRC[MAX_SRC];
 static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
@@ -43,7 +44,6 @@ void dbg_src() {
   }
   fputc('\n', stdout);
 }
-
 
 enum node_type {
   EMPTY_NODE,
@@ -83,7 +83,7 @@ enum error {
   SRC_TOO_SHORT_ERROR,
 };
 
-char* error_to_string(enum error error) {
+char *error_to_string(enum error error) {
   switch (error) {
   case MODULE_KEYWORD_ERROR:
     return "keyword 'module'";
@@ -178,9 +178,7 @@ static void many_whitespace_parse() {
   }
 }
 
-static int is_after_keyword_char(uint8_t c) {
-  return c == ' ' || c == '\n';
-}
+static int is_after_keyword_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
 static int after_keyword_parse() {
   uint8_t c;
@@ -297,9 +295,7 @@ static int top_level_write() {
   return 0;
 }
 
-static int is_after_base10_char(uint8_t c) {
-  return c == ' ' || c == '\n';
-}
+static int is_after_base10_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
 static int base10_parse(uint16_t *id) {
   const int start = I;
@@ -393,9 +389,7 @@ static int is_after_name_char(uint8_t c) {
   return c == ' ' || c == '\n' || c == ')';
 }
 
-static int is_upper_name_start_char(uint8_t c) {
-  return c >= 'A' && c <= 'Z';
-}
+static int is_upper_name_start_char(uint8_t c) { return c >= 'A' && c <= 'Z'; }
 
 static int upper_name_parse_help(uint16_t *id) {
   const int start = I;
@@ -596,7 +590,7 @@ static int with_in_out_files() {
   return 0;
 }
 
-const char* tmp_file_name = ".tmp_trumat";
+const char *tmp_file_name = ".tmp_trumat";
 
 static void calculate_row_numbers() {
   int row = 0;
@@ -627,7 +621,8 @@ static void with_in_file(char *path) {
   }
   NUM_SRC = fread(SRC, 1, MAX_SRC, IN);
   if (NUM_SRC == MAX_SRC) {
-    fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", path, MAX_SRC);
+    fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", path,
+            MAX_SRC);
     return;
   }
   calculate_row_numbers();
@@ -651,7 +646,6 @@ static void format_file(char *path) {
   with_in_file(path);
   fclose(IN);
 }
-
 
 static int string_length(char *s) {
   int n = 0;
