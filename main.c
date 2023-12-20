@@ -51,10 +51,28 @@ enum node_type {
   UPPER_NAME_NODE,
   LOWER_NAME_NODE,
   MODULE_EXPORTS_NODE,
-  FILE_NODE,
   BIND_NODE,
   PLAIN_BASE10_NODE,
 };
+
+static int is_text_node(enum node_type type) {
+  switch (type) {
+  case UPPER_NAME_NODE:
+    return 1;
+  case LOWER_NAME_NODE:
+    return 1;
+  case PLAIN_BASE10_NODE:
+    return 1;
+  case EMPTY_NODE:
+    return 0;
+  case MODULE_DECLARATION_NODE:
+    return 0;
+  case MODULE_EXPORTS_NODE:
+    return 0;
+  case BIND_NODE:
+    return 0;
+  }
+}
 
 enum error {
   MODULE_KEYWORD_ERROR,
@@ -223,8 +241,6 @@ char *node_type_to_string(enum node_type type) {
     return "LONA";
   case MODULE_EXPORTS_NODE:
     return "EXPO";
-  case FILE_NODE:
-    return "FILE";
   case BIND_NODE:
     return "BIND";
   case PLAIN_BASE10_NODE:
@@ -256,6 +272,27 @@ void dbg_children() {
   putchar('\n');
 }
 
+void dbg_literals() {
+  puts("literals:");
+  for (int i = 0; i < NUM_NODE; ++i) {
+    const uint16_t start = SRC_START[i];
+    const uint16_t size = SRC_SIZE[i];
+    if (!is_text_node(NODE_TYPE[i])) {
+      continue;
+    }
+    printf("%04d ", i);
+    for (int j = start; j < start + size; ++j) {
+      if (SRC[j] == '\n') {
+        fputs("\\n", stdout);
+        continue;
+      }
+      fputc(SRC[j], stdout);
+    }
+    putchar('\n');
+  }
+  putchar('\n');
+}
+
 void dbg_ast() {
   for (int i = 0; i < NUM_NODE; ++i) {
     printf("%04d ", i);
@@ -263,6 +300,7 @@ void dbg_ast() {
   putchar('\n');
   dbg_children();
   dbg_siblings();
+  dbg_literals();
 }
 
 static int is_subsequent_name_char(uint8_t c) {
@@ -298,7 +336,7 @@ static int top_level_write() {
 static int is_after_base10_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
 static int base10_parse(uint16_t *id) {
-  const int start = I;
+  const int start = I + 1;
   uint8_t c;
   const int result = any_char_parse(&c);
   if (result) {
@@ -354,6 +392,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
+  // dbg_ast();
   return top_level_write();
 }
 
@@ -389,26 +428,67 @@ static int is_after_name_char(uint8_t c) {
   return c == ' ' || c == '\n' || c == ')';
 }
 
-static int is_upper_name_start_char(uint8_t c) { return c >= 'A' && c <= 'Z'; }
-
-static int upper_name_parse_help(uint16_t *id) {
+static int subsequent_name_char_parse() {
   const int start = I;
   uint8_t c;
   const int result = any_char_parse(&c);
   if (result) {
     return result;
   }
-  if (!is_upper_name_start_char(c)) {
-    return UPPER_NAME_START_ERROR;
+  if (!is_subsequent_name_char(c)) {
+    I = start;
+    return 1;
   }
-  for (any_char_parse(&c); is_subsequent_name_char(c); any_char_parse(&c)) {
+  return 0;
+}
+
+static int after_name_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
   }
   if (!is_after_name_char(c)) {
-    return UPPER_NAME_END_ERROR;
+    I = start;
+    return LOWER_NAME_END_ERROR;
   }
+  return 0;
+}
+
+static int is_first_upper_name_char(uint8_t c) { return c >= 'A' && c <= 'Z'; }
+
+static int first_upper_name_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_first_upper_name_char(c)) {
+    I = start;
+    return LOWER_NAME_START_ERROR;
+  }
+  return 0;
+}
+
+static int upper_name_parse_help(uint16_t *id) {
+  const int start = I + 1;
+  const int result = first_upper_name_char_parse();
+  if (result) {
+    return result;
+  }
+  while (!subsequent_name_char_parse()) {
+  }
+  const int end = I + 1;
+  const int after_result = after_name_char_parse();
+  if (after_result) {
+    return after_result;
+  }
+  I = end - 1;
   *id = node_init(UPPER_NAME_NODE);
   SRC_START[*id] = start;
-  SRC_SIZE[*id] = I - start;
+  SRC_SIZE[*id] = end - start;
   return 0;
 }
 
@@ -430,52 +510,24 @@ static int first_lower_name_char_parse() {
   return 0;
 }
 
-static int after_lower_name_char_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_after_name_char(c)) {
-    I = start;
-    return LOWER_NAME_END_ERROR;
-  }
-  return 0;
-}
-
-static int subsequent_lower_name_char_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_subsequent_name_char(c)) {
-    I = start;
-    return 1;
-  }
-  return 0;
-}
-
 static int lower_name_parse_help(uint16_t *id) {
-  const int start = I;
+  const int start = I + 1;
   const int result = first_lower_name_char_parse();
   if (result) {
     return result;
   }
-  while (!subsequent_lower_name_char_parse()) {
+  while (!subsequent_name_char_parse()) {
   }
-  const int end = I;
-  const int after_result = after_lower_name_char_parse();
+  const int end = I + 1;
+  const int after_result = after_name_char_parse();
   if (after_result) {
     return after_result;
   }
-  I = end;
+  I = end - 1;
 
   *id = node_init(LOWER_NAME_NODE);
   SRC_START[*id] = start;
-  SRC_SIZE[*id] = I - start;
+  SRC_SIZE[*id] = end - start;
   return 0;
 }
 
@@ -564,7 +616,7 @@ static int module_declaration_format() {
   if (parse_result) {
     return parse_result;
   }
-  dbg_ast();
+  //  dbg_ast();
   module_declaration_write();
   return 0;
 }
@@ -577,7 +629,7 @@ static int with_in_out_files() {
   }
   many_whitespace_parse();
 
-  while (!feof(IN)) {
+  while (I < NUM_SRC - 1) {
     NUM_NODE = 2;
 
     const int top_level_result = top_level_format();
@@ -586,6 +638,7 @@ static int with_in_out_files() {
     }
     many_whitespace_parse();
   }
+  fputc('\n', OUT);
 
   return 0;
 }
@@ -628,7 +681,6 @@ static void with_in_file(char *path) {
   calculate_row_numbers();
   calculate_column_numbers();
 
-  dbg_src();
   const int result = with_in_out_files();
   fclose(OUT);
   if (result) {
