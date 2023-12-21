@@ -13,12 +13,12 @@ static void literal_write(uint16_t id);
 // - max 5000 lines of code in a single top-level definition
 // - average 60 bytes per line of code
 // - average 5 nodes per line
-#define MAX_NODES 25000 // 5000 * 5
-static uint16_t CHILD[MAX_NODES];
-static uint16_t SIBLING[MAX_NODES];
-static uint8_t NODE_TYPE[MAX_NODES];
-static uint32_t SRC_START[MAX_NODES];
-static uint16_t SRC_SIZE[MAX_NODES];
+#define MAX_NODE 25000 // 5000 * 5
+static uint16_t CHILD[MAX_NODE];
+static uint16_t SIBLING[MAX_NODE];
+static uint8_t NODE_TYPE[MAX_NODE];
+static uint32_t SRC_START[MAX_NODE];
+static uint16_t SRC_SIZE[MAX_NODE];
 // 0 is the null node
 // 1 is the root
 #define ROOT 1
@@ -99,10 +99,13 @@ enum error {
   SRC_EOF_ERROR,
   SRC_FILE_READ_ERROR,
   SRC_TOO_SHORT_ERROR,
+  LITERAL_WRITE_ERROR,
 };
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case LITERAL_WRITE_ERROR:
+    return "literal write";
   case MODULE_KEYWORD_ERROR:
     return "keyword 'module'";
   case MODULE_NAME_ERROR:
@@ -152,6 +155,11 @@ char *error_to_string(enum error error) {
   case SRC_TOO_SHORT_ERROR:
     return "src too short";
   }
+}
+
+static void panic(enum error error) {
+  fprintf(stderr, "panic: %s\n", error_to_string(error));
+  exit(error);
 }
 
 static int increment_src() {
@@ -225,7 +233,12 @@ static int keyword_parse(char *keyword) {
 }
 
 static uint16_t node_init(enum node_type type) {
+  if (NUM_NODE == MAX_NODE) {
+    panic(SRC_TOO_SHORT_ERROR);
+  }
   const uint16_t id = NUM_NODE;
+  SIBLING[id] = 0;
+  CHILD[id] = 0;
   ++NUM_NODE;
   NODE_TYPE[id] = type;
   return id;
@@ -586,7 +599,10 @@ static int module_declaration_parse() {
 }
 
 static void literal_write(uint16_t id) {
-  fwrite(SRC + SRC_START[id], 1, SRC_SIZE[id], OUT);
+  const int n = fwrite(SRC + SRC_START[id], 1, SRC_SIZE[id], OUT);
+  if (n != SRC_SIZE[id]) {
+    panic(LITERAL_WRITE_ERROR);
+  }
 }
 
 static void exports_write(uint16_t id) {
@@ -616,12 +632,13 @@ static int module_declaration_format() {
   if (parse_result) {
     return parse_result;
   }
-  //  dbg_ast();
+  // dbg_ast();
   module_declaration_write();
   return 0;
 }
 
 static int with_in_out_files() {
+  I = -1;
   NUM_NODE = 2;
   const int declaration_result = module_declaration_format();
   if (declaration_result) {
