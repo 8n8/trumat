@@ -50,7 +50,8 @@ enum node_type {
   MODULE_DECLARATION_NODE,
   UPPER_NAME_NODE,
   LOWER_NAME_NODE,
-  MODULE_EXPORTS_NODE,
+  MODULE_EXPORTS_ALL_NODE,
+  MODULE_EXPORTS_EXPLICIT_NODE,
   BIND_NODE,
   PLAIN_BASE10_NODE,
 };
@@ -67,7 +68,9 @@ static int is_text_node(enum node_type type) {
     return 0;
   case MODULE_DECLARATION_NODE:
     return 0;
-  case MODULE_EXPORTS_NODE:
+  case MODULE_EXPORTS_ALL_NODE:
+    return 0;
+  case MODULE_EXPORTS_EXPLICIT_NODE:
     return 0;
   case BIND_NODE:
     return 0;
@@ -76,6 +79,7 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  CHUNK_PARSE_ERROR,
   MODULE_NAME_ERROR,
   EXPOSING_KEYWORD_ERROR,
   NO_MODULE_DECLARATION_ERROR,
@@ -154,6 +158,8 @@ char *error_to_string(enum error error) {
     return "src file read";
   case SRC_TOO_SHORT_ERROR:
     return "src too short";
+  case CHUNK_PARSE_ERROR:
+    return "chunk parse";
   }
 }
 
@@ -253,8 +259,10 @@ char *node_type_to_string(enum node_type type) {
     return "UPNA";
   case LOWER_NAME_NODE:
     return "LONA";
-  case MODULE_EXPORTS_NODE:
-    return "EXPO";
+  case MODULE_EXPORTS_ALL_NODE:
+    return "EXAL";
+  case MODULE_EXPORTS_EXPLICIT_NODE:
+    return "EXEX";
   case BIND_NODE:
     return "BIND";
   case PLAIN_BASE10_NODE:
@@ -410,8 +418,8 @@ static int top_level_format() {
   return top_level_write();
 }
 
-static int module_exports_parse_help(uint16_t *id) {
-  *id = node_init(MODULE_EXPORTS_NODE);
+static int module_exports_explicit_parse_help(uint16_t *id) {
+  *id = node_init(MODULE_EXPORTS_EXPLICIT_NODE);
   if (char_parse('(')) {
     return MODULE_EXPORTS_LEFT_PAREN_ERROR;
   }
@@ -439,6 +447,43 @@ static int module_exports_parse_help(uint16_t *id) {
     return MODULE_EXPORTS_RIGHT_PAREN_ERROR;
   }
   return 0;
+}
+
+static int module_exports_explicit_parse(uint16_t *id) {
+  const int start = I;
+  const int result = module_exports_explicit_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
+static int chunk_parse(char *chunk) {
+  const int start = I;
+  for (; *chunk != '\0'; ++chunk) {
+    if (char_parse(*chunk)) {
+      I = start;
+      return CHUNK_PARSE_ERROR;
+    }
+  }
+  return 0;
+}
+
+static int module_exports_all_parse(uint16_t *id) {
+  const int result = chunk_parse("(..)");
+  if (result) {
+    return result;
+  }
+  *id = node_init(MODULE_EXPORTS_ALL_NODE);
+  return 0;
+}
+
+static int module_exports_parse_help(uint16_t *id) {
+  if (module_exports_explicit_parse(id) == 0) {
+    return 0;
+  }
+
+  return module_exports_all_parse(id);
 }
 
 static int module_exports_parse(uint16_t *id) {
@@ -618,7 +663,7 @@ static void literal_write(uint16_t id) {
   }
 }
 
-static void exports_write(uint16_t id) {
+static void explicit_exports_write(uint16_t id) {
   fputc('(', OUT);
   const uint16_t export = CHILD[id];
   literal_write(export);
@@ -628,6 +673,35 @@ static void exports_write(uint16_t id) {
     literal_write(sibling);
   }
   fputc(')', OUT);
+}
+
+static void exports_write(uint16_t id) {
+  switch (NODE_TYPE[id]) {
+  case MODULE_EXPORTS_EXPLICIT_NODE:
+    explicit_exports_write(id);
+    return;
+  case MODULE_EXPORTS_ALL_NODE:
+    fputs("(..)", OUT);
+    return;
+  case EMPTY_NODE:
+    fprintf(stderr, "exports_write: empty node\n");
+    exit(-1);
+  case MODULE_DECLARATION_NODE:
+    fprintf(stderr, "exports_write: module declaration node\n");
+    exit(-1);
+  case UPPER_NAME_NODE:
+    fprintf(stderr, "exports_write: upper name node\n");
+    exit(-1);
+  case LOWER_NAME_NODE:
+    fprintf(stderr, "exports_write: lower name node\n");
+    exit(-1);
+  case BIND_NODE:
+    fprintf(stderr, "exports_write: bind node\n");
+    exit(-1);
+  case PLAIN_BASE10_NODE:
+    fprintf(stderr, "exports_write: plain base10 node\n");
+    exit(-1);
+  }
 }
 
 static void module_declaration_write() {
