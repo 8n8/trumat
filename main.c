@@ -175,6 +175,7 @@ static int char_parse(uint8_t c) {
     return CHAR_PARSE_EOF_ERROR;
   }
   if (SRC[I] != c) {
+    --I;
     return CHAR_PARSE_NOT_MATCH_ERROR;
   }
   return 0;
@@ -416,15 +417,27 @@ static int module_exports_parse_help(uint16_t *id) {
   }
   many_whitespace_parse();
   uint16_t export;
-  const int export_result = lower_name_parse(&export);
-  if (export_result) {
+  if (lower_name_parse(&export)) {
     return MODULE_EXPORT_ERROR;
+  }
+  CHILD[*id] = export;
+  uint16_t previous = export;
+  while (1) {
+    many_whitespace_parse();
+    if (char_parse(',')) {
+      break;
+    }
+    many_whitespace_parse();
+    if (lower_name_parse(&export)) {
+      break;
+    }
+    SIBLING[previous] = export;
+    previous = export;
   }
   many_whitespace_parse();
   if (char_parse(')')) {
     return MODULE_EXPORTS_RIGHT_PAREN_ERROR;
   }
-  CHILD[*id] = export;
   return 0;
 }
 
@@ -438,7 +451,7 @@ static int module_exports_parse(uint16_t *id) {
 }
 
 static int is_after_name_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == ')';
+  return c == ' ' || c == '\n' || c == ')' || c == ',';
 }
 
 static int subsequent_name_char_parse() {
