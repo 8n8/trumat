@@ -79,6 +79,9 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR,
+  MODULE_EXPORTS_ALL_DOTS_ERROR,
+  MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR,
   CHUNK_PARSE_ERROR,
   MODULE_NAME_ERROR,
   EXPOSING_KEYWORD_ERROR,
@@ -108,6 +111,12 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR:
+    return "module exports all left paren '('";
+  case MODULE_EXPORTS_ALL_DOTS_ERROR:
+    return "module exports all dots '..'";
+  case MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR:
+    return "module exports all right paren ')'";
   case LITERAL_WRITE_ERROR:
     return "literal write";
   case MODULE_KEYWORD_ERROR:
@@ -469,13 +478,29 @@ static int chunk_parse(char *chunk) {
   return 0;
 }
 
-static int module_exports_all_parse(uint16_t *id) {
-  const int result = chunk_parse("(..)");
-  if (result) {
-    return result;
+static int module_exports_all_parse_help(uint16_t *id) {
+  if (char_parse('(')) {
+    return MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR;
+  }
+  many_whitespace_parse();
+  if (chunk_parse("..")) {
+    return MODULE_EXPORTS_ALL_DOTS_ERROR;
+  }
+  many_whitespace_parse();
+  if (char_parse(')')) {
+    return MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR;
   }
   *id = node_init(MODULE_EXPORTS_ALL_NODE);
   return 0;
+}
+
+static int module_exports_all_parse(uint16_t *id) {
+  const int start = I;
+  const int result = module_exports_all_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
 }
 
 static int module_exports_parse_help(uint16_t *id) {
