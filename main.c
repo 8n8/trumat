@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 static void literal_write(uint16_t id);
+static int chunk_parse(char *chunk);
 // The formatter works on top level definitions, so this state should be
 // enough to contain everything that is needed to format the largest top
 // level definition.
@@ -54,11 +55,14 @@ enum node_type {
   MODULE_EXPORTS_EXPLICIT_NODE,
   BIND_NODE,
   PLAIN_BASE10_NODE,
+  HEX_NODE,
 };
 
 static int is_text_node(enum node_type type) {
   switch (type) {
   case UPPER_NAME_NODE:
+    return 1;
+  case HEX_NODE:
     return 1;
   case LOWER_NAME_NODE:
     return 1;
@@ -79,6 +83,9 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  HEX_START_ERROR,
+  HEX_END_ERROR,
+  NOT_HEX_ERROR,
   MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR,
   MODULE_EXPORTS_ALL_DOTS_ERROR,
   MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR,
@@ -111,6 +118,12 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case HEX_START_ERROR:
+    return "hex start";
+  case HEX_END_ERROR:
+    return "hex end";
+  case NOT_HEX_ERROR:
+    return "not hex";
   case MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR:
     return "module exports all left paren '('";
   case MODULE_EXPORTS_ALL_DOTS_ERROR:
@@ -262,6 +275,8 @@ static uint16_t node_init(enum node_type type) {
 
 char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case HEX_NODE:
+    return "HEXN";
   case MODULE_DECLARATION_NODE:
     return "MODU";
   case UPPER_NAME_NODE:
@@ -366,7 +381,7 @@ static int top_level_write() {
 
 static int is_after_base10_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
-static int base10_parse(uint16_t *id) {
+static int base10_parse_help(uint16_t *id) {
   const int start = I + 1;
   uint8_t c;
   const int result = any_char_parse(&c);
@@ -387,6 +402,52 @@ static int base10_parse(uint16_t *id) {
   return 0;
 }
 
+static int base10_parse(uint16_t *id) {
+  const int start = I;
+  const int result = base10_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
+static int is_hex_char(uint8_t c) {
+  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+}
+
+static int hex_parse(uint16_t *id) {
+  const int start = I + 1;
+  if (chunk_parse("0x")) {
+    return NOT_HEX_ERROR;
+  }
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_hex_char(c)) {
+    return HEX_START_ERROR;
+  }
+  for (any_char_parse(&c); is_hex_char(c); any_char_parse(&c)) {
+  }
+  if (!is_after_base10_char(c)) {
+    return HEX_END_ERROR;
+  }
+  *id = node_init(HEX_NODE);
+  SRC_START[*id] = start;
+  SRC_SIZE[*id] = I - start;
+  return 0;
+}
+
+static int expression_parse(uint16_t *id) {
+  const int result = base10_parse(id);
+  if (result == 0) {
+      return 0;
+  }
+
+  return hex_parse(id);
+}
+
 static int top_level_parse_help() {
   uint16_t name;
   const int name_result = lower_name_parse(&name);
@@ -399,7 +460,7 @@ static int top_level_parse_help() {
   }
   many_whitespace_parse();
   uint16_t body;
-  const int body_result = base10_parse(&body);
+  const int body_result = expression_parse(&body);
   if (body_result) {
     return TOP_LEVEL_BIND_BODY_ERROR;
   }
