@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void literal_write(uint16_t id);
-static int chunk_parse(char *chunk);
 // The formatter works on top level definitions, so this state should be
 // enough to contain everything that is needed to format the largest top
 // level definition.
@@ -369,6 +367,13 @@ static int string_equal(char *a, char *b) {
   return *a == '\0' && *b == '\0';
 }
 
+static void literal_write(uint16_t id) {
+  const int n = fwrite(SRC + SRC_START[id], 1, SRC_SIZE[id], OUT);
+  if (n != SRC_SIZE[id]) {
+    panic(LITERAL_WRITE_ERROR);
+  }
+}
+
 static int top_level_write() {
   fputs("\n\n\n", OUT);
   uint16_t name = CHILD[ROOT];
@@ -413,6 +418,17 @@ static int base10_parse(uint16_t *id) {
 
 static int is_hex_char(uint8_t c) {
   return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+}
+
+static int chunk_parse(char *chunk) {
+  const int start = I;
+  for (; *chunk != '\0'; ++chunk) {
+    if (char_parse(*chunk)) {
+      I = start;
+      return CHUNK_PARSE_ERROR;
+    }
+  }
+  return 0;
 }
 
 static int hex_parse(uint16_t *id) {
@@ -526,17 +542,6 @@ static int module_exports_explicit_parse(uint16_t *id) {
     I = start;
   }
   return result;
-}
-
-static int chunk_parse(char *chunk) {
-  const int start = I;
-  for (; *chunk != '\0'; ++chunk) {
-    if (char_parse(*chunk)) {
-      I = start;
-      return CHUNK_PARSE_ERROR;
-    }
-  }
-  return 0;
 }
 
 static int module_exports_all_parse_help(uint16_t *id) {
@@ -740,13 +745,6 @@ static int module_declaration_parse() {
     I = start;
   }
   return result;
-}
-
-static void literal_write(uint16_t id) {
-  const int n = fwrite(SRC + SRC_START[id], 1, SRC_SIZE[id], OUT);
-  if (n != SRC_SIZE[id]) {
-    panic(LITERAL_WRITE_ERROR);
-  }
 }
 
 static void explicit_exports_write(uint16_t id) {
