@@ -369,7 +369,7 @@ static int top_level_write() {
   return 0;
 }
 
-static int is_after_base10_char(uint8_t c) { return c == ' ' || c == '\n'; }
+static int is_after_number_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
 static int base10_parse_help(uint16_t *id) {
   const int start = I + 1;
@@ -383,7 +383,7 @@ static int base10_parse_help(uint16_t *id) {
   }
   for (any_char_parse(&c); c >= '0' && c <= '9'; any_char_parse(&c)) {
   }
-  if (!is_after_base10_char(c)) {
+  if (!is_after_number_char(c)) {
     return BASE10_END_ERROR;
   }
   *id = node_init(LITERAL_NODE);
@@ -432,7 +432,7 @@ static int hex_parse(uint16_t *id) {
   }
   for (any_char_parse(&c); is_hex_char(c); any_char_parse(&c)) {
   }
-  if (!is_after_base10_char(c)) {
+  if (!is_after_number_char(c)) {
     return HEX_END_ERROR;
   }
   *id = node_init(LITERAL_NODE);
