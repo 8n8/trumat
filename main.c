@@ -47,24 +47,15 @@ void dbg_src() {
 enum node_type {
   EMPTY_NODE,
   MODULE_DECLARATION_NODE,
-  UPPER_NAME_NODE,
-  LOWER_NAME_NODE,
+  LITERAL_NODE,
   MODULE_EXPORTS_ALL_NODE,
   MODULE_EXPORTS_EXPLICIT_NODE,
   BIND_NODE,
-  PLAIN_BASE10_NODE,
-  HEX_NODE,
 };
 
 static int is_text_node(enum node_type type) {
   switch (type) {
-  case UPPER_NAME_NODE:
-    return 1;
-  case HEX_NODE:
-    return 1;
-  case LOWER_NAME_NODE:
-    return 1;
-  case PLAIN_BASE10_NODE:
+  case LITERAL_NODE:
     return 1;
   case EMPTY_NODE:
     return 0;
@@ -273,22 +264,16 @@ static uint16_t node_init(enum node_type type) {
 
 char *node_type_to_string(enum node_type type) {
   switch (type) {
-  case HEX_NODE:
-    return "HEXN";
   case MODULE_DECLARATION_NODE:
     return "MODU";
-  case UPPER_NAME_NODE:
-    return "UPNA";
-  case LOWER_NAME_NODE:
-    return "LONA";
+  case LITERAL_NODE:
+    return "LITN";
   case MODULE_EXPORTS_ALL_NODE:
     return "EXAL";
   case MODULE_EXPORTS_EXPLICIT_NODE:
     return "EXEX";
   case BIND_NODE:
     return "BIND";
-  case PLAIN_BASE10_NODE:
-    return "NUMB";
   case EMPTY_NODE:
     return "NULL";
   }
@@ -401,7 +386,7 @@ static int base10_parse_help(uint16_t *id) {
   if (!is_after_base10_char(c)) {
     return BASE10_END_ERROR;
   }
-  *id = node_init(PLAIN_BASE10_NODE);
+  *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -450,7 +435,7 @@ static int hex_parse(uint16_t *id) {
   if (!is_after_base10_char(c)) {
     return HEX_END_ERROR;
   }
-  *id = node_init(HEX_NODE);
+  *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -649,7 +634,7 @@ static int upper_name_parse_help(uint16_t *id) {
     return after_result;
   }
   I = end - 1;
-  *id = node_init(UPPER_NAME_NODE);
+  *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start;
   SRC_SIZE[*id] = end - start;
   return 0;
@@ -688,7 +673,7 @@ static int lower_name_parse_help(uint16_t *id) {
   }
   I = end - 1;
 
-  *id = node_init(LOWER_NAME_NODE);
+  *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start;
   SRC_SIZE[*id] = end - start;
   return 0;
@@ -774,17 +759,11 @@ static void exports_write(uint16_t id) {
   case MODULE_DECLARATION_NODE:
     fprintf(stderr, "exports_write: module declaration node\n");
     exit(-1);
-  case UPPER_NAME_NODE:
-    fprintf(stderr, "exports_write: upper name node\n");
-    exit(-1);
-  case LOWER_NAME_NODE:
-    fprintf(stderr, "exports_write: lower name node\n");
+  case LITERAL_NODE:
+    fprintf(stderr, "exports_write: literal node\n");
     exit(-1);
   case BIND_NODE:
     fprintf(stderr, "exports_write: bind node\n");
-    exit(-1);
-  case PLAIN_BASE10_NODE:
-    fprintf(stderr, "exports_write: plain base10 node\n");
     exit(-1);
   }
 }

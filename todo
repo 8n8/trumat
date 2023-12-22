@@ -1,3 +1,2 @@
-get rid of function prototypes by reordering
 replace different literal node types with a general one
 refactor base10_parse to remove nasty +1s
