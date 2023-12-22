@@ -417,7 +417,8 @@ static int base10_parse(uint16_t *id) {
 }
 
 static int is_hex_char(uint8_t c) {
-  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
+         (c >= 'a' && c <= 'f');
 }
 
 static int chunk_parse(char *chunk) {
@@ -458,7 +459,7 @@ static int hex_parse(uint16_t *id) {
 static int expression_parse(uint16_t *id) {
   const int result = base10_parse(id);
   if (result == 0) {
-      return 0;
+    return 0;
   }
 
   return hex_parse(id);
