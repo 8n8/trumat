@@ -20,3 +20,6 @@ clang -fsanitize=address -g -fno-omit-frame-pointer -Wall -Werror -Wextra -pedan
 diff -r --color tmp_formatted formatted
 diff -r --color tmp_input expected
 rm -rf tmp_formatted tmp_input
+
+echo "`find formatted -type f | wc -l` formatted tests passed"
+echo "`find input -type f | wc -l` unformatted tests passed"
