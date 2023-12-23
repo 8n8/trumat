@@ -435,6 +435,7 @@ static int some_digits_parse() {
 
 static int base10_parse_help(uint16_t *id) {
   const int start = I;
+  char_parse('-');
   const int digits_result = some_digits_parse();
   if (digits_result) {
     return digits_result;
