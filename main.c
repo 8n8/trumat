@@ -73,6 +73,7 @@ static int is_text_node(enum node_type type) {
 enum error {
   MODULE_KEYWORD_ERROR,
   DIGIT_ERROR,
+  HEX_ERROR,
   HEX_START_ERROR,
   HEX_END_ERROR,
   FLOAT_START_ERROR,
@@ -113,6 +114,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case HEX_ERROR:
+    return "hex";
   case FIRST_DIGIT_ERROR:
     return "first digit";
   case DIGIT_ERROR:
@@ -408,6 +411,20 @@ static int after_number_parse() {
   return result;
 }
 
+static int hex_digit_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if ((c < '0' || c > '9') && (c < 'A' || c > 'F') && (c < 'a' || c > 'f')) {
+    I = start;
+    return HEX_ERROR;
+  }
+  return 0;
+}
+
 static int digit_parse() {
   const int start = I;
   uint8_t c;
@@ -427,6 +444,15 @@ static int some_digits_parse() {
     return FIRST_DIGIT_ERROR;
   }
   while (digit_parse() == 0) {
+  }
+  return 0;
+}
+
+static int some_hex_digits_parse() {
+  if (hex_digit_parse()) {
+    return FIRST_DIGIT_ERROR;
+  }
+  while (hex_digit_parse() == 0) {
   }
   return 0;
 }
@@ -457,11 +483,6 @@ static int base10_parse(uint16_t *id) {
   return result;
 }
 
-static int is_hex_char(uint8_t c) {
-  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
-         (c >= 'a' && c <= 'f');
-}
-
 static int chunk_parse(char *chunk) {
   const int start = I;
   for (; *chunk != '\0'; ++chunk) {
@@ -474,30 +495,25 @@ static int chunk_parse(char *chunk) {
 }
 
 static int hex_parse(uint16_t *id) {
-  const int start = I + 1;
+  const int start = I;
   if (chunk_parse("0x")) {
     return NOT_HEX_ERROR;
   }
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
+  const int contents_result = some_hex_digits_parse();
+  if (contents_result) {
+    return contents_result;
   }
-  if (!is_hex_char(c)) {
-    return HEX_START_ERROR;
+  const int end_result = after_number_parse();
+  if (end_result) {
+    return end_result;
   }
-  for (any_char_parse(&c); is_hex_char(c); any_char_parse(&c)) {
-  }
-  if (!is_after_number_char(c)) {
-    return HEX_END_ERROR;
-  }
-  for (int i = start; i < I; ++i) {
+  for (int i = start + 2; i < I + 1; ++i) {
     if (SRC[i] >= 'a' && SRC[i] <= 'f') {
       SRC[i] = SRC[i] - 'a' + 'A';
     }
   }
   *id = node_init(LITERAL_NODE);
-  SRC_START[*id] = start;
+  SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
 }
