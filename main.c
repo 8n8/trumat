@@ -503,8 +503,7 @@ static int hex_parse(uint16_t *id) {
   return 0;
 }
 
-static int float_parse_help(uint16_t *id) {
-  const int start = I;
+static int consume_float() {
   const int before_result = some_digits_parse();
   if (before_result) {
     return before_result;
@@ -513,9 +512,14 @@ static int float_parse_help(uint16_t *id) {
   if (dot_result) {
     return FLOAT_DOT_ERROR;
   }
-  const int after_result = some_digits_parse();
-  if (after_result) {
-    return after_result;
+  return some_digits_parse();
+}
+
+static int plain_float_parse_help(uint16_t *id) {
+  const int start = I;
+  const int content_result = consume_float();
+  if (content_result) {
+    return content_result;
   }
   const int end_result = after_number_parse();
   if (end_result) {
@@ -527,9 +531,42 @@ static int float_parse_help(uint16_t *id) {
   return 0;
 }
 
-static int float_parse(uint16_t *id) {
+static int plain_float_parse(uint16_t *id) {
   const int start = I;
-  const int result = float_parse_help(id);
+  const int result = plain_float_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
+static int exponent_float_parse_help(uint16_t *id) {
+  const int start = I;
+  const int before_e = consume_float();
+  if (before_e) {
+    return before_e;
+  }
+  const int e_result = char_parse('e');
+  if (e_result) {
+    return e_result;
+  }
+  const int exponent_result = some_digits_parse();
+  if (exponent_result) {
+    return exponent_result;
+  }
+  const int end_result = after_number_parse();
+  if (end_result) {
+    return end_result;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  return 0;
+}
+
+static int exponent_float_parse(uint16_t *id) {
+  const int start = I;
+  const int result = exponent_float_parse_help(id);
   if (result) {
     I = start;
   }
@@ -541,7 +578,11 @@ static int expression_parse(uint16_t *id) {
     return 0;
   }
 
-  if (float_parse(id) == 0) {
+  if (plain_float_parse(id) == 0) {
+    return 0;
+  }
+
+  if (exponent_float_parse(id) == 0) {
     return 0;
   }
 
