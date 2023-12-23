@@ -426,9 +426,7 @@ static int some_digits_parse() {
   if (digit_parse()) {
     return FIRST_DIGIT_ERROR;
   }
-  int result = 0;
-  while (result == 0) {
-    result = digit_parse();
+  while (digit_parse() == 0) {
   }
   return 0;
 }
