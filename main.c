@@ -23,8 +23,8 @@ static uint16_t SRC_SIZE[MAX_NODE];
 #define ROOT 1
 // So the first non-root node is 2
 static int NUM_NODE = 2;
-#define MAX_SRC                                                                \
-  1400 * 1000 // Twice the size of the largest Elm file I have seen.
+// Twice the size of the largest Elm file I have seen.
+#define MAX_SRC 1400 * 1000
 static uint8_t SRC[MAX_SRC];
 static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
@@ -434,6 +434,11 @@ static int hex_parse(uint16_t *id) {
   }
   if (!is_after_number_char(c)) {
     return HEX_END_ERROR;
+  }
+  for (int i = start; i < I; ++i) {
+    if (SRC[i] >= 'a' && SRC[i] <= 'f') {
+      SRC[i] = SRC[i] - 'a' + 'A';
+    }
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start;
