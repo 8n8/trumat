@@ -72,8 +72,14 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  DIGIT_ERROR,
   HEX_START_ERROR,
   HEX_END_ERROR,
+  FLOAT_START_ERROR,
+  FLOAT_DOT_ERROR,
+  FIRST_DIGIT_ERROR,
+  FLOAT_AFTER_ERROR,
+  FLOAT_END_ERROR,
   NOT_HEX_ERROR,
   MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR,
   MODULE_EXPORTS_ALL_DOTS_ERROR,
@@ -107,6 +113,18 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case FIRST_DIGIT_ERROR:
+    return "first digit";
+  case DIGIT_ERROR:
+    return "digit";
+  case FLOAT_START_ERROR:
+    return "float start";
+  case FLOAT_DOT_ERROR:
+    return "float dot";
+  case FLOAT_AFTER_ERROR:
+    return "float after";
+  case FLOAT_END_ERROR:
+    return "float end";
   case HEX_START_ERROR:
     return "hex start";
   case HEX_END_ERROR:
@@ -446,9 +464,89 @@ static int hex_parse(uint16_t *id) {
   return 0;
 }
 
+static int digit_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (c < '0' || c > '9') {
+    I = start;
+    return DIGIT_ERROR;
+  }
+  return 0;
+}
+
+static int some_digits_parse() {
+  if (digit_parse()) {
+    return FIRST_DIGIT_ERROR;
+  }
+  int result = 0;
+  while (result == 0) {
+    result = digit_parse();
+  }
+  return 0;
+}
+
+static int after_number_parse_help() {
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_after_number_char(c)) {
+    return FLOAT_AFTER_ERROR;
+  }
+  return 0;
+}
+
+static int after_number_parse() {
+  const int start = I;
+  const int result = after_number_parse_help();
+  I = start;
+  return result;
+}
+
+static int float_parse_help(uint16_t *id) {
+  const int start = I;
+  const int before_result = some_digits_parse();
+  if (before_result) {
+    return before_result;
+  }
+  const int dot_result = char_parse('.');
+  if (dot_result) {
+    return FLOAT_DOT_ERROR;
+  }
+  const int after_result = some_digits_parse();
+  if (after_result) {
+    return after_result;
+  }
+  const int end_result = after_number_parse();
+  if (end_result) {
+    return end_result;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  return 0;
+}
+
+static int float_parse(uint16_t *id) {
+  const int start = I;
+  const int result = float_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
 static int expression_parse(uint16_t *id) {
-  const int result = base10_parse(id);
-  if (result == 0) {
+  if (base10_parse(id) == 0) {
+    return 0;
+  }
+
+  if (float_parse(id) == 0) {
     return 0;
   }
 
