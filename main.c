@@ -389,23 +389,62 @@ static int top_level_write() {
 
 static int is_after_number_char(uint8_t c) { return c == ' ' || c == '\n'; }
 
-static int base10_parse_help(uint16_t *id) {
-  const int start = I + 1;
+static int after_number_parse_help() {
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_after_number_char(c)) {
+    return FLOAT_AFTER_ERROR;
+  }
+  return 0;
+}
+
+static int after_number_parse() {
+  const int start = I;
+  const int result = after_number_parse_help();
+  I = start;
+  return result;
+}
+
+static int digit_parse() {
+  const int start = I;
   uint8_t c;
   const int result = any_char_parse(&c);
   if (result) {
     return result;
   }
   if (c < '0' || c > '9') {
-    return BASE10_START_ERROR;
+    I = start;
+    return DIGIT_ERROR;
   }
-  for (any_char_parse(&c); c >= '0' && c <= '9'; any_char_parse(&c)) {
+  return 0;
+}
+
+static int some_digits_parse() {
+  if (digit_parse()) {
+    return FIRST_DIGIT_ERROR;
   }
-  if (!is_after_number_char(c)) {
-    return BASE10_END_ERROR;
+  int result = 0;
+  while (result == 0) {
+    result = digit_parse();
+  }
+  return 0;
+}
+
+static int base10_parse_help(uint16_t *id) {
+  const int start = I;
+  const int digits_result = some_digits_parse();
+  if (digits_result) {
+    return digits_result;
+  }
+  const int end_result = after_number_parse();
+  if (end_result) {
+    return end_result;
   }
   *id = node_init(LITERAL_NODE);
-  SRC_START[*id] = start;
+  SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
 }
@@ -462,50 +501,6 @@ static int hex_parse(uint16_t *id) {
   SRC_START[*id] = start;
   SRC_SIZE[*id] = I - start;
   return 0;
-}
-
-static int digit_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (c < '0' || c > '9') {
-    I = start;
-    return DIGIT_ERROR;
-  }
-  return 0;
-}
-
-static int some_digits_parse() {
-  if (digit_parse()) {
-    return FIRST_DIGIT_ERROR;
-  }
-  int result = 0;
-  while (result == 0) {
-    result = digit_parse();
-  }
-  return 0;
-}
-
-static int after_number_parse_help() {
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_after_number_char(c)) {
-    return FLOAT_AFTER_ERROR;
-  }
-  return 0;
-}
-
-static int after_number_parse() {
-  const int start = I;
-  const int result = after_number_parse_help();
-  I = start;
-  return result;
 }
 
 static int float_parse_help(uint16_t *id) {
