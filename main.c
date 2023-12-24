@@ -639,10 +639,17 @@ static int string_unicode_parse_help() {
   if (chunk_parse("\\u{")) {
     return STRING_UNICODE_START_ERROR;
   }
+  const int start = I;
   while (hex_digit_parse() == 0) {
   }
+  const int end = I;
   if (char_parse('}')) {
     return STRING_UNICODE_END_ERROR;
+  }
+  for (int i = start + 1; i < end + 1; ++i) {
+    if (SRC[i] >= 'a' && SRC[i] <= 'f') {
+      SRC[i] = SRC[i] - 'a' + 'A';
+    }
   }
   return 0;
 }
