@@ -629,12 +629,20 @@ static int normal_string_ordinary_char_parse() {
   return 0;
 }
 
+static int normal_string_item_parse() {
+  if (normal_string_ordinary_char_parse() == 0) {
+    return 0;
+  }
+
+  return chunk_parse("\\\"");
+}
+
 static int normal_string_parse_help(uint16_t *id) {
   const int start = I;
   if (char_parse('"')) {
     return NORMAL_STRING_START_ERROR;
   }
-  while (normal_string_ordinary_char_parse() == 0) {
+  while (normal_string_item_parse() == 0) {
   }
   if (char_parse('"')) {
     return NORMAL_STRING_END_ERROR;
