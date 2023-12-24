@@ -557,6 +557,20 @@ static int plain_float_parse(uint16_t *id) {
   return result;
 }
 
+static int exponent_e_parse() {
+  if (char_parse('e') == 0) {
+    return 0;
+  }
+
+  const int result_E = char_parse('E');
+  if (result_E) {
+    return result_E;
+  }
+
+  SRC[I] = 'e';
+  return 0;
+}
+
 static int exponent_float_parse_help(uint16_t *id) {
   const int start = I;
   char_parse('-');
@@ -564,7 +578,7 @@ static int exponent_float_parse_help(uint16_t *id) {
   if (before_e) {
     return before_e;
   }
-  const int e_result = char_parse('e');
+  const int e_result = exponent_e_parse();
   if (e_result) {
     return e_result;
   }
