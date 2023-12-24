@@ -533,6 +533,7 @@ static int consume_float() {
 
 static int plain_float_parse_help(uint16_t *id) {
   const int start = I;
+  char_parse('-');
   const int content_result = consume_float();
   if (content_result) {
     return content_result;
