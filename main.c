@@ -567,6 +567,7 @@ static int exponent_float_parse_help(uint16_t *id) {
   if (e_result) {
     return e_result;
   }
+  char_parse('-');
   const int exponent_result = some_digits_parse();
   if (exponent_result) {
     return exponent_result;
