@@ -74,6 +74,7 @@ enum error {
   MODULE_KEYWORD_ERROR,
   NORMAL_STRING_START_ERROR,
   NORMAL_STRING_END_ERROR,
+  NORMAL_STRING_ORDINARY_CHAR_ERROR,
   DIGIT_ERROR,
   HEX_ERROR,
   HEX_START_ERROR,
@@ -116,6 +117,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case NORMAL_STRING_ORDINARY_CHAR_ERROR:
+    return "normal string ordinary char";
   case HEX_ERROR:
     return "hex";
   case NORMAL_STRING_END_ERROR:
@@ -612,12 +615,26 @@ static int exponent_float_parse(uint16_t *id) {
   return result;
 }
 
+static int normal_string_ordinary_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (c == '"' || c == '\\') {
+    I = start;
+    return NORMAL_STRING_ORDINARY_CHAR_ERROR;
+  }
+  return 0;
+}
+
 static int normal_string_parse_help(uint16_t *id) {
   const int start = I;
   if (char_parse('"')) {
     return NORMAL_STRING_START_ERROR;
   }
-  while (char_parse('a') == 0) {
+  while (normal_string_ordinary_char_parse() == 0) {
   }
   if (char_parse('"')) {
     return NORMAL_STRING_END_ERROR;
