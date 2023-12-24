@@ -496,6 +496,7 @@ static int chunk_parse(char *chunk) {
 
 static int hex_parse(uint16_t *id) {
   const int start = I;
+  char_parse('-');
   if (chunk_parse("0x")) {
     return NOT_HEX_ERROR;
   }
