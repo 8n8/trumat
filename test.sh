@@ -21,5 +21,4 @@ diff -r --color tmp_formatted formatted
 diff -r --color tmp_input expected
 rm -rf tmp_formatted tmp_input
 
-echo "`find formatted -type f | wc -l` formatted tests passed"
-echo "`find input -type f | wc -l` unformatted tests passed"
+echo "`find input formatted -type f | wc -l` tests of which `find formatted -type f | wc -l` are formatted and `find input -type f | wc -l` are unformatted"
