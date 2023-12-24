@@ -634,6 +634,10 @@ static int normal_string_item_parse() {
     return 0;
   }
 
+  if (chunk_parse("\\\\") == 0) {
+    return 0;
+  }
+
   return chunk_parse("\\\"");
 }
 
