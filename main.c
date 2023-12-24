@@ -72,6 +72,7 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  NORMAL_STRING_START_ERROR,
   DIGIT_ERROR,
   HEX_ERROR,
   HEX_START_ERROR,
@@ -116,6 +117,8 @@ char *error_to_string(enum error error) {
   switch (error) {
   case HEX_ERROR:
     return "hex";
+  case NORMAL_STRING_START_ERROR:
+    return "normal string start";
   case FIRST_DIGIT_ERROR:
     return "first digit";
   case DIGIT_ERROR:
@@ -606,6 +609,26 @@ static int exponent_float_parse(uint16_t *id) {
   return result;
 }
 
+static int normal_string_parse_help(uint16_t *id) {
+  const int start = I;
+  if (chunk_parse("\"\"")) {
+    return NORMAL_STRING_START_ERROR;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  return 0;
+}
+
+static int normal_string_parse(uint16_t *id) {
+  const int start = I;
+  const int result = normal_string_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
 static int expression_parse(uint16_t *id) {
   if (base10_parse(id) == 0) {
     return 0;
@@ -619,7 +642,11 @@ static int expression_parse(uint16_t *id) {
     return 0;
   }
 
-  return hex_parse(id);
+  if (hex_parse(id) == 0) {
+    return 0;
+  }
+
+  return normal_string_parse(id);
 }
 
 static int top_level_parse_help() {
