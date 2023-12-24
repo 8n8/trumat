@@ -559,6 +559,7 @@ static int plain_float_parse(uint16_t *id) {
 
 static int exponent_float_parse_help(uint16_t *id) {
   const int start = I;
+  char_parse('-');
   const int before_e = consume_float();
   if (before_e) {
     return before_e;
