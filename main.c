@@ -73,6 +73,7 @@ static int is_text_node(enum node_type type) {
 enum error {
   MODULE_KEYWORD_ERROR,
   NORMAL_STRING_START_ERROR,
+  NORMAL_STRING_END_ERROR,
   DIGIT_ERROR,
   HEX_ERROR,
   HEX_START_ERROR,
@@ -117,6 +118,8 @@ char *error_to_string(enum error error) {
   switch (error) {
   case HEX_ERROR:
     return "hex";
+  case NORMAL_STRING_END_ERROR:
+    return "normal string end";
   case NORMAL_STRING_START_ERROR:
     return "normal string start";
   case FIRST_DIGIT_ERROR:
@@ -611,8 +614,13 @@ static int exponent_float_parse(uint16_t *id) {
 
 static int normal_string_parse_help(uint16_t *id) {
   const int start = I;
-  if (chunk_parse("\"\"")) {
+  if (char_parse('"')) {
     return NORMAL_STRING_START_ERROR;
+  }
+  while (char_parse('a') == 0) {
+  }
+  if (char_parse('"')) {
+    return NORMAL_STRING_END_ERROR;
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
