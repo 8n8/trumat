@@ -72,6 +72,8 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  STRING_UNICODE_START_ERROR,
+  STRING_UNICODE_END_ERROR,
   NORMAL_STRING_START_ERROR,
   NORMAL_STRING_END_ERROR,
   NORMAL_STRING_ORDINARY_CHAR_ERROR,
@@ -117,6 +119,10 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case STRING_UNICODE_START_ERROR:
+    return "string unicode start";
+  case STRING_UNICODE_END_ERROR:
+    return "string unicode end";
   case NORMAL_STRING_ORDINARY_CHAR_ERROR:
     return "normal string ordinary char";
   case HEX_ERROR:
@@ -629,6 +635,27 @@ static int normal_string_ordinary_char_parse() {
   return 0;
 }
 
+static int string_unicode_parse_help() {
+  if (chunk_parse("\\u{")) {
+    return STRING_UNICODE_START_ERROR;
+  }
+  while (hex_digit_parse() == 0) {
+  }
+  if (char_parse('}')) {
+    return STRING_UNICODE_END_ERROR;
+  }
+  return 0;
+}
+
+static int string_unicode_parse() {
+  const int start = I;
+  const int result = string_unicode_parse_help();
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
 static int normal_string_item_parse() {
   if (normal_string_ordinary_char_parse() == 0) {
     return 0;
@@ -643,6 +670,10 @@ static int normal_string_item_parse() {
   }
 
   if (chunk_parse("\\t") == 0) {
+    return 0;
+  }
+
+  if (string_unicode_parse() == 0) {
     return 0;
   }
 
