@@ -745,12 +745,19 @@ static int normal_string_parse(uint16_t *id) {
   return result;
 }
 
+static int triple_string_item_parse() {
+  if (char_parse('a') == 0) {
+    return 0;
+  }
+  return char_parse('b');
+}
+
 static int triple_string_parse_help(uint16_t *id) {
   const int start = I;
   if (chunk_parse("\"\"\"")) {
     return TRIPLE_STRING_START_ERROR;
   }
-  while (char_parse('a') == 0) {
+  while (triple_string_item_parse() == 0) {
   }
   if (chunk_parse("\"\"\"")) {
     return TRIPLE_STRING_END_ERROR;
