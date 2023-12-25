@@ -75,6 +75,7 @@ enum error {
   STRING_UNICODE_START_ERROR,
   STRING_UNICODE_END_ERROR,
   NORMAL_STRING_START_ERROR,
+  DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR,
   TRIPLE_STRING_START_ERROR,
   TRIPLE_STRING_END_ERROR,
   NORMAL_STRING_END_ERROR,
@@ -122,6 +123,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
+    return "double quote in triple string";
   case STRING_UNICODE_START_ERROR:
     return "string unicode start";
   case TRIPLE_STRING_START_ERROR:
@@ -748,7 +751,7 @@ static int normal_string_parse(uint16_t *id) {
   return result;
 }
 
-static int triple_string_item_parse() {
+static int triple_string_ordinary_char_parse() {
   const int start = I;
   uint8_t c;
   const int char_result = any_char_parse(&c);
@@ -760,6 +763,22 @@ static int triple_string_item_parse() {
     return TRIPLE_STRING_ORDINARY_CHAR_ERROR;
   }
   return 0;
+}
+
+static int single_double_quote_in_triple_string_parse() {
+  const int start = I;
+  if (chunk_parse("\"\"") == 0) {
+    I = start;
+    return DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR;
+  }
+  return char_parse('"');
+}
+
+static int triple_string_item_parse() {
+  if (triple_string_ordinary_char_parse() == 0) {
+    return 0;
+  }
+  return single_double_quote_in_triple_string_parse();
 }
 
 static int triple_string_parse_help(uint16_t *id) {
