@@ -72,6 +72,7 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  LINE_COMMENT_CHAR_ERROR,
   STRING_UNICODE_START_ERROR,
   STRING_UNICODE_END_ERROR,
   NORMAL_STRING_START_ERROR,
@@ -124,6 +125,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case LINE_COMMENT_CHAR_ERROR:
+    return "line comment char";
   case TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
     return "two double quote in triple string";
   case DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
@@ -415,7 +418,12 @@ static int top_level_write() {
   uint16_t name = CHILD[ROOT];
   literal_write(name);
   fputs(" =\n    ", OUT);
-  uint16_t body = SIBLING[name];
+  uint16_t comment = SIBLING[name];
+  literal_write(comment);
+  if (SRC_SIZE[comment] > 0) {
+    fputs("\n    ", OUT);
+  }
+  uint16_t body = SIBLING[comment];
   literal_write(body);
   return 0;
 }
@@ -945,6 +953,40 @@ static int expression_parse(uint16_t *id) {
   return triple_string_parse(id);
 }
 
+static int line_comment_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (c == '\n') {
+    I = start;
+    return LINE_COMMENT_CHAR_ERROR;
+  }
+  return 0;
+}
+
+static uint16_t line_comment_parse() {
+  const int start = I;
+  if (chunk_parse("--")) {
+    return 0;
+  }
+  while (line_comment_char_parse() == 0) {
+  }
+  const uint16_t id = node_init(LITERAL_NODE);
+  SRC_START[id] = start + 1;
+  SRC_SIZE[id] = I - start;
+  return id;
+}
+
+static uint16_t whitespace_parse() {
+  many_whitespace_parse();
+  const uint16_t result = line_comment_parse();
+  many_whitespace_parse();
+  return result;
+}
+
 static int top_level_parse_help() {
   uint16_t name;
   const int name_result = lower_name_parse(&name);
@@ -955,7 +997,7 @@ static int top_level_parse_help() {
   if (char_parse('=')) {
     return TOP_LEVEL_BIND_EQUALS_ERROR;
   }
-  many_whitespace_parse();
+  uint16_t pre_body_whitespace = whitespace_parse();
   uint16_t body;
   const int body_result = expression_parse(&body);
   if (body_result) {
@@ -963,7 +1005,8 @@ static int top_level_parse_help() {
   }
   CHILD[ROOT] = name;
   NODE_TYPE[ROOT] = BIND_NODE;
-  SIBLING[name] = body;
+  SIBLING[name] = pre_body_whitespace;
+  SIBLING[pre_body_whitespace] = body;
   return 0;
 }
 
