@@ -836,6 +836,83 @@ static int triple_string_parse(uint16_t *id) {
   return result;
 }
 
+static int is_after_name_char(uint8_t c) {
+  return c == ' ' || c == '\n' || c == ')' || c == ',';
+}
+
+static int after_name_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_after_name_char(c)) {
+    I = start;
+    return LOWER_NAME_END_ERROR;
+  }
+  return 0;
+}
+
+static int is_first_upper_name_char(uint8_t c) { return c >= 'A' && c <= 'Z'; }
+
+static int first_upper_name_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_first_upper_name_char(c)) {
+    I = start;
+    return LOWER_NAME_START_ERROR;
+  }
+  return 0;
+}
+
+static int subsequent_name_char_parse() {
+  const int start = I;
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_subsequent_name_char(c)) {
+    I = start;
+    return 1;
+  }
+  return 0;
+}
+
+static int upper_name_parse_help(uint16_t *id) {
+  const int start = I + 1;
+  const int result = first_upper_name_char_parse();
+  if (result) {
+    return result;
+  }
+  while (!subsequent_name_char_parse()) {
+  }
+  const int end = I + 1;
+  const int after_result = after_name_char_parse();
+  if (after_result) {
+    return after_result;
+  }
+  I = end - 1;
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start;
+  SRC_SIZE[*id] = end - start;
+  return 0;
+}
+
+static int upper_name_parse(uint16_t *id) {
+  const int start = I;
+  const int result = upper_name_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
 static int expression_parse(uint16_t *id) {
   if (base10_parse(id) == 0) {
     return 0;
@@ -858,6 +935,10 @@ static int expression_parse(uint16_t *id) {
   }
 
   if (lower_name_parse(id) == 0) {
+    return 0;
+  }
+
+  if (upper_name_parse(id) == 0) {
     return 0;
   }
 
@@ -986,74 +1067,6 @@ static int module_exports_parse(uint16_t *id) {
   return result;
 }
 
-static int is_after_name_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == ')' || c == ',';
-}
-
-static int subsequent_name_char_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_subsequent_name_char(c)) {
-    I = start;
-    return 1;
-  }
-  return 0;
-}
-
-static int after_name_char_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_after_name_char(c)) {
-    I = start;
-    return LOWER_NAME_END_ERROR;
-  }
-  return 0;
-}
-
-static int is_first_upper_name_char(uint8_t c) { return c >= 'A' && c <= 'Z'; }
-
-static int first_upper_name_char_parse() {
-  const int start = I;
-  uint8_t c;
-  const int result = any_char_parse(&c);
-  if (result) {
-    return result;
-  }
-  if (!is_first_upper_name_char(c)) {
-    I = start;
-    return LOWER_NAME_START_ERROR;
-  }
-  return 0;
-}
-
-static int upper_name_parse_help(uint16_t *id) {
-  const int start = I + 1;
-  const int result = first_upper_name_char_parse();
-  if (result) {
-    return result;
-  }
-  while (!subsequent_name_char_parse()) {
-  }
-  const int end = I + 1;
-  const int after_result = after_name_char_parse();
-  if (after_result) {
-    return after_result;
-  }
-  I = end - 1;
-  *id = node_init(LITERAL_NODE);
-  SRC_START[*id] = start;
-  SRC_SIZE[*id] = end - start;
-  return 0;
-}
-
 static int is_first_lower_name_char(uint8_t c) {
   return (c >= 'a' && c <= 'z') || c == '_';
 }
@@ -1096,15 +1109,6 @@ static int lower_name_parse_help(uint16_t *id) {
 static int lower_name_parse(uint16_t *id) {
   const int start = I;
   const int result = lower_name_parse_help(id);
-  if (result) {
-    I = start;
-  }
-  return result;
-}
-
-static int upper_name_parse(uint16_t *id) {
-  const int start = I;
-  const int result = upper_name_parse_help(id);
   if (result) {
     I = start;
   }
