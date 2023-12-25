@@ -802,6 +802,9 @@ static int triple_string_item_parse() {
   if (chunk_parse("\\n") == 0) {
     return 0;
   }
+  if (chunk_parse("\\t") == 0) {
+    return 0;
+  }
   return two_double_quote_in_triple_string_parse();
 }
 
