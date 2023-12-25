@@ -76,6 +76,7 @@ enum error {
   STRING_UNICODE_END_ERROR,
   NORMAL_STRING_START_ERROR,
   TRIPLE_STRING_START_ERROR,
+  TRIPLE_STRING_END_ERROR,
   NORMAL_STRING_END_ERROR,
   NORMAL_STRING_ORDINARY_CHAR_ERROR,
   DIGIT_ERROR,
@@ -124,6 +125,8 @@ char *error_to_string(enum error error) {
     return "string unicode start";
   case TRIPLE_STRING_START_ERROR:
     return "triple string start";
+  case TRIPLE_STRING_END_ERROR:
+    return "triple string end";
   case STRING_UNICODE_END_ERROR:
     return "string unicode end";
   case NORMAL_STRING_ORDINARY_CHAR_ERROR:
@@ -742,15 +745,29 @@ static int normal_string_parse(uint16_t *id) {
   return result;
 }
 
-static int triple_string_parse(uint16_t *id) {
+static int triple_string_parse_help(uint16_t *id) {
   const int start = I;
-  if (chunk_parse("\"\"\"\"\"\"")) {
+  if (chunk_parse("\"\"\"")) {
     return TRIPLE_STRING_START_ERROR;
+  }
+  while (char_parse('a') == 0) {
+  }
+  if (chunk_parse("\"\"\"")) {
+    return TRIPLE_STRING_END_ERROR;
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
+}
+
+static int triple_string_parse(uint16_t *id) {
+  const int start = I;
+  const int result = triple_string_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
 }
 
 static int expression_parse(uint16_t *id) {
