@@ -75,6 +75,7 @@ enum error {
   STRING_UNICODE_START_ERROR,
   STRING_UNICODE_END_ERROR,
   NORMAL_STRING_START_ERROR,
+  TRIPLE_STRING_START_ERROR,
   NORMAL_STRING_END_ERROR,
   NORMAL_STRING_ORDINARY_CHAR_ERROR,
   DIGIT_ERROR,
@@ -121,6 +122,8 @@ char *error_to_string(enum error error) {
   switch (error) {
   case STRING_UNICODE_START_ERROR:
     return "string unicode start";
+  case TRIPLE_STRING_START_ERROR:
+    return "triple string start";
   case STRING_UNICODE_END_ERROR:
     return "string unicode end";
   case NORMAL_STRING_ORDINARY_CHAR_ERROR:
@@ -426,6 +429,29 @@ static int after_number_parse() {
   return result;
 }
 
+static int is_after_normal_string_char(uint8_t c) {
+  return c == ' ' || c == '\n';
+}
+
+static int after_normal_string_parse_help() {
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+  if (!is_after_normal_string_char(c)) {
+    return FLOAT_AFTER_ERROR;
+  }
+  return 0;
+}
+
+static int after_normal_string_parse() {
+  const int start = I;
+  const int result = after_normal_string_parse_help();
+  I = start;
+  return result;
+}
+
 static int hex_digit_parse() {
   const int start = I;
   uint8_t c;
@@ -697,6 +723,10 @@ static int normal_string_parse_help(uint16_t *id) {
   if (char_parse('"')) {
     return NORMAL_STRING_END_ERROR;
   }
+  const int end_result = after_normal_string_parse();
+  if (end_result) {
+    return end_result;
+  }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
@@ -710,6 +740,17 @@ static int normal_string_parse(uint16_t *id) {
     I = start;
   }
   return result;
+}
+
+static int triple_string_parse(uint16_t *id) {
+  const int start = I;
+  if (chunk_parse("\"\"\"\"\"\"")) {
+    return TRIPLE_STRING_START_ERROR;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  return 0;
 }
 
 static int expression_parse(uint16_t *id) {
@@ -729,7 +770,11 @@ static int expression_parse(uint16_t *id) {
     return 0;
   }
 
-  return normal_string_parse(id);
+  if (normal_string_parse(id) == 0) {
+    return 0;
+  }
+
+  return triple_string_parse(id);
 }
 
 static int top_level_parse_help() {
