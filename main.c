@@ -857,6 +857,10 @@ static int expression_parse(uint16_t *id) {
     return 0;
   }
 
+  if (lower_name_parse(id) == 0) {
+    return 0;
+  }
+
   return triple_string_parse(id);
 }
 
