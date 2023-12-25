@@ -79,6 +79,7 @@ enum error {
   TRIPLE_STRING_END_ERROR,
   NORMAL_STRING_END_ERROR,
   NORMAL_STRING_ORDINARY_CHAR_ERROR,
+  TRIPLE_STRING_ORDINARY_CHAR_ERROR,
   DIGIT_ERROR,
   HEX_ERROR,
   HEX_START_ERROR,
@@ -125,6 +126,8 @@ char *error_to_string(enum error error) {
     return "string unicode start";
   case TRIPLE_STRING_START_ERROR:
     return "triple string start";
+  case TRIPLE_STRING_ORDINARY_CHAR_ERROR:
+    return "triple string ordinary char";
   case TRIPLE_STRING_END_ERROR:
     return "triple string end";
   case STRING_UNICODE_END_ERROR:
@@ -746,10 +749,17 @@ static int normal_string_parse(uint16_t *id) {
 }
 
 static int triple_string_item_parse() {
-  if (char_parse('a') == 0) {
-    return 0;
+  const int start = I;
+  uint8_t c;
+  const int char_result = any_char_parse(&c);
+  if (char_result) {
+    return char_result;
   }
-  return char_parse('b');
+  if (c == '"') {
+    I = start;
+    return TRIPLE_STRING_ORDINARY_CHAR_ERROR;
+  }
+  return 0;
 }
 
 static int triple_string_parse_help(uint16_t *id) {
