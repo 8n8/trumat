@@ -761,7 +761,7 @@ static int triple_string_ordinary_char_parse() {
   if (char_result) {
     return char_result;
   }
-  if (c == '"') {
+  if (c == '"' || c == '\\') {
     I = start;
     return TRIPLE_STRING_ORDINARY_CHAR_ERROR;
   }
@@ -791,6 +791,9 @@ static int triple_string_item_parse() {
     return 0;
   }
   if (single_double_quote_in_triple_string_parse() == 0) {
+    return 0;
+  }
+  if (chunk_parse("\\\"") == 0) {
     return 0;
   }
   return two_double_quote_in_triple_string_parse();
