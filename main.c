@@ -967,6 +967,12 @@ static int line_comment_char_parse() {
   return 0;
 }
 
+static void strip_end(uint16_t id) {
+  for (; SRC[SRC_START[id] + SRC_SIZE[id] - 1] == ' ' && SRC_SIZE[id] > 0;
+       --SRC_SIZE[id]) {
+  }
+}
+
 static uint16_t line_comment_parse() {
   const int start = I;
   if (chunk_parse("--")) {
@@ -977,6 +983,7 @@ static uint16_t line_comment_parse() {
   const uint16_t id = node_init(LITERAL_NODE);
   SRC_START[id] = start + 1;
   SRC_SIZE[id] = I - start;
+  strip_end(id);
   return id;
 }
 
