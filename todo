@@ -1,3 +1,2 @@
 rename whitespace_parse to comments_parse
-try to refactor so I don't need comments_size
 get rid of EMTY_NODE

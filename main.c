@@ -1009,7 +1009,7 @@ static int line_comment_parse(uint16_t *id) {
   return 0;
 }
 
-static uint16_t whitespace_parse() {
+static uint16_t comments_parse() {
   many_whitespace_parse();
   uint16_t item;
   const uint16_t id = node_init(WHITESPACE_NODE);
@@ -1038,7 +1038,7 @@ static int top_level_parse_help() {
   if (char_parse('=')) {
     return TOP_LEVEL_BIND_EQUALS_ERROR;
   }
-  uint16_t pre_body_whitespace = whitespace_parse();
+  uint16_t pre_body_whitespace = comments_parse();
   uint16_t body;
   const int body_result = expression_parse(&body);
   if (body_result) {
