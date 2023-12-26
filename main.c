@@ -45,7 +45,6 @@ void dbg_src() {
 }
 
 enum node_type {
-  EMPTY_NODE,
   MODULE_DECLARATION_NODE,
   LITERAL_NODE,
   WHITESPACE_NODE,
@@ -60,8 +59,6 @@ static int is_text_node(enum node_type type) {
     return 0;
   case LITERAL_NODE:
     return 1;
-  case EMPTY_NODE:
-    return 0;
   case MODULE_DECLARATION_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
@@ -336,8 +333,6 @@ char *node_type_to_string(enum node_type type) {
     return "EXEX";
   case BIND_NODE:
     return "BIND";
-  case EMPTY_NODE:
-    return "NULL";
   }
 }
 
@@ -1255,9 +1250,6 @@ static void exports_write(uint16_t id) {
   case MODULE_EXPORTS_ALL_NODE:
     fputs("(..)", OUT);
     return;
-  case EMPTY_NODE:
-    fprintf(stderr, "exports_write: empty node\n");
-    exit(-1);
   case MODULE_DECLARATION_NODE:
     fprintf(stderr, "exports_write: module declaration node\n");
     exit(-1);
