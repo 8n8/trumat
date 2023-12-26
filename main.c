@@ -435,18 +435,6 @@ static void comments_write(uint16_t id) {
   }
 }
 
-static int comments_size(uint16_t id) {
-  if (CHILD[id] == 0) {
-    return 0;
-  }
-
-  int size = 0;
-  for (uint16_t sibling = CHILD[id]; sibling != 0; sibling = SIBLING[sibling]) {
-    size += SRC_SIZE[sibling];
-  }
-  return size;
-}
-
 static int top_level_write() {
   fputs("\n\n\n", OUT);
   uint16_t name = CHILD[ROOT];
@@ -454,7 +442,7 @@ static int top_level_write() {
   fputs(" =\n    ", OUT);
   uint16_t comment = SIBLING[name];
   comments_write(comment);
-  if (comments_size(comment) > 0) {
+  if (CHILD[comment] != 0) {
     fputs("\n    ", OUT);
   }
   uint16_t body = SIBLING[comment];
@@ -1009,14 +997,13 @@ static void strip_end(uint16_t id) {
 
 static int line_comment_parse(uint16_t *id) {
   const int start = I;
-  *id = node_init(LITERAL_NODE);
-  SRC_START[*id] = start + 1;
   if (chunk_parse("--")) {
-    SRC_SIZE[*id] = 0;
     return LINE_COMMENT_START_ERROR;
   }
   while (line_comment_char_parse() == 0) {
   }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   strip_end(*id);
   return 0;
@@ -1024,14 +1011,14 @@ static int line_comment_parse(uint16_t *id) {
 
 static uint16_t whitespace_parse() {
   many_whitespace_parse();
-  const uint16_t id = node_init(WHITESPACE_NODE);
   uint16_t item;
+  const uint16_t id = node_init(WHITESPACE_NODE);
   const int first_result = line_comment_parse(&item);
-  CHILD[id] = item;
-  many_whitespace_parse();
   if (first_result) {
     return id;
   }
+  CHILD[id] = item;
+  many_whitespace_parse();
   uint16_t previous = item;
   while (line_comment_parse(&item) == 0) {
     SIBLING[previous] = item;
