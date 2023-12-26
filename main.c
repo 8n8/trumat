@@ -72,6 +72,7 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  EMPTY_BLOCK_COMMENT_ERROR,
   LINE_COMMENT_START_ERROR,
   LINE_COMMENT_CHAR_ERROR,
   STRING_UNICODE_START_ERROR,
@@ -126,6 +127,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case EMPTY_BLOCK_COMMENT_ERROR:
+    return "empty block comment";
   case LINE_COMMENT_START_ERROR:
     return "line comment start";
   case LINE_COMMENT_CHAR_ERROR:
@@ -1004,18 +1007,38 @@ static int line_comment_parse(uint16_t *id) {
   return 0;
 }
 
+static int empty_block_comment_parse(uint16_t *id) {
+const int start = I;
+  if (chunk_parse("{--}")) {
+    return EMPTY_BLOCK_COMMENT_ERROR;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  return 0;
+  
+}
+
+static int comment_parse(uint16_t *id) {
+  if (line_comment_parse(id) == 0) {
+    return 0;
+  }
+
+  return empty_block_comment_parse(id);
+}
+
 static uint16_t comments_parse() {
   many_whitespace_parse();
   uint16_t item;
   const uint16_t id = node_init(WHITESPACE_NODE);
-  const int first_result = line_comment_parse(&item);
+  const int first_result = comment_parse(&item);
   if (first_result) {
     return id;
   }
   CHILD[id] = item;
   many_whitespace_parse();
   uint16_t previous = item;
-  while (line_comment_parse(&item) == 0) {
+  while (comment_parse(&item) == 0) {
     SIBLING[previous] = item;
     previous = item;
   }
