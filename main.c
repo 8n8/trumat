@@ -48,6 +48,7 @@ enum node_type {
   EMPTY_NODE,
   MODULE_DECLARATION_NODE,
   LITERAL_NODE,
+  WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
   MODULE_EXPORTS_EXPLICIT_NODE,
   BIND_NODE,
@@ -55,6 +56,8 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case WHITESPACE_NODE:
+    return 0;
   case LITERAL_NODE:
     return 1;
   case EMPTY_NODE:
@@ -72,6 +75,7 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  LINE_COMMENT_START_ERROR,
   LINE_COMMENT_CHAR_ERROR,
   STRING_UNICODE_START_ERROR,
   STRING_UNICODE_END_ERROR,
@@ -125,6 +129,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case LINE_COMMENT_START_ERROR:
+    return "line comment start";
   case LINE_COMMENT_CHAR_ERROR:
     return "line comment char";
   case TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
@@ -318,6 +324,8 @@ static uint16_t node_init(enum node_type type) {
 
 char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case WHITESPACE_NODE:
+    return "WHIT";
   case MODULE_DECLARATION_NODE:
     return "MODU";
   case LITERAL_NODE:
@@ -413,14 +421,40 @@ static void literal_write(uint16_t id) {
   }
 }
 
+static void comments_write(uint16_t id) {
+  if (CHILD[id] == 0) {
+    return;
+  }
+
+  literal_write(CHILD[id]);
+
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
+       sibling = SIBLING[sibling]) {
+    fputs("\n    ", OUT);
+    literal_write(sibling);
+  }
+}
+
+static int comments_size(uint16_t id) {
+  if (CHILD[id] == 0) {
+    return 0;
+  }
+
+  int size = 0;
+  for (uint16_t sibling = CHILD[id]; sibling != 0; sibling = SIBLING[sibling]) {
+    size += SRC_SIZE[sibling];
+  }
+  return size;
+}
+
 static int top_level_write() {
   fputs("\n\n\n", OUT);
   uint16_t name = CHILD[ROOT];
   literal_write(name);
   fputs(" =\n    ", OUT);
   uint16_t comment = SIBLING[name];
-  literal_write(comment);
-  if (SRC_SIZE[comment] > 0) {
+  comments_write(comment);
+  if (comments_size(comment) > 0) {
     fputs("\n    ", OUT);
   }
   uint16_t body = SIBLING[comment];
@@ -973,25 +1007,38 @@ static void strip_end(uint16_t id) {
   }
 }
 
-static uint16_t line_comment_parse() {
+static int line_comment_parse(uint16_t *id) {
   const int start = I;
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
   if (chunk_parse("--")) {
-    return 0;
+    SRC_SIZE[*id] = 0;
+    return LINE_COMMENT_START_ERROR;
   }
   while (line_comment_char_parse() == 0) {
   }
-  const uint16_t id = node_init(LITERAL_NODE);
-  SRC_START[id] = start + 1;
-  SRC_SIZE[id] = I - start;
-  strip_end(id);
-  return id;
+  SRC_SIZE[*id] = I - start;
+  strip_end(*id);
+  return 0;
 }
 
 static uint16_t whitespace_parse() {
   many_whitespace_parse();
-  const uint16_t result = line_comment_parse();
+  const uint16_t id = node_init(WHITESPACE_NODE);
+  uint16_t item;
+  const int first_result = line_comment_parse(&item);
+  CHILD[id] = item;
   many_whitespace_parse();
-  return result;
+  if (first_result) {
+    return id;
+  }
+  uint16_t previous = item;
+  while (line_comment_parse(&item) == 0) {
+    SIBLING[previous] = item;
+    previous = item;
+  }
+  many_whitespace_parse();
+  return id;
 }
 
 static int top_level_parse_help() {
