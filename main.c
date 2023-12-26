@@ -1008,7 +1008,7 @@ static int line_comment_parse(uint16_t *id) {
 }
 
 static int empty_block_comment_parse(uint16_t *id) {
-const int start = I;
+  const int start = I;
   if (chunk_parse("{--}")) {
     return EMPTY_BLOCK_COMMENT_ERROR;
   }
@@ -1016,7 +1016,6 @@ const int start = I;
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
-  
 }
 
 static int comment_parse(uint16_t *id) {
