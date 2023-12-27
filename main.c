@@ -72,7 +72,9 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
-  BLOCK_COMMENT_ERROR,
+  BLOCK_COMMENT_START_ERROR,
+  BLOCK_COMMENT_END_ERROR,
+  BLOCK_COMMENT_CHAR_ERROR,
   EMPTY_BLOCK_COMMENT_ERROR,
   LINE_COMMENT_START_ERROR,
   LINE_COMMENT_CHAR_ERROR,
@@ -128,8 +130,12 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
-  case BLOCK_COMMENT_ERROR:
-    return "block comment";
+  case BLOCK_COMMENT_END_ERROR:
+    return "block comment end";
+  case BLOCK_COMMENT_CHAR_ERROR:
+    return "block comment char";
+  case BLOCK_COMMENT_START_ERROR:
+    return "block comment start";
   case EMPTY_BLOCK_COMMENT_ERROR:
     return "empty block comment";
   case LINE_COMMENT_START_ERROR:
@@ -1021,10 +1027,29 @@ static int empty_block_comment_parse(uint16_t *id) {
   return 0;
 }
 
+static int block_comment_char_parse() {
+  const int start = I;
+  if (chunk_parse("-}") == 0) {
+    I = start;
+    return BLOCK_COMMENT_CHAR_ERROR;
+  }
+  uint8_t dont_care;
+  const int result = any_char_parse(&dont_care);
+  if (result) {
+    return result;
+  }
+  return 0;
+}
+
 static int non_empty_block_comment_parse(uint16_t *id) {
   const int start = I;
-  if (chunk_parse("{- a -}")) {
-    return BLOCK_COMMENT_ERROR;
+  if (chunk_parse("{-")) {
+    return BLOCK_COMMENT_START_ERROR;
+  }
+  while (block_comment_char_parse() == 0) {
+  }
+  if (chunk_parse("-}")) {
+    return BLOCK_COMMENT_END_ERROR;
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
