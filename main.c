@@ -46,6 +46,7 @@ void dbg_src() {
 
 enum node_type {
   MODULE_DECLARATION_NODE,
+  BLOCK_COMMENT_NODE,
   LITERAL_NODE,
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
@@ -55,6 +56,8 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case BLOCK_COMMENT_NODE:
+    return 0;
   case WHITESPACE_NODE:
     return 0;
   case LITERAL_NODE:
@@ -73,6 +76,7 @@ static int is_text_node(enum node_type type) {
 enum error {
   MODULE_KEYWORD_ERROR,
   BLOCK_COMMENT_START_ERROR,
+  COMMENT_WRITE_ERROR,
   BLOCK_COMMENT_END_ERROR,
   BLOCK_COMMENT_CHAR_ERROR,
   EMPTY_BLOCK_COMMENT_ERROR,
@@ -130,6 +134,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case COMMENT_WRITE_ERROR:
+    return "comment write";
   case BLOCK_COMMENT_END_ERROR:
     return "block comment end";
   case BLOCK_COMMENT_CHAR_ERROR:
@@ -333,6 +339,8 @@ static uint16_t node_init(enum node_type type) {
 
 char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case BLOCK_COMMENT_NODE:
+    return "BLCK";
   case WHITESPACE_NODE:
     return "WHIT";
   case MODULE_DECLARATION_NODE:
@@ -428,17 +436,36 @@ static void literal_write(uint16_t id) {
   }
 }
 
+static void block_comment_write(uint16_t id) {
+  fputs("{- ", OUT);
+  literal_write(id);
+  fputs(" -}", OUT);
+}
+
+static void comment_write(uint16_t id) {
+  switch ((enum node_type)NODE_TYPE[id]) {
+  case BLOCK_COMMENT_NODE:
+    block_comment_write(id);
+    return;
+  case LITERAL_NODE:
+    literal_write(id);
+    return;
+  default:
+    panic(COMMENT_WRITE_ERROR);
+  }
+}
+
 static void comments_write(uint16_t id) {
   if (CHILD[id] == 0) {
     return;
   }
 
-  literal_write(CHILD[id]);
+  comment_write(CHILD[id]);
 
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputs("\n    ", OUT);
-    literal_write(sibling);
+    comment_write(sibling);
   }
 }
 
@@ -1042,18 +1069,21 @@ static int block_comment_char_parse() {
 }
 
 static int non_empty_block_comment_parse(uint16_t *id) {
-  const int start = I;
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
+  many_whitespace_parse();
+  const int start = I;
   while (block_comment_char_parse() == 0) {
   }
+  const int end = I;
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = node_init(BLOCK_COMMENT_NODE);
   SRC_START[*id] = start + 1;
-  SRC_SIZE[*id] = I - start;
+  SRC_SIZE[*id] = end - start;
+  strip_end(*id);
   return 0;
 }
 
