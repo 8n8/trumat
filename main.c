@@ -46,7 +46,8 @@ void dbg_src() {
 
 enum node_type {
   MODULE_DECLARATION_NODE,
-  BLOCK_COMMENT_NODE,
+  SINGLE_LINE_BLOCK_COMMENT_NODE,
+  MULTILINE_BLOCK_COMMENT_NODE,
   LITERAL_NODE,
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
@@ -56,7 +57,9 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
-  case BLOCK_COMMENT_NODE:
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return 0;
+  case MULTILINE_BLOCK_COMMENT_NODE:
     return 0;
   case WHITESPACE_NODE:
     return 0;
@@ -339,8 +342,10 @@ static uint16_t node_init(enum node_type type) {
 
 char *node_type_to_string(enum node_type type) {
   switch (type) {
-  case BLOCK_COMMENT_NODE:
-    return "BLCK";
+  case MULTILINE_BLOCK_COMMENT_NODE:
+    return "MLBK";
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return "SBLK";
   case WHITESPACE_NODE:
     return "WHIT";
   case MODULE_DECLARATION_NODE:
@@ -436,19 +441,28 @@ static void literal_write(uint16_t id) {
   }
 }
 
-static void block_comment_write(uint16_t id) {
+static void single_line_block_comment_write(uint16_t id) {
   fputs("{- ", OUT);
   literal_write(id);
   fputs(" -}", OUT);
 }
 
+static void multiline_block_comment_write(uint16_t id) {
+  fputs("{- ", OUT);
+  literal_write(id);
+  fputs("\n    -}", OUT);
+}
+
 static void comment_write(uint16_t id) {
   switch ((enum node_type)NODE_TYPE[id]) {
-  case BLOCK_COMMENT_NODE:
-    block_comment_write(id);
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    single_line_block_comment_write(id);
     return;
   case LITERAL_NODE:
     literal_write(id);
+    return;
+  case MULTILINE_BLOCK_COMMENT_NODE:
+    multiline_block_comment_write(id);
     return;
   default:
     panic(COMMENT_WRITE_ERROR);
@@ -1023,8 +1037,10 @@ static int line_comment_char_parse() {
   return 0;
 }
 
+static int is_whitespace(uint8_t c) { return c == ' ' || c == '\n'; }
+
 static void strip_end(uint16_t id) {
-  for (; SRC[SRC_START[id] + SRC_SIZE[id] - 1] == ' ' && SRC_SIZE[id] > 0;
+  for (; is_whitespace(SRC[SRC_START[id] + SRC_SIZE[id] - 1]) && SRC_SIZE[id] > 0;
        --SRC_SIZE[id]) {
   }
 }
@@ -1069,6 +1085,7 @@ static int block_comment_char_parse() {
 }
 
 static int non_empty_block_comment_parse(uint16_t *id) {
+  const int start_row = ROW[I];
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
@@ -1080,7 +1097,9 @@ static int non_empty_block_comment_parse(uint16_t *id) {
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
-  *id = node_init(BLOCK_COMMENT_NODE);
+  const int end_row = ROW[I];
+  const enum node_type type = end_row == start_row ? SINGLE_LINE_BLOCK_COMMENT_NODE : MULTILINE_BLOCK_COMMENT_NODE;
+  *id = node_init(type);
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = end - start;
   strip_end(*id);
