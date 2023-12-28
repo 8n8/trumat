@@ -1392,7 +1392,7 @@ static int module_declaration_format() {
   return 0;
 }
 
-static int with_in_out_files() {
+static int with_out_file() {
   I = -1;
   NUM_NODE = 2;
   const int declaration_result = module_declaration_format();
@@ -1414,8 +1414,6 @@ static int with_in_out_files() {
 
   return 0;
 }
-
-const char *tmp_file_name = ".tmp_trumat";
 
 static void calculate_row_numbers() {
   int row = 0;
@@ -1439,9 +1437,9 @@ static void calculate_column_numbers() {
   }
 }
 
-static void with_in_file(char *path) {
-  OUT = fopen(tmp_file_name, "w");
-  if (OUT == NULL) {
+static void format_file(char *path) {
+  IN = fopen(path, "r");
+  if (IN == NULL) {
     return;
   }
   NUM_SRC = fread(SRC, 1, MAX_SRC, IN);
@@ -1450,25 +1448,19 @@ static void with_in_file(char *path) {
             MAX_SRC);
     return;
   }
+  fclose(IN);
+
   calculate_row_numbers();
   calculate_column_numbers();
-
-  const int result = with_in_out_files();
+  OUT = fopen(path, "w");
+  if (OUT == NULL) {
+    return;
+  }
+  const int result = with_out_file();
   fclose(OUT);
   if (result) {
     fprintf(stderr, "could not format %s: %s\n", path, error_to_string(result));
-    return;
   }
-  rename(tmp_file_name, path);
-}
-
-static void format_file(char *path) {
-  IN = fopen(path, "r");
-  if (IN == NULL) {
-    return;
-  }
-  with_in_file(path);
-  fclose(IN);
 }
 
 static int string_length(char *s) {
