@@ -115,6 +115,7 @@ enum error {
   MODULE_EXPORTS_LEFT_PAREN_ERROR,
   MODULE_EXPORTS_RIGHT_PAREN_ERROR,
   KEYWORD_ERROR,
+  TOO_MANY_NODES_ERROR,
   AFTER_KEYWORD_ERROR,
   UPPER_NAME_END_ERROR,
   LOWER_NAME_END_ERROR,
@@ -136,6 +137,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case TOO_MANY_NODES_ERROR:
+    return "too many nodes";
   case COMMENT_WRITE_ERROR:
     return "comment write";
   case BLOCK_COMMENT_END_ERROR:
@@ -329,7 +332,7 @@ static int keyword_parse(char *keyword) {
 
 static uint16_t node_init(enum node_type type) {
   if (NUM_NODE == MAX_NODE) {
-    panic(SRC_TOO_SHORT_ERROR);
+    panic(TOO_MANY_NODES_ERROR);
   }
   const uint16_t id = NUM_NODE;
   SIBLING[id] = 0;
