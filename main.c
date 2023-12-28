@@ -30,7 +30,6 @@ static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
 static int NUM_SRC = 0;
 static int I = -1;
-static FILE *IN;
 static FILE *OUT;
 
 void dbg_src() {
@@ -1437,21 +1436,29 @@ static void calculate_column_numbers() {
   }
 }
 
-static void format_file(char *path) {
-  IN = fopen(path, "r");
-  if (IN == NULL) {
-    return;
+static int read_src(char *path) {
+  FILE *file = fopen(path, "r");
+  if (file == NULL) {
+    return -1;
   }
-  NUM_SRC = fread(SRC, 1, MAX_SRC, IN);
+  NUM_SRC = fread(SRC, 1, MAX_SRC, file);
+  fclose(file);
   if (NUM_SRC == MAX_SRC) {
     fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", path,
             MAX_SRC);
+    return -1;
+  }
+  return 0;
+}
+
+static void format_file(char *path) {
+  if (read_src(path)) {
     return;
   }
-  fclose(IN);
 
   calculate_row_numbers();
   calculate_column_numbers();
+
   OUT = fopen(path, "w");
   if (OUT == NULL) {
     return;
