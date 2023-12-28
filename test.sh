@@ -2,25 +2,18 @@
 
 set -e
 
-rm -rf tmp_test_formatted tmp_test_input
-
-cp -r formatted tmp_test_formatted
-cp -r unformatted tmp_test_input
+rm -rf got
+cp -r input got
 clang -fsanitize=memory -g -Wall -Werror -Wextra -pedantic -O0 -std=c99 main.c
-./a.out --overwrite tmp_test_formatted
-./a.out --overwrite tmp_test_input
-rm -rf tmp_test_formatted tmp_test_input
+./a.out --overwrite got
 
-cp -r formatted tmp_test_formatted
-cp -r unformatted tmp_test_input
+rm -rf got
+cp -r input got
 clang -fsanitize=address -g -fno-omit-frame-pointer -Wall -Werror -Wextra -pedantic -O0 -std=c99 main.c
-./a.out --overwrite tmp_test_formatted > /dev/null
-./a.out --overwrite tmp_test_input > /dev/null
-diff -r --color tmp_test_formatted formatted
+./a.out --overwrite got > /dev/null
 rm -rf expected
-cp -r unformatted expected
+cp -r input expected
 elm-format expected --yes > /dev/null
-diff -r --color tmp_test_input expected
-rm -rf tmp_test_formatted tmp_test_input
+diff -r --color got expected
 
-echo "`find unformatted formatted -type f | wc -l` tests of which `find formatted -type f | wc -l` are formatted and `find unformatted -type f | wc -l` are unformatted"
+echo "`find input -type f | wc -l` tests"

@@ -2,7 +2,5 @@ a.out
 elm-stuff/
 elm.json
 test.elm
-tmp_test_input/
-tmp_test_formatted/
-tmp_expected/
 expected/
+got/
