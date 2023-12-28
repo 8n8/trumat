@@ -342,7 +342,7 @@ static uint16_t node_init(enum node_type type) {
   return id;
 }
 
-char *node_type_to_string(enum node_type type) {
+static char *node_type_to_string(enum node_type type) {
   switch (type) {
   case MULTILINE_BLOCK_COMMENT_NODE:
     return "MLBK";
