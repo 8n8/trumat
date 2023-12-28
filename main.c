@@ -57,9 +57,9 @@ enum node_type {
 static int is_text_node(enum node_type type) {
   switch (type) {
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    return 0;
+    return 1;
   case MULTILINE_BLOCK_COMMENT_NODE:
-    return 0;
+    return 1;
   case WHITESPACE_NODE:
     return 0;
   case LITERAL_NODE:
@@ -1172,7 +1172,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  // dbg_ast();
+  dbg_ast();
   return top_level_write();
 }
 
