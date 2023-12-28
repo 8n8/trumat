@@ -995,31 +995,24 @@ static int expression_parse(uint16_t *id) {
   if (base10_parse(id) == 0) {
     return 0;
   }
-
   if (plain_float_parse(id) == 0) {
     return 0;
   }
-
   if (exponent_float_parse(id) == 0) {
     return 0;
   }
-
   if (hex_parse(id) == 0) {
     return 0;
   }
-
   if (normal_string_parse(id) == 0) {
     return 0;
   }
-
   if (lower_name_parse(id) == 0) {
     return 0;
   }
-
   if (upper_name_parse(id) == 0) {
     return 0;
   }
-
   return triple_string_parse(id);
 }
 
@@ -1040,7 +1033,8 @@ static int line_comment_char_parse() {
 static int is_whitespace(uint8_t c) { return c == ' ' || c == '\n'; }
 
 static void strip_end(uint16_t id) {
-  for (; is_whitespace(SRC[SRC_START[id] + SRC_SIZE[id] - 1]) && SRC_SIZE[id] > 0;
+  for (;
+       is_whitespace(SRC[SRC_START[id] + SRC_SIZE[id] - 1]) && SRC_SIZE[id] > 0;
        --SRC_SIZE[id]) {
   }
 }
@@ -1098,7 +1092,9 @@ static int non_empty_block_comment_parse(uint16_t *id) {
     return BLOCK_COMMENT_END_ERROR;
   }
   const int end_row = ROW[I];
-  const enum node_type type = end_row == start_row ? SINGLE_LINE_BLOCK_COMMENT_NODE : MULTILINE_BLOCK_COMMENT_NODE;
+  const enum node_type type = end_row == start_row
+                                  ? SINGLE_LINE_BLOCK_COMMENT_NODE
+                                  : MULTILINE_BLOCK_COMMENT_NODE;
   *id = node_init(type);
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = end - start;
