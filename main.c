@@ -1185,11 +1185,9 @@ static int non_empty_block_comment_parse_help(uint16_t *id) {
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
-
   if (block_comment_contents_parse(id)) {
     return BLOCK_COMMENT_CONTENTS_ERROR;
   }
-
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
