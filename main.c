@@ -87,6 +87,7 @@ enum error {
   END_BLOCK_COMMENT_LINE_ERROR,
   EMPTY_BLOCK_COMMENT_ERROR,
   BLOCK_COMMENT_EOL_ERROR,
+  BLOCK_COMMENT_CONTENTS_ERROR,
   LINE_COMMENT_START_ERROR,
   LINE_COMMENT_CHAR_ERROR,
   STRING_UNICODE_START_ERROR,
@@ -143,6 +144,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case BLOCK_COMMENT_CONTENTS_ERROR:
+    return "block comment contents";
   case BLOCK_COMMENT_EOL_ERROR:
     return "block comment EOL";
   case END_BLOCK_COMMENT_LINE_ERROR:
@@ -1154,33 +1157,45 @@ static int block_comment_line_parse(uint16_t *id) {
   return 0;
 }
 
-static int non_empty_block_comment_parse_help(uint16_t *id) {
-  const int start_row = ROW[I];
-  if (chunk_parse("{-")) {
-    return BLOCK_COMMENT_START_ERROR;
-  }
+static int block_comment_contents_parse(uint16_t *id) {
+  const int start = I;
+  *id = node_init(
+      0); // the type isn't known till we know how many lines the comment holds
   many_whitespace_parse();
-  uint16_t first_line;
-  if (block_comment_line_parse(&first_line)) {
+  uint16_t line;
+  if (block_comment_line_parse(&line)) {
+    I = start;
     return BLOCK_COMMENT_FIRST_LINE_ERROR;
   }
   many_whitespace_parse();
-  uint16_t line = first_line;
+
+  CHILD[*id] = line;
+
   uint16_t previous = line;
   while (block_comment_line_parse(&line) == 0) {
     SIBLING[previous] = line;
     previous = line;
     many_whitespace_parse();
   }
+  return 0;
+}
+
+static int non_empty_block_comment_parse_help(uint16_t *id) {
+  const int start_row = ROW[I];
+  if (chunk_parse("{-")) {
+    return BLOCK_COMMENT_START_ERROR;
+  }
+
+  if (block_comment_contents_parse(id)) {
+    return BLOCK_COMMENT_CONTENTS_ERROR;
+  }
+
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
   const int end_row = ROW[I];
-  const enum node_type type = end_row == start_row
-                                  ? SINGLE_LINE_BLOCK_COMMENT_NODE
-                                  : MULTILINE_BLOCK_COMMENT_NODE;
-  *id = node_init(type);
-  CHILD[*id] = first_line;
+  NODE_TYPE[*id] = end_row == start_row ? SINGLE_LINE_BLOCK_COMMENT_NODE
+                                        : MULTILINE_BLOCK_COMMENT_NODE;
   return 0;
 }
 
