@@ -46,7 +46,8 @@ void dbg_src() {
 enum node_type {
   MODULE_DECLARATION_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
-  MULTILINE_BLOCK_COMMENT_NODE,
+  MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
+  HANGING_BLOCK_COMMENT_NODE,
   LITERAL_NODE,
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
@@ -58,8 +59,10 @@ static int is_text_node(enum node_type type) {
   switch (type) {
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     return 1;
-  case MULTILINE_BLOCK_COMMENT_NODE:
-    return 1;
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return 0;
+  case HANGING_BLOCK_COMMENT_NODE:
+    return 0;
   case WHITESPACE_NODE:
     return 0;
   case LITERAL_NODE:
@@ -365,8 +368,10 @@ static uint16_t node_init(enum node_type type) {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
-  case MULTILINE_BLOCK_COMMENT_NODE:
-    return "MLBK";
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return "MLCB";
+  case HANGING_BLOCK_COMMENT_NODE:
+    return "HBCB";
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     return "SBLK";
   case WHITESPACE_NODE:
@@ -482,8 +487,8 @@ static void single_line_block_comment_write(uint16_t id) {
   fputs(" -}", OUT);
 }
 
-static void multiline_block_comment_write(uint16_t id) {
-  fputs("{- ", OUT);
+static void multiline_block_comment_write(uint16_t id, char *start) {
+  fputs(start, OUT);
   block_comment_lines_write(id);
   fputs("\n    -}", OUT);
 }
@@ -496,8 +501,11 @@ static void comment_write(uint16_t id) {
   case LITERAL_NODE:
     literal_write(id);
     return;
-  case MULTILINE_BLOCK_COMMENT_NODE:
-    multiline_block_comment_write(id);
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    multiline_block_comment_write(id, "{- ");
+    return;
+  case HANGING_BLOCK_COMMENT_NODE:
+    multiline_block_comment_write(id, "{-\n       ");
     return;
   default:
     panic(COMMENT_WRITE_ERROR);
@@ -1110,11 +1118,19 @@ static int empty_block_comment_parse(uint16_t *id) {
   return 0;
 }
 
-static int block_comment_line_char_parse() {
+static int block_comment_line_item_parse(int *nesting) {
   const int start = I;
-  if (chunk_parse("-}") == 0) {
+  if (chunk_parse("-}") == 0 && *nesting == 1) {
     I = start;
     return BLOCK_COMMENT_CHAR_CLOSE_ERROR;
+  }
+  if (chunk_parse("{-") == 0) {
+    ++*nesting;
+    return 0;
+  }
+  if (chunk_parse("-}") == 0) {
+    --*nesting;
+    return 0;
   }
   uint8_t c;
   const int result = any_char_parse(&c);
@@ -1151,13 +1167,13 @@ static int hanging_block_comment_end_parse() {
   return 0;
 }
 
-static int block_comment_line_parse(uint16_t *id) {
+static int block_comment_line_parse(uint16_t *id, int *nesting) {
   const int start = I;
   if (hanging_block_comment_end_parse() == 0) {
     I = start;
     return BLOCK_COMMENT_EOL_ERROR;
   }
-  while (block_comment_line_char_parse() == 0) {
+  while (block_comment_line_item_parse(nesting) == 0) {
   }
   if (end_block_comment_line_parse()) {
     I = start;
@@ -1170,12 +1186,26 @@ static int block_comment_line_parse(uint16_t *id) {
   return 0;
 }
 
+static int block_comment_is_hanging_parse() {
+  while (char_parse(' ') == 0) {
+  }
+  const int no_newline = char_parse('\n');
+  return !no_newline;
+}
+
 static int block_comment_contents_parse(uint16_t *id) {
   const int start = I;
-  *id = node_init(SINGLE_LINE_BLOCK_COMMENT_NODE);
+  const int is_hanging = block_comment_is_hanging_parse();
+  const enum node_type multi_type = is_hanging
+                                        ? HANGING_BLOCK_COMMENT_NODE
+                                        : MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+  const enum node_type single_type =
+      is_hanging ? HANGING_BLOCK_COMMENT_NODE : SINGLE_LINE_BLOCK_COMMENT_NODE;
+  *id = node_init(single_type);
   many_whitespace_parse();
   uint16_t line;
-  if (block_comment_line_parse(&line)) {
+  int nesting = 1;
+  if (block_comment_line_parse(&line, &nesting)) {
     I = start;
     return BLOCK_COMMENT_FIRST_LINE_ERROR;
   }
@@ -1183,10 +1213,10 @@ static int block_comment_contents_parse(uint16_t *id) {
   CHILD[*id] = line;
 
   uint16_t previous = line;
-  while (block_comment_line_parse(&line) == 0) {
+  while (block_comment_line_parse(&line, &nesting) == 0) {
     SIBLING[previous] = line;
     previous = line;
-    NODE_TYPE[*id] = MULTILINE_BLOCK_COMMENT_NODE;
+    NODE_TYPE[*id] = multi_type;
   }
 
   return 0;
