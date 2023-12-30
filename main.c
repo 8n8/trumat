@@ -1185,7 +1185,7 @@ static int non_empty_block_comment_parse_help(uint16_t *id) {
 }
 
 static int non_empty_block_comment_parse(uint16_t *id) {
-const int start = I;
+  const int start = I;
   const int result = non_empty_block_comment_parse_help(id);
   if (result) {
     I = start;
