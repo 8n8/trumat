@@ -1159,8 +1159,7 @@ static int block_comment_line_parse(uint16_t *id) {
 
 static int block_comment_contents_parse(uint16_t *id) {
   const int start = I;
-  *id = node_init(
-      0); // the type isn't known till we know how many lines the comment holds
+  *id = node_init(SINGLE_LINE_BLOCK_COMMENT_NODE);
   many_whitespace_parse();
   uint16_t line;
   if (block_comment_line_parse(&line)) {
@@ -1176,12 +1175,13 @@ static int block_comment_contents_parse(uint16_t *id) {
     SIBLING[previous] = line;
     previous = line;
     many_whitespace_parse();
+    NODE_TYPE[*id] = MULTILINE_BLOCK_COMMENT_NODE;
   }
+
   return 0;
 }
 
 static int non_empty_block_comment_parse_help(uint16_t *id) {
-  const int start_row = ROW[I];
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
@@ -1191,9 +1191,6 @@ static int non_empty_block_comment_parse_help(uint16_t *id) {
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
-  const int end_row = ROW[I];
-  NODE_TYPE[*id] = end_row == start_row ? SINGLE_LINE_BLOCK_COMMENT_NODE
-                                        : MULTILINE_BLOCK_COMMENT_NODE;
   return 0;
 }
 
