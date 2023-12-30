@@ -468,7 +468,10 @@ static void block_comment_lines_write(uint16_t id) {
   literal_write(CHILD[id]);
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
-    fputs("\n       ", OUT);
+    fputc('\n', OUT);
+    if (SRC_SIZE[sibling] != 0) {
+      fputs("       ", OUT);
+    }
     literal_write(sibling);
   }
 }
@@ -1132,17 +1135,27 @@ static int end_block_comment_line_parse() {
     return 0;
   }
   if (char_parse('\n') == 0) {
-    I = start;
     return 0;
   }
   return END_BLOCK_COMMENT_LINE_ERROR;
 }
 
+static int hanging_block_comment_end_parse() {
+  const int start = I;
+  while (char_parse(' ') == 0) {
+  }
+  if (chunk_parse("-}")) {
+    I = start;
+    return BLOCK_COMMENT_END_ERROR;
+  }
+  return 0;
+}
+
 static int block_comment_line_parse(uint16_t *id) {
   const int start = I;
-  if (chunk_parse("-}") == 0) {
+  if (hanging_block_comment_end_parse() == 0) {
     I = start;
-    return BLOCK_COMMENT_LINE_ERROR;
+    return BLOCK_COMMENT_EOL_ERROR;
   }
   while (block_comment_line_char_parse() == 0) {
   }
@@ -1166,7 +1179,6 @@ static int block_comment_contents_parse(uint16_t *id) {
     I = start;
     return BLOCK_COMMENT_FIRST_LINE_ERROR;
   }
-  many_whitespace_parse();
 
   CHILD[*id] = line;
 
@@ -1174,7 +1186,6 @@ static int block_comment_contents_parse(uint16_t *id) {
   while (block_comment_line_parse(&line) == 0) {
     SIBLING[previous] = line;
     previous = line;
-    many_whitespace_parse();
     NODE_TYPE[*id] = MULTILINE_BLOCK_COMMENT_NODE;
   }
 
@@ -1188,6 +1199,7 @@ static int non_empty_block_comment_parse_help(uint16_t *id) {
   if (block_comment_contents_parse(id)) {
     return BLOCK_COMMENT_CONTENTS_ERROR;
   }
+  many_whitespace_parse();
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
@@ -1271,6 +1283,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
+  // dbg_ast();
   return top_level_write();
 }
 
