@@ -1470,6 +1470,9 @@ static int module_declaration_parse_help(uint16_t *id) {
   }
   CHILD[*id] = upper_name;
   SIBLING[upper_name] = exports;
+
+  SIBLING[exports] = comments_parse();
+
   return 0;
 }
 
@@ -1523,6 +1526,11 @@ static void module_declaration_write() {
   literal_write(upper_name);
   fputs(" exposing ", OUT);
   exports_write(exports);
+  uint16_t comment = SIBLING[exports];
+  if (CHILD[comment] != 0) {
+    fputs("\n\n", OUT);
+  }
+  comments_write(comment);
 }
 
 static int module_declaration_format() {
@@ -1530,7 +1538,6 @@ static int module_declaration_format() {
   if (parse_result) {
     return parse_result;
   }
-  // dbg_ast();
   module_declaration_write();
   return 0;
 }

@@ -13,7 +13,7 @@ clang -fsanitize=address -g -fno-omit-frame-pointer -Wall -Werror -Wextra -pedan
 ./a.out --overwrite got > /dev/null
 rm -rf expected
 cp -r input expected
-elm-format expected --yes
+elm-format expected --yes > /dev/null
 diff -r --color got expected
 
 echo "`find input -type f | wc -l` tests"
