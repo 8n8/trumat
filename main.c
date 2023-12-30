@@ -79,13 +79,19 @@ enum error {
   MODULE_KEYWORD_ERROR,
   BLOCK_COMMENT_START_ERROR,
   COMMENT_WRITE_ERROR,
+  BLOCK_COMMENT_LINE_ERROR,
   BLOCK_COMMENT_END_ERROR,
+  BLOCK_COMMENT_CHAR_NEWLINE_ERROR,
+  BLOCK_COMMENT_CHAR_CLOSE_ERROR,
   BLOCK_COMMENT_CHAR_ERROR,
+  END_BLOCK_COMMENT_LINE_ERROR,
   EMPTY_BLOCK_COMMENT_ERROR,
+  BLOCK_COMMENT_EOL_ERROR,
   LINE_COMMENT_START_ERROR,
   LINE_COMMENT_CHAR_ERROR,
   STRING_UNICODE_START_ERROR,
   STRING_UNICODE_END_ERROR,
+  BLOCK_COMMENT_FIRST_LINE_ERROR,
   NORMAL_STRING_START_ERROR,
   DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR,
   TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR,
@@ -137,6 +143,18 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case BLOCK_COMMENT_EOL_ERROR:
+    return "block comment EOL";
+  case END_BLOCK_COMMENT_LINE_ERROR:
+    return "end block comment line";
+  case BLOCK_COMMENT_CHAR_NEWLINE_ERROR:
+    return "block comment char newline";
+  case BLOCK_COMMENT_CHAR_CLOSE_ERROR:
+    return "block comment char close";
+  case BLOCK_COMMENT_LINE_ERROR:
+    return "block comment line";
+  case BLOCK_COMMENT_FIRST_LINE_ERROR:
+    return "block comment first line";
   case TOO_MANY_NODES_ERROR:
     return "too many nodes";
   case COMMENT_WRITE_ERROR:
@@ -443,15 +461,24 @@ static void literal_write(uint16_t id) {
   }
 }
 
+static void block_comment_lines_write(uint16_t id) {
+  literal_write(CHILD[id]);
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
+       sibling = SIBLING[sibling]) {
+    fputs("\n       ", OUT);
+    literal_write(sibling);
+  }
+}
+
 static void single_line_block_comment_write(uint16_t id) {
   fputs("{- ", OUT);
-  literal_write(id);
+  block_comment_lines_write(id);
   fputs(" -}", OUT);
 }
 
 static void multiline_block_comment_write(uint16_t id) {
   fputs("{- ", OUT);
-  literal_write(id);
+  block_comment_lines_write(id);
   fputs("\n    -}", OUT);
 }
 
@@ -1034,11 +1061,22 @@ static int line_comment_char_parse() {
 
 static int is_whitespace(uint8_t c) { return c == ' ' || c == '\n'; }
 
+static void strip_start(uint16_t id) {
+  for (; is_whitespace(SRC[SRC_START[id]]) && SRC_SIZE[id] > 0;
+       ++SRC_START[id], --SRC_SIZE[id]) {
+  }
+}
+
 static void strip_end(uint16_t id) {
   for (;
        is_whitespace(SRC[SRC_START[id] + SRC_SIZE[id] - 1]) && SRC_SIZE[id] > 0;
        --SRC_SIZE[id]) {
   }
+}
+
+static void strip(uint16_t id) {
+  strip_start(id);
+  strip_end(id);
 }
 
 static int line_comment_parse(uint16_t *id) {
@@ -1051,7 +1089,7 @@ static int line_comment_parse(uint16_t *id) {
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
-  strip_end(*id);
+  strip(*id);
   return 0;
 }
 
@@ -1066,30 +1104,74 @@ static int empty_block_comment_parse(uint16_t *id) {
   return 0;
 }
 
-static int block_comment_char_parse() {
+static int block_comment_line_char_parse() {
   const int start = I;
   if (chunk_parse("-}") == 0) {
     I = start;
-    return BLOCK_COMMENT_CHAR_ERROR;
+    return BLOCK_COMMENT_CHAR_CLOSE_ERROR;
   }
-  uint8_t dont_care;
-  const int result = any_char_parse(&dont_care);
+  uint8_t c;
+  const int result = any_char_parse(&c);
   if (result) {
     return result;
+  }
+  if (c == '\n') {
+    I = start;
+    return BLOCK_COMMENT_CHAR_NEWLINE_ERROR;
   }
   return 0;
 }
 
-static int non_empty_block_comment_parse(uint16_t *id) {
+static int end_block_comment_line_parse() {
+  const int start = I;
+  if (chunk_parse("-}") == 0) {
+    I = start;
+    return 0;
+  }
+  if (char_parse('\n') == 0) {
+    I = start;
+    return 0;
+  }
+  return END_BLOCK_COMMENT_LINE_ERROR;
+}
+
+static int block_comment_line_parse(uint16_t *id) {
+  const int start = I;
+  if (chunk_parse("-}") == 0) {
+    I = start;
+    return BLOCK_COMMENT_LINE_ERROR;
+  }
+  while (block_comment_line_char_parse() == 0) {
+  }
+  if (end_block_comment_line_parse()) {
+    I = start;
+    return BLOCK_COMMENT_EOL_ERROR;
+  }
+  *id = node_init(LITERAL_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+  strip(*id);
+  return 0;
+}
+
+static int non_empty_block_comment_parse_help(uint16_t *id) {
   const int start_row = ROW[I];
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
   many_whitespace_parse();
-  const int start = I;
-  while (block_comment_char_parse() == 0) {
+  uint16_t first_line;
+  if (block_comment_line_parse(&first_line)) {
+    return BLOCK_COMMENT_FIRST_LINE_ERROR;
   }
-  const int end = I;
+  many_whitespace_parse();
+  uint16_t line = first_line;
+  uint16_t previous = line;
+  while (block_comment_line_parse(&line) == 0) {
+    SIBLING[previous] = line;
+    previous = line;
+    many_whitespace_parse();
+  }
   if (chunk_parse("-}")) {
     return BLOCK_COMMENT_END_ERROR;
   }
@@ -1098,10 +1180,17 @@ static int non_empty_block_comment_parse(uint16_t *id) {
                                   ? SINGLE_LINE_BLOCK_COMMENT_NODE
                                   : MULTILINE_BLOCK_COMMENT_NODE;
   *id = node_init(type);
-  SRC_START[*id] = start + 1;
-  SRC_SIZE[*id] = end - start;
-  strip_end(*id);
+  CHILD[*id] = first_line;
   return 0;
+}
+
+static int non_empty_block_comment_parse(uint16_t *id) {
+const int start = I;
+  const int result = non_empty_block_comment_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
 }
 
 static int comment_parse(uint16_t *id) {
@@ -1172,7 +1261,6 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  dbg_ast();
   return top_level_write();
 }
 
@@ -1416,7 +1504,6 @@ static int with_out_file() {
 
   return 0;
 }
-
 static void calculate_row_numbers() {
   int row = 0;
   for (int i = 0; i < NUM_SRC; ++i) {
