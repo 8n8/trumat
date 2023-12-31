@@ -483,7 +483,17 @@ static void spaces_write(int indent, FILE *out) {
   }
 }
 
-static void block_comment_lines_write(uint16_t id, int indent) {
+static void single_line_block_comment_write(uint16_t id) {
+  fputs("{- ", OUT);
+  literal_write(CHILD[id]);
+  fputs(" -}", OUT);
+}
+
+static void hanging_block_comment_write(uint16_t id, int indent) {
+  fputs("{-\n", OUT);
+  if (SRC_SIZE[CHILD[id]] != 0) {
+    spaces_write(indent + 3, OUT);
+  }
   literal_write(CHILD[id]);
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
@@ -493,32 +503,25 @@ static void block_comment_lines_write(uint16_t id, int indent) {
     }
     literal_write(sibling);
   }
-}
-
-static void single_line_block_comment_write(uint16_t id) {
-  fputs("{- ", OUT);
-  block_comment_lines_write(id, 0); // We don't care about the indent
-  fputs(" -}", OUT);
-}
-
-static void multiline_block_comment_write(uint16_t id, char *start,
-                                          int indent) {
-  fputs(start, OUT);
-  block_comment_lines_write(id, indent);
   fputc('\n', OUT);
   spaces_write(indent, OUT);
   fputs("-}", OUT);
 }
 
-static void hanging_block_start(char start[100], int indent) {
-  start[0] = '{';
-  start[1] = '-';
-  start[2] = '\n';
-  int i = 3;
-  for (; i < indent + 6; ++i) {
-    start[i] = ' ';
+static void multiline_compact_block_comment_write(uint16_t id, int indent) {
+  fputs("{- ", OUT);
+  literal_write(CHILD[id]);
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
+       sibling = SIBLING[sibling]) {
+    fputc('\n', OUT);
+    if (SRC_SIZE[sibling] != 0) {
+      spaces_write(indent + 3, OUT);
+    }
+    literal_write(sibling);
   }
-  start[i] = '\0';
+  fputc('\n', OUT);
+  spaces_write(indent, OUT);
+  fputs("-}", OUT);
 }
 
 static void comment_write(uint16_t id, int indent) {
@@ -530,12 +533,10 @@ static void comment_write(uint16_t id, int indent) {
     literal_write(id);
     return;
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    multiline_block_comment_write(id, "{- ", indent);
+    multiline_compact_block_comment_write(id, indent);
     return;
   case HANGING_BLOCK_COMMENT_NODE: {
-    char start[100];
-    hanging_block_start(start, indent);
-    multiline_block_comment_write(id, start, indent);
+    hanging_block_comment_write(id, indent);
     return;
   case EMPTY_BLOCK_COMMENT_NODE:
     fputs("{--}", OUT);
@@ -1239,7 +1240,6 @@ static int block_comment_contents_parse(uint16_t *id) {
   const enum node_type single_type =
       is_hanging ? HANGING_BLOCK_COMMENT_NODE : SINGLE_LINE_BLOCK_COMMENT_NODE;
   *id = node_init(single_type);
-  many_whitespace_parse();
   uint16_t line;
   int nesting = 1;
   if (block_comment_line_parse(&line, &nesting)) {
