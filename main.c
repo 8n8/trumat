@@ -1308,8 +1308,8 @@ static uint16_t comments_parse() {
   while (comment_parse(&item) == 0) {
     SIBLING[previous] = item;
     previous = item;
+    many_whitespace_parse();
   }
-  many_whitespace_parse();
   return id;
 }
 
