@@ -45,6 +45,7 @@ void dbg_src() {
 
 enum node_type {
   MODULE_DECLARATION_NODE,
+  EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
@@ -57,6 +58,8 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return 0;
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     return 1;
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
@@ -88,7 +91,8 @@ enum error {
   BLOCK_COMMENT_CHAR_CLOSE_ERROR,
   BLOCK_COMMENT_CHAR_ERROR,
   END_BLOCK_COMMENT_LINE_ERROR,
-  EMPTY_BLOCK_COMMENT_ERROR,
+  EMPTY_BLOCK_COMMENT_START_ERROR,
+  EMPTY_BLOCK_COMMENT_END_ERROR,
   BLOCK_COMMENT_EOL_ERROR,
   BLOCK_COMMENT_CONTENTS_ERROR,
   LINE_COMMENT_START_ERROR,
@@ -147,6 +151,10 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case EMPTY_BLOCK_COMMENT_START_ERROR:
+    return "empty block comment start";
+  case EMPTY_BLOCK_COMMENT_END_ERROR:
+    return "empty block comment end";
   case BLOCK_COMMENT_CONTENTS_ERROR:
     return "block comment contents";
   case BLOCK_COMMENT_EOL_ERROR:
@@ -171,8 +179,6 @@ char *error_to_string(enum error error) {
     return "block comment char";
   case BLOCK_COMMENT_START_ERROR:
     return "block comment start";
-  case EMPTY_BLOCK_COMMENT_ERROR:
-    return "empty block comment";
   case LINE_COMMENT_START_ERROR:
     return "line comment start";
   case LINE_COMMENT_CHAR_ERROR:
@@ -368,6 +374,8 @@ static uint16_t node_init(enum node_type type) {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return "EBLK";
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
     return "MLCB";
   case HANGING_BLOCK_COMMENT_NODE:
@@ -528,6 +536,9 @@ static void comment_write(uint16_t id, int indent) {
     char start[100];
     hanging_block_start(start, indent);
     multiline_block_comment_write(id, start, indent);
+    return;
+  case EMPTY_BLOCK_COMMENT_NODE:
+    fputs("{--}", OUT);
     return;
   }
   default:
@@ -1132,12 +1143,15 @@ static int line_comment_parse(uint16_t *id) {
 
 static int empty_block_comment_parse(uint16_t *id) {
   const int start = I;
-  if (chunk_parse("{--}")) {
-    return EMPTY_BLOCK_COMMENT_ERROR;
+  if (chunk_parse("{-")) {
+    return EMPTY_BLOCK_COMMENT_START_ERROR;
   }
-  *id = node_init(LITERAL_NODE);
-  SRC_START[*id] = start + 1;
-  SRC_SIZE[*id] = I - start;
+  many_whitespace_parse();
+  if (chunk_parse("-}")) {
+    I = start;
+    return EMPTY_BLOCK_COMMENT_END_ERROR;
+  }
+  *id = node_init(EMPTY_BLOCK_COMMENT_NODE);
   return 0;
 }
 
