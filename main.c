@@ -993,7 +993,7 @@ static int triple_string_parse(uint16_t *id) {
 }
 
 static int is_after_name_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == ')' || c == ',';
+  return c == ' ' || c == '\n' || c == ')' || c == ',' || c == '{';
 }
 
 static int after_name_char_parse() {
@@ -1313,13 +1313,25 @@ static uint16_t comments_parse() {
   return id;
 }
 
+static void join_whitespace(uint16_t a, uint16_t b) {
+  uint16_t a_node = CHILD[a];
+  if (a_node == 0) {
+    CHILD[a] = CHILD[b];
+    return;
+  }
+  for (; SIBLING[a_node] != 0; a_node = SIBLING[a_node]) {
+  }
+
+  SIBLING[a_node] = CHILD[b];
+}
+
 static int top_level_parse_help() {
   uint16_t name;
   const int name_result = lower_name_parse(&name);
   if (name_result) {
     return TOP_LEVEL_BIND_NAME_ERROR;
   }
-  many_whitespace_parse();
+  uint16_t pre_equals_whitespace = comments_parse();
   if (char_parse('=')) {
     return TOP_LEVEL_BIND_EQUALS_ERROR;
   }
@@ -1331,8 +1343,9 @@ static int top_level_parse_help() {
   }
   CHILD[ROOT] = name;
   NODE_TYPE[ROOT] = BIND_NODE;
-  SIBLING[name] = pre_body_whitespace;
-  SIBLING[pre_body_whitespace] = body;
+  join_whitespace(pre_equals_whitespace, pre_body_whitespace);
+  SIBLING[name] = pre_equals_whitespace;
+  SIBLING[pre_equals_whitespace] = body;
   return 0;
 }
 
