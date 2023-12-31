@@ -469,13 +469,19 @@ static void literal_write(uint16_t id) {
   }
 }
 
-static void block_comment_lines_write(uint16_t id) {
+static void spaces_write(int indent, FILE *out) {
+  for (int i = 0; i < indent; ++i) {
+    fputc(' ', out);
+  }
+}
+
+static void block_comment_lines_write(uint16_t id, int indent) {
   literal_write(CHILD[id]);
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputc('\n', OUT);
     if (SRC_SIZE[sibling] != 0) {
-      fputs("       ", OUT);
+      spaces_write(indent + 3, OUT);
     }
     literal_write(sibling);
   }
@@ -483,17 +489,31 @@ static void block_comment_lines_write(uint16_t id) {
 
 static void single_line_block_comment_write(uint16_t id) {
   fputs("{- ", OUT);
-  block_comment_lines_write(id);
+  block_comment_lines_write(id, 0); // We don't care about the indent
   fputs(" -}", OUT);
 }
 
-static void multiline_block_comment_write(uint16_t id, char *start) {
+static void multiline_block_comment_write(uint16_t id, char *start,
+                                          int indent) {
   fputs(start, OUT);
-  block_comment_lines_write(id);
-  fputs("\n    -}", OUT);
+  block_comment_lines_write(id, indent);
+  fputc('\n', OUT);
+  spaces_write(indent, OUT);
+  fputs("-}", OUT);
 }
 
-static void comment_write(uint16_t id) {
+static void hanging_block_start(char start[100], int indent) {
+  start[0] = '{';
+  start[1] = '-';
+  start[2] = '\n';
+  int i = 3;
+  for (; i < indent + 6; ++i) {
+    start[i] = ' ';
+  }
+  start[i] = '\0';
+}
+
+static void comment_write(uint16_t id, int indent) {
   switch ((enum node_type)NODE_TYPE[id]) {
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     single_line_block_comment_write(id);
@@ -502,27 +522,30 @@ static void comment_write(uint16_t id) {
     literal_write(id);
     return;
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    multiline_block_comment_write(id, "{- ");
+    multiline_block_comment_write(id, "{- ", indent);
     return;
-  case HANGING_BLOCK_COMMENT_NODE:
-    multiline_block_comment_write(id, "{-\n       ");
+  case HANGING_BLOCK_COMMENT_NODE: {
+    char start[100];
+    hanging_block_start(start, indent);
+    multiline_block_comment_write(id, start, indent);
     return;
+  }
   default:
     panic(COMMENT_WRITE_ERROR);
   }
 }
 
-static void comments_write(uint16_t id) {
+static void comments_write(uint16_t id, int indent) {
   if (CHILD[id] == 0) {
     return;
   }
 
-  comment_write(CHILD[id]);
+  comment_write(CHILD[id], indent);
 
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputs("\n    ", OUT);
-    comment_write(sibling);
+    comment_write(sibling, indent);
   }
 }
 
@@ -532,7 +555,7 @@ static int top_level_write() {
   literal_write(name);
   fputs(" =\n    ", OUT);
   uint16_t comment = SIBLING[name];
-  comments_write(comment);
+  comments_write(comment, 4);
   if (CHILD[comment] != 0) {
     fputs("\n    ", OUT);
   }
@@ -1530,7 +1553,7 @@ static void module_declaration_write() {
   if (CHILD[comment] != 0) {
     fputs("\n\n", OUT);
   }
-  comments_write(comment);
+  comments_write(comment, 0);
 }
 
 static int module_declaration_format() {
