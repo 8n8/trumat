@@ -1367,6 +1367,111 @@ static int top_level_format() {
   return top_level_write();
 }
 
+#define MAX_EXPORT 1000
+uint16_t UNSORTED[MAX_EXPORT];
+uint16_t SORTED[MAX_EXPORT];
+int NUM_EXPORT;
+
+static int export_less_than(uint16_t a, uint16_t b) {
+  int i = 0;
+  for (; i < SRC_SIZE[a] && i < SRC_SIZE[b] &&
+         SRC[SRC_START[a] + i] == SRC[SRC_START[b] + i];
+       ++i) {
+  }
+
+  if (i == SRC_SIZE[a] && i == SRC_SIZE[b]) {
+    return 0;
+  }
+
+  if (i == SRC_SIZE[a] && i < SRC_SIZE[b]) {
+    return 1;
+  }
+
+  if (i == SRC_SIZE[b] && i < SRC_SIZE[a]) {
+    return 0;
+  }
+
+  return SRC[SRC_START[a] + i] < SRC[SRC_START[b] + i];
+}
+
+static int export_greater_than_or_equal(uint16_t a, uint16_t b) {
+  int i = 0;
+  for (; i < SRC_SIZE[a] && i < SRC_SIZE[b] &&
+         SRC[SRC_START[a] + i] == SRC[SRC_START[b] + i];
+       ++i) {
+  }
+
+  if (i == SRC_SIZE[a] && i == SRC_SIZE[b]) {
+    return 1;
+  }
+
+  if (i == SRC_SIZE[a] && i < SRC_SIZE[b]) {
+    return 0;
+  }
+
+  if (i == SRC_SIZE[b] && i < SRC_SIZE[a]) {
+    return 1;
+  }
+
+  return SRC[SRC_START[a] + i] >= SRC[SRC_START[b] + i];
+}
+
+static void sort_exports_one(int u) {
+  if (export_greater_than_or_equal(UNSORTED[u], SORTED[u - 1])) {
+    SORTED[u] = UNSORTED[u];
+    return;
+  }
+
+  int insert_at = u;
+  for (; insert_at > 0 &&
+         export_less_than(UNSORTED[insert_at], SORTED[insert_at - 1]);
+       --insert_at) {
+  }
+
+  for (int i = u; i > insert_at; --i) {
+    SORTED[i] = SORTED[i - 1];
+  }
+
+  SORTED[insert_at] = UNSORTED[u];
+}
+
+static void sort_exports_help() {
+  SORTED[0] = UNSORTED[0];
+  for (int u = 1; u < NUM_EXPORT; ++u) {
+    sort_exports_one(u);
+  }
+}
+
+static void copy_unsorted(uint16_t id) {
+  for (uint16_t node = CHILD[id]; node != 0; node = SIBLING[node]) {
+    UNSORTED[NUM_EXPORT] = node;
+    ++NUM_EXPORT;
+  }
+}
+
+static void copy_sorted(uint16_t id) {
+  if (NUM_EXPORT == 0) {
+    return;
+  }
+  CHILD[id] = SORTED[0];
+  uint16_t node = CHILD[id];
+  for (int i = 1; i < NUM_EXPORT; ++i) {
+    SIBLING[node] = SORTED[i];
+    node = SIBLING[node];
+  }
+  SIBLING[node] = 0;
+}
+
+static void sort_exports(uint16_t id) {
+  if (SIBLING[CHILD[id]] == 0) {
+    return;
+  }
+  NUM_EXPORT = 0;
+  copy_unsorted(id);
+  sort_exports_help();
+  copy_sorted(id);
+}
+
 static int module_exports_explicit_parse_help(uint16_t *id) {
   *id = node_init(MODULE_EXPORTS_EXPLICIT_NODE);
   if (char_parse('(')) {
@@ -1395,6 +1500,7 @@ static int module_exports_explicit_parse_help(uint16_t *id) {
   if (char_parse(')')) {
     return MODULE_EXPORTS_RIGHT_PAREN_ERROR;
   }
+  sort_exports(*id);
   return 0;
 }
 
