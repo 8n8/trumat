@@ -47,6 +47,7 @@ enum node_type {
   MODULE_DECLARATION_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
+  MODULE_EXPOSE_ALL_VARIANTS_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
   LITERAL_NODE,
@@ -58,6 +59,8 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
     return 0;
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
@@ -83,6 +86,8 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR,
+  MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR,
   BLOCK_COMMENT_START_ERROR,
   COMMENT_WRITE_ERROR,
   BLOCK_COMMENT_LINE_ERROR,
@@ -151,6 +156,10 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR:
+    return "module expose all variants name";
+  case MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR:
+    return "module expose all variants dots";
   case EMPTY_BLOCK_COMMENT_START_ERROR:
     return "empty block comment start";
   case EMPTY_BLOCK_COMMENT_END_ERROR:
@@ -374,6 +383,8 @@ static uint16_t node_init(enum node_type type) {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
     return "EBLK";
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
@@ -1040,13 +1051,21 @@ static int subsequent_name_char_parse() {
   return 0;
 }
 
-static int upper_name_parse_help(uint16_t *id) {
-  const int start = I + 1;
+static int consume_upper_name_chars() {
   const int result = first_upper_name_char_parse();
   if (result) {
     return result;
   }
   while (!subsequent_name_char_parse()) {
+  }
+  return 0;
+}
+
+static int upper_name_parse_help(uint16_t *id) {
+  const int start = I + 1;
+  const int result = consume_upper_name_chars();
+  if (result) {
+    return result;
   }
   const int end = I + 1;
   const int after_result = after_name_char_parse();
@@ -1472,8 +1491,36 @@ static void sort_exports(uint16_t id) {
   copy_sorted(id);
 }
 
+static int expose_all_variants_parse_help(uint16_t *id) {
+  const int start = I;
+  *id = node_init(MODULE_EXPOSE_ALL_VARIANTS_NODE);
+  if (consume_upper_name_chars()) {
+    return MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR;
+  }
+  const int end = I;
+  if (chunk_parse("(..)")) {
+    return MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR;
+  }
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = end - start;
+  return 0;
+}
+
+static int expose_all_variants_parse(uint16_t *id) {
+  const int start = I;
+  const int result = expose_all_variants_parse_help(id);
+  if (result) {
+    I = start;
+  }
+  return result;
+}
+
 static int export_parse(uint16_t *id) {
   if (lower_name_parse(id) == 0) {
+    return 0;
+  }
+
+  if (expose_all_variants_parse(id) == 0) {
     return 0;
   }
 
@@ -1654,10 +1701,16 @@ static void explicit_exports_write(uint16_t id) {
   fputc('(', OUT);
   const uint16_t export = CHILD[id];
   literal_write(export);
+  if (NODE_TYPE[export] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
+    fputs("(..)", OUT);
+  }
   for (uint16_t sibling = SIBLING[export]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputs(", ", OUT);
     literal_write(sibling);
+    if (NODE_TYPE[sibling] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
+      fputs("(..)", OUT);
+    }
   }
   fputc(')', OUT);
 }
