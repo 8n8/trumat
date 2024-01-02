@@ -1472,6 +1472,14 @@ static void sort_exports(uint16_t id) {
   copy_sorted(id);
 }
 
+static int export_parse(uint16_t *id) {
+  if (lower_name_parse(id) == 0) {
+    return 0;
+  }
+
+  return upper_name_parse(id);
+}
+
 static int module_exports_explicit_parse_help(uint16_t *id) {
   *id = node_init(MODULE_EXPORTS_EXPLICIT_NODE);
   if (char_parse('(')) {
@@ -1479,7 +1487,7 @@ static int module_exports_explicit_parse_help(uint16_t *id) {
   }
   many_whitespace_parse();
   uint16_t export;
-  if (lower_name_parse(&export)) {
+  if (export_parse(&export)) {
     return MODULE_EXPORT_ERROR;
   }
   CHILD[*id] = export;
@@ -1490,7 +1498,7 @@ static int module_exports_explicit_parse_help(uint16_t *id) {
       break;
     }
     many_whitespace_parse();
-    if (lower_name_parse(&export)) {
+    if (export_parse(&export)) {
       break;
     }
     SIBLING[previous] = export;
