@@ -1,1 +1,5 @@
 do a load of tests on module exports sorting
+rename whitespace node
+dots in module name
+comments in module declaration whitespace
+have a good look at exports_write - I think it's messy

@@ -45,6 +45,7 @@ void dbg_src() {
 
 enum node_type {
   MODULE_DECLARATION_NODE,
+  MODULE_EXPORT_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
@@ -59,6 +60,8 @@ enum node_type {
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case MODULE_EXPORT_NODE:
+    return 0;
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -383,6 +386,8 @@ static uint16_t node_init(enum node_type type) {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case MODULE_EXPORT_NODE:
+    return "1MEX";
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -1435,15 +1440,19 @@ static int export_greater_than_or_equal(uint16_t a, uint16_t b) {
   return SRC[SRC_START[a] + i] >= SRC[SRC_START[b] + i];
 }
 
+static uint16_t export_name(uint16_t id) {
+  return SIBLING[CHILD[id]];
+}
+
 static void sort_exports_one(int u) {
-  if (export_greater_than_or_equal(UNSORTED[u], SORTED[u - 1])) {
+  if (export_greater_than_or_equal(export_name(UNSORTED[u]), export_name(SORTED[u - 1]))) {
     SORTED[u] = UNSORTED[u];
     return;
   }
 
   int insert_at = u;
   for (; insert_at > 0 &&
-         export_less_than(UNSORTED[insert_at], SORTED[insert_at - 1]);
+         export_less_than(export_name(UNSORTED[insert_at]), export_name(SORTED[insert_at - 1]));
        --insert_at) {
   }
 
@@ -1515,7 +1524,7 @@ static int expose_all_variants_parse(uint16_t *id) {
   return result;
 }
 
-static int export_parse(uint16_t *id) {
+static int export_name_parse(uint16_t *id) {
   if (lower_name_parse(id) == 0) {
     return 0;
   }
@@ -1525,6 +1534,20 @@ static int export_parse(uint16_t *id) {
   }
 
   return upper_name_parse(id);
+}
+
+static int export_parse(uint16_t *id) {
+  const int comments_before = comments_parse();
+  uint16_t name;
+  const int name_result = export_name_parse(&name);
+  if (name_result) {
+    return name_result;
+  }
+
+  *id = node_init(MODULE_EXPORT_NODE);
+  CHILD[*id] = comments_before;
+  SIBLING[comments_before] = name;
+  return 0;
 }
 
 static int module_exports_explicit_parse_help(uint16_t *id) {
@@ -1697,20 +1720,57 @@ static int module_declaration_parse() {
   return result;
 }
 
-static void explicit_exports_write(uint16_t id) {
-  fputc('(', OUT);
-  const uint16_t export = CHILD[id];
-  literal_write(export);
-  if (NODE_TYPE[export] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
+static void export_write(uint16_t id, int is_multiline) {
+  if (CHILD[id] != 0 && is_multiline) {
+    fputc(' ', OUT);
+  }
+  comments_write(CHILD[id], 4);
+  if (CHILD[id] != 0 && is_multiline) {
+    fputs("\n    ", OUT);
+  }
+  const uint16_t name = SIBLING[CHILD[id]];
+  if (is_multiline) {
+    fputs("  ", OUT);
+  }
+  literal_write(name);
+  if (NODE_TYPE[name] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
     fputs("(..)", OUT);
   }
+}
+
+static int module_export_has_comments(uint16_t id) {
+  return CHILD[CHILD[id]] != 0 || CHILD[SIBLING[CHILD[id]]] != 0;
+}
+
+static int is_multiline_module_exports(uint16_t id) {
+  if (module_export_has_comments(CHILD[id])) {
+    return 1;
+  }
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0; sibling = SIBLING[sibling]) {
+    if (module_export_has_comments(sibling)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void explicit_exports_write(uint16_t id) {
+  const int is_multiline = is_multiline_module_exports(id);
+  if (is_multiline) {
+    fputs("\n    ", OUT);
+  } else {
+    fputc(' ', OUT);
+  }
+  fputc('(', OUT);
+  const uint16_t export = CHILD[id];
+  export_write(export, is_multiline);
   for (uint16_t sibling = SIBLING[export]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputs(", ", OUT);
-    literal_write(sibling);
-    if (NODE_TYPE[sibling] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
-      fputs("(..)", OUT);
-    }
+    export_write(sibling, is_multiline);
+  }
+  if (is_multiline) {
+    fputs("\n    ", OUT);
   }
   fputc(')', OUT);
 }
@@ -1721,7 +1781,7 @@ static void exports_write(uint16_t id) {
     explicit_exports_write(id);
     return;
   case MODULE_EXPORTS_ALL_NODE:
-    fputs("(..)", OUT);
+    fputs(" (..)", OUT);
     return;
   case MODULE_DECLARATION_NODE:
     fprintf(stderr, "exports_write: module declaration node\n");
@@ -1741,7 +1801,7 @@ static void module_declaration_write() {
   uint16_t exports = SIBLING[upper_name];
   fputs("module ", OUT);
   literal_write(upper_name);
-  fputs(" exposing ", OUT);
+  fputs(" exposing", OUT);
   exports_write(exports);
   uint16_t comment = SIBLING[exports];
   if (CHILD[comment] != 0) {
