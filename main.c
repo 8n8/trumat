@@ -1440,19 +1440,18 @@ static int export_greater_than_or_equal(uint16_t a, uint16_t b) {
   return SRC[SRC_START[a] + i] >= SRC[SRC_START[b] + i];
 }
 
-static uint16_t export_name(uint16_t id) {
-  return SIBLING[CHILD[id]];
-}
+static uint16_t export_name(uint16_t id) { return SIBLING[CHILD[id]]; }
 
 static void sort_exports_one(int u) {
-  if (export_greater_than_or_equal(export_name(UNSORTED[u]), export_name(SORTED[u - 1]))) {
+  if (export_greater_than_or_equal(export_name(UNSORTED[u]),
+                                   export_name(SORTED[u - 1]))) {
     SORTED[u] = UNSORTED[u];
     return;
   }
 
   int insert_at = u;
-  for (; insert_at > 0 &&
-         export_less_than(export_name(UNSORTED[insert_at]), export_name(SORTED[insert_at - 1]));
+  for (; insert_at > 0 && export_less_than(export_name(UNSORTED[insert_at]),
+                                           export_name(SORTED[insert_at - 1]));
        --insert_at) {
   }
 
@@ -1746,7 +1745,8 @@ static int is_multiline_module_exports(uint16_t id) {
   if (module_export_has_comments(CHILD[id])) {
     return 1;
   }
-  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0; sibling = SIBLING[sibling]) {
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
+       sibling = SIBLING[sibling]) {
     if (module_export_has_comments(sibling)) {
       return 1;
     }
