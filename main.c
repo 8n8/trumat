@@ -1727,6 +1727,9 @@ static void export_write(uint16_t id, int is_multiline) {
   if (CHILD[left_comment] != 0 && is_multiline) {
     fputs("\n    ", OUT);
   }
+  if (CHILD[left_comment] != 0 && !is_multiline) {
+    fputc(' ', OUT);
+  }
   const uint16_t name = SIBLING[CHILD[id]];
   if (CHILD[left_comment] != 0 && is_multiline) {
     fputs("  ", OUT);
@@ -1742,19 +1745,37 @@ static void export_write(uint16_t id, int is_multiline) {
   comments_write(right_comment, 4);
 }
 
-static int module_export_has_comments(uint16_t id) {
+static int comment_is_multiline(uint16_t id) {
+  if (SIBLING[CHILD[id]] != 0) {
+    return 1;
+  }
+
+  const uint16_t only_comment = CHILD[id];
+  switch (NODE_TYPE[only_comment]) {
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return 1;
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return 1;
+  case HANGING_BLOCK_COMMENT_NODE:
+    return 1;
+  }
+  return 0;
+}
+
+static int module_export_has_multiline_comments(uint16_t id) {
   const uint16_t left_comment = CHILD[id];
   const uint16_t right_comment = SIBLING[SIBLING[left_comment]];
-  return CHILD[left_comment] != 0 || CHILD[right_comment] != 0;
+  return comment_is_multiline(left_comment) ||
+         comment_is_multiline(right_comment);
 }
 
 static int is_multiline_module_exports(uint16_t id) {
-  if (module_export_has_comments(CHILD[id])) {
+  if (module_export_has_multiline_comments(CHILD[id])) {
     return 1;
   }
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
-    if (module_export_has_comments(sibling)) {
+    if (module_export_has_multiline_comments(sibling)) {
       return 1;
     }
   }
