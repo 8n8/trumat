@@ -1742,6 +1742,9 @@ static void export_write(uint16_t id, int is_multiline) {
   if (CHILD[right_comment] != 0 && is_multiline) {
     fputs("\n      ", OUT);
   }
+  if (CHILD[right_comment] != 0 && !is_multiline) {
+    fputc(' ', OUT);
+  }
   comments_write(right_comment, 4);
 }
 

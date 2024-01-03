@@ -1,2 +1,1 @@
-dots in module name
-comments in module declaration whitespace
+try to break up export_write into smaller functions
