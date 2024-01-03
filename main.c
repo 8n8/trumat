@@ -1721,31 +1721,45 @@ static int module_declaration_parse() {
   return result;
 }
 
-static void export_write(uint16_t id, int is_multiline) {
+static void export_left_comment_write(uint16_t id, int is_multiline) {
   const uint16_t left_comment = CHILD[id];
   comments_write(left_comment, 4);
-  if (CHILD[left_comment] != 0 && is_multiline) {
-    fputs("\n    ", OUT);
+  if (CHILD[left_comment] == 0) {
+    return;
   }
-  if (CHILD[left_comment] != 0 && !is_multiline) {
-    fputc(' ', OUT);
-  }
-  const uint16_t name = SIBLING[CHILD[id]];
-  if (CHILD[left_comment] != 0 && is_multiline) {
-    fputs("  ", OUT);
-  }
-  literal_write(name);
-  if (NODE_TYPE[name] == MODULE_EXPOSE_ALL_VARIANTS_NODE) {
-    fputs("(..)", OUT);
-  }
-  const uint16_t right_comment = SIBLING[name];
-  if (CHILD[right_comment] != 0 && is_multiline) {
+  if (is_multiline) {
     fputs("\n      ", OUT);
+    return;
   }
-  if (CHILD[right_comment] != 0 && !is_multiline) {
+  fputc(' ', OUT);
+}
+
+static void export_name_write(uint16_t id) {
+  const uint16_t name = SIBLING[CHILD[id]];
+  literal_write(name);
+  if (NODE_TYPE[name] != MODULE_EXPOSE_ALL_VARIANTS_NODE) {
+    return;
+  }
+  fputs("(..)", OUT);
+}
+
+static void export_right_comment_write(uint16_t id, int is_multiline) {
+  const uint16_t right_comment = SIBLING[SIBLING[CHILD[id]]];
+  if (CHILD[right_comment] == 0) {
+    return;
+  }
+  if (is_multiline) {
+    fputs("\n      ", OUT);
+  } else {
     fputc(' ', OUT);
   }
   comments_write(right_comment, 4);
+}
+
+static void export_write(uint16_t id, int is_multiline) {
+  export_left_comment_write(id, is_multiline);
+  export_name_write(id);
+  export_right_comment_write(id, is_multiline);
 }
 
 static int comment_is_multiline(uint16_t id) {
