@@ -1,4 +1,4 @@
-module X exposing ({--}x)
+module X exposing (x{--})
 
 
 x =
