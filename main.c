@@ -1010,7 +1010,8 @@ static int triple_string_parse(uint16_t *id) {
 }
 
 static int is_after_name_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == ')' || c == ',' || c == '{' || c == '-';
+  return c == ' ' || c == '\n' || c == ')' || c == ',' || c == '{' ||
+         c == '-' || c == '=';
 }
 
 static int after_name_char_parse() {
