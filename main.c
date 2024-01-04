@@ -1754,7 +1754,7 @@ static void export_right_comment_write(uint16_t id, int is_multiline) {
   } else {
     fputc(' ', OUT);
   }
-  comments_write(right_comment, 4);
+  comments_write(right_comment, 6);
 }
 
 static void export_write(uint16_t id, int is_multiline) {
