@@ -493,9 +493,9 @@ static void literal_write(uint16_t id) {
   }
 }
 
-static void spaces_write(int indent, FILE *out) {
+static void spaces_write(int indent) {
   for (int i = 0; i < indent; ++i) {
-    fputc(' ', out);
+    fputc(' ', OUT);
   }
 }
 
@@ -508,19 +508,19 @@ static void single_line_block_comment_write(uint16_t id) {
 static void hanging_block_comment_write(uint16_t id, int indent) {
   fputs("{-\n", OUT);
   if (SRC_SIZE[CHILD[id]] != 0) {
-    spaces_write(indent + 3, OUT);
+    spaces_write(indent + 3);
   }
   literal_write(CHILD[id]);
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
     fputc('\n', OUT);
     if (SRC_SIZE[sibling] != 0) {
-      spaces_write(indent + 3, OUT);
+      spaces_write(indent + 3);
     }
     literal_write(sibling);
   }
   fputc('\n', OUT);
-  spaces_write(indent, OUT);
+  spaces_write(indent);
   fputs("-}", OUT);
 }
 
@@ -531,12 +531,12 @@ static void multiline_compact_block_comment_write(uint16_t id, int indent) {
        sibling = SIBLING[sibling]) {
     fputc('\n', OUT);
     if (SRC_SIZE[sibling] != 0) {
-      spaces_write(indent + 3, OUT);
+      spaces_write(indent + 3);
     }
     literal_write(sibling);
   }
   fputc('\n', OUT);
-  spaces_write(indent, OUT);
+  spaces_write(indent);
   fputs("-}", OUT);
 }
 
@@ -572,7 +572,8 @@ static void comments_write(uint16_t id, int indent) {
 
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
-    fputs("\n    ", OUT);
+    fputc('\n', OUT);
+    spaces_write(indent);
     comment_write(sibling, indent);
   }
 }
@@ -1723,7 +1724,7 @@ static int module_declaration_parse() {
 
 static void export_left_comment_write(uint16_t id, int is_multiline) {
   const uint16_t left_comment = CHILD[id];
-  comments_write(left_comment, 4);
+  comments_write(left_comment, 6);
   if (CHILD[left_comment] == 0) {
     return;
   }
