@@ -1816,6 +1816,9 @@ static void explicit_exports_write(uint16_t id) {
   export_write(export, is_multiline);
   for (uint16_t sibling = SIBLING[export]; sibling != 0;
        sibling = SIBLING[sibling]) {
+    if (is_multiline) {
+      fputs("\n    ", OUT);
+    }
     fputs(", ", OUT);
     export_write(sibling, is_multiline);
   }
