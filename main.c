@@ -1775,6 +1775,8 @@ static int comment_is_multiline(uint16_t id) {
     return 1;
   case HANGING_BLOCK_COMMENT_NODE:
     return 1;
+  case LITERAL_NODE:
+    return 1;
   }
   return 0;
 }
