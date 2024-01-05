@@ -1846,12 +1846,10 @@ static void exports_write(uint16_t id, int is_multiline) {
 }
 
 static void module_declaration_write() {
-  const uint16_t id = ROOT;
-  const uint16_t upper_name = CHILD[id];
+  const uint16_t upper_name = CHILD[ROOT];
   const uint16_t comment_after_exposing = SIBLING[upper_name];
   const int is_multiline_declaration =
       comment_is_multiline(comment_after_exposing);
-  const uint16_t exports = SIBLING[comment_after_exposing];
 
   fputs("module ", OUT);
   literal_write(upper_name);
@@ -1861,6 +1859,7 @@ static void module_declaration_write() {
     fputc(' ', OUT);
   }
   fputs("exposing", OUT);
+  const uint16_t exports = SIBLING[comment_after_exposing];
   const int is_exports_multiline = is_multiline_module_exports(exports);
   if (is_multiline_declaration || is_exports_multiline) {
     fputs("\n    ", OUT);
