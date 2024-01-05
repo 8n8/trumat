@@ -1,2 +1,2 @@
-break up module_declaration_write into smaller functions
 make sure all switch case on enums are exhaustive
+replace exit with panic

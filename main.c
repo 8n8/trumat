@@ -95,6 +95,7 @@ enum error {
   COMMENT_WRITE_ERROR,
   BLOCK_COMMENT_LINE_ERROR,
   BLOCK_COMMENT_END_ERROR,
+  EXPORTS_WRITE_ERROR,
   BLOCK_COMMENT_CHAR_NEWLINE_ERROR,
   BLOCK_COMMENT_CHAR_CLOSE_ERROR,
   BLOCK_COMMENT_CHAR_ERROR,
@@ -159,6 +160,8 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case EXPORTS_WRITE_ERROR:
+    return "exports write";
   case MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR:
     return "module expose all variants name";
   case MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR:
@@ -551,20 +554,31 @@ static void comment_write(uint16_t id, int indent) {
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
     multiline_compact_block_comment_write(id, indent);
     return;
-  case HANGING_BLOCK_COMMENT_NODE: {
+  case HANGING_BLOCK_COMMENT_NODE:
     hanging_block_comment_write(id, indent);
     return;
   case EMPTY_BLOCK_COMMENT_NODE:
     fputs("{--}", OUT);
     return;
-  }
-  default:
+  case MODULE_DECLARATION_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case MODULE_EXPORT_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case WHITESPACE_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case MODULE_EXPORTS_ALL_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case MODULE_EXPORTS_EXPLICIT_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case BIND_NODE:
     panic(COMMENT_WRITE_ERROR);
   }
 }
 
 static int is_multiline_comment(uint16_t id) {
-  switch (NODE_TYPE[id]) {
+  switch ((enum node_type)NODE_TYPE[id]) {
   case EMPTY_BLOCK_COMMENT_NODE:
     return 1;
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
@@ -573,8 +587,23 @@ static int is_multiline_comment(uint16_t id) {
     return 1;
   case LITERAL_NODE:
     return 1;
+  case MODULE_DECLARATION_NODE:
+    return 0;
+  case MODULE_EXPORT_NODE:
+    return 0;
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return 0;
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return 0;
+  case MODULE_EXPORTS_ALL_NODE:
+    return 0;
+  case WHITESPACE_NODE:
+    return 0;
+  case MODULE_EXPORTS_EXPLICIT_NODE:
+    return 0;
+  case BIND_NODE:
+    return 0;
   }
-  return 0;
 }
 
 static int is_block_comment(uint16_t id) {
@@ -1901,7 +1930,7 @@ static void explicit_exports_write(uint16_t id, int is_multiline) {
 }
 
 static void exports_write(uint16_t id, int is_multiline) {
-  switch (NODE_TYPE[id]) {
+  switch ((enum node_type)NODE_TYPE[id]) {
   case MODULE_EXPORTS_EXPLICIT_NODE:
     explicit_exports_write(id, is_multiline);
     return;
@@ -1909,14 +1938,25 @@ static void exports_write(uint16_t id, int is_multiline) {
     fputs("(..)", OUT);
     return;
   case MODULE_DECLARATION_NODE:
-    fprintf(stderr, "exports_write: module declaration node\n");
-    exit(-1);
+    panic(EXPORTS_WRITE_ERROR);
   case LITERAL_NODE:
-    fprintf(stderr, "exports_write: literal node\n");
-    exit(-1);
+    panic(EXPORTS_WRITE_ERROR);
   case BIND_NODE:
-    fprintf(stderr, "exports_write: bind node\n");
-    exit(-1);
+    panic(EXPORTS_WRITE_ERROR);
+  case MODULE_EXPORT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case EMPTY_BLOCK_COMMENT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case HANGING_BLOCK_COMMENT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case WHITESPACE_NODE:
+    panic(EXPORTS_WRITE_ERROR);
   }
 }
 
