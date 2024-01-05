@@ -1699,14 +1699,15 @@ static int module_declaration_parse_help(uint16_t *id) {
   if (keyword_parse("exposing")) {
     return EXPOSING_KEYWORD_ERROR;
   }
-  many_whitespace_parse();
+  const uint16_t comment_after_exposing = comments_parse();
   uint16_t exports;
   const int module_exports_result = module_exports_parse(&exports);
   if (module_exports_result) {
     return module_exports_result;
   }
   CHILD[*id] = upper_name;
-  SIBLING[upper_name] = exports;
+  SIBLING[upper_name] = comment_after_exposing;
+  SIBLING[comment_after_exposing] = exports;
 
   SIBLING[exports] = comments_parse();
 
@@ -1803,13 +1804,7 @@ static int is_multiline_module_exports(uint16_t id) {
   return 0;
 }
 
-static void explicit_exports_write(uint16_t id) {
-  const int is_multiline = is_multiline_module_exports(id);
-  if (is_multiline) {
-    fputs("\n    ", OUT);
-  } else {
-    fputc(' ', OUT);
-  }
+static void explicit_exports_write(uint16_t id, int is_multiline) {
   fputc('(', OUT);
   if (is_multiline) {
     fputc(' ', OUT);
@@ -1830,13 +1825,13 @@ static void explicit_exports_write(uint16_t id) {
   fputc(')', OUT);
 }
 
-static void exports_write(uint16_t id) {
+static void exports_write(uint16_t id, int is_multiline) {
   switch (NODE_TYPE[id]) {
   case MODULE_EXPORTS_EXPLICIT_NODE:
-    explicit_exports_write(id);
+    explicit_exports_write(id, is_multiline);
     return;
   case MODULE_EXPORTS_ALL_NODE:
-    fputs(" (..)", OUT);
+    fputs("(..)", OUT);
     return;
   case MODULE_DECLARATION_NODE:
     fprintf(stderr, "exports_write: module declaration node\n");
@@ -1853,11 +1848,34 @@ static void exports_write(uint16_t id) {
 static void module_declaration_write() {
   const uint16_t id = ROOT;
   uint16_t upper_name = CHILD[id];
-  uint16_t exports = SIBLING[upper_name];
+  const uint16_t comment_after_exposing = SIBLING[upper_name];
+  const int is_multiline_declaration =
+      comment_is_multiline(comment_after_exposing);
+  uint16_t exports = SIBLING[comment_after_exposing];
+
   fputs("module ", OUT);
   literal_write(upper_name);
-  fputs(" exposing", OUT);
-  exports_write(exports);
+  if (is_multiline_declaration) {
+    fputs("\n    ", OUT);
+  } else {
+    fputc(' ', OUT);
+  }
+  fputs("exposing", OUT);
+  const int is_exports_multiline = is_multiline_module_exports(exports);
+  if (is_multiline_declaration || is_exports_multiline) {
+    fputs("\n    ", OUT);
+  } else {
+    fputc(' ', OUT);
+  }
+  comments_write(comment_after_exposing, 4);
+  if (CHILD[comment_after_exposing] != 0) {
+    if (is_multiline_declaration) {
+      fputs("\n    ", OUT);
+    } else {
+      fputc(' ', OUT);
+    }
+  }
+  exports_write(exports, is_exports_multiline);
   uint16_t comment = SIBLING[exports];
   if (CHILD[comment] != 0) {
     fputs("\n\n", OUT);
