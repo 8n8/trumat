@@ -563,18 +563,104 @@ static void comment_write(uint16_t id, int indent) {
   }
 }
 
+static int is_multiline_comment(uint16_t id) {
+  switch (NODE_TYPE[id]) {
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return 1;
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return 1;
+  case HANGING_BLOCK_COMMENT_NODE:
+    return 1;
+  case LITERAL_NODE:
+    return 1;
+  }
+  return 0;
+}
+
+static int is_block_comment(uint16_t id) {
+  switch ((enum node_type)NODE_TYPE[id]) {
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return 1;
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return 1;
+  case HANGING_BLOCK_COMMENT_NODE:
+    return 1;
+  case LITERAL_NODE:
+    return 1;
+  case MODULE_DECLARATION_NODE:
+    return 0;
+  case MODULE_EXPORT_NODE:
+    return 0;
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return 1;
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return 0;
+  case WHITESPACE_NODE:
+    return 0;
+  case MODULE_EXPORTS_ALL_NODE:
+    return 0;
+  case MODULE_EXPORTS_EXPLICIT_NODE:
+    return 0;
+  case BIND_NODE:
+    return 0;
+  }
+}
+
+static int is_double_block_comment(uint16_t id) {
+  return is_block_comment(id) && is_block_comment(SIBLING[id]);
+}
+
+static void comment_gap_module_declaration(uint16_t id) {
+  if (SIBLING[id] == 0) {
+    return;
+  }
+  if (is_multiline_comment(id)) {
+    fputc('\n', OUT);
+    spaces_write(4);
+    return;
+  }
+  fputc(' ', OUT);
+}
+
+static void comment_gap(uint16_t id, int indent) {
+  if (SIBLING[id] == 0) {
+    return;
+  }
+  if (is_multiline_comment(id) || is_double_block_comment(id)) {
+    fputc('\n', OUT);
+    spaces_write(indent);
+    return;
+  }
+  fputc(' ', OUT);
+}
+
+static void comments_write_module_declaration(uint16_t id) {
+  if (CHILD[id] == 0) {
+    return;
+  }
+
+  comment_write(CHILD[id], 4);
+  comment_gap_module_declaration(CHILD[id]);
+
+  for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
+       sibling = SIBLING[sibling]) {
+    comment_write(sibling, 4);
+    comment_gap_module_declaration(sibling);
+  }
+}
+
 static void comments_write(uint16_t id, int indent) {
   if (CHILD[id] == 0) {
     return;
   }
 
   comment_write(CHILD[id], indent);
+  comment_gap(CHILD[id], indent);
 
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
-    fputc('\n', OUT);
-    spaces_write(indent);
     comment_write(sibling, indent);
+    comment_gap(sibling, indent);
   }
 }
 
@@ -1765,30 +1851,19 @@ static void export_write(uint16_t id, int is_multiline) {
   export_right_comment_write(id, is_multiline);
 }
 
-static int comment_is_multiline(uint16_t id) {
-  if (SIBLING[CHILD[id]] != 0) {
-    return 1;
+static int comments_are_multiline(uint16_t id) {
+  uint16_t comment = CHILD[id];
+  for (; comment != 0 && !is_multiline_comment(comment);
+       comment = SIBLING[comment]) {
   }
-
-  const uint16_t only_comment = CHILD[id];
-  switch (NODE_TYPE[only_comment]) {
-  case EMPTY_BLOCK_COMMENT_NODE:
-    return 1;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return 1;
-  case HANGING_BLOCK_COMMENT_NODE:
-    return 1;
-  case LITERAL_NODE:
-    return 1;
-  }
-  return 0;
+  return comment != 0;
 }
 
 static int module_export_has_multiline_comments(uint16_t id) {
   const uint16_t left_comment = CHILD[id];
   const uint16_t right_comment = SIBLING[SIBLING[left_comment]];
-  return comment_is_multiline(left_comment) ||
-         comment_is_multiline(right_comment);
+  return comments_are_multiline(left_comment) ||
+         comments_are_multiline(right_comment);
 }
 
 static int is_multiline_module_exports(uint16_t id) {
@@ -1857,7 +1932,7 @@ static void module_declaration_write() {
   const uint16_t name = CHILD[ROOT];
   const uint16_t comment_after_exposing = SIBLING[name];
   const int is_multiline_declaration =
-      comment_is_multiline(comment_after_exposing);
+      comments_are_multiline(comment_after_exposing);
   fputs("module ", OUT);
   literal_write(name);
   module_declaration_gap(is_multiline_declaration);
@@ -1865,7 +1940,7 @@ static void module_declaration_write() {
   const uint16_t exports = SIBLING[comment_after_exposing];
   const int is_exports_multiline = is_multiline_module_exports(exports);
   module_declaration_gap(is_multiline_declaration || is_exports_multiline);
-  comments_write(comment_after_exposing, 4);
+  comments_write_module_declaration(comment_after_exposing);
   if (CHILD[comment_after_exposing] != 0) {
     module_declaration_gap(is_multiline_declaration);
   }
