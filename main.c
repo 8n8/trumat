@@ -1854,13 +1854,13 @@ static void module_declaration_gap(int is_multiline) {
 }
 
 static void module_declaration_write() {
-  const uint16_t upper_name = CHILD[ROOT];
-  const uint16_t comment_after_exposing = SIBLING[upper_name];
+  const uint16_t name = CHILD[ROOT];
+  const uint16_t comment_after_exposing = SIBLING[name];
   const int is_multiline_declaration =
       comment_is_multiline(comment_after_exposing);
 
   fputs("module ", OUT);
-  literal_write(upper_name);
+  literal_write(name);
   module_declaration_gap(is_multiline_declaration);
   fputs("exposing", OUT);
   const uint16_t exports = SIBLING[comment_after_exposing];
@@ -1868,7 +1868,7 @@ static void module_declaration_write() {
   module_declaration_gap(is_multiline_declaration || is_exports_multiline);
   comments_write(comment_after_exposing, 4);
   if (CHILD[comment_after_exposing] != 0) {
-    module_declaration_gap(as_multiline_declaration);
+    module_declaration_gap(is_multiline_declaration);
   }
   exports_write(exports, is_exports_multiline);
   const uint16_t comment = SIBLING[exports];
