@@ -1858,7 +1858,6 @@ static void module_declaration_write() {
   const uint16_t comment_after_exposing = SIBLING[name];
   const int is_multiline_declaration =
       comment_is_multiline(comment_after_exposing);
-
   fputs("module ", OUT);
   literal_write(name);
   module_declaration_gap(is_multiline_declaration);
