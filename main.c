@@ -606,39 +606,6 @@ static int is_multiline_comment(uint16_t id) {
   }
 }
 
-static int is_block_comment(uint16_t id) {
-  switch ((enum node_type)NODE_TYPE[id]) {
-  case EMPTY_BLOCK_COMMENT_NODE:
-    return 1;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return 1;
-  case HANGING_BLOCK_COMMENT_NODE:
-    return 1;
-  case LITERAL_NODE:
-    return 1;
-  case MODULE_DECLARATION_NODE:
-    return 0;
-  case MODULE_EXPORT_NODE:
-    return 0;
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    return 1;
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    return 0;
-  case WHITESPACE_NODE:
-    return 0;
-  case MODULE_EXPORTS_ALL_NODE:
-    return 0;
-  case MODULE_EXPORTS_EXPLICIT_NODE:
-    return 0;
-  case BIND_NODE:
-    return 0;
-  }
-}
-
-static int is_double_block_comment(uint16_t id) {
-  return is_block_comment(id) && is_block_comment(SIBLING[id]);
-}
-
 static void comment_gap_module_declaration(uint16_t id, int is_multiline) {
   if (SIBLING[id] == 0) {
     return;
@@ -655,12 +622,9 @@ static void comment_gap(uint16_t id, int indent) {
   if (SIBLING[id] == 0) {
     return;
   }
-  if (is_multiline_comment(id) || is_double_block_comment(id)) {
-    fputc('\n', OUT);
-    spaces_write(indent);
-    return;
-  }
-  fputc(' ', OUT);
+  fputc('\n', OUT);
+  spaces_write(indent);
+  return;
 }
 
 static int comments_are_multiline(uint16_t id) {
