@@ -639,11 +639,11 @@ static int is_double_block_comment(uint16_t id) {
   return is_block_comment(id) && is_block_comment(SIBLING[id]);
 }
 
-static void comment_gap_module_declaration(uint16_t id) {
+static void comment_gap_module_declaration(uint16_t id, int is_multiline) {
   if (SIBLING[id] == 0) {
     return;
   }
-  if (is_multiline_comment(id)) {
+  if (is_multiline) {
     fputc('\n', OUT);
     spaces_write(4);
     return;
@@ -663,18 +663,28 @@ static void comment_gap(uint16_t id, int indent) {
   fputc(' ', OUT);
 }
 
+static int comments_are_multiline(uint16_t id) {
+  uint16_t comment = CHILD[id];
+  for (; comment != 0 && !is_multiline_comment(comment);
+       comment = SIBLING[comment]) {
+  }
+  return comment != 0;
+}
+
 static void comments_write_module_declaration(uint16_t id) {
   if (CHILD[id] == 0) {
     return;
   }
 
+  const int is_multiline = comments_are_multiline(id);
+
   comment_write(CHILD[id], 4);
-  comment_gap_module_declaration(CHILD[id]);
+  comment_gap_module_declaration(CHILD[id], is_multiline);
 
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
        sibling = SIBLING[sibling]) {
     comment_write(sibling, 4);
-    comment_gap_module_declaration(sibling);
+    comment_gap_module_declaration(sibling, is_multiline);
   }
 }
 
@@ -1878,14 +1888,6 @@ static void export_write(uint16_t id, int is_multiline) {
   export_left_comment_write(id, is_multiline);
   export_name_write(id);
   export_right_comment_write(id, is_multiline);
-}
-
-static int comments_are_multiline(uint16_t id) {
-  uint16_t comment = CHILD[id];
-  for (; comment != 0 && !is_multiline_comment(comment);
-       comment = SIBLING[comment]) {
-  }
-  return comment != 0;
 }
 
 static int module_export_has_multiline_comments(uint16_t id) {
