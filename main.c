@@ -1938,25 +1938,7 @@ static void module_declaration_gap(int is_multiline) {
   fputc(' ', OUT);
 }
 
-static void module_declaration_comment_before_name_write(uint16_t id) {
-  const int pre_name_multiline = comments_are_multiline(id);
-  module_declaration_gap(pre_name_multiline);
-  comments_write_module_declaration(id);
-  if (CHILD[id] != 0) {
-    module_declaration_gap(pre_name_multiline);
-  }
-}
-
-static void module_declaration_comment_after_name_write(uint16_t id,
-                                                        int is_multiline) {
-  module_declaration_gap(is_multiline);
-  comments_write_module_declaration(id);
-  if (CHILD[id] != 0) {
-    module_declaration_gap(is_multiline);
-  }
-}
-
-static void module_declaration_comment_after_exposing_write(uint16_t id, int is_multiline) {
+static void comment_with_gap_write(uint16_t id, int is_multiline) {
   module_declaration_gap(is_multiline);
   comments_write_module_declaration(id);
   if (CHILD[id] != 0) {
@@ -1974,14 +1956,15 @@ static void module_declaration_write() {
       comments_are_multiline(comment_after_exposing) ||
       comments_are_multiline(comment_after_name);
   fputs("module", OUT);
-  module_declaration_comment_before_name_write(comment_before_name);
+  const int pre_name_multiline = comments_are_multiline(comment_before_name);
+  comment_with_gap_write(comment_before_name, pre_name_multiline);
   literal_write(name);
-  module_declaration_comment_after_name_write(comment_after_name,
-                                              is_multiline_declaration);
+  comment_with_gap_write(comment_after_name, is_multiline_declaration);
   fputs("exposing", OUT);
   const uint16_t exports = SIBLING[comment_after_exposing];
   const int is_exports_multiline = is_multiline_module_exports(exports);
-  module_declaration_comment_after_exposing_write(comment_after_exposing, is_multiline_declaration || is_exports_multiline);
+  comment_with_gap_write(comment_after_exposing,
+                         is_multiline_declaration || is_exports_multiline);
   exports_write(exports, is_exports_multiline);
   const uint16_t comment = SIBLING[exports];
   if (CHILD[comment] != 0) {
