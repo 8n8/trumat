@@ -348,7 +348,7 @@ static void many_whitespace_parse() {
 }
 
 static int is_after_keyword_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == '{' || c == '-';
+  return c == ' ' || c == '\n' || c == '{' || c == '-' || c == '(';
 }
 
 static int after_keyword_parse() {
