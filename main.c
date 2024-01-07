@@ -1899,7 +1899,7 @@ static void explicit_exports_write(uint16_t id, int is_multiline) {
   fputc(')', OUT);
 }
 
-static void exports_write(uint16_t id, int is_multiline) {
+static void module_exports_write(uint16_t id, int is_multiline) {
   switch ((enum node_type)NODE_TYPE[id]) {
   case MODULE_EXPORTS_EXPLICIT_NODE:
     explicit_exports_write(id, is_multiline);
@@ -1964,7 +1964,7 @@ static void module_declaration_write() {
   const int is_exports_multiline = is_multiline_module_exports(exports);
   comment_with_gap_write(comment_after_exposing,
                          is_multiline_declaration || is_exports_multiline);
-  exports_write(exports, is_exports_multiline);
+  module_exports_write(exports, is_exports_multiline);
   const uint16_t comment = SIBLING[exports];
   if (CHILD[comment] != 0) {
     fputs("\n\n", OUT);
