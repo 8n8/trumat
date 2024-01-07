@@ -1781,7 +1781,7 @@ static int module_declaration_parse_help(uint16_t *id) {
   if (keyword_parse("module")) {
     return MODULE_KEYWORD_ERROR;
   }
-  many_whitespace_parse();
+  const uint16_t comment_before_name = comments_parse();
   uint16_t upper_name;
   if (upper_name_parse(&upper_name)) {
     return MODULE_NAME_ERROR;
@@ -1796,7 +1796,8 @@ static int module_declaration_parse_help(uint16_t *id) {
   if (module_exports_result) {
     return module_exports_result;
   }
-  CHILD[*id] = upper_name;
+  CHILD[*id] = comment_before_name;
+  SIBLING[comment_before_name] = upper_name;
   SIBLING[upper_name] = comment_before_exposing;
   SIBLING[comment_before_exposing] = comment_after_exposing;
   SIBLING[comment_after_exposing] = exports;
@@ -1938,13 +1939,21 @@ static void module_declaration_gap(int is_multiline) {
 }
 
 static void module_declaration_write() {
-  const uint16_t name = CHILD[ROOT];
+  const uint16_t comment_before_name = CHILD[ROOT];
+  const uint16_t name = SIBLING[comment_before_name];
   const uint16_t comment_before_exposing = SIBLING[name];
   const uint16_t comment_after_exposing = SIBLING[comment_before_exposing];
   const int is_multiline_declaration =
+      comments_are_multiline(comment_before_name) ||
       comments_are_multiline(comment_after_exposing) ||
       comments_are_multiline(comment_before_exposing);
-  fputs("module ", OUT);
+  fputs("module", OUT);
+  const int pre_name_multiline = comments_are_multiline(comment_before_name);
+  module_declaration_gap(pre_name_multiline);
+  comments_write_module_declaration(comment_before_name);
+  if (CHILD[comment_before_name] != 0) {
+    module_declaration_gap(pre_name_multiline);
+  }
   literal_write(name);
   module_declaration_gap(is_multiline_declaration);
   comments_write_module_declaration(comment_before_exposing);
