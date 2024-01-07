@@ -1946,6 +1946,19 @@ static void comment_with_gap_write(uint16_t id, int is_multiline) {
   }
 }
 
+static void module_declaration_exports_with_gaps_write(uint16_t comment_before,
+                                                       int is_multiline) {
+  const uint16_t exports = SIBLING[comment_before];
+  const int is_exports_multiline = is_multiline_module_exports(exports);
+  comment_with_gap_write(comment_before, is_multiline || is_exports_multiline);
+  module_exports_write(exports, is_exports_multiline);
+  const uint16_t comment = SIBLING[exports];
+  if (CHILD[comment] != 0) {
+    fputs("\n\n", OUT);
+  }
+  comments_write(comment, 0);
+}
+
 static void module_declaration_write() {
   const uint16_t comment_before_name = CHILD[ROOT];
   const uint16_t name = SIBLING[comment_before_name];
@@ -1956,20 +1969,13 @@ static void module_declaration_write() {
       comments_are_multiline(comment_after_exposing) ||
       comments_are_multiline(comment_after_name);
   fputs("module", OUT);
-  comment_with_gap_write(comment_before_name, comments_are_multiline(comment_before_name));
+  comment_with_gap_write(comment_before_name,
+                         comments_are_multiline(comment_before_name));
   literal_write(name);
   comment_with_gap_write(comment_after_name, is_multiline_declaration);
   fputs("exposing", OUT);
-  const uint16_t exports = SIBLING[comment_after_exposing];
-  const int is_exports_multiline = is_multiline_module_exports(exports);
-  comment_with_gap_write(comment_after_exposing,
-                         is_multiline_declaration || is_exports_multiline);
-  module_exports_write(exports, is_exports_multiline);
-  const uint16_t comment = SIBLING[exports];
-  if (CHILD[comment] != 0) {
-    fputs("\n\n", OUT);
-  }
-  comments_write(comment, 0);
+  module_declaration_exports_with_gaps_write(comment_after_exposing,
+                                             is_multiline_declaration);
 }
 
 static int module_declaration_format() {
