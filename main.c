@@ -1956,8 +1956,7 @@ static void module_declaration_write() {
       comments_are_multiline(comment_after_exposing) ||
       comments_are_multiline(comment_after_name);
   fputs("module", OUT);
-  const int pre_name_multiline = comments_are_multiline(comment_before_name);
-  comment_with_gap_write(comment_before_name, pre_name_multiline);
+  comment_with_gap_write(comment_before_name, comments_are_multiline(comment_before_name));
   literal_write(name);
   comment_with_gap_write(comment_after_name, is_multiline_declaration);
   fputs("exposing", OUT);
