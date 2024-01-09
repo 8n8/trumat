@@ -45,6 +45,7 @@ void dbg_src() {
 
 enum node_type {
   MODULE_DECLARATION_NODE,
+  NO_DOCS_NODE,
   MODULE_EXPORT_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
@@ -56,10 +57,15 @@ enum node_type {
   MODULE_EXPORTS_ALL_NODE,
   MODULE_EXPORTS_EXPLICIT_NODE,
   BIND_NODE,
+  DOC_COMMENT_NODE,
 };
 
 static int is_text_node(enum node_type type) {
   switch (type) {
+  case NO_DOCS_NODE:
+    return 0;
+  case DOC_COMMENT_NODE:
+    return 1;
   case MODULE_EXPORT_NODE:
     return 0;
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
@@ -89,6 +95,8 @@ static int is_text_node(enum node_type type) {
 
 enum error {
   MODULE_KEYWORD_ERROR,
+  DOC_COMMENT_START_ERROR,
+  NOT_HYPHEN_ERROR,
   MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR,
   MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR,
   BLOCK_COMMENT_START_ERROR,
@@ -100,6 +108,7 @@ enum error {
   BLOCK_COMMENT_CHAR_CLOSE_ERROR,
   BLOCK_COMMENT_CHAR_ERROR,
   END_BLOCK_COMMENT_LINE_ERROR,
+  DOC_COMMENT_END_ERROR,
   EMPTY_BLOCK_COMMENT_START_ERROR,
   EMPTY_BLOCK_COMMENT_END_ERROR,
   BLOCK_COMMENT_EOL_ERROR,
@@ -160,6 +169,12 @@ enum error {
 
 char *error_to_string(enum error error) {
   switch (error) {
+  case NOT_HYPHEN_ERROR:
+    return "not hyphen";
+  case DOC_COMMENT_END_ERROR:
+    return "doc comment end";
+  case DOC_COMMENT_START_ERROR:
+    return "doc comment start";
   case EXPORTS_WRITE_ERROR:
     return "exports write";
   case MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR:
@@ -391,6 +406,10 @@ static uint16_t node_init(enum node_type type) {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
+  case NO_DOCS_NODE:
+    return "NODO";
+  case DOC_COMMENT_NODE:
+    return "DOCS";
   case MODULE_EXPORT_NODE:
     return "1MEX";
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
@@ -547,6 +566,11 @@ static void multiline_compact_block_comment_write(uint16_t id, int indent) {
 
 static void comment_write(uint16_t id, int indent) {
   switch ((enum node_type)NODE_TYPE[id]) {
+  case NO_DOCS_NODE:
+    panic(COMMENT_WRITE_ERROR);
+  case DOC_COMMENT_NODE:
+    literal_write(id);
+    return;
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     single_line_block_comment_write(id);
     return;
@@ -581,6 +605,10 @@ static void comment_write(uint16_t id, int indent) {
 
 static int is_multiline_comment(uint16_t id) {
   switch ((enum node_type)NODE_TYPE[id]) {
+  case NO_DOCS_NODE:
+    return 0;
+  case DOC_COMMENT_NODE:
+    return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
     return 1;
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
@@ -1377,6 +1405,9 @@ static int block_comment_contents_parse(uint16_t *id) {
 }
 
 static int non_empty_block_comment_parse_help(uint16_t *id) {
+  if (chunk_parse("{-|") == 0) {
+    return BLOCK_COMMENT_START_ERROR;
+  }
   if (chunk_parse("{-")) {
     return BLOCK_COMMENT_START_ERROR;
   }
@@ -1799,6 +1830,38 @@ static int module_name_parse(uint16_t *id) {
   return 0;
 }
 
+static int not_hyphen_char_parse() {
+  uint8_t c;
+  const int result = any_char_parse(&c);
+  if (result) {
+    return result;
+  }
+
+  if (c == '-') {
+    --I;
+    return NOT_HYPHEN_ERROR;
+  }
+  return 0;
+}
+
+static int doc_comment_parse(uint16_t *id) {
+  const int start = I;
+  if (chunk_parse("{-|")) {
+    return DOC_COMMENT_START_ERROR;
+  }
+  while (not_hyphen_char_parse() == 0) {
+  }
+  if (chunk_parse("-}")) {
+    I = start;
+    return DOC_COMMENT_END_ERROR;
+  }
+  *id = node_init(DOC_COMMENT_NODE);
+  SRC_START[*id] = start + 1;
+  SRC_SIZE[*id] = I - start;
+
+  return 0;
+}
+
 static int module_declaration_parse_help(uint16_t *id) {
   *id = ROOT;
   NODE_TYPE[*id] = MODULE_DECLARATION_NODE;
@@ -1825,8 +1888,15 @@ static int module_declaration_parse_help(uint16_t *id) {
   SIBLING[module_name] = comment_before_exposing;
   SIBLING[comment_before_exposing] = comment_after_exposing;
   SIBLING[comment_after_exposing] = exports;
-
-  SIBLING[exports] = comments_parse();
+  const uint16_t normal_comment = comments_parse();
+  SIBLING[exports] = normal_comment;
+  many_whitespace_parse();
+  uint16_t block;
+  if (doc_comment_parse(&block) == 0) {
+    SIBLING[normal_comment] = block;
+    return 0;
+  }
+  SIBLING[normal_comment] = node_init(NO_DOCS_NODE);
 
   return 0;
 }
@@ -1925,6 +1995,10 @@ static void explicit_exports_write(uint16_t id, int is_multiline) {
 
 static void module_exports_write(uint16_t id, int is_multiline) {
   switch ((enum node_type)NODE_TYPE[id]) {
+  case NO_DOCS_NODE:
+    panic(EXPORTS_WRITE_ERROR);
+  case DOC_COMMENT_NODE:
+    panic(EXPORTS_WRITE_ERROR);
   case MODULE_EXPORTS_EXPLICIT_NODE:
     explicit_exports_write(id, is_multiline);
     return;
@@ -1981,6 +2055,12 @@ static void module_declaration_exports_with_gaps_write(uint16_t comment_before,
     fputs("\n\n", OUT);
   }
   comments_write(comment, 0);
+  const uint16_t docs = SIBLING[comment];
+  if (NODE_TYPE[docs] == NO_DOCS_NODE) {
+    return;
+  }
+  fputs("\n\n", OUT);
+  literal_write(docs);
 }
 
 static void module_declaration_write() {

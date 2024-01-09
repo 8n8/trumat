@@ -1,0 +1,2 @@
+make different error codes for all the panics in module_exports_write
+make different error coes for all the panics in comment_write
