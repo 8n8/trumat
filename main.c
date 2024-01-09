@@ -3,6 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Twice the size of the largest Elm file I have seen.
+#define MAX_SRC 1400 * 1000
+static uint8_t SRC[MAX_SRC];
+static uint16_t ROW[MAX_SRC];
+static uint16_t COLUMN[MAX_SRC];
+static int NUM_SRC = 0;
+static int I = -1;
+static FILE *OUT;
+
 // The formatter works on top level definitions, so this state should be
 // enough to contain everything that is needed to format the largest top
 // level definition.
@@ -23,14 +32,6 @@ static uint16_t SRC_SIZE[MAX_NODE];
 #define ROOT 1
 // So the first non-root node is 2
 static int NUM_NODE = 2;
-// Twice the size of the largest Elm file I have seen.
-#define MAX_SRC 1400 * 1000
-static uint8_t SRC[MAX_SRC];
-static uint16_t ROW[MAX_SRC];
-static uint16_t COLUMN[MAX_SRC];
-static int NUM_SRC = 0;
-static int I = -1;
-static FILE *OUT;
 
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
