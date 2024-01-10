@@ -55,7 +55,6 @@ enum node_type {
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
   MODULE_EXPORTS_EXPLICIT_NODE,
-  BIND_NODE,
   DOC_COMMENT_NODE,
 };
 
@@ -82,8 +81,6 @@ static int is_text_node(uint16_t id) {
   case MODULE_EXPORTS_ALL_NODE:
     return 0;
   case MODULE_EXPORTS_EXPLICIT_NODE:
-    return 0;
-  case BIND_NODE:
     return 0;
   }
 }
@@ -160,8 +157,6 @@ static int keyword_parse(char *keyword) {
   I = end;
   return after_result;
 }
-
-static void set_bind_node(uint16_t id) { NODE_TYPE[id] = BIND_NODE; }
 
 static void set_multiline_compact_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
@@ -302,8 +297,6 @@ static char *node_type_to_string(enum node_type type) {
     return "EXAL";
   case MODULE_EXPORTS_EXPLICIT_NODE:
     return "EXEX";
-  case BIND_NODE:
-    return "BIND";
   }
 }
 
@@ -1315,7 +1308,6 @@ static int top_level_parse_help() {
     return -1;
   }
   CHILD[ROOT] = name;
-  set_bind_node(ROOT);
   join_whitespace(pre_equals_whitespace, pre_body_whitespace);
   SIBLING[name] = pre_equals_whitespace;
   SIBLING[pre_equals_whitespace] = body;
