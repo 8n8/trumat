@@ -48,7 +48,6 @@ enum node_type {
   EMPTY_BLOCK_COMMENT_NODE = 1,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
-  MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
   MODULE_EXPORTS_ALL_NODE,
 };
@@ -61,8 +60,6 @@ static int is_text_node(uint16_t id) {
     return 0;
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     return 1;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return 0;
   case HANGING_BLOCK_COMMENT_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
@@ -143,10 +140,6 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static void set_multiline_compact_block_comment_node(uint16_t id) {
-  NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
-}
-
 static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
@@ -163,10 +156,6 @@ static int is_module_expose_all_variants_node(uint16_t id) {
 
 static int is_single_line_block_comment_node(uint16_t id) {
   return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
-}
-
-static int is_multiline_compact_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
@@ -230,8 +219,6 @@ static char *node_type_to_string(enum node_type type) {
     return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
     return "EBLK";
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return "MLCB";
   case HANGING_BLOCK_COMMENT_NODE:
     return "HBCB";
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
@@ -373,10 +360,6 @@ static void comment_write(uint16_t id, int indent) {
     single_line_block_comment_write(id);
     return;
   }
-  if (is_multiline_compact_block_comment_node(id)) {
-    multiline_compact_block_comment_write(id, indent);
-    return;
-  }
   if (is_hanging_block_comment_node(id)) {
     hanging_block_comment_write(id, indent);
     return;
@@ -385,7 +368,7 @@ static void comment_write(uint16_t id, int indent) {
     fputs("{--}", OUT);
     return;
   }
-  literal_write(id);
+  multiline_compact_block_comment_write(id, indent);
 }
 
 static void comment_gap_module_declaration(uint16_t id, int is_multiline) {
@@ -1151,8 +1134,6 @@ static int block_comment_contents_parse(uint16_t *id) {
     previous = line;
     if (is_hanging) {
       set_hanging_block_comment_node(*id);
-    } else {
-      set_multiline_compact_block_comment_node(*id);
     }
   }
 
