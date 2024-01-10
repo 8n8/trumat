@@ -167,7 +167,7 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static uint16_t node_init(enum node_type type) {
+static uint16_t general_node_init() {
   if (NUM_NODE == MAX_NODE) {
     exit(125);
   }
@@ -175,8 +175,67 @@ static uint16_t node_init(enum node_type type) {
   SIBLING[id] = 0;
   CHILD[id] = 0;
   ++NUM_NODE;
-  NODE_TYPE[id] = type;
   return id;
+}
+
+static uint16_t empty_block_comment_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = EMPTY_BLOCK_COMMENT_NODE;
+  return node;
+}
+
+static uint16_t single_line_block_comment_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = SINGLE_LINE_BLOCK_COMMENT_NODE;
+  return node;
+}
+
+static uint16_t hanging_block_comment_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = HANGING_BLOCK_COMMENT_NODE;
+  return node;
+}
+
+static uint16_t whitespace_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = WHITESPACE_NODE;
+  return node;
+}
+
+static uint16_t module_exports_explicit_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = MODULE_EXPORTS_EXPLICIT_NODE;
+  return node;
+}
+
+static uint16_t module_expose_all_variants_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = MODULE_EXPOSE_ALL_VARIANTS_NODE;
+  return node;
+}
+
+static uint16_t module_exports_all_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = MODULE_EXPORTS_ALL_NODE;
+  return node;
+}
+
+static uint16_t doc_comment_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = DOC_COMMENT_NODE;
+  return node;
+}
+
+static uint16_t no_docs_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = NO_DOCS_NODE;
+  return node;
+}
+
+static uint16_t literal_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = LITERAL_NODE;
+  return node;
 }
 
 static char *node_type_to_string(enum node_type type) {
@@ -574,7 +633,7 @@ static int base10_parse_help(uint16_t *id) {
   if (end_result) {
     return end_result;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -619,7 +678,7 @@ static int hex_parse(uint16_t *id) {
       SRC[i] = SRC[i] - 'a' + 'A';
     }
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -648,7 +707,7 @@ static int plain_float_parse_help(uint16_t *id) {
   if (end_result) {
     return end_result;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -697,7 +756,7 @@ static int exponent_float_parse_help(uint16_t *id) {
   if (end_result) {
     return end_result;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -792,7 +851,7 @@ static int normal_string_parse_help(uint16_t *id) {
   if (end_result) {
     return end_result;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -874,7 +933,7 @@ static int triple_string_parse_help(uint16_t *id) {
   if (chunk_parse("\"\"\"")) {
     return -1;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -960,7 +1019,7 @@ static int upper_name_parse_help(uint16_t *id) {
     return after_result;
   }
   I = end - 1;
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start;
   SRC_SIZE[*id] = end - start;
   return 0;
@@ -1041,7 +1100,7 @@ static int line_comment_parse(uint16_t *id) {
   }
   while (line_comment_char_parse() == 0) {
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   strip(*id);
@@ -1058,7 +1117,7 @@ static int empty_block_comment_parse(uint16_t *id) {
     I = start;
     return -1;
   }
-  *id = node_init(EMPTY_BLOCK_COMMENT_NODE);
+  *id = empty_block_comment_node_init();
   return 0;
 }
 
@@ -1123,7 +1182,7 @@ static int block_comment_line_parse(uint16_t *id, int *nesting) {
     I = start;
     return -1;
   }
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   strip(*id);
@@ -1143,9 +1202,15 @@ static int block_comment_contents_parse(uint16_t *id) {
   const enum node_type multi_type = is_hanging
                                         ? HANGING_BLOCK_COMMENT_NODE
                                         : MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
-  const enum node_type single_type =
-      is_hanging ? HANGING_BLOCK_COMMENT_NODE : SINGLE_LINE_BLOCK_COMMENT_NODE;
-  *id = node_init(single_type);
+  if (is_hanging) {
+    *id = hanging_block_comment_node_init();
+  } else {
+    *id = single_line_block_comment_node_init();
+  }
+  // const enum node_type single_type =
+  //     is_hanging ? HANGING_BLOCK_COMMENT_NODE :
+  //     SINGLE_LINE_BLOCK_COMMENT_NODE;
+  // *id = node_init(single_type);
   uint16_t line;
   int nesting = 1;
   if (block_comment_line_parse(&line, &nesting)) {
@@ -1206,7 +1271,7 @@ static int comment_parse(uint16_t *id) {
 static uint16_t comments_parse() {
   many_whitespace_parse();
   uint16_t item;
-  const uint16_t id = node_init(WHITESPACE_NODE);
+  const uint16_t id = whitespace_node_init();
   const int first_result = comment_parse(&item);
   if (first_result) {
     return id;
@@ -1386,7 +1451,8 @@ static void sort_exports(uint16_t id) {
 
 static int expose_all_variants_parse_help(uint16_t *id) {
   const int start = I;
-  *id = node_init(MODULE_EXPOSE_ALL_VARIANTS_NODE);
+  *id =
+      module_expose_all_variants_node_init(); // node_init(MODULE_EXPOSE_ALL_VARIANTS_NODE);
   if (consume_upper_name_chars()) {
     return -1;
   }
@@ -1429,7 +1495,7 @@ static int export_parse(uint16_t *id) {
   }
   const int comments_after = comments_parse();
 
-  *id = node_init(MODULE_EXPORT_NODE);
+  *id = module_exports_all_node_init();
   CHILD[*id] = comments_before;
   SIBLING[comments_before] = name;
   SIBLING[name] = comments_after;
@@ -1437,7 +1503,7 @@ static int export_parse(uint16_t *id) {
 }
 
 static int module_exports_explicit_parse_help(uint16_t *id) {
-  *id = node_init(MODULE_EXPORTS_EXPLICIT_NODE);
+  *id = module_exports_explicit_node_init();
   if (char_parse('(')) {
     return -1;
   }
@@ -1489,7 +1555,7 @@ static int module_exports_all_parse_help(uint16_t *id) {
   if (char_parse(')')) {
     return -1;
   }
-  *id = node_init(MODULE_EXPORTS_ALL_NODE);
+  *id = module_exports_all_node_init();
   return 0;
 }
 
@@ -1552,7 +1618,7 @@ static int lower_name_parse_help(uint16_t *id) {
   }
   I = end - 1;
 
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start;
   SRC_SIZE[*id] = end - start;
   return 0;
@@ -1585,7 +1651,7 @@ static int module_name_parse(uint16_t *id) {
     }
   }
 
-  *id = node_init(LITERAL_NODE);
+  *id = literal_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
   return 0;
@@ -1616,7 +1682,7 @@ static int doc_comment_parse(uint16_t *id) {
     I = start;
     return -1;
   }
-  *id = node_init(DOC_COMMENT_NODE);
+  *id = doc_comment_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
 
@@ -1657,7 +1723,7 @@ static int module_declaration_parse_help(uint16_t *id) {
     SIBLING[normal_comment] = block;
     return 0;
   }
-  SIBLING[normal_comment] = node_init(NO_DOCS_NODE);
+  SIBLING[normal_comment] = no_docs_node_init();
 
   return 0;
 }
