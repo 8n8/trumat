@@ -46,7 +46,6 @@ void dbg_src() {
 
 enum node_type {
   NO_DOCS_NODE = 1,
-  MODULE_EXPORT_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
@@ -63,8 +62,6 @@ static int is_text_node(uint16_t id) {
     return 0;
   case DOC_COMMENT_NODE:
     return 1;
-  case MODULE_EXPORT_NODE:
-    return 0;
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -270,8 +267,6 @@ static char *node_type_to_string(enum node_type type) {
     return "NODO";
   case DOC_COMMENT_NODE:
     return "DOCS";
-  case MODULE_EXPORT_NODE:
-    return "1MEX";
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
