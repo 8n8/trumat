@@ -167,6 +167,26 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
+static int is_doc_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == DOC_COMMENT_NODE;
+}
+
+static int is_single_line_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
+}
+
+static int is_multiline_compact_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+}
+
+static int is_hanging_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == HANGING_BLOCK_COMMENT_NODE;
+}
+
+static int is_empty_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == EMPTY_BLOCK_COMMENT_NODE;
+}
+
 static uint16_t general_node_init() {
   if (NUM_NODE == MAX_NODE) {
     exit(125);
@@ -399,28 +419,27 @@ static void multiline_compact_block_comment_write(uint16_t id, int indent) {
 }
 
 static void comment_write(uint16_t id, int indent) {
-  switch ((enum node_type)NODE_TYPE[id]) {
-  case DOC_COMMENT_NODE:
+  if (is_doc_comment_node(id)) {
     literal_write(id);
     return;
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+  }
+  if (is_single_line_block_comment_node(id)) {
     single_line_block_comment_write(id);
     return;
-  case LITERAL_NODE:
-    literal_write(id);
-    return;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+  }
+  if (is_multiline_compact_block_comment_node(id)) {
     multiline_compact_block_comment_write(id, indent);
     return;
-  case HANGING_BLOCK_COMMENT_NODE:
+  }
+  if (is_hanging_block_comment_node(id)) {
     hanging_block_comment_write(id, indent);
     return;
-  case EMPTY_BLOCK_COMMENT_NODE:
+  }
+  if (is_empty_block_comment_node(id)) {
     fputs("{--}", OUT);
     return;
-  default:
-    exit(123);
   }
+  literal_write(id);
 }
 
 static int is_multiline_comment(uint16_t id) {
