@@ -167,6 +167,10 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
+static void set_bind_node(uint16_t id) {
+  NODE_TYPE[id] = BIND_NODE;
+}
+
 static void set_multiline_compact_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
 }
@@ -1340,7 +1344,7 @@ static int top_level_parse_help() {
     return -1;
   }
   CHILD[ROOT] = name;
-  NODE_TYPE[ROOT] = BIND_NODE;
+  set_bind_node(ROOT);
   join_whitespace(pre_equals_whitespace, pre_body_whitespace);
   SIBLING[name] = pre_equals_whitespace;
   SIBLING[pre_equals_whitespace] = body;
