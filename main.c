@@ -94,235 +94,9 @@ static int is_text_node(enum node_type type) {
   }
 }
 
-enum error {
-  MODULE_KEYWORD_ERROR,
-  DOC_COMMENT_START_ERROR,
-  NOT_HYPHEN_ERROR,
-  MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR,
-  MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR,
-  BLOCK_COMMENT_START_ERROR,
-  COMMENT_WRITE_ERROR,
-  BLOCK_COMMENT_LINE_ERROR,
-  BLOCK_COMMENT_END_ERROR,
-  EXPORTS_WRITE_ERROR,
-  BLOCK_COMMENT_CHAR_NEWLINE_ERROR,
-  BLOCK_COMMENT_CHAR_CLOSE_ERROR,
-  BLOCK_COMMENT_CHAR_ERROR,
-  END_BLOCK_COMMENT_LINE_ERROR,
-  DOC_COMMENT_END_ERROR,
-  EMPTY_BLOCK_COMMENT_START_ERROR,
-  EMPTY_BLOCK_COMMENT_END_ERROR,
-  BLOCK_COMMENT_EOL_ERROR,
-  BLOCK_COMMENT_CONTENTS_ERROR,
-  LINE_COMMENT_START_ERROR,
-  LINE_COMMENT_CHAR_ERROR,
-  STRING_UNICODE_START_ERROR,
-  STRING_UNICODE_END_ERROR,
-  BLOCK_COMMENT_FIRST_LINE_ERROR,
-  NORMAL_STRING_START_ERROR,
-  DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR,
-  TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR,
-  TRIPLE_STRING_START_ERROR,
-  TRIPLE_STRING_END_ERROR,
-  NORMAL_STRING_END_ERROR,
-  NORMAL_STRING_ORDINARY_CHAR_ERROR,
-  TRIPLE_STRING_ORDINARY_CHAR_ERROR,
-  DIGIT_ERROR,
-  HEX_ERROR,
-  HEX_START_ERROR,
-  HEX_END_ERROR,
-  FLOAT_START_ERROR,
-  FLOAT_DOT_ERROR,
-  FIRST_DIGIT_ERROR,
-  FLOAT_AFTER_ERROR,
-  FLOAT_END_ERROR,
-  NOT_HEX_ERROR,
-  MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR,
-  MODULE_EXPORTS_ALL_DOTS_ERROR,
-  MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR,
-  CHUNK_PARSE_ERROR,
-  MODULE_NAME_ERROR,
-  EXPOSING_KEYWORD_ERROR,
-  NO_MODULE_DECLARATION_ERROR,
-  MODULE_EXPORT_ERROR,
-  MODULE_EXPORTS_LEFT_PAREN_ERROR,
-  MODULE_EXPORTS_RIGHT_PAREN_ERROR,
-  KEYWORD_ERROR,
-  TOO_MANY_NODES_ERROR,
-  AFTER_KEYWORD_ERROR,
-  UPPER_NAME_END_ERROR,
-  LOWER_NAME_END_ERROR,
-  LOWER_NAME_START_ERROR,
-  UPPER_NAME_START_ERROR,
-  TOP_LEVEL_BIND_NAME_ERROR,
-  TOP_LEVEL_BIND_EQUALS_ERROR,
-  TOP_LEVEL_BIND_BODY_ERROR,
-  CHAR_PARSE_EOF_ERROR,
-  CHAR_PARSE_NOT_MATCH_ERROR,
-  ANY_CHAR_PARSE_EOF_ERROR,
-  BASE10_START_ERROR,
-  BASE10_END_ERROR,
-  SRC_EOF_ERROR,
-  SRC_FILE_READ_ERROR,
-  SRC_TOO_SHORT_ERROR,
-  LITERAL_WRITE_ERROR,
-};
-
-char *error_to_string(enum error error) {
-  switch (error) {
-  case NOT_HYPHEN_ERROR:
-    return "not hyphen";
-  case DOC_COMMENT_END_ERROR:
-    return "doc comment end";
-  case DOC_COMMENT_START_ERROR:
-    return "doc comment start";
-  case EXPORTS_WRITE_ERROR:
-    return "exports write";
-  case MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR:
-    return "module expose all variants name";
-  case MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR:
-    return "module expose all variants dots";
-  case EMPTY_BLOCK_COMMENT_START_ERROR:
-    return "empty block comment start";
-  case EMPTY_BLOCK_COMMENT_END_ERROR:
-    return "empty block comment end";
-  case BLOCK_COMMENT_CONTENTS_ERROR:
-    return "block comment contents";
-  case BLOCK_COMMENT_EOL_ERROR:
-    return "block comment EOL";
-  case END_BLOCK_COMMENT_LINE_ERROR:
-    return "end block comment line";
-  case BLOCK_COMMENT_CHAR_NEWLINE_ERROR:
-    return "block comment char newline";
-  case BLOCK_COMMENT_CHAR_CLOSE_ERROR:
-    return "block comment char close";
-  case BLOCK_COMMENT_LINE_ERROR:
-    return "block comment line";
-  case BLOCK_COMMENT_FIRST_LINE_ERROR:
-    return "block comment first line";
-  case TOO_MANY_NODES_ERROR:
-    return "too many nodes";
-  case COMMENT_WRITE_ERROR:
-    return "comment write";
-  case BLOCK_COMMENT_END_ERROR:
-    return "block comment end";
-  case BLOCK_COMMENT_CHAR_ERROR:
-    return "block comment char";
-  case BLOCK_COMMENT_START_ERROR:
-    return "block comment start";
-  case LINE_COMMENT_START_ERROR:
-    return "line comment start";
-  case LINE_COMMENT_CHAR_ERROR:
-    return "line comment char";
-  case TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
-    return "two double quote in triple string";
-  case DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR:
-    return "double quote in triple string";
-  case STRING_UNICODE_START_ERROR:
-    return "string unicode start";
-  case TRIPLE_STRING_START_ERROR:
-    return "triple string start";
-  case TRIPLE_STRING_ORDINARY_CHAR_ERROR:
-    return "triple string ordinary char";
-  case TRIPLE_STRING_END_ERROR:
-    return "triple string end";
-  case STRING_UNICODE_END_ERROR:
-    return "string unicode end";
-  case NORMAL_STRING_ORDINARY_CHAR_ERROR:
-    return "normal string ordinary char";
-  case HEX_ERROR:
-    return "hex";
-  case NORMAL_STRING_END_ERROR:
-    return "normal string end";
-  case NORMAL_STRING_START_ERROR:
-    return "normal string start";
-  case FIRST_DIGIT_ERROR:
-    return "first digit";
-  case DIGIT_ERROR:
-    return "digit";
-  case FLOAT_START_ERROR:
-    return "float start";
-  case FLOAT_DOT_ERROR:
-    return "float dot";
-  case FLOAT_AFTER_ERROR:
-    return "float after";
-  case FLOAT_END_ERROR:
-    return "float end";
-  case HEX_START_ERROR:
-    return "hex start";
-  case HEX_END_ERROR:
-    return "hex end";
-  case NOT_HEX_ERROR:
-    return "not hex";
-  case MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR:
-    return "module exports all left paren '('";
-  case MODULE_EXPORTS_ALL_DOTS_ERROR:
-    return "module exports all dots '..'";
-  case MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR:
-    return "module exports all right paren ')'";
-  case LITERAL_WRITE_ERROR:
-    return "literal write";
-  case MODULE_KEYWORD_ERROR:
-    return "keyword 'module'";
-  case MODULE_NAME_ERROR:
-    return "module name";
-  case EXPOSING_KEYWORD_ERROR:
-    return "keyword 'exposing'";
-  case NO_MODULE_DECLARATION_ERROR:
-    return "no module declaration";
-  case MODULE_EXPORT_ERROR:
-    return "module export";
-  case MODULE_EXPORTS_LEFT_PAREN_ERROR:
-    return "module exports left paren '('";
-  case MODULE_EXPORTS_RIGHT_PAREN_ERROR:
-    return "module exports right paren ')'";
-  case KEYWORD_ERROR:
-    return "keyword";
-  case AFTER_KEYWORD_ERROR:
-    return "after keyword";
-  case UPPER_NAME_END_ERROR:
-    return "upper name end";
-  case LOWER_NAME_END_ERROR:
-    return "lower name end";
-  case LOWER_NAME_START_ERROR:
-    return "lower name start";
-  case UPPER_NAME_START_ERROR:
-    return "upper name start";
-  case TOP_LEVEL_BIND_NAME_ERROR:
-    return "top level bind name";
-  case TOP_LEVEL_BIND_EQUALS_ERROR:
-    return "top level bind equals";
-  case TOP_LEVEL_BIND_BODY_ERROR:
-    return "top level bind body";
-  case CHAR_PARSE_EOF_ERROR:
-    return "char parse EOF";
-  case CHAR_PARSE_NOT_MATCH_ERROR:
-    return "char parse not match";
-  case ANY_CHAR_PARSE_EOF_ERROR:
-    return "any char parse EOF";
-  case BASE10_START_ERROR:
-    return "base10 start";
-  case BASE10_END_ERROR:
-    return "base10 end";
-  case SRC_EOF_ERROR:
-    return "src EOF";
-  case SRC_FILE_READ_ERROR:
-    return "src file read";
-  case SRC_TOO_SHORT_ERROR:
-    return "src too short";
-  case CHUNK_PARSE_ERROR:
-    return "chunk parse";
-  }
-}
-
-static void panic(enum error error) {
-  fprintf(stderr, "panic: %s\n", error_to_string(error));
-  exit(error);
-}
-
 static int increment_src() {
   if (I == MAX_SRC - 1) {
-    return SRC_TOO_SHORT_ERROR;
+    return -1;
   }
   ++I;
   return 0;
@@ -330,11 +104,11 @@ static int increment_src() {
 
 static int char_parse(uint8_t c) {
   if (increment_src()) {
-    return CHAR_PARSE_EOF_ERROR;
+    return -1;
   }
   if (SRC[I] != c) {
     --I;
-    return CHAR_PARSE_NOT_MATCH_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -343,7 +117,7 @@ static int lower_name_parse(uint16_t *id);
 
 static int any_char_parse(uint8_t *c) {
   if (increment_src()) {
-    return ANY_CHAR_PARSE_EOF_ERROR;
+    return -1;
   }
   *c = SRC[I];
   return 0;
@@ -374,7 +148,7 @@ static int after_keyword_parse() {
     return result;
   }
   if (!is_after_keyword_char(c)) {
-    return AFTER_KEYWORD_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -384,7 +158,7 @@ static int keyword_parse(char *keyword) {
   for (; *keyword != '\0'; ++keyword) {
     if (char_parse(*keyword)) {
       I = start;
-      return KEYWORD_ERROR;
+      return -1;
     }
   }
   const int end = I;
@@ -395,7 +169,7 @@ static int keyword_parse(char *keyword) {
 
 static uint16_t node_init(enum node_type type) {
   if (NUM_NODE == MAX_NODE) {
-    panic(TOO_MANY_NODES_ERROR);
+    exit(125);
   }
   const uint16_t id = NUM_NODE;
   SIBLING[id] = 0;
@@ -514,7 +288,7 @@ static int string_equal(char *a, char *b) {
 static void literal_write(uint16_t id) {
   const int n = fwrite(SRC + SRC_START[id], 1, SRC_SIZE[id], OUT);
   if (n != SRC_SIZE[id]) {
-    panic(LITERAL_WRITE_ERROR);
+    exit(126);
   }
 }
 
@@ -567,8 +341,6 @@ static void multiline_compact_block_comment_write(uint16_t id, int indent) {
 
 static void comment_write(uint16_t id, int indent) {
   switch ((enum node_type)NODE_TYPE[id]) {
-  case NO_DOCS_NODE:
-    panic(COMMENT_WRITE_ERROR);
   case DOC_COMMENT_NODE:
     literal_write(id);
     return;
@@ -587,20 +359,8 @@ static void comment_write(uint16_t id, int indent) {
   case EMPTY_BLOCK_COMMENT_NODE:
     fputs("{--}", OUT);
     return;
-  case MODULE_DECLARATION_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case MODULE_EXPORT_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case WHITESPACE_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case MODULE_EXPORTS_ALL_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case MODULE_EXPORTS_EXPLICIT_NODE:
-    panic(COMMENT_WRITE_ERROR);
-  case BIND_NODE:
-    panic(COMMENT_WRITE_ERROR);
+  default:
+    exit(123);
   }
 }
 
@@ -722,7 +482,7 @@ static int after_number_parse_help() {
     return result;
   }
   if (!is_after_number_char(c)) {
-    return FLOAT_AFTER_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -745,7 +505,7 @@ static int after_normal_string_parse_help() {
     return result;
   }
   if (!is_after_normal_string_char(c)) {
-    return FLOAT_AFTER_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -766,7 +526,7 @@ static int hex_digit_parse() {
   }
   if ((c < '0' || c > '9') && (c < 'A' || c > 'F') && (c < 'a' || c > 'f')) {
     I = start;
-    return HEX_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -780,14 +540,14 @@ static int digit_parse() {
   }
   if (c < '0' || c > '9') {
     I = start;
-    return DIGIT_ERROR;
+    return -1;
   }
   return 0;
 }
 
 static int some_digits_parse() {
   if (digit_parse()) {
-    return FIRST_DIGIT_ERROR;
+    return -1;
   }
   while (digit_parse() == 0) {
   }
@@ -796,7 +556,7 @@ static int some_digits_parse() {
 
 static int some_hex_digits_parse() {
   if (hex_digit_parse()) {
-    return FIRST_DIGIT_ERROR;
+    return -1;
   }
   while (hex_digit_parse() == 0) {
   }
@@ -834,7 +594,7 @@ static int chunk_parse(char *chunk) {
   for (; *chunk != '\0'; ++chunk) {
     if (char_parse(*chunk)) {
       I = start;
-      return CHUNK_PARSE_ERROR;
+      return -1;
     }
   }
   return 0;
@@ -844,7 +604,7 @@ static int hex_parse(uint16_t *id) {
   const int start = I;
   char_parse('-');
   if (chunk_parse("0x")) {
-    return NOT_HEX_ERROR;
+    return -1;
   }
   const int contents_result = some_hex_digits_parse();
   if (contents_result) {
@@ -872,7 +632,7 @@ static int consume_float() {
   }
   const int dot_result = char_parse('.');
   if (dot_result) {
-    return FLOAT_DOT_ERROR;
+    return -1;
   }
   return some_digits_parse();
 }
@@ -961,21 +721,21 @@ static int normal_string_ordinary_char_parse() {
   }
   if (c == '"' || c == '\\') {
     I = start;
-    return NORMAL_STRING_ORDINARY_CHAR_ERROR;
+    return -1;
   }
   return 0;
 }
 
 static int string_unicode_parse_help() {
   if (chunk_parse("\\u{")) {
-    return STRING_UNICODE_START_ERROR;
+    return -1;
   }
   const int start = I;
   while (hex_digit_parse() == 0) {
   }
   const int end = I;
   if (char_parse('}')) {
-    return STRING_UNICODE_END_ERROR;
+    return -1;
   }
   for (int i = start + 1; i < end + 1; ++i) {
     if (SRC[i] >= 'a' && SRC[i] <= 'f') {
@@ -1021,12 +781,12 @@ static int normal_string_item_parse() {
 static int normal_string_parse_help(uint16_t *id) {
   const int start = I;
   if (char_parse('"')) {
-    return NORMAL_STRING_START_ERROR;
+    return -1;
   }
   while (normal_string_item_parse() == 0) {
   }
   if (char_parse('"')) {
-    return NORMAL_STRING_END_ERROR;
+    return -1;
   }
   const int end_result = after_normal_string_parse();
   if (end_result) {
@@ -1056,7 +816,7 @@ static int triple_string_ordinary_char_parse() {
   }
   if (c == '"' || c == '\\') {
     I = start;
-    return TRIPLE_STRING_ORDINARY_CHAR_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1065,7 +825,7 @@ static int single_double_quote_in_triple_string_parse() {
   const int start = I;
   if (chunk_parse("\"\"") == 0) {
     I = start;
-    return DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR;
+    return -1;
   }
   return char_parse('"');
 }
@@ -1074,7 +834,7 @@ static int two_double_quote_in_triple_string_parse() {
   const int start = I;
   if (chunk_parse("\"\"\"") == 0) {
     I = start;
-    return TWO_DOUBLE_QUOTE_IN_TRIPLE_STRING_ERROR;
+    return -1;
   }
   return chunk_parse("\"\"");
 }
@@ -1107,12 +867,12 @@ static int triple_string_item_parse() {
 static int triple_string_parse_help(uint16_t *id) {
   const int start = I;
   if (chunk_parse("\"\"\"")) {
-    return TRIPLE_STRING_START_ERROR;
+    return -1;
   }
   while (triple_string_item_parse() == 0) {
   }
   if (chunk_parse("\"\"\"")) {
-    return TRIPLE_STRING_END_ERROR;
+    return -1;
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
@@ -1143,7 +903,7 @@ static int after_name_char_parse() {
   }
   if (!is_after_name_char(c)) {
     I = start;
-    return LOWER_NAME_END_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1159,7 +919,7 @@ static int first_upper_name_char_parse() {
   }
   if (!is_first_upper_name_char(c)) {
     I = start;
-    return LOWER_NAME_START_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1249,7 +1009,7 @@ static int line_comment_char_parse() {
   }
   if (c == '\n') {
     I = start;
-    return LINE_COMMENT_CHAR_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1277,7 +1037,7 @@ static void strip(uint16_t id) {
 static int line_comment_parse(uint16_t *id) {
   const int start = I;
   if (chunk_parse("--")) {
-    return LINE_COMMENT_START_ERROR;
+    return -1;
   }
   while (line_comment_char_parse() == 0) {
   }
@@ -1291,12 +1051,12 @@ static int line_comment_parse(uint16_t *id) {
 static int empty_block_comment_parse(uint16_t *id) {
   const int start = I;
   if (chunk_parse("{-")) {
-    return EMPTY_BLOCK_COMMENT_START_ERROR;
+    return -1;
   }
   many_whitespace_parse();
   if (chunk_parse("-}")) {
     I = start;
-    return EMPTY_BLOCK_COMMENT_END_ERROR;
+    return -1;
   }
   *id = node_init(EMPTY_BLOCK_COMMENT_NODE);
   return 0;
@@ -1306,7 +1066,7 @@ static int block_comment_line_item_parse(int *nesting) {
   const int start = I;
   if (chunk_parse("-}") == 0 && *nesting == 1) {
     I = start;
-    return BLOCK_COMMENT_CHAR_CLOSE_ERROR;
+    return -1;
   }
   if (chunk_parse("{-") == 0) {
     ++*nesting;
@@ -1323,7 +1083,7 @@ static int block_comment_line_item_parse(int *nesting) {
   }
   if (c == '\n') {
     I = start;
-    return BLOCK_COMMENT_CHAR_NEWLINE_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1337,7 +1097,7 @@ static int end_block_comment_line_parse() {
   if (char_parse('\n') == 0) {
     return 0;
   }
-  return END_BLOCK_COMMENT_LINE_ERROR;
+  return -1;
 }
 
 static int hanging_block_comment_end_parse() {
@@ -1346,7 +1106,7 @@ static int hanging_block_comment_end_parse() {
   }
   if (chunk_parse("-}")) {
     I = start;
-    return BLOCK_COMMENT_END_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1355,13 +1115,13 @@ static int block_comment_line_parse(uint16_t *id, int *nesting) {
   const int start = I;
   if (hanging_block_comment_end_parse() == 0) {
     I = start;
-    return BLOCK_COMMENT_EOL_ERROR;
+    return -1;
   }
   while (block_comment_line_item_parse(nesting) == 0) {
   }
   if (end_block_comment_line_parse()) {
     I = start;
-    return BLOCK_COMMENT_EOL_ERROR;
+    return -1;
   }
   *id = node_init(LITERAL_NODE);
   SRC_START[*id] = start + 1;
@@ -1390,7 +1150,7 @@ static int block_comment_contents_parse(uint16_t *id) {
   int nesting = 1;
   if (block_comment_line_parse(&line, &nesting)) {
     I = start;
-    return BLOCK_COMMENT_FIRST_LINE_ERROR;
+    return -1;
   }
 
   CHILD[*id] = line;
@@ -1407,17 +1167,17 @@ static int block_comment_contents_parse(uint16_t *id) {
 
 static int non_empty_block_comment_parse_help(uint16_t *id) {
   if (chunk_parse("{-|") == 0) {
-    return BLOCK_COMMENT_START_ERROR;
+    return -1;
   }
   if (chunk_parse("{-")) {
-    return BLOCK_COMMENT_START_ERROR;
+    return -1;
   }
   if (block_comment_contents_parse(id)) {
-    return BLOCK_COMMENT_CONTENTS_ERROR;
+    return -1;
   }
   many_whitespace_parse();
   if (chunk_parse("-}")) {
-    return BLOCK_COMMENT_END_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1478,17 +1238,17 @@ static int top_level_parse_help() {
   uint16_t name;
   const int name_result = lower_name_parse(&name);
   if (name_result) {
-    return TOP_LEVEL_BIND_NAME_ERROR;
+    return -1;
   }
   uint16_t pre_equals_whitespace = comments_parse();
   if (char_parse('=')) {
-    return TOP_LEVEL_BIND_EQUALS_ERROR;
+    return -1;
   }
   uint16_t pre_body_whitespace = comments_parse();
   uint16_t body;
   const int body_result = expression_parse(&body);
   if (body_result) {
-    return TOP_LEVEL_BIND_BODY_ERROR;
+    return -1;
   }
   CHILD[ROOT] = name;
   NODE_TYPE[ROOT] = BIND_NODE;
@@ -1628,11 +1388,11 @@ static int expose_all_variants_parse_help(uint16_t *id) {
   const int start = I;
   *id = node_init(MODULE_EXPOSE_ALL_VARIANTS_NODE);
   if (consume_upper_name_chars()) {
-    return MODULE_EXPOSE_ALL_VARIANTS_NAME_ERROR;
+    return -1;
   }
   const int end = I;
   if (chunk_parse("(..)")) {
-    return MODULE_EXPOSE_ALL_VARIANTS_DOTS_ERROR;
+    return -1;
   }
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = end - start;
@@ -1679,12 +1439,12 @@ static int export_parse(uint16_t *id) {
 static int module_exports_explicit_parse_help(uint16_t *id) {
   *id = node_init(MODULE_EXPORTS_EXPLICIT_NODE);
   if (char_parse('(')) {
-    return MODULE_EXPORTS_LEFT_PAREN_ERROR;
+    return -1;
   }
   many_whitespace_parse();
   uint16_t export;
   if (export_parse(&export)) {
-    return MODULE_EXPORT_ERROR;
+    return -1;
   }
   CHILD[*id] = export;
   uint16_t previous = export;
@@ -1702,7 +1462,7 @@ static int module_exports_explicit_parse_help(uint16_t *id) {
   }
   many_whitespace_parse();
   if (char_parse(')')) {
-    return MODULE_EXPORTS_RIGHT_PAREN_ERROR;
+    return -1;
   }
   sort_exports(*id);
   return 0;
@@ -1719,15 +1479,15 @@ static int module_exports_explicit_parse(uint16_t *id) {
 
 static int module_exports_all_parse_help(uint16_t *id) {
   if (char_parse('(')) {
-    return MODULE_EXPORTS_ALL_LEFT_PAREN_ERROR;
+    return -1;
   }
   many_whitespace_parse();
   if (chunk_parse("..")) {
-    return MODULE_EXPORTS_ALL_DOTS_ERROR;
+    return -1;
   }
   many_whitespace_parse();
   if (char_parse(')')) {
-    return MODULE_EXPORTS_ALL_RIGHT_PAREN_ERROR;
+    return -1;
   }
   *id = node_init(MODULE_EXPORTS_ALL_NODE);
   return 0;
@@ -1772,7 +1532,7 @@ static int first_lower_name_char_parse() {
   }
   if (!is_first_lower_name_char(c)) {
     I = start;
-    return LOWER_NAME_START_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1812,7 +1572,7 @@ static int module_name_parse(uint16_t *id) {
   uint16_t dont_care;
   if (upper_name_parse(&dont_care)) {
     I = start;
-    return MODULE_NAME_ERROR;
+    return -1;
   }
 
   while (1) {
@@ -1821,7 +1581,7 @@ static int module_name_parse(uint16_t *id) {
     }
     if (upper_name_parse(&dont_care)) {
       I = start;
-      return MODULE_NAME_ERROR;
+      return -1;
     }
   }
 
@@ -1840,7 +1600,7 @@ static int not_hyphen_char_parse() {
 
   if (c == '-') {
     --I;
-    return NOT_HYPHEN_ERROR;
+    return -1;
   }
   return 0;
 }
@@ -1848,13 +1608,13 @@ static int not_hyphen_char_parse() {
 static int doc_comment_parse(uint16_t *id) {
   const int start = I;
   if (chunk_parse("{-|")) {
-    return DOC_COMMENT_START_ERROR;
+    return -1;
   }
   while (not_hyphen_char_parse() == 0) {
   }
   if (chunk_parse("-}")) {
     I = start;
-    return DOC_COMMENT_END_ERROR;
+    return -1;
   }
   *id = node_init(DOC_COMMENT_NODE);
   SRC_START[*id] = start + 1;
@@ -1867,16 +1627,16 @@ static int module_declaration_parse_help(uint16_t *id) {
   *id = ROOT;
   NODE_TYPE[*id] = MODULE_DECLARATION_NODE;
   if (keyword_parse("module")) {
-    return MODULE_KEYWORD_ERROR;
+    return -1;
   }
   const uint16_t comment_before_name = comments_parse();
   uint16_t module_name;
   if (module_name_parse(&module_name)) {
-    return MODULE_NAME_ERROR;
+    return -1;
   }
   const uint16_t comment_before_exposing = comments_parse();
   if (keyword_parse("exposing")) {
-    return EXPOSING_KEYWORD_ERROR;
+    return -1;
   }
   const uint16_t comment_after_exposing = comments_parse();
   uint16_t exports;
@@ -1996,36 +1756,14 @@ static void explicit_exports_write(uint16_t id, int is_multiline) {
 
 static void module_exports_write(uint16_t id, int is_multiline) {
   switch ((enum node_type)NODE_TYPE[id]) {
-  case NO_DOCS_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case DOC_COMMENT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
   case MODULE_EXPORTS_EXPLICIT_NODE:
     explicit_exports_write(id, is_multiline);
     return;
   case MODULE_EXPORTS_ALL_NODE:
     fputs("(..)", OUT);
     return;
-  case MODULE_DECLARATION_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case LITERAL_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case BIND_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case MODULE_EXPORT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case EMPTY_BLOCK_COMMENT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case HANGING_BLOCK_COMMENT_NODE:
-    panic(EXPORTS_WRITE_ERROR);
-  case WHITESPACE_NODE:
-    panic(EXPORTS_WRITE_ERROR);
+  default:
+    exit(124);
   }
 }
 
@@ -2166,7 +1904,7 @@ static void format_file(char *path) {
   const int result = with_out_file();
   fclose(OUT);
   if (result) {
-    fprintf(stderr, "could not format %s: %s\n", path, error_to_string(result));
+    fprintf(stderr, "could not format %s\n", path);
   }
 }
 
