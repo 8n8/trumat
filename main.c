@@ -176,10 +176,6 @@ static int is_module_expose_all_variants_node(uint16_t id) {
   return NODE_TYPE[id] == MODULE_EXPOSE_ALL_VARIANTS_NODE;
 }
 
-static int is_doc_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == DOC_COMMENT_NODE;
-}
-
 static int is_single_line_block_comment_node(uint16_t id) {
   return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
 }
@@ -412,10 +408,6 @@ static void multiline_compact_block_comment_write(uint16_t id, int indent) {
 }
 
 static void comment_write(uint16_t id, int indent) {
-  if (is_doc_comment_node(id)) {
-    literal_write(id);
-    return;
-  }
   if (is_single_line_block_comment_node(id)) {
     single_line_block_comment_write(id);
     return;
