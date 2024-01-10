@@ -61,8 +61,8 @@ enum node_type {
   DOC_COMMENT_NODE,
 };
 
-static int is_text_node(enum node_type type) {
-  switch (type) {
+static int is_text_node(uint16_t id) {
+  switch ((enum node_type)NODE_TYPE[id]) {
   case NO_DOCS_NODE:
     return 0;
   case DOC_COMMENT_NODE:
@@ -239,7 +239,7 @@ void dbg_literals() {
   for (int i = 0; i < NUM_NODE; ++i) {
     const uint16_t start = SRC_START[i];
     const uint16_t size = SRC_SIZE[i];
-    if (!is_text_node(NODE_TYPE[i])) {
+    if (!is_text_node(i)) {
       continue;
     }
     printf("%04d ", i);
@@ -1272,7 +1272,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  // dbg_ast();
+  dbg_ast();
   return top_level_write();
 }
 
