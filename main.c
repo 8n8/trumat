@@ -171,6 +171,10 @@ static void set_bind_node(uint16_t id) {
   NODE_TYPE[id] = BIND_NODE;
 }
 
+static void set_module_declaration_node(uint16_t id) {
+  NODE_TYPE[id] = MODULE_DECLARATION_NODE;
+}
+
 static void set_multiline_compact_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
 }
@@ -1719,7 +1723,7 @@ static int doc_comment_parse(uint16_t *id) {
 
 static int module_declaration_parse_help(uint16_t *id) {
   *id = ROOT;
-  NODE_TYPE[*id] = MODULE_DECLARATION_NODE;
+  set_module_declaration_node(*id);
   if (keyword_parse("module")) {
     return -1;
   }
