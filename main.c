@@ -45,8 +45,7 @@ void dbg_src() {
 }
 
 enum node_type {
-  MODULE_DECLARATION_NODE = 1,
-  NO_DOCS_NODE,
+  NO_DOCS_NODE = 1,
   MODULE_EXPORT_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
@@ -79,8 +78,6 @@ static int is_text_node(uint16_t id) {
   case HANGING_BLOCK_COMMENT_NODE:
     return 0;
   case WHITESPACE_NODE:
-    return 0;
-  case MODULE_DECLARATION_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
     return 0;
@@ -165,10 +162,6 @@ static int keyword_parse(char *keyword) {
 }
 
 static void set_bind_node(uint16_t id) { NODE_TYPE[id] = BIND_NODE; }
-
-static void set_module_declaration_node(uint16_t id) {
-  NODE_TYPE[id] = MODULE_DECLARATION_NODE;
-}
 
 static void set_multiline_compact_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
@@ -305,8 +298,6 @@ static char *node_type_to_string(enum node_type type) {
     return "SBLK";
   case WHITESPACE_NODE:
     return "WHIT";
-  case MODULE_DECLARATION_NODE:
-    return "MODU";
   case MODULE_EXPORTS_ALL_NODE:
     return "EXAL";
   case MODULE_EXPORTS_EXPLICIT_NODE:
@@ -1699,7 +1690,6 @@ static int doc_comment_parse(uint16_t *id) {
 
 static int module_declaration_parse_help(uint16_t *id) {
   *id = ROOT;
-  set_module_declaration_node(*id);
   if (keyword_parse("module")) {
     return -1;
   }
