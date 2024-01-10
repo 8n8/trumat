@@ -183,6 +183,10 @@ static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
+static int is_module_expose_all_variants_node(uint16_t id) {
+  return NODE_TYPE[id] == MODULE_EXPOSE_ALL_VARIANTS_NODE;
+}
+
 static int is_doc_comment_node(uint16_t id) {
   return NODE_TYPE[id] == DOC_COMMENT_NODE;
 }
@@ -1786,7 +1790,7 @@ static void export_left_comment_write(uint16_t id, int is_multiline) {
 static void export_name_write(uint16_t id) {
   const uint16_t name = SIBLING[CHILD[id]];
   literal_write(name);
-  if (NODE_TYPE[name] != MODULE_EXPOSE_ALL_VARIANTS_NODE) {
+  if (!is_module_expose_all_variants_node(name)) {
     return;
   }
   fputs("(..)", OUT);
