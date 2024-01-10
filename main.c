@@ -183,6 +183,10 @@ static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
+static int is_module_exports_all_node(uint16_t id) {
+  return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
+}
+
 static int is_module_expose_all_variants_node(uint16_t id) {
   return NODE_TYPE[id] == MODULE_EXPOSE_ALL_VARIANTS_NODE;
 }
@@ -1857,16 +1861,11 @@ static void explicit_exports_write(uint16_t id, int is_multiline) {
 }
 
 static void module_exports_write(uint16_t id, int is_multiline) {
-  switch ((enum node_type)NODE_TYPE[id]) {
-  case MODULE_EXPORTS_EXPLICIT_NODE:
-    explicit_exports_write(id, is_multiline);
-    return;
-  case MODULE_EXPORTS_ALL_NODE:
+  if (is_module_exports_all_node(id)) {
     fputs("(..)", OUT);
     return;
-  default:
-    exit(124);
   }
+  explicit_exports_write(id, is_multiline);
 }
 
 static void module_declaration_gap(int is_multiline) {
