@@ -167,6 +167,14 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
+static void set_multiline_compact_block_comment_node(uint16_t id) {
+  NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+}
+
+static void set_hanging_block_comment_node(uint16_t id) {
+  NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
+}
+
 static int is_doc_comment_node(uint16_t id) {
   return NODE_TYPE[id] == DOC_COMMENT_NODE;
 }
@@ -1218,18 +1226,11 @@ static int block_comment_is_hanging_parse() {
 static int block_comment_contents_parse(uint16_t *id) {
   const int start = I;
   const int is_hanging = block_comment_is_hanging_parse();
-  const enum node_type multi_type = is_hanging
-                                        ? HANGING_BLOCK_COMMENT_NODE
-                                        : MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
   if (is_hanging) {
     *id = hanging_block_comment_node_init();
   } else {
     *id = single_line_block_comment_node_init();
   }
-  // const enum node_type single_type =
-  //     is_hanging ? HANGING_BLOCK_COMMENT_NODE :
-  //     SINGLE_LINE_BLOCK_COMMENT_NODE;
-  // *id = node_init(single_type);
   uint16_t line;
   int nesting = 1;
   if (block_comment_line_parse(&line, &nesting)) {
@@ -1243,7 +1244,11 @@ static int block_comment_contents_parse(uint16_t *id) {
   while (block_comment_line_parse(&line, &nesting) == 0) {
     SIBLING[previous] = line;
     previous = line;
-    NODE_TYPE[*id] = multi_type;
+    if (is_hanging) {
+      set_hanging_block_comment_node(*id);
+    } else {
+      set_multiline_compact_block_comment_node(*id);
+    }
   }
 
   return 0;
