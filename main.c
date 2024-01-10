@@ -45,8 +45,7 @@ void dbg_src() {
 }
 
 enum node_type {
-  NO_DOCS_NODE = 1,
-  EMPTY_BLOCK_COMMENT_NODE,
+  EMPTY_BLOCK_COMMENT_NODE = 1,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
@@ -56,8 +55,6 @@ enum node_type {
 
 static int is_text_node(uint16_t id) {
   switch ((enum node_type)NODE_TYPE[id]) {
-  case NO_DOCS_NODE:
-    return 0;
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -154,9 +151,7 @@ static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
-static int is_no_docs_node(uint16_t id) {
-  return NODE_TYPE[id] == NO_DOCS_NODE;
-}
+static int is_no_docs_node(uint16_t id) { return NODE_TYPE[id] == 0; }
 
 static int is_module_exports_all_node(uint16_t id) {
   return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
@@ -224,12 +219,6 @@ static uint16_t module_exports_all_node_init() {
   return node;
 }
 
-static uint16_t no_docs_node_init() {
-  const uint16_t node = general_node_init();
-  NODE_TYPE[node] = NO_DOCS_NODE;
-  return node;
-}
-
 static uint16_t literal_node_init() {
   const uint16_t node = general_node_init();
   return node;
@@ -237,8 +226,6 @@ static uint16_t literal_node_init() {
 
 static char *node_type_to_string(enum node_type type) {
   switch (type) {
-  case NO_DOCS_NODE:
-    return "NODO";
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -1663,7 +1650,7 @@ static int module_declaration_parse_help(uint16_t *id) {
     SIBLING[normal_comment] = block;
     return 0;
   }
-  SIBLING[normal_comment] = no_docs_node_init();
+  SIBLING[normal_comment] = general_node_init();
 
   return 0;
 }
