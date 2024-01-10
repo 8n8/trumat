@@ -54,7 +54,6 @@ enum node_type {
   HANGING_BLOCK_COMMENT_NODE,
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
-  MODULE_EXPORTS_EXPLICIT_NODE,
   DOC_COMMENT_NODE,
 };
 
@@ -79,8 +78,6 @@ static int is_text_node(uint16_t id) {
   case WHITESPACE_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
-    return 0;
-  case MODULE_EXPORTS_EXPLICIT_NODE:
     return 0;
   }
 }
@@ -238,12 +235,6 @@ static uint16_t whitespace_node_init() {
   return node;
 }
 
-static uint16_t module_exports_explicit_node_init() {
-  const uint16_t node = general_node_init();
-  NODE_TYPE[node] = MODULE_EXPORTS_EXPLICIT_NODE;
-  return node;
-}
-
 static uint16_t module_expose_all_variants_node_init() {
   const uint16_t node = general_node_init();
   NODE_TYPE[node] = MODULE_EXPOSE_ALL_VARIANTS_NODE;
@@ -295,8 +286,6 @@ static char *node_type_to_string(enum node_type type) {
     return "WHIT";
   case MODULE_EXPORTS_ALL_NODE:
     return "EXAL";
-  case MODULE_EXPORTS_EXPLICIT_NODE:
-    return "EXEX";
   }
 }
 
@@ -1494,7 +1483,7 @@ static int export_parse(uint16_t *id) {
 }
 
 static int module_exports_explicit_parse_help(uint16_t *id) {
-  *id = module_exports_explicit_node_init();
+  *id = general_node_init();
   if (char_parse('(')) {
     return -1;
   }
