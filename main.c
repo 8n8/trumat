@@ -1272,7 +1272,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  dbg_ast();
+  // dbg_ast();
   return top_level_write();
 }
 
