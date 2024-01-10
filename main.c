@@ -51,7 +51,6 @@ enum node_type {
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
-  WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
   DOC_COMMENT_NODE,
 };
@@ -71,8 +70,6 @@ static int is_text_node(uint16_t id) {
   case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
     return 0;
   case HANGING_BLOCK_COMMENT_NODE:
-    return 0;
-  case WHITESPACE_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
     return 0;
@@ -222,12 +219,6 @@ static uint16_t hanging_block_comment_node_init() {
   return node;
 }
 
-static uint16_t whitespace_node_init() {
-  const uint16_t node = general_node_init();
-  NODE_TYPE[node] = WHITESPACE_NODE;
-  return node;
-}
-
 static uint16_t module_expose_all_variants_node_init() {
   const uint16_t node = general_node_init();
   NODE_TYPE[node] = MODULE_EXPOSE_ALL_VARIANTS_NODE;
@@ -273,8 +264,6 @@ static char *node_type_to_string(enum node_type type) {
     return "HBCB";
   case SINGLE_LINE_BLOCK_COMMENT_NODE:
     return "SBLK";
-  case WHITESPACE_NODE:
-    return "WHIT";
   case MODULE_EXPORTS_ALL_NODE:
     return "EXAL";
   }
@@ -1239,7 +1228,7 @@ static int comment_parse(uint16_t *id) {
 static uint16_t comments_parse() {
   many_whitespace_parse();
   uint16_t item;
-  const uint16_t id = whitespace_node_init();
+  const uint16_t id = general_node_init();
   const int first_result = comment_parse(&item);
   if (first_result) {
     return id;
