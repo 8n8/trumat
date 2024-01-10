@@ -45,7 +45,7 @@ void dbg_src() {
 }
 
 enum node_type {
-  MODULE_DECLARATION_NODE,
+  MODULE_DECLARATION_NODE = 1,
   NO_DOCS_NODE,
   MODULE_EXPORT_NODE,
   EMPTY_BLOCK_COMMENT_NODE,
@@ -167,9 +167,7 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static void set_bind_node(uint16_t id) {
-  NODE_TYPE[id] = BIND_NODE;
-}
+static void set_bind_node(uint16_t id) { NODE_TYPE[id] = BIND_NODE; }
 
 static void set_module_declaration_node(uint16_t id) {
   NODE_TYPE[id] = MODULE_DECLARATION_NODE;
@@ -181,6 +179,10 @@ static void set_multiline_compact_block_comment_node(uint16_t id) {
 
 static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
+}
+
+static int is_single_line_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
 }
 
 static int is_no_docs_node(uint16_t id) {
@@ -222,6 +224,7 @@ static uint16_t general_node_init() {
   const uint16_t id = NUM_NODE;
   SIBLING[id] = 0;
   CHILD[id] = 0;
+  NODE_TYPE[id] = 0;
   ++NUM_NODE;
   return id;
 }
@@ -282,7 +285,6 @@ static uint16_t no_docs_node_init() {
 
 static uint16_t literal_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = LITERAL_NODE;
   return node;
 }
 
@@ -470,39 +472,6 @@ static void comment_write(uint16_t id, int indent) {
   literal_write(id);
 }
 
-static int is_multiline_comment(uint16_t id) {
-  switch ((enum node_type)NODE_TYPE[id]) {
-  case NO_DOCS_NODE:
-    return 0;
-  case DOC_COMMENT_NODE:
-    return 1;
-  case EMPTY_BLOCK_COMMENT_NODE:
-    return 1;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return 1;
-  case HANGING_BLOCK_COMMENT_NODE:
-    return 1;
-  case LITERAL_NODE:
-    return 1;
-  case MODULE_DECLARATION_NODE:
-    return 0;
-  case MODULE_EXPORT_NODE:
-    return 0;
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    return 0;
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    return 0;
-  case MODULE_EXPORTS_ALL_NODE:
-    return 0;
-  case WHITESPACE_NODE:
-    return 0;
-  case MODULE_EXPORTS_EXPLICIT_NODE:
-    return 0;
-  case BIND_NODE:
-    return 0;
-  }
-}
-
 static void comment_gap_module_declaration(uint16_t id, int is_multiline) {
   if (SIBLING[id] == 0) {
     return;
@@ -526,7 +495,7 @@ static void comment_gap(uint16_t id, int indent) {
 
 static int comments_are_multiline(uint16_t id) {
   uint16_t comment = CHILD[id];
-  for (; comment != 0 && !is_multiline_comment(comment);
+  for (; comment != 0 && is_single_line_comment_node(comment);
        comment = SIBLING[comment]) {
   }
   return comment != 0;
