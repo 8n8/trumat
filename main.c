@@ -183,6 +183,10 @@ static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
+static int is_no_docs_node(uint16_t id) {
+  return NODE_TYPE[id] == NO_DOCS_NODE;
+}
+
 static int is_module_exports_all_node(uint16_t id) {
   return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
 }
@@ -1896,7 +1900,7 @@ static void module_declaration_exports_with_gaps_write(uint16_t comment_before,
   }
   comments_write(comment, 0);
   const uint16_t docs = SIBLING[comment];
-  if (NODE_TYPE[docs] == NO_DOCS_NODE) {
+  if (is_no_docs_node(docs)) {
     return;
   }
   fputs("\n\n", OUT);
