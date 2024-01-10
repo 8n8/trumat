@@ -53,7 +53,6 @@ enum node_type {
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
-  LITERAL_NODE,
   WHITESPACE_NODE,
   MODULE_EXPORTS_ALL_NODE,
   MODULE_EXPORTS_EXPLICIT_NODE,
@@ -81,8 +80,6 @@ static int is_text_node(uint16_t id) {
     return 0;
   case WHITESPACE_NODE:
     return 0;
-  case LITERAL_NODE:
-    return 1;
   case MODULE_DECLARATION_NODE:
     return 0;
   case MODULE_EXPORTS_ALL_NODE:
@@ -310,8 +307,6 @@ static char *node_type_to_string(enum node_type type) {
     return "WHIT";
   case MODULE_DECLARATION_NODE:
     return "MODU";
-  case LITERAL_NODE:
-    return "LITN";
   case MODULE_EXPORTS_ALL_NODE:
     return "EXAL";
   case MODULE_EXPORTS_EXPLICIT_NODE:
