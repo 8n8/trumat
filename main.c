@@ -154,10 +154,6 @@ static void set_hanging_block_comment_node(uint16_t id) {
   NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
-static int is_single_line_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
-}
-
 static int is_no_docs_node(uint16_t id) {
   return NODE_TYPE[id] == NO_DOCS_NODE;
 }
@@ -428,7 +424,7 @@ static void comment_gap(uint16_t id, int indent) {
 
 static int comments_are_multiline(uint16_t id) {
   uint16_t comment = CHILD[id];
-  for (; comment != 0 && is_single_line_comment_node(comment);
+  for (; comment != 0 && is_single_line_block_comment_node(comment);
        comment = SIBLING[comment]) {
   }
   return comment != 0;
