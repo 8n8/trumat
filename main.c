@@ -52,15 +52,12 @@ enum node_type {
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
   MODULE_EXPORTS_ALL_NODE,
-  DOC_COMMENT_NODE,
 };
 
 static int is_text_node(uint16_t id) {
   switch ((enum node_type)NODE_TYPE[id]) {
   case NO_DOCS_NODE:
     return 0;
-  case DOC_COMMENT_NODE:
-    return 1;
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return 1;
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -231,12 +228,6 @@ static uint16_t module_exports_all_node_init() {
   return node;
 }
 
-static uint16_t doc_comment_node_init() {
-  const uint16_t node = general_node_init();
-  NODE_TYPE[node] = DOC_COMMENT_NODE;
-  return node;
-}
-
 static uint16_t no_docs_node_init() {
   const uint16_t node = general_node_init();
   NODE_TYPE[node] = NO_DOCS_NODE;
@@ -252,8 +243,6 @@ static char *node_type_to_string(enum node_type type) {
   switch (type) {
   case NO_DOCS_NODE:
     return "NODO";
-  case DOC_COMMENT_NODE:
-    return "DOCS";
   case MODULE_EXPOSE_ALL_VARIANTS_NODE:
     return "MEXA";
   case EMPTY_BLOCK_COMMENT_NODE:
@@ -1638,7 +1627,7 @@ static int doc_comment_parse(uint16_t *id) {
     I = start;
     return -1;
   }
-  *id = doc_comment_node_init();
+  *id = general_node_init();
   SRC_START[*id] = start + 1;
   SRC_SIZE[*id] = I - start;
 
