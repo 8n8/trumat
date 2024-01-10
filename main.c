@@ -1728,10 +1728,9 @@ static void export_left_comment_write(uint16_t id, int is_multiline) {
 static void export_name_write(uint16_t id) {
   const uint16_t name = SIBLING[CHILD[id]];
   literal_write(name);
-  if (!is_module_expose_all_variants_node(name)) {
-    return;
+  if (is_module_expose_all_variants_node(name)) {
+    fputs("(..)", OUT);
   }
-  fputs("(..)", OUT);
 }
 
 static void export_right_comment_write(uint16_t id, int is_multiline) {
