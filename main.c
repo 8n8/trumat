@@ -47,6 +47,10 @@ static int NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
 #define MAX_SINGLE_LINE_BLOCK_COMMENT 200
 static uint16_t IS_SINGLE_LINE_BLOCK_COMMENT[MAX_SINGLE_LINE_BLOCK_COMMENT];
 
+static int NUM_EMPTY_BLOCK_COMMENT = 0;
+#define MAX_EMPTY_BLOCK_COMMENT 200
+static uint16_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -57,10 +61,6 @@ void dbg_src() {
   }
   fputc('\n', stdout);
 }
-
-enum node_type {
-  EMPTY_BLOCK_COMMENT_NODE = 1,
-};
 
 static int increment_src() {
   if (I == MAX_SRC - 1) {
@@ -177,7 +177,12 @@ static int is_hanging_block_comment_node(uint16_t id) {
 }
 
 static int is_empty_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == EMPTY_BLOCK_COMMENT_NODE;
+  for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
+    if (IS_EMPTY_BLOCK_COMMENT[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static uint16_t general_node_init() {
@@ -194,7 +199,11 @@ static uint16_t general_node_init() {
 
 static uint16_t empty_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = EMPTY_BLOCK_COMMENT_NODE;
+  if (NUM_EMPTY_BLOCK_COMMENT == MAX_EMPTY_BLOCK_COMMENT) {
+    exit(130);
+  }
+  IS_EMPTY_BLOCK_COMMENT[NUM_EMPTY_BLOCK_COMMENT] = node;
+  ++NUM_EMPTY_BLOCK_COMMENT;
   return node;
 }
 
@@ -1827,6 +1836,11 @@ static int module_declaration_format() {
 static int with_out_file() {
   I = -1;
   NUM_NODE = 2;
+  IS_MODULE_EXPORTS_ALL = 0;
+  NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
+  NUM_HANGING_BLOCK_COMMENT = 0;
+  NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
+  NUM_EMPTY_BLOCK_COMMENT = 0;
   const int declaration_result = module_declaration_format();
   if (declaration_result) {
     return declaration_result;
