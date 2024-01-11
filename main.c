@@ -198,22 +198,23 @@ static uint16_t literal_node_init() {
   return node;
 }
 
-static char *node_type_to_string(enum node_type type) {
-  if (type == 0) {
-    return "####";
-  }
-  switch (type) {
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+static char *node_type_to_string(uint16_t id) {
+  if (is_module_expose_all_variants_node(id)) {
     return "MEXA";
-  case EMPTY_BLOCK_COMMENT_NODE:
+  }
+  if (is_empty_block_comment_node(id)) {
     return "EBLK";
-  case HANGING_BLOCK_COMMENT_NODE:
+  }
+  if (is_hanging_block_comment_node(id)) {
     return "HBCB";
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+  }
+  if (is_single_line_block_comment_node(id)) {
     return "SBLK";
-  case MODULE_EXPORTS_ALL_NODE:
+  }
+  if (is_module_exports_all_node(id)) {
     return "EXAL";
   }
+  return "####";
 }
 
 void dbg_siblings() {
@@ -233,7 +234,7 @@ void dbg_children() {
   putchar('\n');
 
   for (int i = 0; i < NUM_NODE; ++i) {
-    printf("%s ", node_type_to_string(NODE_TYPE[i]));
+    printf("%s ", node_type_to_string(i));
   }
   putchar('\n');
 }
