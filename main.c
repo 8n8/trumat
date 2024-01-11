@@ -40,8 +40,12 @@ static int NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
 static uint16_t IS_MODULE_EXPOSE_ALL_VARIANTS[MAX_MODULE_EXPOSE_ALL_VARIANTS];
 
 static int NUM_HANGING_BLOCK_COMMENT = 0;
-#define MAX_HANGING_BLOCK_COMMENT 100
+#define MAX_HANGING_BLOCK_COMMENT 200
 static uint16_t IS_HANGING_BLOCK_COMMENT[MAX_HANGING_BLOCK_COMMENT];
+
+static int NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
+#define MAX_SINGLE_LINE_BLOCK_COMMENT 200
+static uint16_t IS_SINGLE_LINE_BLOCK_COMMENT[MAX_SINGLE_LINE_BLOCK_COMMENT];
 
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
@@ -56,7 +60,6 @@ void dbg_src() {
 
 enum node_type {
   EMPTY_BLOCK_COMMENT_NODE = 1,
-  SINGLE_LINE_BLOCK_COMMENT_NODE,
 };
 
 static int increment_src() {
@@ -156,7 +159,12 @@ static int is_module_expose_all_variants_node(uint16_t id) {
 }
 
 static int is_single_line_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
+  for (int i = 0; i < NUM_SINGLE_LINE_BLOCK_COMMENT; ++i) {
+    if (IS_SINGLE_LINE_BLOCK_COMMENT[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
@@ -192,7 +200,11 @@ static uint16_t empty_block_comment_node_init() {
 
 static uint16_t single_line_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = SINGLE_LINE_BLOCK_COMMENT_NODE;
+  if (NUM_SINGLE_LINE_BLOCK_COMMENT == MAX_SINGLE_LINE_BLOCK_COMMENT) {
+    exit(129);
+  }
+  IS_SINGLE_LINE_BLOCK_COMMENT[NUM_SINGLE_LINE_BLOCK_COMMENT] = node;
+  ++NUM_SINGLE_LINE_BLOCK_COMMENT;
   return node;
 }
 
