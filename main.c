@@ -33,6 +33,8 @@ static uint16_t SRC_SIZE[MAX_NODE];
 // So the first non-root node is 2
 static int NUM_NODE = 2;
 
+static uint16_t IS_MODULE_EXPORTS_ALL = 0;
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -49,7 +51,6 @@ enum node_type {
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
-  MODULE_EXPORTS_ALL_NODE,
 };
 
 static int increment_src() {
@@ -132,7 +133,7 @@ static void set_hanging_block_comment_node(uint16_t id) {
 static int is_no_docs_node(uint16_t id) { return NODE_TYPE[id] == 0; }
 
 static int is_module_exports_all_node(uint16_t id) {
-  return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
+  return id == IS_MODULE_EXPORTS_ALL;
 }
 
 static int is_module_expose_all_variants_node(uint16_t id) {
@@ -187,9 +188,10 @@ static uint16_t module_expose_all_variants_node_init() {
   return node;
 }
 
+
 static uint16_t module_exports_all_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = MODULE_EXPORTS_ALL_NODE;
+  IS_MODULE_EXPORTS_ALL = node;
   return node;
 }
 
