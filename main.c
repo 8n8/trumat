@@ -39,9 +39,31 @@ static int NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
 #define MAX_MODULE_EXPOSE_ALL_VARIANTS 500
 static uint16_t IS_MODULE_EXPOSE_ALL_VARIANTS[MAX_MODULE_EXPOSE_ALL_VARIANTS];
 
+static void dbg_module_expose_all() {
+  if (NUM_MODULE_EXPOSE_ALL_VARIANTS == 0) {
+    return;
+  }
+  fputs("module expose all variants: ", stdout);
+  for (int i = 0; i < NUM_MODULE_EXPOSE_ALL_VARIANTS; ++i) {
+    printf("%04d ", IS_MODULE_EXPOSE_ALL_VARIANTS[i]);
+  }
+  putchar('\n');
+}
+
 static int NUM_HANGING_BLOCK_COMMENT = 0;
 #define MAX_HANGING_BLOCK_COMMENT 200
 static uint16_t IS_HANGING_BLOCK_COMMENT[MAX_HANGING_BLOCK_COMMENT];
+
+static void dbg_hanging_block_comment() {
+  if (NUM_HANGING_BLOCK_COMMENT == 0) {
+    return;
+  }
+  fputs("hanging block comment: ", stdout);
+  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
+    printf("%04d ", IS_HANGING_BLOCK_COMMENT[i]);
+  }
+  putchar('\n');
+}
 
 static int NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
 #define MAX_SINGLE_LINE_BLOCK_COMMENT 200
@@ -135,7 +157,19 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
+static int is_hanging_block_comment_node(uint16_t id) {
+  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
+    if (IS_HANGING_BLOCK_COMMENT[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void set_hanging_block_comment_node(uint16_t id) {
+  if (is_hanging_block_comment_node(id)) {
+    return;
+  }
   if (NUM_HANGING_BLOCK_COMMENT == MAX_HANGING_BLOCK_COMMENT) {
     exit(128);
   }
@@ -161,15 +195,6 @@ static int is_module_expose_all_variants_node(uint16_t id) {
 static int is_single_line_block_comment_node(uint16_t id) {
   for (int i = 0; i < NUM_SINGLE_LINE_BLOCK_COMMENT; ++i) {
     if (IS_SINGLE_LINE_BLOCK_COMMENT[i] == id) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static int is_hanging_block_comment_node(uint16_t id) {
-  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
-    if (IS_HANGING_BLOCK_COMMENT[i] == id) {
       return 1;
     }
   }
@@ -244,25 +269,6 @@ static uint16_t literal_node_init() {
   return node;
 }
 
-static char *node_type_to_string(uint16_t id) {
-  if (is_module_expose_all_variants_node(id)) {
-    return "MEXA";
-  }
-  if (is_empty_block_comment_node(id)) {
-    return "EBLK";
-  }
-  if (is_hanging_block_comment_node(id)) {
-    return "HBCB";
-  }
-  if (is_single_line_block_comment_node(id)) {
-    return "SBLK";
-  }
-  if (is_module_exports_all_node(id)) {
-    return "EXAL";
-  }
-  return "####";
-}
-
 void dbg_siblings() {
   puts("siblings:");
   for (int i = 0; i < NUM_NODE; ++i) {
@@ -276,11 +282,6 @@ void dbg_children() {
 
   for (int i = 0; i < NUM_NODE; ++i) {
     printf("%04d ", CHILD[i]);
-  }
-  putchar('\n');
-
-  for (int i = 0; i < NUM_NODE; ++i) {
-    printf("%s ", node_type_to_string(i));
   }
   putchar('\n');
 }
@@ -313,6 +314,8 @@ void dbg_ast() {
   putchar('\n');
   dbg_children();
   dbg_siblings();
+  dbg_module_expose_all();
+  dbg_hanging_block_comment();
   dbg_literals();
 }
 
@@ -1148,7 +1151,7 @@ static int block_comment_is_hanging_parse() {
 
 static int block_comment_contents_parse(uint16_t *id) {
   const int start = I;
-  const int is_hanging = block_comment_is_hanging_parse();
+  int is_hanging = block_comment_is_hanging_parse();
   if (is_hanging) {
     *id = hanging_block_comment_node_init();
   } else {
@@ -1281,7 +1284,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  // dbg_ast();
+  dbg_ast();
   return top_level_write();
 }
 
