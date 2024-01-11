@@ -35,6 +35,10 @@ static int NUM_NODE = 2;
 
 static uint16_t IS_MODULE_EXPORTS_ALL = 0;
 
+static int NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
+#define MAX_MODULE_EXPOSE_ALL_VARIANTS 500
+static uint16_t IS_MODULE_EXPOSE_ALL_VARIANTS[MAX_MODULE_EXPOSE_ALL_VARIANTS];
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -50,7 +54,6 @@ enum node_type {
   EMPTY_BLOCK_COMMENT_NODE = 1,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
-  MODULE_EXPOSE_ALL_VARIANTS_NODE,
 };
 
 static int increment_src() {
@@ -137,7 +140,12 @@ static int is_module_exports_all_node(uint16_t id) {
 }
 
 static int is_module_expose_all_variants_node(uint16_t id) {
-  return NODE_TYPE[id] == MODULE_EXPOSE_ALL_VARIANTS_NODE;
+  for (int i = 0; i < NUM_MODULE_EXPOSE_ALL_VARIANTS; ++i) {
+    if (IS_MODULE_EXPOSE_ALL_VARIANTS[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static int is_single_line_block_comment_node(uint16_t id) {
@@ -184,10 +192,13 @@ static uint16_t hanging_block_comment_node_init() {
 
 static uint16_t module_expose_all_variants_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = MODULE_EXPOSE_ALL_VARIANTS_NODE;
+  if (NUM_MODULE_EXPOSE_ALL_VARIANTS == MAX_MODULE_EXPOSE_ALL_VARIANTS) {
+    exit(127);
+  }
+  IS_MODULE_EXPOSE_ALL_VARIANTS[NUM_MODULE_EXPOSE_ALL_VARIANTS] = node;
+  ++NUM_MODULE_EXPOSE_ALL_VARIANTS;
   return node;
 }
-
 
 static uint16_t module_exports_all_node_init() {
   const uint16_t node = general_node_init();
