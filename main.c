@@ -69,9 +69,31 @@ static int NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
 #define MAX_SINGLE_LINE_BLOCK_COMMENT 200
 static uint16_t IS_SINGLE_LINE_BLOCK_COMMENT[MAX_SINGLE_LINE_BLOCK_COMMENT];
 
+static void dbg_single_line_block_comment() {
+  if (NUM_SINGLE_LINE_BLOCK_COMMENT == 0) {
+    return;
+  }
+  fputs("single line block comment: ", stdout);
+  for (int i = 0; i < NUM_SINGLE_LINE_BLOCK_COMMENT; ++i) {
+    printf("%04d ", IS_SINGLE_LINE_BLOCK_COMMENT[i]);
+  }
+  putchar('\n');
+}
+
 static int NUM_EMPTY_BLOCK_COMMENT = 0;
 #define MAX_EMPTY_BLOCK_COMMENT 200
 static uint16_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
+
+static void dbg_empty_block_comment() {
+  if (NUM_EMPTY_BLOCK_COMMENT == 0) {
+    return;
+  }
+  fputs("empty block comment: ", stdout);
+  for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
+    printf("%04d ", IS_EMPTY_BLOCK_COMMENT[i]);
+  }
+  putchar('\n');
+}
 
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
@@ -316,6 +338,8 @@ void dbg_ast() {
   dbg_siblings();
   dbg_module_expose_all();
   dbg_hanging_block_comment();
+  dbg_single_line_block_comment();
+  dbg_empty_block_comment();
   dbg_literals();
 }
 
@@ -1836,14 +1860,18 @@ static int module_declaration_format() {
   return 0;
 }
 
-static int with_out_file() {
-  I = -1;
+static void zero_node_memory() {
   NUM_NODE = 2;
   IS_MODULE_EXPORTS_ALL = 0;
   NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
   NUM_HANGING_BLOCK_COMMENT = 0;
   NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
   NUM_EMPTY_BLOCK_COMMENT = 0;
+}
+
+static int with_out_file() {
+  I = -1;
+  zero_node_memory();
   const int declaration_result = module_declaration_format();
   if (declaration_result) {
     return declaration_result;
@@ -1851,7 +1879,7 @@ static int with_out_file() {
   many_whitespace_parse();
 
   while (I < NUM_SRC - 1) {
-    NUM_NODE = 2;
+    zero_node_memory();
 
     const int top_level_result = top_level_format();
     if (top_level_result) {
