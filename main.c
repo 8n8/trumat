@@ -39,6 +39,10 @@ static int NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
 #define MAX_MODULE_EXPOSE_ALL_VARIANTS 500
 static uint16_t IS_MODULE_EXPOSE_ALL_VARIANTS[MAX_MODULE_EXPOSE_ALL_VARIANTS];
 
+static int NUM_HANGING_BLOCK_COMMENT = 0;
+#define MAX_HANGING_BLOCK_COMMENT 100
+static uint16_t IS_HANGING_BLOCK_COMMENT[MAX_HANGING_BLOCK_COMMENT];
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -53,7 +57,6 @@ void dbg_src() {
 enum node_type {
   EMPTY_BLOCK_COMMENT_NODE = 1,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
-  HANGING_BLOCK_COMMENT_NODE,
 };
 
 static int increment_src() {
@@ -130,7 +133,11 @@ static int keyword_parse(char *keyword) {
 }
 
 static void set_hanging_block_comment_node(uint16_t id) {
-  NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
+  if (NUM_HANGING_BLOCK_COMMENT == MAX_HANGING_BLOCK_COMMENT) {
+    exit(128);
+  }
+  IS_HANGING_BLOCK_COMMENT[NUM_HANGING_BLOCK_COMMENT] = id;
+  ++NUM_HANGING_BLOCK_COMMENT;
 }
 
 static int is_no_docs_node(uint16_t id) { return NODE_TYPE[id] == 0; }
@@ -153,7 +160,12 @@ static int is_single_line_block_comment_node(uint16_t id) {
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == HANGING_BLOCK_COMMENT_NODE;
+  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
+    if (IS_HANGING_BLOCK_COMMENT[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static int is_empty_block_comment_node(uint16_t id) {
@@ -186,7 +198,7 @@ static uint16_t single_line_block_comment_node_init() {
 
 static uint16_t hanging_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = HANGING_BLOCK_COMMENT_NODE;
+  set_hanging_block_comment_node(node);
   return node;
 }
 
