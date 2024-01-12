@@ -33,6 +33,8 @@ static uint16_t SRC_SIZE[MAX_NODE];
 // So the first non-root node is 2
 static int NUM_NODE = 2;
 
+static uint16_t IS_MODULE_EXPORTS_ALL_NODE = 0;
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -51,7 +53,6 @@ enum node_type {
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
   MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
   HANGING_BLOCK_COMMENT_NODE,
-  MODULE_EXPORTS_ALL_NODE,
 };
 
 static int increment_src() {
@@ -140,7 +141,7 @@ static int is_no_docs_node(uint16_t id) {
 }
 
 static int is_module_exports_all_node(uint16_t id) {
-  return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
+  return IS_MODULE_EXPORTS_ALL_NODE == id;
 }
 
 static int is_module_expose_all_variants_node(uint16_t id) {
@@ -201,7 +202,7 @@ static uint16_t module_expose_all_variants_node_init() {
 
 static uint16_t module_exports_all_node_init() {
   const uint16_t node = general_node_init();
-  NODE_TYPE[node] = MODULE_EXPORTS_ALL_NODE;
+  IS_MODULE_EXPORTS_ALL_NODE = node;
   return node;
 }
 
@@ -1819,9 +1820,14 @@ static int module_declaration_format() {
   return 0;
 }
 
+static void zero_ast() {
+  NUM_NODE = 2;
+  IS_MODULE_EXPORTS_ALL_NODE = 0;
+}
+
 static int with_out_file() {
   I = -1;
-  NUM_NODE = 2;
+  zero_ast();
   const int declaration_result = module_declaration_format();
   if (declaration_result) {
     return declaration_result;
@@ -1829,7 +1835,7 @@ static int with_out_file() {
   many_whitespace_parse();
 
   while (I < NUM_SRC - 1) {
-    NUM_NODE = 2;
+    zero_ast();
 
     const int top_level_result = top_level_format();
     if (top_level_result) {
