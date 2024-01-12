@@ -31,13 +31,13 @@ static uint16_t SRC_SIZE[MAX_NODE];
 // 1 is the root
 #define ROOT 1
 // So the first non-root node is 2
-static int NUM_NODE = 2;
+static int num_node = 2;
 
-static uint16_t IS_MODULE_EXPORTS_ALL_NODE = 0;
+static uint16_t module_exports_all_node = 0;
 
-#define MAX_HANGING_BLOCK_COMMENT_NODE 200
-static uint16_t IS_HANGING_BLOCK_COMMENT_NODE[MAX_HANGING_BLOCK_COMMENT_NODE];
-static int NUM_HANGING_BLOCK_COMMENT_NODE = 0;
+#define max_hanging_block_comment_node 200
+static uint16_t hanging_block_comment_node[max_hanging_block_comment_node];
+static int num_hanging_block_comment_node = 0;
 
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
@@ -136,8 +136,8 @@ static void set_multiline_compact_block_comment_node(uint16_t id) {
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
-  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT_NODE; ++i) {
-    if (IS_HANGING_BLOCK_COMMENT_NODE[i] == id) {
+  for (int i = 0; i < num_hanging_block_comment_node; ++i) {
+    if (hanging_block_comment_node[i] == id) {
       return 1;
     }
   }
@@ -148,11 +148,11 @@ static void set_hanging_block_comment_node(uint16_t id) {
   if (is_hanging_block_comment_node(id)) {
     return;
   }
-  if (NUM_HANGING_BLOCK_COMMENT_NODE == MAX_HANGING_BLOCK_COMMENT_NODE) {
+  if (num_hanging_block_comment_node == max_hanging_block_comment_node) {
     exit(129);
   }
-  IS_HANGING_BLOCK_COMMENT_NODE[NUM_HANGING_BLOCK_COMMENT_NODE] = id;
-  ++NUM_HANGING_BLOCK_COMMENT_NODE;
+  hanging_block_comment_node[num_hanging_block_comment_node] = id;
+  ++num_hanging_block_comment_node;
 }
 
 static int is_no_docs_node(uint16_t id) {
@@ -160,7 +160,7 @@ static int is_no_docs_node(uint16_t id) {
 }
 
 static int is_module_exports_all_node(uint16_t id) {
-  return IS_MODULE_EXPORTS_ALL_NODE == id;
+  return module_exports_all_node == id;
 }
 
 static int is_module_expose_all_variants_node(uint16_t id) {
@@ -180,14 +180,14 @@ static int is_empty_block_comment_node(uint16_t id) {
 }
 
 static uint16_t general_node_init() {
-  if (NUM_NODE == MAX_NODE) {
+  if (num_node == MAX_NODE) {
     exit(125);
   }
-  const uint16_t id = NUM_NODE;
+  const uint16_t id = num_node;
   SIBLING[id] = 0;
   CHILD[id] = 0;
   NODE_TYPE[id] = 0;
-  ++NUM_NODE;
+  ++num_node;
   return id;
 }
 
@@ -217,7 +217,7 @@ static uint16_t module_expose_all_variants_node_init() {
 
 static uint16_t module_exports_all_node_init() {
   const uint16_t node = general_node_init();
-  IS_MODULE_EXPORTS_ALL_NODE = node;
+  module_exports_all_node = node;
   return node;
 }
 
@@ -261,7 +261,7 @@ static char *node_type_to_string(uint16_t id) {
 
 void dbg_siblings() {
   puts("siblings:");
-  for (int i = 0; i < NUM_NODE; ++i) {
+  for (int i = 0; i < num_node; ++i) {
     printf("%04d ", SIBLING[i]);
   }
   putchar('\n');
@@ -270,12 +270,12 @@ void dbg_siblings() {
 void dbg_children() {
   puts("children:");
 
-  for (int i = 0; i < NUM_NODE; ++i) {
+  for (int i = 0; i < num_node; ++i) {
     printf("%04d ", CHILD[i]);
   }
   putchar('\n');
 
-  for (int i = 0; i < NUM_NODE; ++i) {
+  for (int i = 0; i < num_node; ++i) {
     printf("%s ", node_type_to_string(i));
   }
   putchar('\n');
@@ -283,7 +283,7 @@ void dbg_children() {
 
 void dbg_literals() {
   puts("literals:");
-  for (int i = 0; i < NUM_NODE; ++i) {
+  for (int i = 0; i < num_node; ++i) {
     const uint16_t start = SRC_START[i];
     const uint16_t size = SRC_SIZE[i];
     if (!is_text_node(i)) {
@@ -303,7 +303,7 @@ void dbg_literals() {
 }
 
 void dbg_ast() {
-  for (int i = 0; i < NUM_NODE; ++i) {
+  for (int i = 0; i < num_node; ++i) {
     printf("%04d ", i);
   }
   putchar('\n');
@@ -1836,9 +1836,9 @@ static int module_declaration_format() {
 }
 
 static void zero_ast() {
-  NUM_NODE = 2;
-  IS_MODULE_EXPORTS_ALL_NODE = 0;
-  NUM_HANGING_BLOCK_COMMENT_NODE = 0;
+  num_node = 2;
+  module_exports_all_node = 0;
+  num_hanging_block_comment_node = 0;
 }
 
 static int with_out_file() {
