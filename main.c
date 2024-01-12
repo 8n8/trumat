@@ -33,68 +33,6 @@ static uint16_t SRC_SIZE[MAX_NODE];
 // So the first non-root node is 2
 static int NUM_NODE = 2;
 
-static uint16_t IS_MODULE_EXPORTS_ALL = 0;
-
-static int NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
-#define MAX_MODULE_EXPOSE_ALL_VARIANTS 500
-static uint16_t IS_MODULE_EXPOSE_ALL_VARIANTS[MAX_MODULE_EXPOSE_ALL_VARIANTS];
-
-static void dbg_module_expose_all() {
-  if (NUM_MODULE_EXPOSE_ALL_VARIANTS == 0) {
-    return;
-  }
-  fputs("module expose all variants: ", stdout);
-  for (int i = 0; i < NUM_MODULE_EXPOSE_ALL_VARIANTS; ++i) {
-    printf("%04d ", IS_MODULE_EXPOSE_ALL_VARIANTS[i]);
-  }
-  putchar('\n');
-}
-
-static int NUM_HANGING_BLOCK_COMMENT = 0;
-#define MAX_HANGING_BLOCK_COMMENT 200
-static uint16_t IS_HANGING_BLOCK_COMMENT[MAX_HANGING_BLOCK_COMMENT];
-
-static void dbg_hanging_block_comment() {
-  if (NUM_HANGING_BLOCK_COMMENT == 0) {
-    return;
-  }
-  fputs("hanging block comment: ", stdout);
-  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
-    printf("%04d ", IS_HANGING_BLOCK_COMMENT[i]);
-  }
-  putchar('\n');
-}
-
-static int NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
-#define MAX_SINGLE_LINE_BLOCK_COMMENT 200
-static uint16_t IS_SINGLE_LINE_BLOCK_COMMENT[MAX_SINGLE_LINE_BLOCK_COMMENT];
-
-static void dbg_single_line_block_comment() {
-  if (NUM_SINGLE_LINE_BLOCK_COMMENT == 0) {
-    return;
-  }
-  fputs("single line block comment: ", stdout);
-  for (int i = 0; i < NUM_SINGLE_LINE_BLOCK_COMMENT; ++i) {
-    printf("%04d ", IS_SINGLE_LINE_BLOCK_COMMENT[i]);
-  }
-  putchar('\n');
-}
-
-static int NUM_EMPTY_BLOCK_COMMENT = 0;
-#define MAX_EMPTY_BLOCK_COMMENT 200
-static uint16_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
-
-static void dbg_empty_block_comment() {
-  if (NUM_EMPTY_BLOCK_COMMENT == 0) {
-    return;
-  }
-  fputs("empty block comment: ", stdout);
-  for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
-    printf("%04d ", IS_EMPTY_BLOCK_COMMENT[i]);
-  }
-  putchar('\n');
-}
-
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -104,6 +42,35 @@ void dbg_src() {
     fputc(SRC[i], stdout);
   }
   fputc('\n', stdout);
+}
+
+enum node_type {
+  NO_DOCS_NODE = 1,
+  EMPTY_BLOCK_COMMENT_NODE,
+  SINGLE_LINE_BLOCK_COMMENT_NODE,
+  MODULE_EXPOSE_ALL_VARIANTS_NODE,
+  MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
+  HANGING_BLOCK_COMMENT_NODE,
+  MODULE_EXPORTS_ALL_NODE,
+};
+
+static int is_text_node(uint16_t id) {
+  switch ((enum node_type)NODE_TYPE[id]) {
+  case NO_DOCS_NODE:
+    return 0;
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return 1;
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return 0;
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return 1;
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return 0;
+  case HANGING_BLOCK_COMMENT_NODE:
+    return 0;
+  case MODULE_EXPORTS_ALL_NODE:
+    return 0;
+  }
 }
 
 static int increment_src() {
@@ -179,57 +146,40 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static int is_hanging_block_comment_node(uint16_t id) {
-  for (int i = 0; i < NUM_HANGING_BLOCK_COMMENT; ++i) {
-    if (IS_HANGING_BLOCK_COMMENT[i] == id) {
-      return 1;
-    }
-  }
-  return 0;
+static void set_multiline_compact_block_comment_node(uint16_t id) {
+  NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
 }
 
 static void set_hanging_block_comment_node(uint16_t id) {
-  if (is_hanging_block_comment_node(id)) {
-    return;
-  }
-  if (NUM_HANGING_BLOCK_COMMENT == MAX_HANGING_BLOCK_COMMENT) {
-    exit(128);
-  }
-  IS_HANGING_BLOCK_COMMENT[NUM_HANGING_BLOCK_COMMENT] = id;
-  ++NUM_HANGING_BLOCK_COMMENT;
+  NODE_TYPE[id] = HANGING_BLOCK_COMMENT_NODE;
 }
 
-static int is_no_docs_node(uint16_t id) { return NODE_TYPE[id] == 0; }
+static int is_no_docs_node(uint16_t id) {
+  return NODE_TYPE[id] == NO_DOCS_NODE;
+}
 
 static int is_module_exports_all_node(uint16_t id) {
-  return id == IS_MODULE_EXPORTS_ALL;
+  return NODE_TYPE[id] == MODULE_EXPORTS_ALL_NODE;
 }
 
 static int is_module_expose_all_variants_node(uint16_t id) {
-  for (int i = 0; i < NUM_MODULE_EXPOSE_ALL_VARIANTS; ++i) {
-    if (IS_MODULE_EXPOSE_ALL_VARIANTS[i] == id) {
-      return 1;
-    }
-  }
-  return 0;
+  return NODE_TYPE[id] == MODULE_EXPOSE_ALL_VARIANTS_NODE;
 }
 
 static int is_single_line_block_comment_node(uint16_t id) {
-  for (int i = 0; i < NUM_SINGLE_LINE_BLOCK_COMMENT; ++i) {
-    if (IS_SINGLE_LINE_BLOCK_COMMENT[i] == id) {
-      return 1;
-    }
-  }
-  return 0;
+  return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
+}
+
+static int is_multiline_compact_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+}
+
+static int is_hanging_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == HANGING_BLOCK_COMMENT_NODE;
 }
 
 static int is_empty_block_comment_node(uint16_t id) {
-  for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
-    if (IS_EMPTY_BLOCK_COMMENT[i] == id) {
-      return 1;
-    }
-  }
-  return 0;
+  return NODE_TYPE[id] == EMPTY_BLOCK_COMMENT_NODE;
 }
 
 static uint16_t general_node_init() {
@@ -246,49 +196,62 @@ static uint16_t general_node_init() {
 
 static uint16_t empty_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  if (NUM_EMPTY_BLOCK_COMMENT == MAX_EMPTY_BLOCK_COMMENT) {
-    exit(130);
-  }
-  IS_EMPTY_BLOCK_COMMENT[NUM_EMPTY_BLOCK_COMMENT] = node;
-  ++NUM_EMPTY_BLOCK_COMMENT;
+  NODE_TYPE[node] = EMPTY_BLOCK_COMMENT_NODE;
   return node;
 }
 
 static uint16_t single_line_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  if (NUM_SINGLE_LINE_BLOCK_COMMENT == MAX_SINGLE_LINE_BLOCK_COMMENT) {
-    exit(129);
-  }
-  IS_SINGLE_LINE_BLOCK_COMMENT[NUM_SINGLE_LINE_BLOCK_COMMENT] = node;
-  ++NUM_SINGLE_LINE_BLOCK_COMMENT;
+  NODE_TYPE[node] = SINGLE_LINE_BLOCK_COMMENT_NODE;
   return node;
 }
 
 static uint16_t hanging_block_comment_node_init() {
   const uint16_t node = general_node_init();
-  set_hanging_block_comment_node(node);
+  NODE_TYPE[node] = HANGING_BLOCK_COMMENT_NODE;
   return node;
 }
 
 static uint16_t module_expose_all_variants_node_init() {
   const uint16_t node = general_node_init();
-  if (NUM_MODULE_EXPOSE_ALL_VARIANTS == MAX_MODULE_EXPOSE_ALL_VARIANTS) {
-    exit(127);
-  }
-  IS_MODULE_EXPOSE_ALL_VARIANTS[NUM_MODULE_EXPOSE_ALL_VARIANTS] = node;
-  ++NUM_MODULE_EXPOSE_ALL_VARIANTS;
+  NODE_TYPE[node] = MODULE_EXPOSE_ALL_VARIANTS_NODE;
   return node;
 }
 
 static uint16_t module_exports_all_node_init() {
   const uint16_t node = general_node_init();
-  IS_MODULE_EXPORTS_ALL = node;
+  NODE_TYPE[node] = MODULE_EXPORTS_ALL_NODE;
+  return node;
+}
+
+static uint16_t no_docs_node_init() {
+  const uint16_t node = general_node_init();
+  NODE_TYPE[node] = NO_DOCS_NODE;
   return node;
 }
 
 static uint16_t literal_node_init() {
   const uint16_t node = general_node_init();
   return node;
+}
+
+static char *node_type_to_string(enum node_type type) {
+  switch (type) {
+  case NO_DOCS_NODE:
+    return "NODO";
+  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
+    return "MEXA";
+  case EMPTY_BLOCK_COMMENT_NODE:
+    return "EBLK";
+  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
+    return "MLCB";
+  case HANGING_BLOCK_COMMENT_NODE:
+    return "HBCB";
+  case SINGLE_LINE_BLOCK_COMMENT_NODE:
+    return "SBLK";
+  case MODULE_EXPORTS_ALL_NODE:
+    return "EXAL";
+  }
 }
 
 void dbg_siblings() {
@@ -306,6 +269,11 @@ void dbg_children() {
     printf("%04d ", CHILD[i]);
   }
   putchar('\n');
+
+  for (int i = 0; i < NUM_NODE; ++i) {
+    printf("%s ", node_type_to_string(NODE_TYPE[i]));
+  }
+  putchar('\n');
 }
 
 void dbg_literals() {
@@ -313,7 +281,7 @@ void dbg_literals() {
   for (int i = 0; i < NUM_NODE; ++i) {
     const uint16_t start = SRC_START[i];
     const uint16_t size = SRC_SIZE[i];
-    if (SRC_SIZE[i] == 0) {
+    if (!is_text_node(i)) {
       continue;
     }
     printf("%04d ", i);
@@ -336,10 +304,6 @@ void dbg_ast() {
   putchar('\n');
   dbg_children();
   dbg_siblings();
-  dbg_module_expose_all();
-  dbg_hanging_block_comment();
-  dbg_single_line_block_comment();
-  dbg_empty_block_comment();
   dbg_literals();
 }
 
@@ -422,6 +386,10 @@ static void comment_write(uint16_t id, int indent) {
     single_line_block_comment_write(id);
     return;
   }
+  if (is_multiline_compact_block_comment_node(id)) {
+    multiline_compact_block_comment_write(id, indent);
+    return;
+  }
   if (is_hanging_block_comment_node(id)) {
     hanging_block_comment_write(id, indent);
     return;
@@ -430,7 +398,7 @@ static void comment_write(uint16_t id, int indent) {
     fputs("{--}", OUT);
     return;
   }
-  multiline_compact_block_comment_write(id, indent);
+  literal_write(id);
 }
 
 static void comment_gap_module_declaration(uint16_t id, int is_multiline) {
@@ -1175,7 +1143,7 @@ static int block_comment_is_hanging_parse() {
 
 static int block_comment_contents_parse(uint16_t *id) {
   const int start = I;
-  int is_hanging = block_comment_is_hanging_parse();
+  const int is_hanging = block_comment_is_hanging_parse();
   if (is_hanging) {
     *id = hanging_block_comment_node_init();
   } else {
@@ -1196,6 +1164,8 @@ static int block_comment_contents_parse(uint16_t *id) {
     previous = line;
     if (is_hanging) {
       set_hanging_block_comment_node(*id);
+    } else {
+      set_multiline_compact_block_comment_node(*id);
     }
   }
 
@@ -1308,7 +1278,7 @@ static int top_level_format() {
   if (parse_result) {
     return parse_result;
   }
-  dbg_ast();
+  // dbg_ast();
   return top_level_write();
 }
 
@@ -1693,7 +1663,7 @@ static int module_declaration_parse_help(uint16_t *id) {
     SIBLING[normal_comment] = block;
     return 0;
   }
-  SIBLING[normal_comment] = general_node_init();
+  SIBLING[normal_comment] = no_docs_node_init();
 
   return 0;
 }
@@ -1860,18 +1830,9 @@ static int module_declaration_format() {
   return 0;
 }
 
-static void zero_node_memory() {
-  NUM_NODE = 2;
-  IS_MODULE_EXPORTS_ALL = 0;
-  NUM_MODULE_EXPOSE_ALL_VARIANTS = 0;
-  NUM_HANGING_BLOCK_COMMENT = 0;
-  NUM_SINGLE_LINE_BLOCK_COMMENT = 0;
-  NUM_EMPTY_BLOCK_COMMENT = 0;
-}
-
 static int with_out_file() {
   I = -1;
-  zero_node_memory();
+  NUM_NODE = 2;
   const int declaration_result = module_declaration_format();
   if (declaration_result) {
     return declaration_result;
@@ -1879,7 +1840,7 @@ static int with_out_file() {
   many_whitespace_parse();
 
   while (I < NUM_SRC - 1) {
-    zero_node_memory();
+    NUM_NODE = 2;
 
     const int top_level_result = top_level_format();
     if (top_level_result) {
