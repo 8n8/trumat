@@ -39,6 +39,10 @@ static uint16_t module_exports_all_node = 0;
 static uint16_t hanging_block_comment_node[max_hanging_block_comment_node];
 static int num_hanging_block_comment_node = 0;
 
+#define max_compact_block_comment_node 200
+static uint16_t compact_block_comment_node[max_compact_block_comment_node];
+static int num_compact_block_comment_node = 0;
+
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
@@ -55,7 +59,6 @@ enum node_type {
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
-  MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
 };
 
 static int increment_src() {
@@ -131,8 +134,24 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static void set_multiline_compact_block_comment_node(uint16_t id) {
-  NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+static int is_compact_block_comment_node(uint16_t id) {
+  for (int i = 0; i < num_compact_block_comment_node; ++i) {
+    if (compact_block_comment_node[i] == id) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void set_compact_block_comment_node(uint16_t id) {
+  if (is_compact_block_comment_node(id)) {
+    return;
+  }
+  if (num_compact_block_comment_node == max_compact_block_comment_node) {
+    exit(130);
+  }
+  compact_block_comment_node[num_compact_block_comment_node] = id;
+  ++num_compact_block_comment_node;
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
@@ -169,10 +188,6 @@ static int is_module_expose_all_variants_node(uint16_t id) {
 
 static int is_single_line_block_comment_node(uint16_t id) {
   return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
-}
-
-static int is_multiline_compact_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
 }
 
 static int is_empty_block_comment_node(uint16_t id) {
@@ -247,7 +262,7 @@ static char *node_type_to_string(uint16_t id) {
   if (is_empty_block_comment_node(id)) {
     return "EBLK";
   }
-  if (is_multiline_compact_block_comment_node(id)) {
+  if (is_compact_block_comment_node(id)) {
     return "MLCB";
   }
   if (is_hanging_block_comment_node(id)) {
@@ -391,7 +406,7 @@ static void comment_write(uint16_t id, int indent) {
     single_line_block_comment_write(id);
     return;
   }
-  if (is_multiline_compact_block_comment_node(id)) {
+  if (is_compact_block_comment_node(id)) {
     multiline_compact_block_comment_write(id, indent);
     return;
   }
@@ -1170,7 +1185,7 @@ static int block_comment_contents_parse(uint16_t *id) {
     if (is_hanging) {
       set_hanging_block_comment_node(*id);
     } else {
-      set_multiline_compact_block_comment_node(*id);
+      set_compact_block_comment_node(*id);
     }
   }
 
