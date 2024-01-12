@@ -39,7 +39,6 @@ static uint16_t IS_MODULE_EXPORTS_ALL_NODE = 0;
 static uint16_t IS_HANGING_BLOCK_COMMENT_NODE[MAX_HANGING_BLOCK_COMMENT_NODE];
 static int NUM_HANGING_BLOCK_COMMENT_NODE = 0;
 
-
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
     if (SRC[i] == '\n') {
