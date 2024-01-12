@@ -54,25 +54,6 @@ enum node_type {
   MODULE_EXPORTS_ALL_NODE,
 };
 
-static int is_text_node(uint16_t id) {
-  switch ((enum node_type)NODE_TYPE[id]) {
-  case NO_DOCS_NODE:
-    return 0;
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    return 1;
-  case EMPTY_BLOCK_COMMENT_NODE:
-    return 0;
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    return 1;
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return 0;
-  case HANGING_BLOCK_COMMENT_NODE:
-    return 0;
-  case MODULE_EXPORTS_ALL_NODE:
-    return 0;
-  }
-}
-
 static int increment_src() {
   if (I == MAX_SRC - 1) {
     return -1;
@@ -233,6 +214,11 @@ static uint16_t no_docs_node_init() {
 static uint16_t literal_node_init() {
   const uint16_t node = general_node_init();
   return node;
+}
+
+static int is_text_node(uint16_t id) {
+  return is_module_expose_all_variants_node(id) ||
+         is_single_line_block_comment_node(id);
 }
 
 static char *node_type_to_string(enum node_type type) {
