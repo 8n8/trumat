@@ -221,23 +221,26 @@ static int is_text_node(uint16_t id) {
          is_single_line_block_comment_node(id);
 }
 
-static char *node_type_to_string(enum node_type type) {
-  switch (type) {
-  case NO_DOCS_NODE:
+static char *node_type_to_string(uint16_t id) {
+  if (is_no_docs_node(id)) {
     return "NODO";
-  case MODULE_EXPOSE_ALL_VARIANTS_NODE:
-    return "MEXA";
-  case EMPTY_BLOCK_COMMENT_NODE:
-    return "EBLK";
-  case MULTILINE_COMPACT_BLOCK_COMMENT_NODE:
-    return "MLCB";
-  case HANGING_BLOCK_COMMENT_NODE:
-    return "HBCB";
-  case SINGLE_LINE_BLOCK_COMMENT_NODE:
-    return "SBLK";
-  case MODULE_EXPORTS_ALL_NODE:
-    return "EXAL";
   }
+  if (is_module_expose_all_variants_node(id)) {
+    return "MEXA";
+  }
+  if (is_empty_block_comment_node(id)) {
+    return "EBLK";
+  }
+  if (is_multiline_compact_block_comment_node(id)) {
+    return "MLCB";
+  }
+  if (is_hanging_block_comment_node(id)) {
+    return "HBCB";
+  }
+  if (is_single_line_block_comment_node(id)) {
+    return "SBLK";
+  }
+  return "EXAL";
 }
 
 void dbg_siblings() {
@@ -257,7 +260,7 @@ void dbg_children() {
   putchar('\n');
 
   for (int i = 0; i < NUM_NODE; ++i) {
-    printf("%s ", node_type_to_string(NODE_TYPE[i]));
+    printf("%s ", node_type_to_string(i));
   }
   putchar('\n');
 }
