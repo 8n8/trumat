@@ -55,7 +55,7 @@ enum node_type {
   EMPTY_BLOCK_COMMENT_NODE,
   SINGLE_LINE_BLOCK_COMMENT_NODE,
   MODULE_EXPOSE_ALL_VARIANTS_NODE,
-  MULTILINE_COMPACT_BLOCK_COMMENT_NODE,
+  COMPACT_BLOCK_COMMENT_NODE,
 };
 
 static int increment_src() {
@@ -131,8 +131,8 @@ static int keyword_parse(char *keyword) {
   return after_result;
 }
 
-static void set_multiline_compact_block_comment_node(uint16_t id) {
-  NODE_TYPE[id] = MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+static void set_compact_block_comment_node(uint16_t id) {
+  NODE_TYPE[id] = COMPACT_BLOCK_COMMENT_NODE;
 }
 
 static int is_hanging_block_comment_node(uint16_t id) {
@@ -171,8 +171,8 @@ static int is_single_line_block_comment_node(uint16_t id) {
   return NODE_TYPE[id] == SINGLE_LINE_BLOCK_COMMENT_NODE;
 }
 
-static int is_multiline_compact_block_comment_node(uint16_t id) {
-  return NODE_TYPE[id] == MULTILINE_COMPACT_BLOCK_COMMENT_NODE;
+static int is_compact_block_comment_node(uint16_t id) {
+  return NODE_TYPE[id] == COMPACT_BLOCK_COMMENT_NODE;
 }
 
 static int is_empty_block_comment_node(uint16_t id) {
@@ -247,7 +247,7 @@ static char *node_type_to_string(uint16_t id) {
   if (is_empty_block_comment_node(id)) {
     return "EBLK";
   }
-  if (is_multiline_compact_block_comment_node(id)) {
+  if (is_compact_block_comment_node(id)) {
     return "MLCB";
   }
   if (is_hanging_block_comment_node(id)) {
@@ -370,7 +370,7 @@ static void hanging_block_comment_write(uint16_t id, int indent) {
   fputs("-}", OUT);
 }
 
-static void multiline_compact_block_comment_write(uint16_t id, int indent) {
+static void compact_block_comment_write(uint16_t id, int indent) {
   fputs("{- ", OUT);
   literal_write(CHILD[id]);
   for (uint16_t sibling = SIBLING[CHILD[id]]; sibling != 0;
@@ -391,8 +391,8 @@ static void comment_write(uint16_t id, int indent) {
     single_line_block_comment_write(id);
     return;
   }
-  if (is_multiline_compact_block_comment_node(id)) {
-    multiline_compact_block_comment_write(id, indent);
+  if (is_compact_block_comment_node(id)) {
+    compact_block_comment_write(id, indent);
     return;
   }
   if (is_hanging_block_comment_node(id)) {
@@ -1170,7 +1170,7 @@ static int block_comment_contents_parse(uint16_t *id) {
     if (is_hanging) {
       set_hanging_block_comment_node(*id);
     } else {
-      set_multiline_compact_block_comment_node(*id);
+      set_compact_block_comment_node(*id);
     }
   }
 
