@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // Twice the size of the largest Elm file I have seen.
-#define MAX_SRC 1400 * 1000
+#define max_src 1400 * 1000
 static uint8_t SRC[MAX_SRC];
 static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
@@ -1835,88 +1835,251 @@ static int module_declaration_format() {
   return 0;
 }
 
-static void zero_ast() {
-  num_node = 2;
-  module_exports_all_node = 0;
-  num_hanging_block_comment_node = 0;
+static void write_one_out(struct src src, struct token token, struct tape tape, FILE *file, int i) {
+  const int token_id = tape.token_id[i];
 }
 
-static int with_out_file() {
-  I = -1;
-  zero_ast();
-  const int declaration_result = module_declaration_format();
-  if (declaration_result) {
-    return declaration_result;
-  }
-  many_whitespace_parse();
-
-  while (I < NUM_SRC - 1) {
-    zero_ast();
-
-    const int top_level_result = top_level_format();
-    if (top_level_result) {
-      return top_level_result;
-    }
-    many_whitespace_parse();
-  }
-  fputc('\n', OUT);
-
-  return 0;
-}
-static void calculate_row_numbers() {
-  int row = 0;
-  for (int i = 0; i < NUM_SRC; ++i) {
-    ROW[i] = row;
-    if (SRC[i] == '\n') {
-      ++row;
-    }
+static void write_out(struct src src, struct token token, struct tape tape, FILE* file) {
+  int state = 0;
+  for (int i = 0; i < max_tape; ++i) {
+    
   }
 }
 
-static void calculate_column_numbers() {
-  int column = 0;
-  for (int i = 0; i < NUM_SRC; ++i) {
-    COLUMN[i] = column;
-    if (SRC[i] == '\n') {
-      column = 0;
-    } else {
-      ++column;
-    }
-  }
-}
+struct src {
+  uint8_t buf[max_src];
+  int num;
+};
 
-static int read_src(char *path) {
+#define max_paren 5000
+#define max_tape 50000
+#define max_is_multiline 5000
+
+struct tape {
+  uint32_t token_id[max_tape];
+  int num;
+};
+
+static int read_src(struct src *src, char* path) {
   FILE *file = fopen(path, "r");
   if (file == NULL) {
     return -1;
   }
-  NUM_SRC = fread(SRC, 1, MAX_SRC, file);
+  src->num = fread(src->buf, 1, max_src, file);
   fclose(file);
-  if (NUM_SRC == MAX_SRC) {
-    fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", path,
-            MAX_SRC);
-    return -1;
-  }
   return 0;
 }
 
-static void format_file(char *path) {
-  if (read_src(path)) {
-    return;
+// If there are 1.4MB in the file and 60 bytes per line of code, that is
+// 23333 lines of code. Say there are on average 20 tokens per line of code
+// that is 466660 tokens.
+#define max_token 466660
+
+struct token {
+  uint32_t src_start[max_token];
+  uint16_t src_size[max_token];
+  uint16_t column[max_token];
+  int num;
+};
+
+static uint8_t elm_char_table[1] = {0};
+
+enum elm_char {
+  max_elm_char,
+};
+
+static uint8_t token_state_table[1] =
+  { 0
+  };
+
+static uint8_t set_token_start_table[1] =
+  { 0
+  };
+
+
+static uint8_t set_token_size_table[1] =
+  { 0
+  };
+
+static uint8_t token_fail_table[1] =
+  { 0
+  };
+
+static void make_token_machine_index(
+  const uint8_t src[max_src],
+  int num,
+  uint16_t machine_index[max_src]) {
+
+  int state = 0;
+  for (int i = 0; i < num; ++i) {
+    const int c = elm_char_table[src[i]];
+    machine_index[i] = c + state * max_elm_char;
+    state = token_state_table[machine_index[i]];
+  }
+}
+
+static void make_token_start(
+  const uint16_t machine_index[max_src],
+  uint32_t start[max_token]) {
+
+  int token_i = 0;
+  for (int i = 0; i < max_src && token_i < max_token; ++i) {
+    const int set_start = set_token_start_table[machine_index[i]];
+    start[token_i] = start[token_i] * !set_start + i * set_start;
+    token_i += set_start;
+  }
+}
+
+static void make_token_size(
+  const uint16_t machine_index[max_src],
+  const uint32_t start[max_token],
+  uint16_t size[max_token]) {
+
+  int token_i = 0;
+  for (int i = 0; i < max_src && token_i < max_token; ++i) {
+    const int set_size = set_token_size_table[machine_index[i]];
+    size[token_i] =
+      size[token_i] * !set_size + (i - start[token_i]) * set_size;
+    token_i += set_size;
+  }
+}
+
+static int is_valid_token(const uint16_t machine_index[max_src]) {
+  int sum = 0;
+  for (int i = 0; i < max_src; ++i) {
+    sum += token_fail_table[machine_index[i]];
+  }
+  return sum == 0;
+}
+
+static int tokenise(const struct src src, struct token *token) {
+  static uint16_t machine_index[max_src];
+  make_token_machine_index(src.buf, src.num, machine_index);
+  if (!is_valid_token(machine_index)) {
+    return -1;
+  }
+  make_token_start(machine_index, token->src_start);
+  make_token_size(machine_index, token->src_start, token->src_size);
+}
+
+enum token_type {
+  module_keyword_token,
+  exposing_keyword_token,
+  max_token_type,
+};
+
+static enum token_type classify_token(struct src src, struct token token, int i) {
+  const uint8_t *buf = src.buf;
+  const uint32_t start = token.src_start[i];
+  const uint16_t size = token.src_size[i];
+  if (size == 6 && buf[start] == 'm' && buf[start+1] == 'o' && buf[start+2] == 'd' && buf[start+3] == 'u' && buf[start+4] == 'l' && buf[start+5] == 'e') {
+    return module_keyword_token;
+  }
+  return exposing_keyword_token;
+}
+
+static uint8_t tape_state_table[1] = {0};
+static uint8_t tape_index_change_table[1] = {0};
+static uint8_t floor_index_change_table[1] = {0};
+static uint8_t reset_floor_table[1] = {0};
+static uint8_t token_to_tape_table[1] = {0};
+
+static void make_tape_machine_index(
+  const struct src src,
+  const struct token token,
+  uint16_t machine_index[max_token]) {
+
+  uint16_t state[50];
+  int state_index = 0;
+
+  uint16_t floor[50];
+  int floor_index = 0;
+
+  for (int i = 0; i < token.num; ++i) {
+    const enum token_type type = classify_token(src, token, i);
+    const int above_floor = floor[floor_index] > token.column[i];
+    machine_index[i] =
+      type
+        + max_token_type * above_floor
+        + state[state_index] * max_token_type * 2;
+    state_index += tape_index_change_table[machine_index[i]];
+    state[state_index] = tape_state_table[machine_index[i]];
+
+    floor_index += floor_index_change_table[machine_index[i]];
+    floor[floor_index] =
+      floor[floor_index] * !reset_floor_table[machine_index[i]]
+      + token.column[i] * reset_floor_table[machine_index[i]];
+  }
+}
+
+static int is_valid_tape(uint16_t machine_index[max_token]) {
+  int sum = 0;
+  for (int i = 0; i < max_token; ++i) {
+    sum += machine_index[i];
+  }
+  return sum == 0;
+}
+
+static void select_tape_token(
+  uint16_t machine_index[max_token],
+  struct tape *tape) {
+
+  for (int i = 0; i < max_token; ++i) {
+    tape->token_id[tape->num] =
+      tape->token_id[tape->num] * !token_to_tape_table[machine_index[i]]
+      + i * token_to_tape_table[machine_index[i]];
+    tape->num += token_to_tape_table[machine_index[i]];
+  }
+}
+
+static int make_tape(
+  const struct src src,
+  const struct token token,
+  struct tape *tape) {
+
+  static uint16_t machine_index[max_token];
+  make_tape_machine_index(src, token, machine_index);
+  if (!is_valid_tape(machine_index)) {
+    return -1;
+  }
+  select_tape_token(machine_index, tape);
+  return 0;
+}
+
+static int with_out_file(struct src *src, FILE *out) {
+  int i = 0;
+  static struct token token;
+  token.num = 0;
+  if (tokenise(*src, &token)) {
+    return -1;
   }
 
-  calculate_row_numbers();
-  calculate_column_numbers();
-
-  OUT = fopen(path, "w");
-  if (OUT == NULL) {
-    return;
+  static struct tape tape;
+  tape.num = 0;
+  if (make_tape(*src, token, &tape)) {
+    return -1;
   }
-  const int result = with_out_file();
-  fclose(OUT);
+
+  write_out(*src, token, tape, out);
+}
+
+static int format_file(char *path) {
+  static struct src src;
+  if (read_src(&src, path)) {
+    return -1;
+  }
+
+  FILE *out = fopen(path, "w");
+  if (out == NULL) {
+    return -1;
+  }
+
+  const int result = with_out_file(&src, out);
   if (result) {
-    fprintf(stderr, "could not format %s\n", path);
+    fprintf(stderr, "could not tokenise %s\n", path);
+    return -1;
   }
+  fclose(out);
 }
 
 static int string_length(char *s) {
