@@ -9,8 +9,6 @@ version:        0.1.0.0
 build-type:     Simple
 
 library
-  exposed-modules:
-      Lib
   other-modules:
       Paths_trumat
   hs-source-dirs:
