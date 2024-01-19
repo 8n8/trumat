@@ -5,18 +5,20 @@ import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
 import qualified Data.ByteString
 import qualified Data.Char
+import Digit (Digit)
+import qualified Digit
 
 data Bind
-  = Bind Char
+  = Bind Digit
 
 parse :: Parser Bind
 parse =
   do
     _ <- Data.Attoparsec.ByteString.Char8.string "x =\n"
     _ <- Data.Attoparsec.ByteString.Char8.takeWhile (\ch -> ch == ' ')
-    ch <- Data.Attoparsec.ByteString.Char8.anyChar
+    ch <- Digit.parse
     pure $ Bind ch
 
 write :: Bind -> ByteString
 write (Bind ch) =
-  "x =\n    " <> Data.ByteString.singleton (fromIntegral (Data.Char.ord ch))
+  "x =\n    " <> Digit.write ch

@@ -12,6 +12,7 @@ library
   exposed-modules:
       Ast
       Bind
+      Digit
       ModuleDeclaration
       TopLevel
       Trumat
