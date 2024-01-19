@@ -9,6 +9,7 @@ data Digit
   | D1
   | D2
   | D3
+  | D4
 
 write :: Digit -> ByteString
 write digit =
@@ -21,6 +22,8 @@ write digit =
       "2"
     D3 ->
       "3"
+    D4 ->
+      "4"
 
 parse :: Parser Digit
 parse =
@@ -43,5 +46,7 @@ charToDigit ch =
       Just D2
     '3' ->
       Just D3
+    '4' ->
+      Just D4
     _ ->
       Nothing
