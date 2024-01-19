@@ -3,8 +3,6 @@ module Bind (Bind, parse, write) where
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
-import qualified Data.ByteString
-import qualified Data.Char
 import Digit (Digit)
 import qualified Digit
 

@@ -3,26 +3,24 @@ version:             0.1.0.0
 
 dependencies:
 - base >= 4.7 && < 5
-- directory
 - bytestring
-- attoparsec
 
 default-extensions:
   - OverloadedStrings
 
 ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
+  - -Weverything
+  - -Werror
+  - -Wno-missing-kind-signatures
+  - -Wno-prepositive-qualified-module
+  - -Wno-implicit-prelude
+  - -Wno-safe
+  - -Wno-missing-safe-haskell-mode
 
 library:
   source-dirs: src
+  dependencies:
+    - attoparsec
 
 executables:
   trumat:
@@ -34,3 +32,4 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - trumat
+    - directory

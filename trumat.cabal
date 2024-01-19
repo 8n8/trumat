@@ -22,12 +22,11 @@ library
       src
   default-extensions:
       OverloadedStrings
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode
   build-depends:
       attoparsec
     , base >=4.7 && <5
     , bytestring
-    , directory
   default-language: Haskell2010
 
 executable trumat
@@ -38,10 +37,9 @@ executable trumat
       app
   default-extensions:
       OverloadedStrings
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Weverything -Werror -Wno-missing-kind-signatures -Wno-prepositive-qualified-module -Wno-implicit-prelude -Wno-safe -Wno-missing-safe-haskell-mode -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      attoparsec
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , bytestring
     , directory
     , trumat
