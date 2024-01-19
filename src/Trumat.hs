@@ -1,15 +1,13 @@
 module Trumat (format) where
 
+import qualified Ast
+import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
-import Data.Function ((&))
 
 format :: ByteString -> Either String ByteString
-format _ =
-  [ "module X exposing (x)\n",
-    "\n",
-    "\n",
-    "x =\n",
-    "    0\n"
-  ]
-    & mconcat
-    & Right
+format unformatted =
+  case Data.Attoparsec.ByteString.Char8.parseOnly Ast.parse unformatted of
+    Left err ->
+      Left err
+    Right ast ->
+      Right $ Ast.write ast
