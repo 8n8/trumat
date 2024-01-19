@@ -15,6 +15,7 @@ ghc-options:
   - -Wno-prepositive-qualified-module
   - -Wno-implicit-prelude
   - -Wno-safe
+  - -Wno-unsafe
   - -Wno-missing-safe-haskell-mode
 
 library:

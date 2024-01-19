@@ -6,6 +6,7 @@ import qualified Data.ByteString
 import Data.Function ((&))
 import qualified System.Directory
 import qualified System.Environment
+import qualified System.Exit
 import qualified Trumat
 
 main :: IO ()
@@ -56,23 +57,27 @@ formatElmPath path =
     eitherContents <- readFileBytes path
     case eitherContents of
       Left err ->
-        [ "error reading ",
-          path,
-          ": ",
-          show err
-        ]
-          & mconcat
-          & putStrLn
+        do
+          putStrLn $
+            mconcat $
+              [ "error reading ",
+                path,
+                ": ",
+                show err
+              ]
+          System.Exit.exitWith (System.Exit.ExitFailure 1)
       Right contents ->
         case Trumat.format contents of
           Left err ->
-            [ "could not format ",
-              path,
-              ": ",
-              err
-            ]
-              & mconcat
-              & putStrLn
+            do
+              putStrLn $
+                mconcat
+                  [ "could not format ",
+                    path,
+                    ": ",
+                    err
+                  ]
+              System.Exit.exitWith (System.Exit.ExitFailure 1)
           Right formatted ->
             do
               putStrLn $ mconcat ["Processing file ", path]
