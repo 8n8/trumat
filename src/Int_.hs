@@ -12,12 +12,34 @@ import IntSingle (IntSingle)
 import qualified IntSingle
 
 data Int_
+  = Int_ Sign Positive
+
+data Positive
   = Single IntSingle
   | SimpleMulti IntSimpleMulti
   | Hex IntHex
 
+data Sign
+  = Plus
+  | Minus
+
+
+parseSign :: Parser Sign
+parseSign =
+  [ Data.Attoparsec.ByteString.Char8.char '-' >> pure Minus
+  , pure Plus
+  ]
+    & Data.Attoparsec.ByteString.Char8.choice
+
 parse :: Parser Int_
 parse =
+  do
+  sign <- parseSign
+  num <- parsePositive
+  pure (Int_ sign num)
+
+parsePositive :: Parser Positive
+parsePositive =
   [ fmap Hex IntHex.parse,
     fmap SimpleMulti IntSimpleMulti.parse,
     fmap Single IntSingle.parse
@@ -25,7 +47,19 @@ parse =
     & Data.Attoparsec.ByteString.Char8.choice
 
 write :: Int_ -> ByteString
-write int =
+write (Int_ sign positive) =
+  writeSign sign <> writePositive positive
+
+writeSign :: Sign -> ByteString
+writeSign sign =
+  case sign of
+    Plus ->
+      ""
+    Minus ->
+      "-"
+
+writePositive :: Positive -> ByteString
+writePositive int =
   case int of
     Single i ->
       IntSingle.write i
