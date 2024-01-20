@@ -113,5 +113,7 @@ charToHexDigit char =
       Just D
     'e' ->
       Just E
+    'f' ->
+      Just F
     _ ->
       Nothing
