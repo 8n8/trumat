@@ -23,20 +23,19 @@ data Sign
   = Plus
   | Minus
 
-
 parseSign :: Parser Sign
 parseSign =
-  [ Data.Attoparsec.ByteString.Char8.char '-' >> pure Minus
-  , pure Plus
+  [ Data.Attoparsec.ByteString.Char8.char '-' >> pure Minus,
+    pure Plus
   ]
     & Data.Attoparsec.ByteString.Char8.choice
 
 parse :: Parser Int_
 parse =
   do
-  sign <- parseSign
-  num <- parsePositive
-  pure (Int_ sign num)
+    sign <- parseSign
+    num <- parsePositive
+    pure (Int_ sign num)
 
 parsePositive :: Parser Positive
 parsePositive =
