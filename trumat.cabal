@@ -13,7 +13,11 @@ library
       Ast
       Bind
       Digit
+      Int_
+      IntSimpleMulti
+      IntSingle
       ModuleDeclaration
+      NonZeroDigit
       TopLevel
       Trumat
   other-modules:
