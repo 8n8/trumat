@@ -7,6 +7,7 @@ import Data.ByteString (ByteString)
 data NonZeroDigit
   = D1
   | D2
+  | D3
 
 parse :: Parser NonZeroDigit
 parse =
@@ -25,6 +26,8 @@ charToDigit ch =
       Just D1
     '2' ->
       Just D2
+    '3' ->
+      Just D3
     _ ->
       Nothing
 
@@ -35,3 +38,5 @@ write digit =
       "1"
     D2 ->
       "2"
+    D3 ->
+      "3"
