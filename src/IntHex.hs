@@ -3,6 +3,7 @@ module IntHex (IntHex, write, parse) where
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
+import Data.Function ((&))
 import HexDigit (HexDigit)
 import qualified HexDigit
 
@@ -19,4 +20,11 @@ parse =
 
 write :: IntHex -> ByteString
 write (IntHex first subsequent) =
-  "0x" <> HexDigit.write first <> mconcat (map HexDigit.write subsequent)
+  [ "0x",
+    if length subsequent `mod` 2 == 0
+      then "0"
+      else "",
+    HexDigit.write first,
+    mconcat (map HexDigit.write subsequent)
+  ]
+    & mconcat
