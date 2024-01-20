@@ -1,0 +1,36 @@
+name:                trumat
+version:             0.1.0.0
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+
+default-extensions:
+  - OverloadedStrings
+
+ghc-options:
+  - -Weverything
+  - -Werror
+  - -Wno-missing-kind-signatures
+  - -Wno-prepositive-qualified-module
+  - -Wno-implicit-prelude
+  - -Wno-safe
+  - -Wno-unsafe
+  - -Wno-missing-safe-haskell-mode
+
+library:
+  source-dirs: src
+  dependencies:
+    - attoparsec
+
+executables:
+  trumat:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - trumat
+    - directory
