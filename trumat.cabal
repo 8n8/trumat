@@ -13,6 +13,8 @@ library
       Ast
       Bind
       Digit
+      Expression
+      Float_
       HexDigit
       Int_
       IntHex
