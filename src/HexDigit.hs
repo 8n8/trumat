@@ -103,5 +103,7 @@ charToHexDigit char =
       Just E
     'F' ->
       Just F
+    'a' ->
+      Just A
     _ ->
       Nothing
