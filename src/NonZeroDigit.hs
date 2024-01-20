@@ -6,15 +6,32 @@ import Data.ByteString (ByteString)
 
 data NonZeroDigit
   = D1
+  | D2
 
 parse :: Parser NonZeroDigit
 parse =
   do
-    _ <- Data.Attoparsec.ByteString.Char8.char '1'
-    return D1
+    ch <- Data.Attoparsec.ByteString.Char8.anyChar
+    case charToDigit ch of
+      Nothing ->
+        fail "expecting a non-zero digit"
+      Just digit ->
+        pure digit
+
+charToDigit :: Char -> Maybe NonZeroDigit
+charToDigit ch =
+  case ch of
+    '1' ->
+      Just D1
+    '2' ->
+      Just D2
+    _ ->
+      Nothing
 
 write :: NonZeroDigit -> ByteString
 write digit =
   case digit of
     D1 ->
       "1"
+    D2 ->
+      "2"
