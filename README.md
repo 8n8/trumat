@@ -6,10 +6,7 @@ A work in progress Elm formatter. Don't use it yet.
 
 It definitely runs in Ubuntu Linux and probably in MacOS.
 
-Steps:
-
-1. Install the Haskell tool stack: https://docs.haskellstack.org/en/stable/install_and_upgrade/
-2. run `stack install` in the root of this repository
+You need a C compiler, such as gcc, clang or zig. Then clone this repository and run, for example: `gcc main.c -o trumat` in the repository root. Then copy the `trumat` binary to somewhere on your path.
 
 # Usage
 
@@ -38,8 +35,15 @@ $ trumat --overwrite .
 
 # Development
 
-Install the Haskell tool stack: https://docs.haskellstack.org/en/stable/install_and_upgrade/
+Developer dependencies are:
 
-The test files are in `input`. To create a new test just add an Elm module to the `input` directory. The test runner will make two copies, format one with `elm-format` and the other with `trumat`, and compare the results.
+- `clang` because it has the best address and memory sanitisers
+- `elm-format` for generating test cases
+- `gdb` for debugging
+- `diff` for showing test failures
 
-Then run the tests with `./test.sh`.
+I tried using Valgrind for detecting memory issues but it was too slow. It took several minutes to run the tests. However `clang` has some sanitiser options that do the job very quickly so I use those instead.
+
+All the code is in the file `main.c`. The test files are in `input`. To create a new test just add an Elm module to the `input` directory. The test runner will make two copies, format one with `elm-format` and the other with `trumat`, and compare the results.
+
+You can run the tests with `./test.sh` and run the debugger with `./debug.sh`. You need to edit the debug file to tell it which Elm file to use.

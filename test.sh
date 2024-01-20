@@ -3,9 +3,14 @@
 set -e
 
 rm -rf got
-stack build --fast
+clang -fsanitize=memory -g -Wall -Werror -Wextra -pedantic -O0 -std=c99 main.c
 cp -r input got
-stack exec -- trumat --overwrite got
+./a.out --overwrite got
+
+rm -rf got
+clang -fsanitize=address -g -fno-omit-frame-pointer -Wall -Werror -Wextra -pedantic -O0 -std=c99 main.c
+cp -r input got
+./a.out --overwrite got > /dev/null
 rm -rf expected
 cp -r input expected
 elm-format expected --yes > /dev/null
