@@ -9,6 +9,7 @@ data NonZeroDigit
   | D2
   | D3
   | D4
+  | D5
 
 parse :: Parser NonZeroDigit
 parse =
@@ -31,6 +32,8 @@ charToDigit ch =
       Just D3
     '4' ->
       Just D4
+    '5' ->
+      Just D5
     _ ->
       Nothing
 
@@ -45,3 +48,5 @@ write digit =
       "3"
     D4 ->
       "4"
+    D5 ->
+      "5"
