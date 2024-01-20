@@ -13,7 +13,9 @@ library
       Ast
       Bind
       Digit
+      HexDigit
       Int_
+      IntHex
       IntSimpleMulti
       IntSingle
       ModuleDeclaration
