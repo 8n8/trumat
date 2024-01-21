@@ -15,6 +15,8 @@ library
       Digit
       Expression
       Float_
+      FloatExponent
+      FloatSimple
       HexDigit
       Int_
       IntHex
