@@ -24,11 +24,14 @@ parse =
 
 write :: IntHex -> ByteString
 write (IntHex first subsequent) =
-  [ "0x",
-    if length subsequent `mod` 2 == 0
-      then "0"
-      else "",
-    HexDigit.write first,
-    mconcat (map HexDigit.write subsequent)
-  ]
-    & mconcat
+  if isZero (IntHex first subsequent)
+    then "0x00"
+    else
+      [ "0x",
+        if length subsequent `mod` 2 == 0
+          then "0"
+          else "",
+        HexDigit.write first,
+        mconcat (map HexDigit.write subsequent)
+      ]
+        & mconcat
