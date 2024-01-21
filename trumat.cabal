@@ -24,6 +24,7 @@ library
       IntSingle
       ModuleDeclaration
       NonZeroDigit
+      NormalString
       TopLevel
       Trumat
   other-modules:
