@@ -65,10 +65,9 @@ writeSign sign number =
     Plus ->
       ""
     Minus ->
-      if isZero number then
-        ""
-      else
-        "-"
+      if isZero number
+        then ""
+        else "-"
 
 writePositive :: Positive -> ByteString
 writePositive int =
