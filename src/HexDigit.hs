@@ -21,7 +21,7 @@ data HexDigit
   | D
   | E
   | F
-  deriving (Eq)
+  deriving (Eq, Show)
 
 isZero :: HexDigit -> Bool
 isZero digit =

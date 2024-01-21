@@ -12,7 +12,7 @@ data IntHex
 
 isZero :: IntHex -> Bool
 isZero (IntHex first subsequent) =
-  not (any HexDigit.isZero (first : subsequent))
+  not (any (not . HexDigit.isZero) (first : subsequent))
 
 parse :: Parser IntHex
 parse =
