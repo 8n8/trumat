@@ -10,11 +10,37 @@ import FloatSimple (FloatSimple)
 import qualified FloatSimple
 
 data Float_
+  = Float_ Sign Positive
+
+data Sign
+  = Plus
+  | Minus
+
+parseSign :: Parser Sign
+parseSign =
+  [ Data.Attoparsec.ByteString.Char8.char '-' >> pure Minus,
+    pure Plus
+  ]
+    & Data.Attoparsec.ByteString.Char8.choice
+
+data Positive
   = Simple FloatSimple
   | Exponent FloatExponent
 
 write :: Float_ -> ByteString
-write float =
+write (Float_ sign positive) =
+  writeSign sign <> writePositive positive
+
+writeSign :: Sign -> ByteString
+writeSign sign =
+  case sign of
+    Plus ->
+      ""
+    Minus ->
+      "-"
+
+writePositive :: Positive -> ByteString
+writePositive float =
   case float of
     Simple f ->
       FloatSimple.write f
@@ -23,6 +49,13 @@ write float =
 
 parse :: Parser Float_
 parse =
+  do
+    sign <- parseSign
+    positive <- parsePositive
+    pure (Float_ sign positive)
+
+parsePositive :: Parser Positive
+parsePositive =
   [ fmap Exponent FloatExponent.parse,
     fmap Simple FloatSimple.parse
   ]
