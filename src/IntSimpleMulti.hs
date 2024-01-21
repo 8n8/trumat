@@ -1,4 +1,4 @@
-module IntSimpleMulti (IntSimpleMulti, parse, write) where
+module IntSimpleMulti (IntSimpleMulti, parse, write, isZero) where
 
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
@@ -10,6 +10,10 @@ import qualified NonZeroDigit
 
 data IntSimpleMulti
   = IntSimpleMulti NonZeroDigit Digit [Digit]
+
+isZero :: IntSimpleMulti -> Bool
+isZero _ =
+  False
 
 parse :: Parser IntSimpleMulti
 parse =

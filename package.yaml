@@ -17,6 +17,7 @@ ghc-options:
   - -Wno-safe
   - -Wno-unsafe
   - -Wno-missing-safe-haskell-mode
+  - -Wno-missing-deriving-strategies
 
 library:
   source-dirs: src

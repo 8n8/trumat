@@ -1,4 +1,4 @@
-module Digit (Digit, write, parse) where
+module Digit (Digit, write, parse, isZero) where
 
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
@@ -15,6 +15,11 @@ data Digit
   | D7
   | D8
   | D9
+  deriving (Eq)
+
+isZero :: Digit -> Bool
+isZero digit =
+  digit == D0
 
 write :: Digit -> ByteString
 write digit =

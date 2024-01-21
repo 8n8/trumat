@@ -1,4 +1,4 @@
-module IntHex (IntHex, write, parse) where
+module IntHex (IntHex, write, parse, isZero) where
 
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
@@ -9,6 +9,10 @@ import qualified HexDigit
 
 data IntHex
   = IntHex HexDigit [HexDigit]
+
+isZero :: IntHex -> Bool
+isZero (IntHex first subsequent) =
+  not (any HexDigit.isZero (first:subsequent))
 
 parse :: Parser IntHex
 parse =

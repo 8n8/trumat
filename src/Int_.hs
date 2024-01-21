@@ -19,6 +19,16 @@ data Positive
   | SimpleMulti IntSimpleMulti
   | Hex IntHex
 
+isZero :: Positive -> Bool
+isZero number =
+  case number of
+    Single i ->
+      IntSingle.isZero i
+    SimpleMulti i ->
+      IntSimpleMulti.isZero i
+    Hex i ->
+      IntHex.isZero i
+
 data Sign
   = Plus
   | Minus
@@ -47,15 +57,18 @@ parsePositive =
 
 write :: Int_ -> ByteString
 write (Int_ sign positive) =
-  writeSign sign <> writePositive positive
+  writeSign sign positive <> writePositive positive
 
-writeSign :: Sign -> ByteString
-writeSign sign =
+writeSign :: Sign -> Positive -> ByteString
+writeSign sign number =
   case sign of
     Plus ->
       ""
     Minus ->
-      "-"
+      if isZero number then
+        ""
+      else
+        "-"
 
 writePositive :: Positive -> ByteString
 writePositive int =

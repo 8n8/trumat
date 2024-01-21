@@ -1,4 +1,4 @@
-module HexDigit (HexDigit, write, parse) where
+module HexDigit (HexDigit, write, parse, isZero) where
 
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
@@ -21,6 +21,11 @@ data HexDigit
   | D
   | E
   | F
+  deriving (Eq)
+
+isZero :: HexDigit -> Bool
+isZero digit =
+  digit == H0
 
 write :: HexDigit -> ByteString
 write digit =
