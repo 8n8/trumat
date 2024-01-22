@@ -8,6 +8,7 @@ data NormalStringItem
   = Aa
   | Bb
   | Cc
+  | Dd
   | Space
 
 parse :: Parser NormalStringItem
@@ -29,6 +30,8 @@ charToItem ch =
       Just Bb
     'c' ->
       Just Cc
+    'd' ->
+      Just Dd
     ' ' ->
       Just Space
     _ ->
@@ -43,5 +46,7 @@ write item =
       "b"
     Cc ->
       "c"
+    Dd ->
+      "d"
     Space ->
       " "
