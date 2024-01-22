@@ -3,7 +3,6 @@ module NormalStringItem (NormalStringItem, parse, write) where
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
-import Data.Function ((&))
 
 data NormalStringItem
   = Aa
@@ -13,12 +12,27 @@ data NormalStringItem
 
 parse :: Parser NormalStringItem
 parse =
-  [ Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa,
-    Data.Attoparsec.ByteString.Char8.char 'b' >> pure Bb,
-    Data.Attoparsec.ByteString.Char8.char 'c' >> pure Cc,
-    Data.Attoparsec.ByteString.Char8.char ' ' >> pure Space
-  ]
-    & Data.Attoparsec.ByteString.Char8.choice
+  do
+    ch <- Data.Attoparsec.ByteString.Char8.anyChar
+    case charToItem ch of
+      Nothing ->
+        fail "Invalid normal string item"
+      Just item ->
+        pure item
+
+charToItem :: Char -> Maybe NormalStringItem
+charToItem ch =
+  case ch of
+    'a' ->
+      Just Aa
+    'b' ->
+      Just Bb
+    'c' ->
+      Just Cc
+    ' ' ->
+      Just Space
+    _ ->
+      Nothing
 
 write :: NormalStringItem -> ByteString
 write item =
