@@ -10,6 +10,7 @@ data NormalStringItem
   | Cc
   | Dd
   | Ee
+  | Ff
   | Space
 
 parse :: Parser NormalStringItem
@@ -35,6 +36,8 @@ charToItem ch =
       Just Dd
     'e' ->
       Just Ee
+    'f' ->
+      Just Ff
     ' ' ->
       Just Space
     _ ->
@@ -53,5 +56,7 @@ write item =
       "d"
     Ee ->
       "e"
+    Ff ->
+      "f"
     Space ->
       " "
