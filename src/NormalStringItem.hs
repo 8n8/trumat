@@ -9,12 +9,14 @@ data NormalStringItem
   = Aa
   | Bb
   | Cc
+  | Space
 
 parse :: Parser NormalStringItem
 parse =
   [ Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa,
     Data.Attoparsec.ByteString.Char8.char 'b' >> pure Bb,
-    Data.Attoparsec.ByteString.Char8.char 'c' >> pure Cc
+    Data.Attoparsec.ByteString.Char8.char 'c' >> pure Cc,
+    Data.Attoparsec.ByteString.Char8.char ' ' >> pure Space
   ]
     & Data.Attoparsec.ByteString.Char8.choice
 
@@ -27,3 +29,5 @@ write item =
       "b"
     Cc ->
       "c"
+    Space ->
+      " "
