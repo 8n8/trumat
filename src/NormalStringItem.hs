@@ -3,14 +3,23 @@ module NormalStringItem (NormalStringItem, parse, write) where
 import Data.Attoparsec.ByteString.Char8 (Parser)
 import qualified Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
+import Data.Function ((&))
 
 data NormalStringItem
   = Aa
+  | Bb
 
 parse :: Parser NormalStringItem
 parse =
-  Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa
+  [ Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa
+  , Data.Attoparsec.ByteString.Char8.char 'b' >> pure Bb
+  ]
+    & Data.Attoparsec.ByteString.Char8.choice
 
 write :: NormalStringItem -> ByteString
-write _ =
-  "a"
+write item =
+  case item of
+    Aa ->
+      "a"
+    Bb ->
+      "b"
