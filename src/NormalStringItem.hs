@@ -68,6 +68,36 @@ data NormalStringItem
   | Nine
   | Zero
   | Space
+  | ExclamationMark
+  | Hash
+  | Dollar
+  | Percent
+  | Ampersand
+  | Apostrophe
+  | LeftParenthesis
+  | RightParenthesis
+  | Asterisk
+  | Plus
+  | Comma
+  | Minus
+  | Dot
+  | Slash
+  | Colon
+  | Semicolon
+  | LessThan
+  | Equal
+  | GreaterThan
+  | QuestionMark
+  | At
+  | LeftSquareBracket
+  | RightSquareBracket
+  | Power
+  | Underscore
+  | Backtick
+  | LeftCurlyBracket
+  | VerticalBar
+  | RightCurlyBracket
+  | Tilde
 
 parse :: Parser NormalStringItem
 parse =
@@ -208,6 +238,66 @@ charToItem ch =
       Just Zero
     ' ' ->
       Just Space
+    '!' ->
+      Just ExclamationMark
+    '#' ->
+      Just Hash
+    '$' ->
+      Just Dollar
+    '%' ->
+      Just Percent
+    '&' ->
+      Just Ampersand
+    '\'' ->
+      Just Apostrophe
+    '(' ->
+      Just LeftParenthesis
+    ')' ->
+      Just RightParenthesis
+    '*' ->
+      Just Asterisk
+    '+' ->
+      Just Plus
+    ',' ->
+      Just Comma
+    '-' ->
+      Just Minus
+    '.' ->
+      Just Dot
+    '/' ->
+      Just Slash
+    ':' ->
+      Just Colon
+    ';' ->
+      Just Semicolon
+    '<' ->
+      Just LessThan
+    '=' ->
+      Just Equal
+    '>' ->
+      Just GreaterThan
+    '?' ->
+      Just QuestionMark
+    '@' ->
+      Just At
+    '[' ->
+      Just LeftSquareBracket
+    ']' ->
+      Just RightSquareBracket
+    '^' ->
+      Just Power
+    '_' ->
+      Just Underscore
+    '`' ->
+      Just Backtick
+    '{' ->
+      Just LeftCurlyBracket
+    '|' ->
+      Just VerticalBar
+    '}' ->
+      Just RightCurlyBracket
+    '~' ->
+      Just Tilde
     _ ->
       Nothing
 
@@ -340,3 +430,63 @@ write item =
       "0"
     Space ->
       " "
+    ExclamationMark ->
+      "!"
+    Hash ->
+      "#"
+    Dollar ->
+      "$"
+    Percent ->
+      "%"
+    Ampersand ->
+      "&"
+    Apostrophe ->
+      "'"
+    LeftParenthesis ->
+      "("
+    RightParenthesis ->
+      ")"
+    Asterisk ->
+      "*"
+    Plus ->
+      "+"
+    Comma ->
+      ","
+    Minus ->
+      "-"
+    Dot ->
+      "."
+    Slash ->
+      "/"
+    Colon ->
+      ":"
+    Semicolon ->
+      ";"
+    LessThan ->
+      "<"
+    Equal ->
+      "="
+    GreaterThan ->
+      ">"
+    QuestionMark ->
+      "?"
+    At ->
+      "@"
+    LeftSquareBracket ->
+      "["
+    RightSquareBracket ->
+      "]"
+    Power ->
+      "^"
+    Underscore ->
+      "_"
+    Backtick ->
+      "`"
+    LeftCurlyBracket ->
+      "{"
+    VerticalBar ->
+      "|"
+    RightCurlyBracket ->
+      "}"
+    Tilde ->
+      "~"
