@@ -25,6 +25,7 @@ library
       ModuleDeclaration
       NonZeroDigit
       NormalString
+      NormalStringItem
       TopLevel
       Trumat
   other-modules:
