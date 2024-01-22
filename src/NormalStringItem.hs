@@ -8,11 +8,13 @@ import Data.Function ((&))
 data NormalStringItem
   = Aa
   | Bb
+  | Cc
 
 parse :: Parser NormalStringItem
 parse =
-  [ Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa
-  , Data.Attoparsec.ByteString.Char8.char 'b' >> pure Bb
+  [ Data.Attoparsec.ByteString.Char8.char 'a' >> pure Aa,
+    Data.Attoparsec.ByteString.Char8.char 'b' >> pure Bb,
+    Data.Attoparsec.ByteString.Char8.char 'c' >> pure Cc
   ]
     & Data.Attoparsec.ByteString.Char8.choice
 
@@ -23,3 +25,5 @@ write item =
       "a"
     Bb ->
       "b"
+    Cc ->
+      "c"
