@@ -25,7 +25,7 @@ static int NUM_NODES = 0;
 #define MAX_HAS_SRC 50 * 1000
 static uint32_t HAS_SRC[MAX_HAS_SRC];
 static uint32_t SRC_START[MAX_HAS_SRC];
-static uint32_t SRC_SIZE[MAX_HAS_SRC];
+static uint16_t SRC_SIZE[MAX_HAS_SRC];
 static int NUM_HAS_SRC = 0;
 
 static void append_has_src(int node, int start, int size) {
