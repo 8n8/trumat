@@ -2,4 +2,5 @@ module X exposing (x)
 
 
 x =
-    "b"
+    {- a  b -}
+    0

@@ -1,5 +1,4 @@
 module X exposing (x)
 
 
-x =
-    "b"
+x=0

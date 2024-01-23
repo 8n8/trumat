@@ -1,5 +1,10 @@
 module X exposing (x)
 
+{-
+  a
+  b
+-}
+
 
 x =
-    "b"
+    0

@@ -1,5 +1,6 @@
 module X exposing (x)
 
 
-x =
-    "b"
+x {-
+  a-}-- b
+  =0

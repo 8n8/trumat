@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    "b"
+    12.3

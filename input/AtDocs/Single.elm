@@ -1,5 +1,11 @@
 module X exposing (x)
 
+{-|
+
+@docs x
+
+-}
+
 
 x =
-    "b"
+    0

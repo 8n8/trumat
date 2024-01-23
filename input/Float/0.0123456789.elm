@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    "b"
+    0.0123456789
