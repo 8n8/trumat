@@ -33,14 +33,6 @@ void dbg_src() {
   fputc('\n', stdout);
 }
 
-enum node_type {
-  NO_DOCS_NODE = 1,
-  EMPTY_BLOCK_COMMENT_NODE,
-  SINGLE_LINE_BLOCK_COMMENT_NODE,
-  MODULE_EXPOSE_ALL_VARIANTS_NODE,
-  COMPACT_BLOCK_COMMENT_NODE,
-};
-
 static const char *usage = "expecting two arguments:\n"
                            "1. --overwrite to confirm it's OK to recursively "
                            "overwrite all the Elm files in the path\n"
