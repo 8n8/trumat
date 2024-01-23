@@ -17,6 +17,46 @@ static FILE *OUT;
 // - max 1.4MB in an Elm module
 // - average 60 bytes per line of code
 // - average 5 nodes per line
+//
+// So there is a maximum of 116_665 nodes.
+
+static int NUM_NODES = 0;
+
+#define MAX_HAS_SRC 50 * 1000
+static uint32_t HAS_SRC[MAX_HAS_SRC];
+static uint32_t SRC_START[MAX_HAS_SRC];
+static uint32_t SRC_SIZE[MAX_HAS_SRC];
+static int NUM_HAS_SRC = 0;
+
+static void append_has_src(int node, int start, int size) {
+  if (NUM_HAS_SRC == MAX_HAS_SRC) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_SRC);
+    exit(-1);
+  }
+  HAS_SRC[NUM_HAS_SRC] = node;
+  SRC_START[NUM_HAS_SRC] = start;
+  SRC_SIZE[NUM_HAS_SRC] = size;
+  ++NUM_HAS_SRC;
+}
+
+static int get_has_src_index(int node) {
+  for (int i = 0; i < NUM_HAS_SRC; ++i) {
+    if (HAS_SRC[i] == (uint32_t)node) {
+      return i;
+    }
+  }
+  fprintf(stderr, "could not find node %d\n", node);
+  exit(-1);
+}
+
+static void write_src(int node) {
+  const int has_src_index = get_has_src_index(node);
+  const int start = SRC_START[has_src_index];
+  const int size = SRC_SIZE[has_src_index];
+  for (int i = start; i < start + size; ++i) {
+    fputc(SRC[i], OUT);
+  }
+}
 
 void dbg_src() {
   for (int i = 0; i < NUM_SRC; ++i) {
@@ -44,9 +84,63 @@ static int string_equal(char *a, char *b) {
   return *a == '\0' && *b == '\0';
 }
 
-static int with_out_file() {
+static void zero_ast() {
   I = -1;
-  fputs("module X exposing (x)\n\n\nx =\n    0\n", OUT);
+  NUM_HAS_SRC = 0;
+  NUM_NODES = 0;
+}
+
+static int int_parse(int *node) {
+  ++I;
+  *node = NUM_NODES;
+  ++NUM_NODES;
+  append_has_src(*node, I, 1);
+  return 0;
+}
+
+static int char_parse(uint8_t c) {
+  if (I == NUM_SRC - 1) {
+    return -1;
+  }
+  ++I;
+  if (SRC[I] != c) {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
+static int chunk_parse(char *chunk) {
+  const int start = I;
+  for (; *chunk != '\0' && char_parse(*chunk) == 0; ++chunk) {
+  }
+  if (*chunk != '\0') {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int module_parse(int *node) {
+  if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
+    return -1;
+  }
+  return int_parse(node);
+}
+
+static void module_write(int node) {
+  fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
+  write_src(node);
+  fputc('\n', OUT);
+}
+
+static int with_out_file() {
+  zero_ast();
+  int node;
+  if (module_parse(&node)) {
+    return -1;
+  }
+  module_write(node);
   return 0;
 }
 
