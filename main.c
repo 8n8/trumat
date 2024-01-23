@@ -182,11 +182,6 @@ static int string_equal(char *a, char *b) {
   return *a == '\0' && *b == '\0';
 }
 
-#define MAX_EXPORT 1000
-uint16_t UNSORTED[MAX_EXPORT];
-uint16_t SORTED[MAX_EXPORT];
-int NUM_EXPORT;
-
 static void zero_ast() {
   num_node = 2;
   module_exports_all_node = 0;
