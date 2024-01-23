@@ -200,6 +200,7 @@ static int with_out_file() {
 
   return 0;
 }
+
 static void calculate_row_numbers() {
   int row = 0;
   for (int i = 0; i < NUM_SRC; ++i) {
