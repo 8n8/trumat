@@ -20,6 +20,7 @@ static FILE *OUT;
 //
 // So there is a maximum of 116_665 nodes.
 
+#define MAX_NODES 116665
 static int NUM_NODES = 0;
 
 #define MAX_HAS_SRC 50 * 1000
@@ -90,10 +91,18 @@ static void zero_ast() {
   NUM_NODES = 0;
 }
 
+static int get_new_node() {
+  if (NUM_NODES == MAX_NODES) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_NODES);
+    exit(-1);
+  }
+  ++NUM_NODES;
+  return NUM_NODES - 1;
+}
+
 static int int_parse(int *node) {
   ++I;
-  *node = NUM_NODES;
-  ++NUM_NODES;
+  *node = get_new_node();
   append_has_src(*node, I, 1);
   return 0;
 }
