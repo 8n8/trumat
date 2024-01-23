@@ -12,13 +12,9 @@ static int NUM_SRC = 0;
 static int I = -1;
 static FILE *OUT;
 
-// The formatter works on top level definitions, so this state should be
-// enough to contain everything that is needed to format the largest top
-// level definition.
-//
 // Basic assumptions:
 //
-// - max 5000 lines of code in a single top-level definition
+// - max 1.4MB in an Elm module
 // - average 60 bytes per line of code
 // - average 5 nodes per line
 
