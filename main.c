@@ -123,7 +123,7 @@ static int digit_parse() {
   return 0;
 }
 
-static int int_parse(int *node) {
+static int simple_int_parse(int *node) {
   const int start = I;
   while (digit_parse() == 0) {
   }
@@ -153,6 +153,25 @@ static int chunk_parse(char *chunk) {
     return -1;
   }
   return 0;
+}
+
+static int hex_int_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("0x")) {
+    return -1;
+  }
+  while (digit_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int int_parse(int *node) {
+  if (hex_int_parse(node) == 0) {
+    return 0;
+  }
+  return simple_int_parse(node);
 }
 
 static int module_parse(int *node) {
