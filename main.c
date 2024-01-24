@@ -193,7 +193,7 @@ static int char_parse(uint8_t c) {
   return 0;
 }
 
-static int float_parse(int *node) {
+static int simple_float_parse(int *node) {
   const int start = I;
   while (digit_parse() == 0) {
   }
@@ -212,6 +212,34 @@ static int float_parse(int *node) {
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
   return 0;
+}
+
+static int exponent_float_parse(int *node) {
+  const int start = I;
+  while (digit_parse() == 0) {
+  }
+  if (char_parse('.') != 0) {
+    I = start;
+    return -1;
+  }
+  while (digit_parse() == 0) {
+  }
+  if (char_parse('e') != 0) {
+    I = start;
+    return -1;
+  }
+  while (digit_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int float_parse(int *node) {
+  if (exponent_float_parse(node) == 0) {
+    return 0;
+  }
+  return simple_float_parse(node);
 }
 
 static int chunk_parse(char *chunk) {
