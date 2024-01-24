@@ -27,6 +27,19 @@ static int NUM_NODES = 0;
 static uint32_t IS_HEX[MAX_HEX];
 static int NUM_HEX = 0;
 
+#define MAX_HAS_EXPONENT 10000
+static uint32_t HAS_EXPONENT[MAX_HAS_EXPONENT];
+int NUM_HAS_EXPONENT = 0;
+
+static void append_has_exponent(int node) {
+  if (NUM_HAS_EXPONENT == MAX_HAS_EXPONENT) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_EXPONENT);
+    exit(-1);
+  }
+  HAS_EXPONENT[NUM_HAS_EXPONENT] = node;
+  ++NUM_HAS_EXPONENT;
+}
+
 static void append_is_hex(int node) {
   if (NUM_HEX == MAX_HEX) {
     fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HEX);
@@ -99,9 +112,28 @@ static int is_hex(int node) {
   return 0;
 }
 
+static int is_exponent_float(int node) {
+  for (int i = 0; i < NUM_HAS_EXPONENT; ++i) {
+    if (HAS_EXPONENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void write_exponent_float(int node) {
+  write_src(node);
+  fputc('e', OUT);
+  write_src(node + 1);
+}
+
 static void write_expression(int node) {
   if (is_hex(node)) {
     write_hex(node);
+    return;
+  }
+  if (is_exponent_float(node)) {
+    write_exponent_float(node);
     return;
   }
   write_src(node);
@@ -138,6 +170,7 @@ static void zero_ast() {
   NUM_HAS_SRC = 0;
   NUM_NODES = 0;
   NUM_HEX = 0;
+  NUM_HAS_EXPONENT = 0;
 }
 
 static int get_new_node() {
@@ -216,10 +249,7 @@ static int simple_float_parse(int *node) {
 
 static int exponent_float_parse(int *node) {
   const int start = I;
-  while (digit_parse() == 0) {
-  }
-  if (char_parse('.') != 0) {
-    I = start;
+  if (simple_float_parse(node)) {
     return -1;
   }
   while (digit_parse() == 0) {
@@ -228,10 +258,11 @@ static int exponent_float_parse(int *node) {
     I = start;
     return -1;
   }
+  const int start_exp = I;
   while (digit_parse() == 0) {
   }
-  *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_exponent(*node);
+  append_has_src(get_new_node(), start_exp + 1, I - start_exp);
   return 0;
 }
 
