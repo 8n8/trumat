@@ -252,7 +252,6 @@ static int exponent_float_parse(int *node) {
   if (simple_float_parse(node)) {
     return -1;
   }
-  // There might be extra zeros after end of the first part which were trimmed by the previous parser.
   while (digit_parse() == 0) {
   }
   if (char_parse('e') != 0) {
