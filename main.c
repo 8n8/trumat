@@ -23,6 +23,19 @@ static FILE *OUT;
 #define MAX_NODES 116665
 static int NUM_NODES = 0;
 
+#define MAX_HEX 10000
+static uint32_t IS_HEX[MAX_HEX];
+static int NUM_HEX = 0;
+
+static void append_is_hex(int node) {
+  if (NUM_HEX == MAX_HEX) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HEX);
+    exit(-1);
+  }
+  IS_HEX[NUM_HEX] = node;
+  ++NUM_HEX;
+}
+
 #define MAX_HAS_SRC 50 * 1000
 static uint32_t HAS_SRC[MAX_HAS_SRC];
 static uint32_t SRC_START[MAX_HAS_SRC];
@@ -54,9 +67,35 @@ static void write_src(int node) {
   const int has_src_index = get_has_src_index(node);
   const int start = SRC_START[has_src_index];
   const int size = SRC_SIZE[has_src_index];
-  for (int i = start; i < start + size; ++i) {
-    fputc(SRC[i], OUT);
+  fwrite(SRC + start, 1, size, OUT);
+}
+
+static void write_hex(int node) {
+  fputs("0x", OUT);
+  const int src_index = get_has_src_index(node);
+  const int start = SRC_START[src_index];
+  const int size = SRC_SIZE[src_index];
+  if (size % 2 == 1) {
+    fputc('0', OUT);
   }
+  fwrite(SRC + start, 1, size, OUT);
+}
+
+static int is_hex(int node) {
+  for (int i = 0; i < NUM_HEX; ++i) {
+    if (IS_HEX[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void write_expression(int node) {
+  if (is_hex(node)) {
+    write_hex(node);
+    return;
+  }
+  write_src(node);
 }
 
 void dbg_src() {
@@ -89,6 +128,7 @@ static void zero_ast() {
   I = -1;
   NUM_HAS_SRC = 0;
   NUM_NODES = 0;
+  NUM_HEX = 0;
 }
 
 static int get_new_node() {
@@ -156,14 +196,15 @@ static int chunk_parse(char *chunk) {
 }
 
 static int hex_int_parse(int *node) {
-  const int start = I;
   if (chunk_parse("0x")) {
     return -1;
   }
+  const int start = I;
   while (digit_parse() == 0) {
   }
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
+  append_is_hex(*node);
   return 0;
 }
 
@@ -183,7 +224,7 @@ static int module_parse(int *node) {
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
-  write_src(node);
+  write_expression(node);
   fputc('\n', OUT);
 }
 
