@@ -195,12 +195,29 @@ static int chunk_parse(char *chunk) {
   return 0;
 }
 
+static int is_hex_char(uint8_t c) {
+  return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+         (c >= 'A' && c <= 'F');
+}
+
+static int hex_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (!is_hex_char(c)) {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
 static int hex_int_parse(int *node) {
   if (chunk_parse("0x")) {
     return -1;
   }
   const int start = I;
-  while (digit_parse() == 0) {
+  while (hex_char_parse() == 0) {
   }
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
