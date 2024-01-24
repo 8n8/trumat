@@ -203,6 +203,12 @@ static int float_parse(int *node) {
   }
   while (digit_parse() == 0) {
   }
+  while (SRC[I] == '0') {
+    --I;
+  }
+  if (SRC[I] == '.') {
+    ++I;
+  }
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
   return 0;
