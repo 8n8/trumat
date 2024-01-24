@@ -100,10 +100,35 @@ static int get_new_node() {
   return NUM_NODES - 1;
 }
 
-static int int_parse(int *node) {
+static int is_digit(uint8_t c) { return c >= '0' && c <= '9'; }
+
+static int any_char_parse(uint8_t *c) {
+  if (I == NUM_SRC - 1) {
+    return -1;
+  }
   ++I;
+  *c = SRC[I];
+  return 0;
+}
+
+static int digit_parse() {
+  uint8_t digit;
+  if (any_char_parse(&digit)) {
+    return -1;
+  }
+  if (!is_digit(digit)) {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
+static int int_parse(int *node) {
+  const int start = I;
+  while (digit_parse() == 0) {
+  }
   *node = get_new_node();
-  append_has_src(*node, I, 1);
+  append_has_src(*node, start + 1, I - start);
   return 0;
 }
 
