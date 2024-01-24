@@ -70,6 +70,13 @@ static void write_src(int node) {
   fwrite(SRC + start, 1, size, OUT);
 }
 
+static uint8_t hex_to_uppercase(uint8_t c) {
+  if (c >= 'a' && c <= 'f') {
+    return c - 'a' + 'A';
+  }
+  return c;
+}
+
 static void write_hex(int node) {
   fputs("0x", OUT);
   const int src_index = get_has_src_index(node);
@@ -78,7 +85,9 @@ static void write_hex(int node) {
   if (size % 2 == 1) {
     fputc('0', OUT);
   }
-  fwrite(SRC + start, 1, size, OUT);
+  for (int i = start; i < start + size; ++i) {
+    fputc(hex_to_uppercase(SRC[i]), OUT);
+  }
 }
 
 static int is_hex(int node) {
