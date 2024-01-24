@@ -193,6 +193,21 @@ static int char_parse(uint8_t c) {
   return 0;
 }
 
+static int float_parse(int *node) {
+  const int start = I;
+  while (digit_parse() == 0) {
+  }
+  if (char_parse('.') != 0) {
+    I = start;
+    return -1;
+  }
+  while (digit_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int chunk_parse(char *chunk) {
   const int start = I;
   for (; *chunk != '\0' && char_parse(*chunk) == 0; ++chunk) {
@@ -241,11 +256,18 @@ static int int_parse(int *node) {
   return simple_int_parse(node);
 }
 
+static int expression_parse(int *node) {
+  if (float_parse(node) == 0) {
+    return 0;
+  }
+  return int_parse(node);
+}
+
 static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  return int_parse(node);
+  return expression_parse(node);
 }
 
 static void module_write(int node) {
