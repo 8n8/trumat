@@ -31,6 +31,19 @@ static int NUM_HEX = 0;
 static uint32_t HAS_EXPONENT[MAX_HAS_EXPONENT];
 int NUM_HAS_EXPONENT = 0;
 
+#define MAX_HAS_NEGATIVE 10000
+static uint32_t HAS_NEGATIVE[MAX_HAS_NEGATIVE];
+int NUM_HAS_NEGATIVE = 0;
+
+static void append_is_negative(int node) {
+  if (NUM_HAS_NEGATIVE == MAX_HAS_NEGATIVE) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_NEGATIVE);
+    exit(-1);
+  }
+  HAS_NEGATIVE[NUM_HAS_NEGATIVE] = node;
+  ++NUM_HAS_NEGATIVE;
+}
+
 static void append_has_exponent(int node) {
   if (NUM_HAS_EXPONENT == MAX_HAS_EXPONENT) {
     fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_EXPONENT);
@@ -103,6 +116,15 @@ static void write_hex(int node) {
   }
 }
 
+static int is_negative(int node) {
+  for (int i = 0; i < NUM_HAS_NEGATIVE; ++i) {
+    if (HAS_NEGATIVE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_hex(int node) {
   for (int i = 0; i < NUM_HEX; ++i) {
     if (IS_HEX[i] == (uint32_t)node) {
@@ -124,10 +146,13 @@ static int is_exponent_float(int node) {
 static void write_exponent_float(int node) {
   write_src(node);
   fputc('e', OUT);
+  if (is_negative(node+1)) {
+    fputc('-', OUT);
+  }
   write_src(node + 1);
 }
 
-static void write_expression(int node) {
+static void expression_write(int node) {
   if (is_hex(node)) {
     write_hex(node);
     return;
@@ -171,6 +196,7 @@ static void zero_ast() {
   NUM_NODES = 0;
   NUM_HEX = 0;
   NUM_HAS_EXPONENT = 0;
+  NUM_HAS_NEGATIVE = 0;
 }
 
 static int get_new_node() {
@@ -258,14 +284,18 @@ static int exponent_float_parse(int *node) {
     I = start;
     return -1;
   }
+  append_has_exponent(*node);
+
+  const int exp_node = get_new_node();
+  if (char_parse('-') == 0) {
+    append_is_negative(exp_node);
+  }
   while (char_parse('0') == 0) {
   }
   const int start_exp = I;
-  char_parse('-');
   while (digit_parse() == 0) {
   }
-  append_has_exponent(*node);
-  append_has_src(get_new_node(), start_exp + 1, I - start_exp);
+  append_has_src(exp_node, start_exp + 1, I - start_exp);
   return 0;
 }
 
@@ -340,7 +370,7 @@ static int module_parse(int *node) {
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
-  write_expression(node);
+  expression_write(node);
   fputc('\n', OUT);
 }
 
