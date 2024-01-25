@@ -103,7 +103,19 @@ static uint8_t hex_to_uppercase(uint8_t c) {
   return c;
 }
 
+static int is_negative(int node) {
+  for (int i = 0; i < NUM_HAS_NEGATIVE; ++i) {
+    if (HAS_NEGATIVE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void hex_write(int node) {
+  if (is_negative(node)) {
+    fputc('-', OUT);
+  }
   fputs("0x", OUT);
   const int src_index = get_has_src_index(node);
   const int start = SRC_START[src_index];
@@ -114,15 +126,6 @@ static void hex_write(int node) {
   for (int i = start; i < start + size; ++i) {
     fputc(hex_to_uppercase(SRC[i]), OUT);
   }
-}
-
-static int is_negative(int node) {
-  for (int i = 0; i < NUM_HAS_NEGATIVE; ++i) {
-    if (HAS_NEGATIVE[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
 }
 
 static int is_hex(int node) {
@@ -336,13 +339,18 @@ static int hex_char_parse() {
 }
 
 static int hex_int_parse(int *node) {
+  const int reset = I;
+  *node = get_new_node();
+  if (char_parse('-') == 0) {
+    append_is_negative(*node);
+  }
   if (chunk_parse("0x")) {
+    I = reset;
     return -1;
   }
   const int start = I;
   while (hex_char_parse() == 0) {
   }
-  *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
   append_is_hex(*node);
   return 0;
