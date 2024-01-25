@@ -367,9 +367,37 @@ static int int_parse(int *node) {
   return simple_int_parse(node);
 }
 
+static int normal_string_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c == '"') {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
+static int normal_string_item_parse() {
+  if (normal_string_char_parse() == 0) {
+    return 0;
+  }
+  if (chunk_parse("\\\\") == 0) {
+    return 0;
+  }
+  return chunk_parse("\\\"");
+}
+
 static int normal_string_parse(int *node) {
   const int start = I;
-  if (chunk_parse("\"\"")) {
+  if (char_parse('"')) {
+    return -1;
+  }
+  while (normal_string_item_parse() == 0) {
+  }
+  if (char_parse('"')) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
