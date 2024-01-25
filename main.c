@@ -259,6 +259,7 @@ static int exponent_float_parse(int *node) {
     return -1;
   }
   const int start_exp = I;
+  char_parse('-');
   while (digit_parse() == 0) {
   }
   append_has_exponent(*node);
