@@ -236,14 +236,15 @@ static int simple_float_parse(int *node) {
   }
   while (digit_parse() == 0) {
   }
-  while (SRC[I] == '0') {
-    --I;
+  int end = I;
+  while (SRC[end] == '0') {
+    --end;
   }
-  if (SRC[I] == '.') {
-    ++I;
+  if (SRC[end] == '.') {
+    ++end;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start + 1, end - start);
   return 0;
 }
 
@@ -251,8 +252,6 @@ static int exponent_float_parse(int *node) {
   const int start = I;
   if (simple_float_parse(node)) {
     return -1;
-  }
-  while (digit_parse() == 0) {
   }
   if (char_parse('e') != 0) {
     I = start;
