@@ -258,6 +258,8 @@ static int exponent_float_parse(int *node) {
     I = start;
     return -1;
   }
+  while (char_parse('0') == 0) {
+  }
   const int start_exp = I;
   char_parse('-');
   while (digit_parse() == 0) {
