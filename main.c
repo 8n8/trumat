@@ -372,11 +372,18 @@ static int normal_string_char_parse() {
   if (any_char_parse(&c)) {
     return -1;
   }
-  if (c == '"') {
+  if (c == '"' || c == '\\') {
     --I;
     return -1;
   }
   return 0;
+}
+
+static int normal_string_item_parse() {
+  if (normal_string_char_parse() == 0) {
+    return 0;
+  }
+  return chunk_parse("\\\"");
 }
 
 static int normal_string_parse(int *node) {
@@ -384,7 +391,7 @@ static int normal_string_parse(int *node) {
   if (char_parse('"')) {
     return -1;
   }
-  while (normal_string_char_parse() == 0) {
+  while (normal_string_item_parse() == 0) {
   }
   if (char_parse('"')) {
     I = start;
