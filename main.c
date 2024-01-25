@@ -249,6 +249,10 @@ static int char_parse(uint8_t c) {
 static int simple_int_parse(int *node) {
   const int start = I;
   char_parse('-');
+  if (digit_parse()) {
+    I = start;
+    return -1;
+  }
   while (digit_parse() == 0) {
   }
   *node = get_new_node();
@@ -363,11 +367,24 @@ static int int_parse(int *node) {
   return simple_int_parse(node);
 }
 
+static int normal_string_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("\"\"")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
-  return int_parse(node);
+  if (int_parse(node) == 0) {
+    return 0;
+  }
+  return normal_string_parse(node);
 }
 
 static int module_parse(int *node) {
