@@ -379,6 +379,21 @@ static int normal_string_char_parse() {
   return 0;
 }
 
+static int unicode_hex_parse() {
+  const int start = I;
+  if (chunk_parse("\\u{")) {
+    return -1;
+  }
+
+  while (hex_char_parse() == 0) {
+  }
+  if (char_parse('}') != 0) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int normal_string_item_parse() {
   if (normal_string_char_parse() == 0) {
     return 0;
@@ -386,7 +401,10 @@ static int normal_string_item_parse() {
   if (chunk_parse("\\\"") == 0) {
     return 0;
   }
-  return chunk_parse("\\\\");
+  if (chunk_parse("\\\\") == 0) {
+    return 0;
+  }
+  return unicode_hex_parse();
 }
 
 static int normal_string_parse(int *node) {
