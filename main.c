@@ -228,6 +228,7 @@ static int char_parse(uint8_t c) {
 
 static int simple_float_parse(int *node) {
   const int start = I;
+  char_parse('-');
   while (digit_parse() == 0) {
   }
   if (char_parse('.') != 0) {
