@@ -146,7 +146,7 @@ static int is_exponent_float(int node) {
 static void write_exponent_float(int node) {
   write_src(node);
   fputc('e', OUT);
-  if (is_negative(node+1)) {
+  if (is_negative(node + 1)) {
     fputc('-', OUT);
   }
   write_src(node + 1);
@@ -231,15 +231,6 @@ static int digit_parse() {
   return 0;
 }
 
-static int simple_int_parse(int *node) {
-  const int start = I;
-  while (digit_parse() == 0) {
-  }
-  *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
-  return 0;
-}
-
 static int char_parse(uint8_t c) {
   if (I == NUM_SRC - 1) {
     return -1;
@@ -249,6 +240,16 @@ static int char_parse(uint8_t c) {
     --I;
     return -1;
   }
+  return 0;
+}
+
+static int simple_int_parse(int *node) {
+  const int start = I;
+  char_parse('-');
+  while (digit_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
   return 0;
 }
 
