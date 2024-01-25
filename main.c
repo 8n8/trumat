@@ -383,7 +383,10 @@ static int normal_string_item_parse() {
   if (normal_string_char_parse() == 0) {
     return 0;
   }
-  return chunk_parse("\\\"");
+  if (chunk_parse("\\\"") == 0) {
+    return 0;
+  }
+  return chunk_parse("\\\\");
 }
 
 static int normal_string_parse(int *node) {
