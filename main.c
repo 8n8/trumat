@@ -89,7 +89,7 @@ static int get_has_src_index(int node) {
   exit(-1);
 }
 
-static void write_src(int node) {
+static void src_write(int node) {
   const int has_src_index = get_has_src_index(node);
   const int start = SRC_START[has_src_index];
   const int size = SRC_SIZE[has_src_index];
@@ -103,7 +103,7 @@ static uint8_t hex_to_uppercase(uint8_t c) {
   return c;
 }
 
-static void write_hex(int node) {
+static void hex_write(int node) {
   fputs("0x", OUT);
   const int src_index = get_has_src_index(node);
   const int start = SRC_START[src_index];
@@ -143,25 +143,25 @@ static int is_exponent_float(int node) {
   return 0;
 }
 
-static void write_exponent_float(int node) {
-  write_src(node);
+static void exponent_float_write(int node) {
+  src_write(node);
   fputc('e', OUT);
   if (is_negative(node + 1)) {
     fputc('-', OUT);
   }
-  write_src(node + 1);
+  src_write(node + 1);
 }
 
 static void expression_write(int node) {
   if (is_hex(node)) {
-    write_hex(node);
+    hex_write(node);
     return;
   }
   if (is_exponent_float(node)) {
-    write_exponent_float(node);
+    exponent_float_write(node);
     return;
   }
-  write_src(node);
+  src_write(node);
 }
 
 void dbg_src() {
