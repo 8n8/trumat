@@ -510,7 +510,7 @@ static int not_newline_parse() {
   return 0;
 }
 
-static int left_comment_parse(int *node) {
+static int line_comment_parse(int *node) {
   const int start = I;
   if (chunk_parse("--")) {
     return -1;
@@ -538,7 +538,7 @@ static int module_parse(int *node) {
     return -1;
   }
   int left_comment = get_new_node();
-  const int left_comment_result = left_comment_parse(&left_comment);
+  const int left_comment_result = line_comment_parse(&left_comment);
   while (char_parse(' ') == 0) {
   }
   if (expression_parse(node)) {
