@@ -517,13 +517,19 @@ static int left_comment_parse(int *node) {
   }
   while (not_newline_parse() == 0) {
   }
+  while (SRC[I] == ' ') {
+    --I;
+  }
+  const int end = I;
+  while (char_parse(' ') == 0) {
+  }
   if (char_parse('\n')) {
     I = start;
     return -1;
   }
 
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start + 1, end - start);
   return 0;
 }
 
@@ -559,7 +565,7 @@ static void module_write(int node) {
   int left_comment;
   if (get_left_comment(node, &left_comment) == 0) {
     src_write(left_comment);
-    fputs("    ", OUT);
+    fputs("\n    ", OUT);
   }
   expression_write(node);
   fputc('\n', OUT);
