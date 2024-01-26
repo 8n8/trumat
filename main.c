@@ -420,6 +420,12 @@ static int triple_string_item_parse() {
     I = start;
     return -1;
   }
+  if (chunk_parse("\\\"") == 0) {
+    return 0;
+  }
+  if (chunk_parse("\\\\") == 0) {
+    return 0;
+  }
   uint8_t dont_care;
   if (any_char_parse(&dont_care)) {
     I = start;
