@@ -498,10 +498,24 @@ static int expression_parse(int *node) {
   return normal_string_parse(node);
 }
 
+static int not_newline_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c == '\n') {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
 static int left_comment_parse(int *node) {
   const int start = I;
   if (chunk_parse("--")) {
     return -1;
+  }
+  while (not_newline_parse() == 0) {
   }
   if (char_parse('\n')) {
     I = start;
