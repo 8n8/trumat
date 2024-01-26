@@ -35,6 +35,21 @@ int NUM_HAS_EXPONENT = 0;
 static uint32_t HAS_NEGATIVE[MAX_HAS_NEGATIVE];
 int NUM_HAS_NEGATIVE = 0;
 
+#define MAX_LEFT_COMMENT 10000
+static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
+static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
+int NUM_LEFT_COMMENT = 0;
+
+static void append_left_comment(int node, int comment_node) {
+  if (NUM_LEFT_COMMENT == MAX_LEFT_COMMENT) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_LEFT_COMMENT);
+    exit(-1);
+  }
+  LEFT_COMMENT[NUM_LEFT_COMMENT] = comment_node;
+  LEFT_COMMENT_PARENT[NUM_LEFT_COMMENT] = node;
+  ++NUM_LEFT_COMMENT;
+}
+
 static void append_is_negative(int node) {
   if (NUM_HAS_NEGATIVE == MAX_HAS_NEGATIVE) {
     fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_NEGATIVE);
@@ -200,6 +215,7 @@ static void zero_ast() {
   NUM_HEX = 0;
   NUM_HAS_EXPONENT = 0;
   NUM_HAS_NEGATIVE = 0;
+  NUM_LEFT_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -482,15 +498,54 @@ static int expression_parse(int *node) {
   return normal_string_parse(node);
 }
 
+static int left_comment_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("--")) {
+    return -1;
+  }
+  if (char_parse('\n')) {
+    I = start;
+    return -1;
+  }
+
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  return expression_parse(node);
+  int left_comment = get_new_node();
+  const int left_comment_result = left_comment_parse(&left_comment);
+  while (char_parse(' ') == 0) {
+  }
+  if (expression_parse(node)) {
+    return -1;
+  }
+  if (left_comment_result == 0) {
+    append_left_comment(*node, left_comment);
+  }
+  return 0;
+}
+
+static int get_left_comment(int node) {
+  for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
+    if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
+      return LEFT_COMMENT[i];
+    }
+  }
+  return -1;
 }
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
+  const int left_comment = get_left_comment(node);
+  if (left_comment >= 0) {
+    src_write(left_comment);
+    fputs("    ", OUT);
+  }
   expression_write(node);
   fputc('\n', OUT);
 }
