@@ -424,11 +424,24 @@ static int normal_string_parse(int *node) {
   return 0;
 }
 
+static int triple_string_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("\"\"\"\"\"\"") != 0) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
   if (int_parse(node) == 0) {
+    return 0;
+  }
+  if (triple_string_parse(node) == 0) {
     return 0;
   }
   return normal_string_parse(node);
