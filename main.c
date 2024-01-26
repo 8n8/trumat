@@ -408,6 +408,18 @@ static int normal_string_item_parse() {
   return unicode_hex_parse();
 }
 
+static int triple_string_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c == '"') {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
 static int normal_string_parse(int *node) {
   const int start = I;
   if (char_parse('"')) {
@@ -426,7 +438,13 @@ static int normal_string_parse(int *node) {
 
 static int triple_string_parse(int *node) {
   const int start = I;
-  if (chunk_parse("\"\"\"\"\"\"") != 0) {
+  if (chunk_parse("\"\"\"")) {
+    return -1;
+  }
+  while (triple_string_char_parse() == 0) {
+  }
+  if (chunk_parse("\"\"\"")) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
