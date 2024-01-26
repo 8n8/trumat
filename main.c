@@ -544,10 +544,11 @@ static int module_parse(int *node) {
   return 0;
 }
 
-static int get_left_comment(int node) {
+static int get_left_comment(int node, int *left_comment) {
   for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
     if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
-      return LEFT_COMMENT[i];
+      *left_comment = LEFT_COMMENT[i];
+      return 0;
     }
   }
   return -1;
@@ -555,8 +556,8 @@ static int get_left_comment(int node) {
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
-  const int left_comment = get_left_comment(node);
-  if (left_comment >= 0) {
+  int left_comment;
+  if (get_left_comment(node, &left_comment) == 0) {
     src_write(left_comment);
     fputs("    ", OUT);
   }
