@@ -124,7 +124,7 @@ static void hex_write(int node) {
     fputc('0', OUT);
   }
   for (int i = start; i < start + size; ++i) {
-    fputc(hex_to_uppercase(SRC[i]), OUT);
+    fputc(SRC[i], OUT);
   }
 }
 
@@ -339,6 +339,7 @@ static int hex_char_parse() {
     --I;
     return -1;
   }
+  SRC[I] = hex_to_uppercase(SRC[I]);
   return 0;
 }
 
