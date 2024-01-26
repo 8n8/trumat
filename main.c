@@ -405,6 +405,9 @@ static int normal_string_item_parse() {
   if (chunk_parse("\\\\") == 0) {
     return 0;
   }
+  if (chunk_parse("\\n") == 0) {
+    return 0;
+  }
   return unicode_hex_parse();
 }
 
