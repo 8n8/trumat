@@ -540,7 +540,16 @@ static int empty_block_comment_parse(int *node) {
 
 static int non_empty_block_comment_parse(int *node) {
   const int start = I;
-  if (chunk_parse("{- a -}")) {
+  if (chunk_parse("{- ")) {
+    return -1;
+  }
+  uint8_t dont_care;
+  if (any_char_parse(&dont_care)) {
+    I = start;
+    return -1;
+  }
+  if (chunk_parse(" -}")) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
