@@ -44,6 +44,20 @@ int NUM_LEFT_COMMENT = 0;
 static uint32_t IS_BLOCK_COMMENT[MAX_BLOCK_COMMENT];
 int NUM_BLOCK_COMMENT = 0;
 
+#define MAX_EMPTY_BLOCK_COMMENT 10000
+static uint32_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
+int NUM_EMPTY_BLOCK_COMMENT = 0;
+
+static void append_is_empty_block_comment(int node) {
+  if (NUM_EMPTY_BLOCK_COMMENT == MAX_EMPTY_BLOCK_COMMENT) {
+    fprintf(stderr, "too many empty block comment nodes, maximum is %d\n",
+            MAX_EMPTY_BLOCK_COMMENT);
+    exit(-1);
+  }
+  IS_EMPTY_BLOCK_COMMENT[NUM_EMPTY_BLOCK_COMMENT] = node;
+  ++NUM_EMPTY_BLOCK_COMMENT;
+}
+
 static void append_is_block_comment(int node) {
   if (NUM_BLOCK_COMMENT == MAX_BLOCK_COMMENT) {
     fprintf(stderr, "too many block comment nodes, maximum is %d\n",
@@ -231,6 +245,7 @@ static void zero_ast() {
   NUM_HAS_NEGATIVE = 0;
   NUM_LEFT_COMMENT = 0;
   NUM_BLOCK_COMMENT = 0;
+  NUM_EMPTY_BLOCK_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -545,11 +560,17 @@ static int line_comment_parse(int *node) {
 
 static int empty_block_comment_parse(int *node) {
   const int start = I;
-  if (chunk_parse("{--}")) {
+  if (chunk_parse("{-")) {
+    return -1;
+  }
+  while (char_parse(' ') == 0) {
+  }
+  if (chunk_parse("-}")) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_is_empty_block_comment(*node);
   return 0;
 }
 
@@ -635,7 +656,20 @@ static int get_is_block_comment(int node) {
   return 0;
 }
 
+static int get_is_empty_block_comment(int node) {
+  for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
+    if (IS_EMPTY_BLOCK_COMMENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void comment_write(int node) {
+  if (get_is_empty_block_comment(node)) {
+    fputs("{--}", OUT);
+    return;
+  }
   const int is_block = get_is_block_comment(node);
   if (is_block) {
     fputs("{- ", OUT);
