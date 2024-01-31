@@ -538,17 +538,26 @@ static int empty_block_comment_parse(int *node) {
   return 0;
 }
 
+static int block_comment_item_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c == '-') {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
 static int non_empty_block_comment_parse(int *node) {
   const int start = I;
-  if (chunk_parse("{- ")) {
+  if (chunk_parse("{-")) {
     return -1;
   }
-  uint8_t dont_care;
-  if (any_char_parse(&dont_care)) {
-    I = start;
-    return -1;
+  while (block_comment_item_parse() == 0) {
   }
-  if (chunk_parse(" -}")) {
+  if (chunk_parse("-}")) {
     I = start;
     return -1;
   }
