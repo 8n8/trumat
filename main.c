@@ -665,6 +665,18 @@ static int get_is_empty_block_comment(int node) {
   return 0;
 }
 
+static int get_is_multiline_comment(int node) {
+  const int has_src_index = get_has_src_index(node);
+  const int start = SRC_START[has_src_index];
+  const int size = SRC_SIZE[has_src_index];
+  for (int i = start; i < start + size; ++i) {
+    if (SRC[i] == '\n') {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void comment_write(int node) {
   if (get_is_empty_block_comment(node)) {
     fputs("{--}", OUT);
@@ -675,9 +687,14 @@ static void comment_write(int node) {
     fputs("{- ", OUT);
   }
   src_write(node);
-  if (is_block) {
-    fputs(" -}", OUT);
+  const int is_multiline = get_is_multiline_comment(node);
+  if (!is_block) {
+    return;
   }
+  if (is_multiline) {
+    fputs("\n   ", OUT);
+  }
+  fputs(" -}", OUT);
 }
 
 static void module_write(int node) {
