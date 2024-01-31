@@ -40,6 +40,20 @@ static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
 static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
 int NUM_LEFT_COMMENT = 0;
 
+#define MAX_BLOCK_COMMENT 10000
+static uint32_t IS_BLOCK_COMMENT[MAX_BLOCK_COMMENT];
+int NUM_BLOCK_COMMENT = 0;
+
+static void append_is_block_comment(int node) {
+  if (NUM_BLOCK_COMMENT == MAX_BLOCK_COMMENT) {
+    fprintf(stderr, "too many block comment nodes, maximum is %d\n",
+            MAX_BLOCK_COMMENT);
+    exit(-1);
+  }
+  IS_BLOCK_COMMENT[NUM_BLOCK_COMMENT] = node;
+  ++NUM_BLOCK_COMMENT;
+}
+
 static void append_left_comment(int node, int comment_node) {
   if (NUM_LEFT_COMMENT == MAX_LEFT_COMMENT) {
     fprintf(stderr, "too many nodes, maximum is %d\n", MAX_LEFT_COMMENT);
@@ -216,6 +230,7 @@ static void zero_ast() {
   NUM_HAS_EXPONENT = 0;
   NUM_HAS_NEGATIVE = 0;
   NUM_LEFT_COMMENT = 0;
+  NUM_BLOCK_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -552,14 +567,24 @@ static int non_empty_block_comment_parse(int *node) {
   if (chunk_parse("{-")) {
     return -1;
   }
+  while (char_parse(' ') == 0) {
+  }
+  const int content_start = I;
   while (block_comment_item_parse() == 0) {
+  }
+  while (SRC[I] == ' ') {
+    --I;
+  }
+  const int content_end = I;
+  while (char_parse(' ') == 0) {
   }
   if (chunk_parse("-}")) {
     I = start;
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, content_start + 1, content_end - content_start);
+  append_is_block_comment(*node);
   return 0;
 }
 
@@ -601,11 +626,27 @@ static int get_left_comment(int node, int *left_comment) {
   return -1;
 }
 
+static int get_is_block_comment(int node) {
+  for (int i = 0; i < NUM_BLOCK_COMMENT; ++i) {
+    if (IS_BLOCK_COMMENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
   int left_comment;
   if (get_left_comment(node, &left_comment) == 0) {
+    const int is_block = get_is_block_comment(left_comment);
+    if (is_block) {
+      fputs("{- ", OUT);
+    }
     src_write(left_comment);
+    if (is_block) {
+      fputs(" -}", OUT);
+    }
     fputs("\n    ", OUT);
   }
   expression_write(node);
