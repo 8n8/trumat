@@ -539,15 +539,12 @@ static int empty_block_comment_parse(int *node) {
 }
 
 static int block_comment_item_parse() {
+  if (chunk_parse("-}") == 0) {
+    I = I - 2;
+    return -1;
+  }
   uint8_t c;
-  if (any_char_parse(&c)) {
-    return -1;
-  }
-  if (c == '-') {
-    --I;
-    return -1;
-  }
-  return 0;
+  return any_char_parse(&c);
 }
 
 static int non_empty_block_comment_parse(int *node) {
