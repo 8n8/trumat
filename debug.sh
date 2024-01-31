@@ -1,6 +1,6 @@
 #!/bin/sh
 
 rm a.out
-cp input/LineCommentBeforeFunctionBody/Empty.elm test.elm
+cp input/BlockComment/Empty.elm test.elm
 clang -g -fsanitize=memory -O0 main.c
 gdb --args a.out --overwrite test.elm

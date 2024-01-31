@@ -533,12 +533,30 @@ static int line_comment_parse(int *node) {
   return 0;
 }
 
+static int comment_parse(int *node) {
+  const int start = I;
+  if (line_comment_parse(node) == 0) {
+    return 0;
+  }
+  if (chunk_parse("{--}")) {
+    return -1;
+  }
+  const int end = I;
+  if (char_parse('\n')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, end - start);
+  return 0;
+}
+
 static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
   int left_comment = get_new_node();
-  const int left_comment_result = line_comment_parse(&left_comment);
+  const int left_comment_result = comment_parse(&left_comment);
   while (char_parse(' ') == 0) {
   }
   if (expression_parse(node)) {
