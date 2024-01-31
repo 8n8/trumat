@@ -559,7 +559,7 @@ static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  int left_comment = get_new_node();
+  int left_comment;
   const int left_comment_result = comment_parse(&left_comment);
   while (char_parse(' ') == 0) {
   }
