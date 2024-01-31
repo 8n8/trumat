@@ -528,9 +528,19 @@ static int line_comment_parse(int *node) {
   return 0;
 }
 
-static int block_comment_parse(int *node) {
+static int empty_block_comment_parse(int *node) {
   const int start = I;
   if (chunk_parse("{--}")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int non_empty_block_comment_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("{- a -}")) {
     return -1;
   }
   *node = get_new_node();
@@ -542,7 +552,10 @@ static int comment_parse(int *node) {
   if (line_comment_parse(node) == 0) {
     return 0;
   }
-  return block_comment_parse(node);
+  if (empty_block_comment_parse(node) == 0) {
+    return 0;
+  }
+  return non_empty_block_comment_parse(node);
 }
 
 static int module_parse(int *node) {
