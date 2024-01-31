@@ -533,11 +533,8 @@ static int line_comment_parse(int *node) {
   return 0;
 }
 
-static int comment_parse(int *node) {
+static int block_comment_parse(int *node) {
   const int start = I;
-  if (line_comment_parse(node) == 0) {
-    return 0;
-  }
   if (chunk_parse("{--}")) {
     return -1;
   }
@@ -549,6 +546,13 @@ static int comment_parse(int *node) {
   *node = get_new_node();
   append_has_src(*node, start + 1, end - start);
   return 0;
+}
+
+static int comment_parse(int *node) {
+  if (line_comment_parse(node) == 0) {
+    return 0;
+  }
+  return block_comment_parse(node);
 }
 
 static int module_parse(int *node) {
