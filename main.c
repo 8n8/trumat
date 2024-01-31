@@ -635,18 +635,22 @@ static int get_is_block_comment(int node) {
   return 0;
 }
 
+static void comment_write(int node) {
+  const int is_block = get_is_block_comment(node);
+  if (is_block) {
+    fputs("{- ", OUT);
+  }
+  src_write(node);
+  if (is_block) {
+    fputs(" -}", OUT);
+  }
+}
+
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
   int left_comment;
   if (get_left_comment(node, &left_comment) == 0) {
-    const int is_block = get_is_block_comment(left_comment);
-    if (is_block) {
-      fputs("{- ", OUT);
-    }
-    src_write(left_comment);
-    if (is_block) {
-      fputs(" -}", OUT);
-    }
+    comment_write(left_comment);
     fputs("\n    ", OUT);
   }
   expression_write(node);
