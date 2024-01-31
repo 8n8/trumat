@@ -593,11 +593,11 @@ static int non_empty_block_comment_parse(int *node) {
   const int content_start = I;
   while (block_comment_item_parse() == 0) {
   }
-  while (SRC[I] == ' ') {
+  while (SRC[I] == ' ' || SRC[I] == '\n') {
     --I;
   }
   const int content_end = I;
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (chunk_parse("-}")) {
     I = start;
