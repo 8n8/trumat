@@ -1,6 +1,6 @@
 #!/bin/sh
 
 rm a.out
-cp input/BlockComment/Hyphen.elm test.elm
-clang -g -fsanitize=memory -O0 main.c
+cp input/BlockComment/ShortIndent.elm test.elm
+clang -g -O0 main.c
 gdb --args a.out --overwrite test.elm

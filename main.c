@@ -40,13 +40,27 @@ static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
 static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
 int NUM_LEFT_COMMENT = 0;
 
-#define MAX_BLOCK_COMMENT 10000
-static uint32_t IS_BLOCK_COMMENT[MAX_BLOCK_COMMENT];
-int NUM_BLOCK_COMMENT = 0;
-
 #define MAX_EMPTY_BLOCK_COMMENT 10000
 static uint32_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
 int NUM_EMPTY_BLOCK_COMMENT = 0;
+
+#define MAX_BLOCK_COMMENT_LINE 10000
+static uint32_t BLOCK_COMMENT_LINE_START[MAX_BLOCK_COMMENT_LINE];
+static uint16_t BLOCK_COMMENT_LINE_SIZE[MAX_BLOCK_COMMENT_LINE];
+static uint32_t BLOCK_COMMENT_LINE_PARENT[MAX_BLOCK_COMMENT_LINE];
+int NUM_BLOCK_COMMENT_LINE = 0;
+
+static void append_block_comment_line(int parent, int start, int size) {
+  if (NUM_BLOCK_COMMENT_LINE == MAX_BLOCK_COMMENT_LINE) {
+    fprintf(stderr, "too many block comment lines, maximum is %d\n",
+            MAX_BLOCK_COMMENT_LINE);
+    exit(-1);
+  }
+  BLOCK_COMMENT_LINE_START[NUM_BLOCK_COMMENT_LINE] = start;
+  BLOCK_COMMENT_LINE_SIZE[NUM_BLOCK_COMMENT_LINE] = size;
+  BLOCK_COMMENT_LINE_PARENT[NUM_BLOCK_COMMENT_LINE] = parent;
+  ++NUM_BLOCK_COMMENT_LINE;
+}
 
 static void append_is_empty_block_comment(int node) {
   if (NUM_EMPTY_BLOCK_COMMENT == MAX_EMPTY_BLOCK_COMMENT) {
@@ -56,16 +70,6 @@ static void append_is_empty_block_comment(int node) {
   }
   IS_EMPTY_BLOCK_COMMENT[NUM_EMPTY_BLOCK_COMMENT] = node;
   ++NUM_EMPTY_BLOCK_COMMENT;
-}
-
-static void append_is_block_comment(int node) {
-  if (NUM_BLOCK_COMMENT == MAX_BLOCK_COMMENT) {
-    fprintf(stderr, "too many block comment nodes, maximum is %d\n",
-            MAX_BLOCK_COMMENT);
-    exit(-1);
-  }
-  IS_BLOCK_COMMENT[NUM_BLOCK_COMMENT] = node;
-  ++NUM_BLOCK_COMMENT;
 }
 
 static void append_left_comment(int node, int comment_node) {
@@ -244,7 +248,7 @@ static void zero_ast() {
   NUM_HAS_EXPONENT = 0;
   NUM_HAS_NEGATIVE = 0;
   NUM_LEFT_COMMENT = 0;
-  NUM_BLOCK_COMMENT = 0;
+  NUM_BLOCK_COMMENT_LINE = 0;
   NUM_EMPTY_BLOCK_COMMENT = 0;
 }
 
@@ -579,8 +583,39 @@ static int block_comment_item_parse() {
     I = I - 2;
     return -1;
   }
+  if (char_parse('\n') == 0) {
+    --I;
+    return -1;
+  }
   uint8_t c;
   return any_char_parse(&c);
+}
+
+static void block_comment_line_parse(uint32_t *start, uint16_t *size) {
+  while (char_parse(' ') == 0) {
+  }
+  *start = I + 1;
+  while (block_comment_item_parse() == 0) {
+  }
+  while (SRC[I] == ' ') {
+    --I;
+  }
+  *size = I - *start + 1;
+  while (block_comment_item_parse() == 0) {
+  }
+  char_parse('\n');
+}
+
+static int is_block_comment_end() {
+  const int start = I;
+  while (char_parse(' ') == 0) {
+  }
+  if (chunk_parse("-}")) {
+    I = start;
+    return 0;
+  }
+  I = start;
+  return 1;
 }
 
 static int non_empty_block_comment_parse(int *node) {
@@ -588,24 +623,22 @@ static int non_empty_block_comment_parse(int *node) {
   if (chunk_parse("{-")) {
     return -1;
   }
+  *node = get_new_node();
+  uint32_t line_start;
+  uint16_t line_size;
+  while (1) {
+    if (is_block_comment_end()) {
+      break;
+    }
+    block_comment_line_parse(&line_start, &line_size);
+    append_block_comment_line(*node, line_start, line_size);
+  }
   while (char_parse(' ') == 0) {
-  }
-  const int content_start = I;
-  while (block_comment_item_parse() == 0) {
-  }
-  while (SRC[I] == ' ' || SRC[I] == '\n') {
-    --I;
-  }
-  const int content_end = I;
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (chunk_parse("-}")) {
     I = start;
     return -1;
   }
-  *node = get_new_node();
-  append_has_src(*node, content_start + 1, content_end - content_start);
-  append_is_block_comment(*node);
   return 0;
 }
 
@@ -647,9 +680,9 @@ static int get_left_comment(int node, int *left_comment) {
   return -1;
 }
 
-static int get_is_block_comment(int node) {
-  for (int i = 0; i < NUM_BLOCK_COMMENT; ++i) {
-    if (IS_BLOCK_COMMENT[i] == (uint32_t)node) {
+static int get_is_non_empty_block_comment(int node) {
+  for (int i = 0; i < NUM_BLOCK_COMMENT_LINE; ++i) {
+    if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
       return 1;
     }
   }
@@ -666,15 +699,23 @@ static int get_is_empty_block_comment(int node) {
 }
 
 static int get_is_multiline_comment(int node) {
-  const int has_src_index = get_has_src_index(node);
-  const int start = SRC_START[has_src_index];
-  const int size = SRC_SIZE[has_src_index];
-  for (int i = start; i < start + size; ++i) {
-    if (SRC[i] == '\n') {
-      return 1;
+  int num_lines = 0;
+  for (int i = 0; i < NUM_BLOCK_COMMENT_LINE && num_lines < 3; ++i) {
+    if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
+      ++num_lines;
     }
   }
-  return 0;
+  return num_lines > 1;
+}
+
+static int get_comment_line(int node, int *line, int start) {
+  for (int i = start; i < NUM_BLOCK_COMMENT_LINE; ++i) {
+    if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
+      *line = i;
+      return 0;
+    }
+  }
+  return -1;
 }
 
 static void comment_write(int node) {
@@ -682,19 +723,32 @@ static void comment_write(int node) {
     fputs("{--}", OUT);
     return;
   }
-  const int is_block = get_is_block_comment(node);
+
+  const int is_block = get_is_non_empty_block_comment(node);
   if (is_block) {
     fputs("{- ", OUT);
-  }
-  src_write(node);
-  const int is_multiline = get_is_multiline_comment(node);
-  if (!is_block) {
+  } else {
+    src_write(node);
     return;
   }
-  if (is_multiline) {
-    fputs("\n   ", OUT);
-  }
-  fputs(" -}", OUT);
+
+  const int is_multiline = get_is_multiline_comment(node);
+  int start = 0;
+  int i = 0;
+  for (int line; get_comment_line(node, &line, start) == 0; start = line + 1, ++i) {
+    const uint32_t start = BLOCK_COMMENT_LINE_START[line];
+    const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
+    if (i > 0) {
+      fputs("   ", OUT);
+    }
+    fwrite(SRC + start, 1, size, OUT);
+    if (is_multiline) {
+      fputs("\n    ", OUT);
+    } else {
+      fputc(' ', OUT);
+    }
+  } 
+  fputs("-}", OUT);
 }
 
 static void module_write(int node) {
@@ -756,6 +810,7 @@ static int read_src(char *path) {
 }
 
 static void format_file(char *path) {
+  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }
