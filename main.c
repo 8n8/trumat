@@ -718,24 +718,13 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
-static void comment_write(int node) {
-  if (get_is_empty_block_comment(node)) {
-    fputs("{--}", OUT);
-    return;
-  }
-
-  const int is_block = get_is_non_empty_block_comment(node);
-  if (is_block) {
-    fputs("{- ", OUT);
-  } else {
-    src_write(node);
-    return;
-  }
-
+static void non_empty_block_comment_write(int node) {
+  fputs("{- ", OUT);
   const int is_multiline = get_is_multiline_comment(node);
   int start = 0;
   int i = 0;
-  for (int line; get_comment_line(node, &line, start) == 0; start = line + 1, ++i) {
+  for (int line; get_comment_line(node, &line, start) == 0;
+       start = line + 1, ++i) {
     const uint32_t start = BLOCK_COMMENT_LINE_START[line];
     const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
     if (i > 0) {
@@ -747,8 +736,22 @@ static void comment_write(int node) {
     } else {
       fputc(' ', OUT);
     }
-  } 
+  }
   fputs("-}", OUT);
+}
+
+static void comment_write(int node) {
+  if (get_is_empty_block_comment(node)) {
+    fputs("{--}", OUT);
+    return;
+  }
+
+  const int is_block = get_is_non_empty_block_comment(node);
+  if (is_block) {
+    non_empty_block_comment_write(node);
+    return;
+  }
+  src_write(node);
 }
 
 static void module_write(int node) {
