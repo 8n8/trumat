@@ -718,6 +718,20 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
+static void block_comment_line_write(int line, int i, int is_multiline) {
+  const uint32_t start = BLOCK_COMMENT_LINE_START[line];
+  const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
+  if (i > 0) {
+    fputs("   ", OUT);
+  }
+  fwrite(SRC + start, 1, size, OUT);
+  if (is_multiline) {
+    fputs("\n    ", OUT);
+  } else {
+    fputc(' ', OUT);
+  }
+}
+
 static void non_empty_block_comment_write(int node) {
   fputs("{- ", OUT);
   const int is_multiline = get_is_multiline_comment(node);
@@ -725,17 +739,7 @@ static void non_empty_block_comment_write(int node) {
   int i = 0;
   for (int line; get_comment_line(node, &line, start) == 0;
        start = line + 1, ++i) {
-    const uint32_t start = BLOCK_COMMENT_LINE_START[line];
-    const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
-    if (i > 0) {
-      fputs("   ", OUT);
-    }
-    fwrite(SRC + start, 1, size, OUT);
-    if (is_multiline) {
-      fputs("\n    ", OUT);
-    } else {
-      fputc(' ', OUT);
-    }
+    block_comment_line_write(line, i, is_multiline);
   }
   fputs("-}", OUT);
 }
