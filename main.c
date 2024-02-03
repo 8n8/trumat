@@ -578,10 +578,18 @@ static int empty_block_comment_parse(int *node) {
   return 0;
 }
 
-static int block_comment_item_parse() {
-  if (chunk_parse("-}") == 0) {
+static int block_comment_item_parse(int *nesting) {
+  if (*nesting == 1 && chunk_parse("-}") == 0) {
     I = I - 2;
     return -1;
+  }
+  if (chunk_parse("-}") == 0) {
+    --*nesting;
+    return 0;
+  }
+  if (chunk_parse("{-") == 0) {
+    ++*nesting;
+    return 0;
   }
   if (char_parse('\n') == 0) {
     --I;
@@ -591,17 +599,18 @@ static int block_comment_item_parse() {
   return any_char_parse(&c);
 }
 
-static void block_comment_line_parse(uint32_t *start, uint16_t *size) {
+static void block_comment_line_parse(uint32_t *start, uint16_t *size,
+                                     int *nesting) {
   while (char_parse(' ') == 0) {
   }
   *start = I + 1;
-  while (block_comment_item_parse() == 0) {
+  while (block_comment_item_parse(nesting) == 0) {
   }
   while (SRC[I] == ' ') {
     --I;
   }
   *size = I - *start + 1;
-  while (block_comment_item_parse() == 0) {
+  while (char_parse(' ') == 0) {
   }
   char_parse('\n');
 }
@@ -626,11 +635,12 @@ static int non_empty_block_comment_parse(int *node) {
   *node = get_new_node();
   uint32_t line_start;
   uint16_t line_size;
+  int nesting = 1;
   while (1) {
-    if (is_block_comment_end()) {
+    if (nesting == 1 && is_block_comment_end()) {
       break;
     }
-    block_comment_line_parse(&line_start, &line_size);
+    block_comment_line_parse(&line_start, &line_size, &nesting);
     append_block_comment_line(*node, line_start, line_size);
   }
   while (char_parse(' ') == 0) {
