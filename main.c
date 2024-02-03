@@ -727,14 +727,14 @@ static int get_is_empty_block_comment(int node) {
   return 0;
 }
 
-static int get_is_multiline_comment(int node) {
+static int get_num_comment_lines(int node) {
   int num_lines = 0;
   for (int i = 0; i < NUM_BLOCK_COMMENT_LINE && num_lines < 3; ++i) {
     if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
       ++num_lines;
     }
   }
-  return num_lines > 1;
+  return num_lines;
 }
 
 static int get_comment_line(int node, int *line, int start) {
@@ -747,22 +747,16 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
-static void block_comment_line_write(int line, int i, int is_multiline,
-                                     int is_double_hyphen) {
+static void block_comment_line_write(int line, int i) {
   const uint32_t start = BLOCK_COMMENT_LINE_START[line];
   const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
   if (i > 0) {
-    fputs("   ", OUT);
+    fputc('\n', OUT);
+  }
+  if (size > 0 && i > 0) {
+    fputs("       ", OUT);
   }
   fwrite(SRC + start, 1, size, OUT);
-  if (is_multiline) {
-    fputs("\n    ", OUT);
-    return;
-  }
-  if (is_double_hyphen) {
-    return;
-  }
-  fputc(' ', OUT);
 }
 
 static int is_double_hyphen_start_block(int node) {
@@ -780,12 +774,18 @@ static void non_empty_block_comment_write(int node) {
   if (!is_double_hyphen) {
     fputc(' ', OUT);
   }
-  const int is_multiline = get_is_multiline_comment(node);
+  const int num_lines = get_num_comment_lines(node);
   int start = 0;
   int i = 0;
   for (int line; get_comment_line(node, &line, start) == 0;
        start = line + 1, ++i) {
-    block_comment_line_write(line, i, is_multiline, is_double_hyphen);
+    block_comment_line_write(line, i);
+  }
+  if (num_lines > 1) {
+    fputs("\n    ", OUT);
+  }
+  if (num_lines == 1 && !is_double_hyphen) {
+    fputs(" ", OUT);
   }
   fputs("-}", OUT);
 }
