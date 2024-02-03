@@ -690,8 +690,7 @@ static int module_parse(int *node) {
   for (; num_left_comment < 1000 &&
          comment_parse(&left_comment[num_left_comment]) == 0;
        ++num_left_comment) {
-    char_parse('\n');
-    while (char_parse(' ') == 0) {
+    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
     }
   }
   while (char_parse(' ') == 0) {
