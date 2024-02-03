@@ -685,24 +685,31 @@ static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  int left_comment;
-  const int left_comment_result = comment_parse(&left_comment);
-  char_parse('\n');
+  static int left_comment[1000];
+  int num_left_comment = 0;
+  for (; num_left_comment < 1000 &&
+         comment_parse(&left_comment[num_left_comment]) == 0;
+       ++num_left_comment) {
+    char_parse('\n');
+    while (char_parse(' ') == 0) {
+    }
+  }
   while (char_parse(' ') == 0) {
   }
   if (expression_parse(node)) {
     return -1;
   }
-  if (left_comment_result == 0) {
-    append_left_comment(*node, left_comment);
+  for (int i = 0; i < num_left_comment; ++i) {
+    append_left_comment(*node, left_comment[i]);
   }
   return 0;
 }
 
-static int get_left_comment(int node, int *left_comment) {
-  for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
-    if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
-      *left_comment = LEFT_COMMENT[i];
+static int get_left_comment(int node, int *left_comment, int *i) {
+  for (; *i < NUM_LEFT_COMMENT; ++*i) {
+    if (LEFT_COMMENT_PARENT[*i] == (uint32_t)node) {
+      *left_comment = LEFT_COMMENT[*i];
+      ++*i;
       return 0;
     }
   }
@@ -804,13 +811,18 @@ static void comment_write(int node) {
   src_write(node);
 }
 
-static void module_write(int node) {
-  fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
+static void left_comments_write(int node) {
   int left_comment;
-  if (get_left_comment(node, &left_comment) == 0) {
+  int start = 0;
+  while (get_left_comment(node, &left_comment, &start) == 0) {
     comment_write(left_comment);
     fputs("\n    ", OUT);
   }
+}
+
+static void module_write(int node) {
+  fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
+  left_comments_write(node);
   expression_write(node);
   fputc('\n', OUT);
 }
