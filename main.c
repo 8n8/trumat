@@ -591,9 +591,6 @@ static int upper_name_parse(int *node) {
     return -1;
   }
 
-  while (subsequent_name_char_parse() == 0) {
-  }
-
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
   return 0;
