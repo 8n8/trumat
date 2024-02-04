@@ -551,7 +551,7 @@ static int subsequent_lower_name_char_parse() {
   if (any_char_parse(&c)) {
     return -1;
   }
-  if ((c >= 'a' && c <= 'z') || c == '_' || (c >= '0' && c <= '9')) {
+  if ((c >= 'a' && c <= 'z') || c == '_' || (c >= '0' && c <= '9') || c == 'A') {
     return 0;
   }
   --I;
