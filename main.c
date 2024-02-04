@@ -546,12 +546,13 @@ static int first_lower_name_char_parse() {
   return -1;
 }
 
-static int subsequent_lower_name_char_parse() {
+static int subsequent_name_char_parse() {
   uint8_t c;
   if (any_char_parse(&c)) {
     return -1;
   }
-  if ((c >= 'a' && c <= 'z') || c == '_' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')) {
+  if ((c >= 'a' && c <= 'z') || c == '_' || (c >= '0' && c <= '9') ||
+      (c >= 'A' && c <= 'Z')) {
     return 0;
   }
   --I;
@@ -564,7 +565,21 @@ static int lower_name_parse(int *node) {
     return -1;
   }
 
-  while (subsequent_lower_name_char_parse() == 0) {
+  while (subsequent_name_char_parse() == 0) {
+  }
+
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int upper_name_parse(int *node) {
+  const int start = I;
+  if (char_parse('A')) {
+    return -1;
+  }
+
+  while (subsequent_name_char_parse() == 0) {
   }
 
   *node = get_new_node();
@@ -583,6 +598,9 @@ static int expression_parse(int *node) {
     return 0;
   }
   if (normal_string_parse(node) == 0) {
+    return 0;
+  }
+  if (upper_name_parse(node) == 0) {
     return 0;
   }
   return lower_name_parse(node);
