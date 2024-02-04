@@ -58,6 +58,21 @@ int NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
 static uint32_t IS_EMPTY_LIST[MAX_EMPTY_LIST];
 int NUM_EMPTY_LIST = 0;
 
+#define MAX_LIST_ITEM 10000
+static uint32_t LIST_ITEM[MAX_LIST_ITEM];
+static uint32_t LIST[MAX_LIST_ITEM];
+int NUM_LIST_ITEM = 0;
+
+static void append_list_item(int parent, int child) {
+  if (NUM_LIST_ITEM == MAX_LIST_ITEM) {
+    fprintf(stderr, "too many list items, maximum is %d\n", MAX_LIST_ITEM);
+    exit(-1);
+  }
+  LIST_ITEM[NUM_LIST_ITEM] = child;
+  LIST[NUM_LIST_ITEM] = parent;
+  ++NUM_LIST_ITEM;
+}
+
 static void append_is_empty_list(int node) {
   if (NUM_EMPTY_LIST == MAX_EMPTY_LIST) {
     fprintf(stderr, "too many empty list nodes, maximum is %d\n",
@@ -239,6 +254,65 @@ static int is_empty_list(int node) {
   return 0;
 }
 
+static void expression_write(int node);
+
+static void list_item_write(int item, int i) {
+  if (i == 0) {
+    fputc(' ', OUT);
+  }
+  if (i > 0) {
+    fputs("\n    , ", OUT);
+  }
+  expression_write(item);
+}
+
+static int get_num_list_items(int node) {
+  int num_items = 0;
+  for (int i = 0; i < NUM_LIST_ITEM; ++i) {
+    if (LIST[i] == (uint32_t)node) {
+      ++num_items;
+    }
+  }
+  return num_items;
+}
+
+static int get_list_item(int node, int *item, int start) {
+  for (int i = start; i < NUM_LIST_ITEM; ++i) {
+    if (LIST[i] == (uint32_t)node) {
+      *item = LIST_ITEM[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void non_empty_list_write(int node) {
+  fputc('[', OUT);
+  const int num_items = get_num_list_items(node);
+  int start = 0;
+  int i = 0;
+  for (int item; get_list_item(node, &item, start) == 0;
+       start = item + 1, ++i) {
+    list_item_write(item, i);
+  }
+  if (num_items > 1) {
+    fputs("\n    ", OUT);
+  }
+  if (num_items == 1) {
+    fputc(' ', OUT);
+  }
+  fputc(']', OUT);
+}
+
+static int is_non_empty_list(int node) {
+  for (int i = 0; i < NUM_LIST_ITEM; ++i) {
+    if (LIST[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node) {
   if (is_hex(node)) {
     hex_write(node);
@@ -250,6 +324,10 @@ static void expression_write(int node) {
   }
   if (is_empty_list(node)) {
     fputs("[]", OUT);
+    return;
+  }
+  if (is_non_empty_list(node)) {
+    non_empty_list_write(node);
     return;
   }
   src_write(node);
@@ -293,6 +371,7 @@ static void zero_ast() {
   NUM_EMPTY_BLOCK_COMMENT = 0;
   NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
   NUM_EMPTY_LIST = 0;
+  NUM_LIST_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -628,7 +707,7 @@ static int upper_name_parse(int *node) {
 }
 
 static int empty_list_parse(int *node) {
-  const int start = 0;
+  const int start = I;
   if (char_parse('[')) {
     return -1;
   }
@@ -641,6 +720,35 @@ static int empty_list_parse(int *node) {
   *node = get_new_node();
   append_is_empty_list(*node);
   return 0;
+}
+
+static int expression_parse(int *node);
+
+static int non_empty_list_parse(int *node) {
+  const int start = I;
+  if (char_parse('[')) {
+    return -1;
+  }
+  int contents;
+  if (expression_parse(&contents)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse(']')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_list_item(*node, contents);
+  return 0;
+}
+
+static int list_parse(int *node) {
+  if (empty_list_parse(node) == 0) {
+    return 0;
+  }
+
+  return non_empty_list_parse(node);
 }
 
 static int expression_parse(int *node) {
@@ -662,7 +770,7 @@ static int expression_parse(int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
   }
-  return empty_list_parse(node);
+  return list_parse(node);
 }
 
 static int not_newline_parse() {
@@ -909,7 +1017,7 @@ static void non_empty_block_comment_write(int node) {
     fputs("\n    ", OUT);
   }
   if (num_lines == 1 && !is_double_hyphen) {
-    fputs(" ", OUT);
+    fputc(' ', OUT);
   }
   fputs("-}", OUT);
 }
@@ -992,6 +1100,7 @@ static int read_src(char *path) {
 }
 
 static void format_file(char *path) {
+  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }

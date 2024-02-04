@@ -1,1 +1,2 @@
-get rid of node initialisation in line comment parser
+rename get_is_* to is_*
+remove num_lines < 3 in get_num_comment_lines
