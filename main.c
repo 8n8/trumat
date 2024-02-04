@@ -599,6 +599,15 @@ static int upper_name_parse(int *node) {
   return 0;
 }
 
+static int empty_list_parse(int *node) {
+  if (chunk_parse("[]")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, I - 1, 2);
+  return 0;
+}
+
 static int expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -615,7 +624,10 @@ static int expression_parse(int *node) {
   if (upper_name_parse(node) == 0) {
     return 0;
   }
-  return lower_name_parse(node);
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  return empty_list_parse(node);
 }
 
 static int not_newline_parse() {
