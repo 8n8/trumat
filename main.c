@@ -266,14 +266,14 @@ static void list_item_write(int item, int i) {
   expression_write(item);
 }
 
-static int get_num_list_items(int node) {
+static int is_multi_item_list(int node) {
   int num_items = 0;
-  for (int i = 0; i < NUM_LIST_ITEM; ++i) {
+  for (int i = 0; i < NUM_LIST_ITEM && num_items < 3; ++i) {
     if (LIST[i] == (uint32_t)node) {
       ++num_items;
     }
   }
-  return num_items;
+  return num_items > 1;
 }
 
 static int get_list_item(int node, int *item, int start) {
@@ -288,17 +288,17 @@ static int get_list_item(int node, int *item, int start) {
 
 static void non_empty_list_write(int node) {
   fputc('[', OUT);
-  const int num_items = get_num_list_items(node);
+  const int is_multi = is_multi_item_list(node);
   int start = 0;
   int i = 0;
   for (int item; get_list_item(node, &item, start) == 0;
        start = item + 1, ++i) {
     list_item_write(item, i);
   }
-  if (num_items > 1) {
+  if (is_multi) {
     fputs("\n    ", OUT);
   }
-  if (num_items == 1) {
+  if (!is_multi) {
     fputc(' ', OUT);
   }
   fputc(']', OUT);
