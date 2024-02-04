@@ -546,13 +546,25 @@ static int first_lower_name_char_parse() {
   return -1;
 }
 
+static int subsequent_lower_name_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c == 'a' || c == '_') {
+    return 0;
+  }
+  --I;
+  return -1;
+}
+
 static int lower_name_parse(int *node) {
   const int start = I;
   if (first_lower_name_char_parse()) {
     return -1;
   }
 
-  while (char_parse('_') == 0) {
+  while (subsequent_lower_name_char_parse() == 0) {
   }
 
   *node = get_new_node();
