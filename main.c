@@ -534,6 +534,17 @@ static int triple_string_parse(int *node) {
   return 0;
 }
 
+static int lower_name_parse(int *node) {
+  const int start = I;
+  if (char_parse('a')) {
+    return -1;
+  }
+
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -544,7 +555,10 @@ static int expression_parse(int *node) {
   if (triple_string_parse(node) == 0) {
     return 0;
   }
-  return normal_string_parse(node);
+  if (normal_string_parse(node) == 0) {
+    return 0;
+  }
+  return lower_name_parse(node);
 }
 
 static int not_newline_parse() {
