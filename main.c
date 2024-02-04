@@ -534,9 +534,21 @@ static int triple_string_parse(int *node) {
   return 0;
 }
 
+static int lower_name_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c >= 'a' && c <= 'z') {
+    return 0;
+  }
+  --I;
+  return -1;
+}
+
 static int lower_name_parse(int *node) {
   const int start = I;
-  if (char_parse('a')) {
+  if (lower_name_char_parse()) {
     return -1;
   }
 
