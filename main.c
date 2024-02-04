@@ -546,6 +546,18 @@ static int first_lower_name_char_parse() {
   return -1;
 }
 
+static int first_upper_name_char_parse() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (c >= 'A' && c <= 'Z') {
+    return 0;
+  }
+  --I;
+  return -1;
+}
+
 static int subsequent_name_char_parse() {
   uint8_t c;
   if (any_char_parse(&c)) {
@@ -575,7 +587,7 @@ static int lower_name_parse(int *node) {
 
 static int upper_name_parse(int *node) {
   const int start = I;
-  if (char_parse('A')) {
+  if (first_upper_name_char_parse()) {
     return -1;
   }
 
