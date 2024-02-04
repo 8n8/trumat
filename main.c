@@ -632,7 +632,8 @@ static int empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  char_parse(' ');
+  while (char_parse(' ') == 0) {
+  }
   if (char_parse(']')) {
     I = start;
     return -1;
