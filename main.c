@@ -941,7 +941,7 @@ static int get_left_comment(int node, int *left_comment, int *i) {
   return -1;
 }
 
-static int get_is_non_empty_block_comment(int node) {
+static int is_non_empty_block_comment(int node) {
   for (int i = 0; i < NUM_BLOCK_COMMENT_LINE; ++i) {
     if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
       return 1;
@@ -950,7 +950,7 @@ static int get_is_non_empty_block_comment(int node) {
   return 0;
 }
 
-static int get_is_empty_block_comment(int node) {
+static int is_empty_block_comment(int node) {
   for (int i = 0; i < NUM_EMPTY_BLOCK_COMMENT; ++i) {
     if (IS_EMPTY_BLOCK_COMMENT[i] == (uint32_t)node) {
       return 1;
@@ -1023,12 +1023,12 @@ static void non_empty_block_comment_write(int node) {
 }
 
 static void comment_write(int node) {
-  if (get_is_empty_block_comment(node)) {
+  if (is_empty_block_comment(node)) {
     fputs("{--}", OUT);
     return;
   }
 
-  const int is_block = get_is_non_empty_block_comment(node);
+  const int is_block = is_non_empty_block_comment(node);
   if (is_block) {
     non_empty_block_comment_write(node);
     return;
