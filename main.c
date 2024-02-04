@@ -256,52 +256,21 @@ static int is_empty_list(int node) {
 
 static void expression_write(int node);
 
-static void list_item_write(int item, int i) {
-  if (i == 0) {
-    fputc(' ', OUT);
-  }
-  if (i > 0) {
-    fputs("\n    , ", OUT);
-  }
-  expression_write(item);
-}
-
-static int is_multi_item_list(int node) {
-  int num_items = 0;
-  for (int i = 0; i < NUM_LIST_ITEM && num_items < 3; ++i) {
+static int get_list_item(int node) {
+  for (int i = 0; i < NUM_LIST_ITEM; ++i) {
     if (LIST[i] == (uint32_t)node) {
-      ++num_items;
+      return LIST_ITEM[i];
     }
   }
-  return num_items > 1;
-}
-
-static int get_list_item(int node, int *item, int start) {
-  for (int i = start; i < NUM_LIST_ITEM; ++i) {
-    if (LIST[i] == (uint32_t)node) {
-      *item = LIST_ITEM[i];
-      return 0;
-    }
-  }
-  return -1;
+  fprintf(stderr, "could not find list item for node %d\n", node);
+  exit(-1);
 }
 
 static void non_empty_list_write(int node) {
-  fputc('[', OUT);
-  const int is_multi = is_multi_item_list(node);
-  int start = 0;
-  int i = 0;
-  for (int item; get_list_item(node, &item, start) == 0;
-       start = item + 1, ++i) {
-    list_item_write(item, i);
-  }
-  if (is_multi) {
-    fputs("\n    ", OUT);
-  }
-  if (!is_multi) {
-    fputc(' ', OUT);
-  }
-  fputc(']', OUT);
+  fputs("[ ", OUT);
+  const int item = get_list_item(node);
+  expression_write(item);
+  fputs(" ]", OUT);
 }
 
 static int is_non_empty_list(int node) {
