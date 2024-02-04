@@ -54,6 +54,20 @@ int NUM_BLOCK_COMMENT_LINE = 0;
 static uint32_t HAS_DOUBLE_HYPHEN_BLOCK[MAX_HAS_DOUBLE_HYPHEN_BLOCK];
 int NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
 
+#define MAX_EMPTY_LIST 10000
+static uint32_t IS_EMPTY_LIST[MAX_EMPTY_LIST];
+int NUM_EMPTY_LIST = 0;
+
+static void append_is_empty_list(int node) {
+  if (NUM_EMPTY_LIST == MAX_EMPTY_LIST) {
+    fprintf(stderr, "too many empty list nodes, maximum is %d\n",
+            MAX_EMPTY_LIST);
+    exit(-1);
+  }
+  IS_EMPTY_LIST[NUM_EMPTY_LIST] = node;
+  ++NUM_EMPTY_LIST;
+}
+
 static void append_double_hyphen_start_block(int node) {
   if (NUM_HAS_DOUBLE_HYPHEN_BLOCK == MAX_HAS_DOUBLE_HYPHEN_BLOCK) {
     fprintf(stderr, "too many double hyphen start block nodes, maximum is %d\n",
@@ -216,6 +230,15 @@ static void exponent_float_write(int node) {
   src_write(node + 1);
 }
 
+static int is_empty_list(int node) {
+  for (int i = 0; i < NUM_EMPTY_LIST; ++i) {
+    if (IS_EMPTY_LIST[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node) {
   if (is_hex(node)) {
     hex_write(node);
@@ -223,6 +246,10 @@ static void expression_write(int node) {
   }
   if (is_exponent_float(node)) {
     exponent_float_write(node);
+    return;
+  }
+  if (is_empty_list(node)) {
+    fputs("[]", OUT);
     return;
   }
   src_write(node);
@@ -265,6 +292,7 @@ static void zero_ast() {
   NUM_BLOCK_COMMENT_LINE = 0;
   NUM_EMPTY_BLOCK_COMMENT = 0;
   NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
+  NUM_EMPTY_LIST = 0;
 }
 
 static int get_new_node() {
@@ -600,11 +628,17 @@ static int upper_name_parse(int *node) {
 }
 
 static int empty_list_parse(int *node) {
-  if (chunk_parse("[]")) {
+  const int start = 0;
+  if (char_parse('[')) {
+    return -1;
+  }
+  char_parse(' ');
+  if (char_parse(']')) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, I - 1, 2);
+  append_is_empty_list(*node);
   return 0;
 }
 
