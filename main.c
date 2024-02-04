@@ -632,7 +632,7 @@ static int empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (char_parse(']')) {
     I = start;
