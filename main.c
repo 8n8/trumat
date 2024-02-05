@@ -63,6 +63,19 @@ static uint32_t LIST_ITEM[MAX_LIST_ITEM];
 static uint32_t LIST[MAX_LIST_ITEM];
 int NUM_LIST_ITEM = 0;
 
+#define MAX_IS_MULTILINE 10000
+static uint32_t IS_MULTILINE[MAX_IS_MULTILINE];
+int NUM_IS_MULTILINE = 0;
+
+static void append_is_multiline(int node) {
+  if (NUM_IS_MULTILINE == MAX_IS_MULTILINE) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_IS_MULTILINE);
+    exit(-1);
+  }
+  IS_MULTILINE[NUM_IS_MULTILINE] = node;
+  ++NUM_IS_MULTILINE;
+}
+
 static void append_list_item(int parent, int child) {
   if (NUM_LIST_ITEM == MAX_LIST_ITEM) {
     fprintf(stderr, "too many list items, maximum is %d\n", MAX_LIST_ITEM);
@@ -266,11 +279,24 @@ static int get_list_item(int node) {
   exit(-1);
 }
 
+static int is_multiline(int node) {
+  for (int i = 0; i < NUM_IS_MULTILINE; ++i) {
+    if (IS_MULTILINE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void non_empty_list_write(int node) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
   expression_write(item);
-  fputs(" ]", OUT);
+  if (is_multiline(node)) {
+    fputs("\n   ", OUT);
+  }
+  fputc(' ', OUT);
+  fputs("]", OUT);
 }
 
 static int is_non_empty_list(int node) {
@@ -341,6 +367,7 @@ static void zero_ast() {
   NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
   NUM_EMPTY_LIST = 0;
   NUM_LIST_ITEM = 0;
+  NUM_IS_MULTILINE = 0;
 }
 
 static int get_new_node() {
@@ -695,6 +722,7 @@ static int expression_parse(int *node);
 
 static int non_empty_list_parse(int *node) {
   const int start = I;
+  const int start_row = ROW[I];
   if (char_parse('[')) {
     return -1;
   }
@@ -705,13 +733,17 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (char_parse(']')) {
     I = start;
     return -1;
   }
+  const int is_multiline = start_row != ROW[I];
   *node = get_new_node();
+  if (is_multiline) {
+    append_is_multiline(*node);
+  }
   append_list_item(*node, contents);
   return 0;
 }
