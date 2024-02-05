@@ -698,13 +698,15 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  char_parse(' ');
+  while (char_parse(' ') == 0) {
+  }
   int contents;
   if (expression_parse(&contents)) {
     I = start;
     return -1;
   }
-  char_parse(' ');
+  while (char_parse(' ') == 0) {
+  }
   if (char_parse(']')) {
     I = start;
     return -1;
