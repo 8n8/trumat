@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int expression_parse(int *node);
+static int line_comment_parse(int *node);
+static void left_comments_write(int node);
+
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
 static uint8_t SRC[MAX_SRC];
@@ -288,9 +292,22 @@ static int is_multiline(int node) {
   return 0;
 }
 
+static int has_left_comment(int node) {
+  for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
+    if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void non_empty_list_write(int node) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
+  left_comments_write(item);
+  if (has_left_comment(item)) {
+    fputs("\n      ", OUT);
+  }
   expression_write(item);
   if (is_multiline(node)) {
     fputs("\n   ", OUT);
@@ -718,7 +735,25 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static int expression_parse(int *node);
+static int list_item_parse(int *node) {
+  const int start = I;
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  int left_comment;
+  const int left_comment_result = line_comment_parse(&left_comment);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  if (expression_parse(node)) {
+    I = start;
+    return -1;
+  }
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  if (left_comment_result == 0) {
+    append_left_comment(*node, left_comment);
+  }
+  return 0;
+}
 
 static int non_empty_list_parse(int *node) {
   const int start = I;
@@ -726,14 +761,10 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
   int contents;
-  if (expression_parse(&contents)) {
+  if (list_item_parse(&contents)) {
     I = start;
     return -1;
-  }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (char_parse(']')) {
     I = start;
@@ -1044,15 +1075,21 @@ static void comment_write(int node) {
 static void left_comments_write(int node) {
   int left_comment;
   int start = 0;
-  while (get_left_comment(node, &left_comment, &start) == 0) {
+  if (get_left_comment(node, &left_comment, &start) == 0) {
     comment_write(left_comment);
+  }
+  while (get_left_comment(node, &left_comment, &start) == 0) {
     fputs("\n    ", OUT);
+    comment_write(left_comment);
   }
 }
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
   left_comments_write(node);
+  if (has_left_comment(node)) {
+    fputs("\n    ", OUT);
+  }
   expression_write(node);
   fputc('\n', OUT);
 }
