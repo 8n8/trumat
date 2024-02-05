@@ -726,7 +726,7 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   int contents;
   if (expression_parse(&contents)) {
