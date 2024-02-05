@@ -1069,7 +1069,6 @@ static int read_src(char *path) {
 }
 
 static void format_file(char *path) {
-  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }
