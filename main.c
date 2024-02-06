@@ -5,7 +5,9 @@
 
 static int expression_parse(int *node);
 static int line_comment_parse(int *node);
-static void left_comments_write(int node);
+static int comment_parse(int *node);
+static void comments_parse(uint32_t comments[1000], int *num_comments);
+static void left_comments_write(int node, int indent);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -304,7 +306,7 @@ static int has_left_comment(int node) {
 static void non_empty_list_write(int node) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
-  left_comments_write(item);
+  left_comments_write(item, 6);
   if (has_left_comment(item)) {
     fputs("\n      ", OUT);
   }
@@ -739,8 +741,9 @@ static int list_item_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  int left_comment;
-  const int left_comment_result = line_comment_parse(&left_comment);
+  static uint32_t left_comment[1000];
+  int num_left_comment = 0;
+  comments_parse(left_comment, &num_left_comment);
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (expression_parse(node)) {
@@ -749,8 +752,8 @@ static int list_item_parse(int *node) {
   }
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  if (left_comment_result == 0) {
-    append_left_comment(*node, left_comment);
+  for (int i = 0; i < num_left_comment; ++i) {
+    append_left_comment(*node, left_comment[i]);
   }
   return 0;
 }
@@ -943,18 +946,22 @@ static int comment_parse(int *node) {
   return non_empty_block_comment_parse(node);
 }
 
+static void comments_parse(uint32_t comments[1000], int *num_comments) {
+  for (; *num_comments < 1000 &&
+         comment_parse((int *)&comments[*num_comments]) == 0;
+       ++*num_comments) {
+    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+    }
+  }
+}
+
 static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  static int left_comment[1000];
+  static uint32_t left_comment[1000];
   int num_left_comment = 0;
-  for (; num_left_comment < 1000 &&
-         comment_parse(&left_comment[num_left_comment]) == 0;
-       ++num_left_comment) {
-    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-    }
-  }
+  comments_parse(left_comment, &num_left_comment);
   while (char_parse(' ') == 0) {
   }
   if (expression_parse(node)) {
@@ -1072,21 +1079,24 @@ static void comment_write(int node) {
   src_write(node);
 }
 
-static void left_comments_write(int node) {
+static void left_comments_write(int node, int indent) {
   int left_comment;
   int start = 0;
   if (get_left_comment(node, &left_comment, &start) == 0) {
     comment_write(left_comment);
   }
   while (get_left_comment(node, &left_comment, &start) == 0) {
-    fputs("\n    ", OUT);
+    fputc('\n', OUT);
+    for (int i = 0; i < indent; ++i) {
+      fputc(' ', OUT);
+    }
     comment_write(left_comment);
   }
 }
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
-  left_comments_write(node);
+  left_comments_write(node, 4);
   if (has_left_comment(node)) {
     fputs("\n    ", OUT);
   }
