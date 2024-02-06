@@ -12,6 +12,7 @@ static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
 static int is_line_comment(int node);
+static void right_comments_write(int node, int indent);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -50,6 +51,11 @@ static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
 static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
 int NUM_LEFT_COMMENT = 0;
 
+#define MAX_RIGHT_COMMENT 10000
+static uint32_t RIGHT_COMMENT[MAX_RIGHT_COMMENT];
+static uint32_t RIGHT_COMMENT_PARENT[MAX_RIGHT_COMMENT];
+int NUM_RIGHT_COMMENT = 0;
+
 #define MAX_EMPTY_BLOCK_COMMENT 10000
 static uint32_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
 int NUM_EMPTY_BLOCK_COMMENT = 0;
@@ -76,6 +82,16 @@ int NUM_LIST_ITEM = 0;
 #define MAX_IS_MULTILINE 10000
 static uint32_t IS_MULTILINE[MAX_IS_MULTILINE];
 int NUM_IS_MULTILINE = 0;
+
+static void append_right_comment(int parent, int comment_node) {
+  if (NUM_RIGHT_COMMENT == MAX_RIGHT_COMMENT) {
+    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_RIGHT_COMMENT);
+    exit(-1);
+  }
+  RIGHT_COMMENT[NUM_RIGHT_COMMENT] = comment_node;
+  RIGHT_COMMENT_PARENT[NUM_RIGHT_COMMENT] = parent;
+  ++NUM_RIGHT_COMMENT;
+}
 
 static void append_is_multiline(int node) {
   if (NUM_IS_MULTILINE == MAX_IS_MULTILINE) {
@@ -307,6 +323,15 @@ static int has_left_comment(int node) {
   return 0;
 }
 
+static int has_right_comment(int node) {
+  for (int i = 0; i < NUM_RIGHT_COMMENT; ++i) {
+    if (RIGHT_COMMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_comment(int node) {
   return is_empty_block_comment(node) || is_multiline_block_comment(node) ||
          is_line_comment(node);
@@ -358,6 +383,10 @@ static void non_empty_list_write(int node, int indent) {
     fputc(' ', OUT);
   }
   expression_write(item, indent + 2);
+  if (has_right_comment(item)) {
+    fputc(' ', OUT);
+  }
+  right_comments_write(item, 6);
   if (is_multiline(node) || left_is_multiline) {
     fputc('\n', OUT);
     for (int j = 0; j < indent - 1; ++j) {
@@ -804,6 +833,14 @@ static int list_item_parse(int *node) {
   for (int i = 0; i < num_left_comment; ++i) {
     append_left_comment(*node, left_comment[i]);
   }
+  static uint32_t right_comment[1000];
+  int num_right_comment = 0;
+  comments_parse(right_comment, &num_right_comment);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  for (int i = 0; i < num_right_comment; ++i) {
+    append_right_comment(*node, right_comment[i]);
+  }
   return 0;
 }
 
@@ -1033,6 +1070,17 @@ static int get_left_comment(int node, int *left_comment, int *i) {
   return -1;
 }
 
+static int get_right_comment(int node, int *right_comment, int *i) {
+  for (; *i < NUM_RIGHT_COMMENT; ++*i) {
+    if (RIGHT_COMMENT_PARENT[*i] == (uint32_t)node) {
+      *right_comment = RIGHT_COMMENT[*i];
+      ++*i;
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int is_non_empty_block_comment(int node) {
   for (int i = 0; i < NUM_BLOCK_COMMENT_LINE; ++i) {
     if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
@@ -1147,6 +1195,21 @@ static void left_comments_write(int node, int indent) {
       fputc(' ', OUT);
     }
     comment_write(left_comment, indent);
+  }
+}
+
+static void right_comments_write(int node, int indent) {
+  int right_comment;
+  int start = 0;
+  if (get_right_comment(node, &right_comment, &start) == 0) {
+    comment_write(right_comment, indent);
+  }
+  while (get_right_comment(node, &right_comment, &start) == 0) {
+    fputc('\n', OUT);
+    for (int i = 0; i < indent; ++i) {
+      fputc(' ', OUT);
+    }
+    comment_write(right_comment, indent);
   }
 }
 
