@@ -1068,7 +1068,8 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
-static void block_comment_line_write(int line, int i, int is_double_hyphen) {
+static void block_comment_line_write(int line, int i, int is_double_hyphen,
+                                     int indent) {
   const uint32_t start = BLOCK_COMMENT_LINE_START[line];
   const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
   if (i == 0 && !is_double_hyphen && size > 0) {
@@ -1078,7 +1079,10 @@ static void block_comment_line_write(int line, int i, int is_double_hyphen) {
     fputc('\n', OUT);
   }
   if (size > 0 && i > 0) {
-    fputs("       ", OUT);
+    for (int j = 0; j < indent; ++j) {
+      fputc(' ', OUT);
+    }
+    fputs("   ", OUT);
   }
   fwrite(SRC + start, 1, size, OUT);
 }
@@ -1092,7 +1096,7 @@ static int is_double_hyphen_start_block(int node) {
   return 0;
 }
 
-static void non_empty_block_comment_write(int node) {
+static void non_empty_block_comment_write(int node, int indent) {
   fputs("{-", OUT);
   const int is_double_hyphen = is_double_hyphen_start_block(node);
   const int is_multi = is_multiline_block_comment(node);
@@ -1100,10 +1104,13 @@ static void non_empty_block_comment_write(int node) {
   int i = 0;
   for (int line; get_comment_line(node, &line, start) == 0;
        start = line + 1, ++i) {
-    block_comment_line_write(line, i, is_double_hyphen);
+    block_comment_line_write(line, i, is_double_hyphen, indent);
   }
   if (is_multi) {
-    fputs("\n    ", OUT);
+    fputc('\n', OUT);
+    for (int j = 0; j < indent; ++j) {
+      fputc(' ', OUT);
+    }
   }
   if (!is_multi && !is_double_hyphen) {
     fputc(' ', OUT);
@@ -1111,7 +1118,7 @@ static void non_empty_block_comment_write(int node) {
   fputs("-}", OUT);
 }
 
-static void comment_write(int node) {
+static void comment_write(int node, int indent) {
   if (is_empty_block_comment(node)) {
     fputs("{--}", OUT);
     return;
@@ -1119,7 +1126,7 @@ static void comment_write(int node) {
 
   const int is_block = is_non_empty_block_comment(node);
   if (is_block) {
-    non_empty_block_comment_write(node);
+    non_empty_block_comment_write(node, indent);
     return;
   }
   src_write(node);
@@ -1129,14 +1136,14 @@ static void left_comments_write(int node, int indent) {
   int left_comment;
   int start = 0;
   if (get_left_comment(node, &left_comment, &start) == 0) {
-    comment_write(left_comment);
+    comment_write(left_comment, indent);
   }
   while (get_left_comment(node, &left_comment, &start) == 0) {
     fputc('\n', OUT);
     for (int i = 0; i < indent; ++i) {
       fputc(' ', OUT);
     }
-    comment_write(left_comment);
+    comment_write(left_comment, indent);
   }
 }
 
