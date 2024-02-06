@@ -737,13 +737,14 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static int list_item_parse(int *node) {
+static int list_item_parse(int *node, int *is_multiline) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   static uint32_t left_comment[1000];
   int num_left_comment = 0;
   comments_parse(left_comment, &num_left_comment);
+  *is_multiline = (num_left_comment > 0) || *is_multiline;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (expression_parse(node)) {
@@ -764,8 +765,9 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
+  int is_multiline = 0;
   int contents;
-  if (list_item_parse(&contents)) {
+  if (list_item_parse(&contents, &is_multiline)) {
     I = start;
     return -1;
   }
@@ -773,7 +775,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  const int is_multiline = start_row != ROW[I];
+  is_multiline = (start_row != ROW[I]) || is_multiline;
   *node = get_new_node();
   if (is_multiline) {
     append_is_multiline(*node);
