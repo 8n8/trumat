@@ -277,7 +277,7 @@ static int is_empty_list(int node) {
   return 0;
 }
 
-static void expression_write(int node);
+static void expression_write(int node, int indent);
 
 static int get_list_item(int node) {
   for (int i = 0; i < NUM_LIST_ITEM; ++i) {
@@ -346,7 +346,7 @@ static int is_line_comment(int node) {
   return SRC[start] == '-' && SRC[start + 1] == '-';
 }
 
-static void non_empty_list_write(int node) {
+static void non_empty_list_write(int node, int indent) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
   const int left_is_multiline = has_multiline_left_comment(item);
@@ -357,9 +357,12 @@ static void non_empty_list_write(int node) {
   if (has_left_comment(item) && !left_is_multiline) {
     fputc(' ', OUT);
   }
-  expression_write(item);
+  expression_write(item, indent + 2);
   if (is_multiline(node) || left_is_multiline) {
-    fputs("\n   ", OUT);
+    fputc('\n', OUT);
+    for (int j = 0; j < indent - 1; ++j) {
+      fputc(' ', OUT);
+    }
   }
   fputs(" ]", OUT);
 }
@@ -373,7 +376,7 @@ static int is_non_empty_list(int node) {
   return 0;
 }
 
-static void expression_write(int node) {
+static void expression_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
     return;
@@ -387,7 +390,7 @@ static void expression_write(int node) {
     return;
   }
   if (is_non_empty_list(node)) {
-    non_empty_list_write(node);
+    non_empty_list_write(node, indent);
     return;
   }
   src_write(node);
@@ -1153,7 +1156,7 @@ static void module_write(int node) {
   if (has_left_comment(node)) {
     fputs("\n    ", OUT);
   }
-  expression_write(node);
+  expression_write(node, 4);
   fputc('\n', OUT);
 }
 
