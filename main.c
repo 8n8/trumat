@@ -8,6 +8,10 @@ static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static void comments_parse(uint32_t comments[1000], int *num_comments);
 static void left_comments_write(int node, int indent);
+static int get_left_comment(int node, int *left_comment, int *i);
+static int is_multiline_block_comment(int node);
+static int is_empty_block_comment(int node);
+static int is_line_comment(int node);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -303,19 +307,61 @@ static int has_left_comment(int node) {
   return 0;
 }
 
+static int is_multiline_comment(int node) {
+  return is_empty_block_comment(node) || is_multiline_block_comment(node) ||
+         is_line_comment(node);
+}
+
+static int has_multiline_left_comment(int node) {
+  int left_comment;
+  int start = 0;
+  while (get_left_comment(node, &left_comment, &start) == 0) {
+    if (is_multiline_comment(left_comment)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int get_src(int node, int *src_index) {
+  for (int i = 0; i < NUM_HAS_SRC; ++i) {
+    if (HAS_SRC[i] == (uint32_t)node) {
+      *src_index = i;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int is_line_comment(int node) {
+  int src_index;
+  if (get_src(node, &src_index) == 0) {
+    return 0;
+  }
+  const int start = SRC_START[src_index];
+  const int size = SRC_SIZE[src_index];
+  if (size < 2) {
+    return 0;
+  }
+  return SRC[start] == '-' && SRC[start + 1] == '-';
+}
+
 static void non_empty_list_write(int node) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
+  const int left_is_multiline = has_multiline_left_comment(item);
   left_comments_write(item, 6);
-  if (has_left_comment(item)) {
+  if (left_is_multiline) {
     fputs("\n      ", OUT);
   }
+  if (has_left_comment(item) && !left_is_multiline) {
+    fputc(' ', OUT);
+  }
   expression_write(item);
-  if (is_multiline(node)) {
+  if (is_multiline(node) || left_is_multiline) {
     fputs("\n   ", OUT);
   }
-  fputc(' ', OUT);
-  fputs("]", OUT);
+  fputs(" ]", OUT);
 }
 
 static int is_non_empty_list(int node) {
@@ -737,14 +783,13 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static int list_item_parse(int *node, int *is_multiline) {
+static int list_item_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   static uint32_t left_comment[1000];
   int num_left_comment = 0;
   comments_parse(left_comment, &num_left_comment);
-  *is_multiline = (num_left_comment > 0) || *is_multiline;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (expression_parse(node)) {
@@ -765,9 +810,8 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  int is_multiline = 0;
   int contents;
-  if (list_item_parse(&contents, &is_multiline)) {
+  if (list_item_parse(&contents)) {
     I = start;
     return -1;
   }
@@ -775,7 +819,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  is_multiline = (start_row != ROW[I]) || is_multiline;
+  const int is_multiline = (start_row != ROW[I]);
   *node = get_new_node();
   if (is_multiline) {
     append_is_multiline(*node);
