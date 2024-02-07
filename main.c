@@ -375,9 +375,12 @@ static void non_empty_list_write(int node, int indent) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
   const int left_is_multiline = has_multiline_left_comment(item);
-  left_comments_write(item, 6);
+  left_comments_write(item, indent + 2);
   if (left_is_multiline) {
-    fputs("\n      ", OUT);
+    fputc('\n', OUT);
+    for (int j = 0; j < indent+2; ++j) {
+      fputc(' ', OUT);
+    }
   }
   if (has_left_comment(item) && !left_is_multiline) {
     fputc(' ', OUT);
