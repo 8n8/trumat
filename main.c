@@ -386,7 +386,7 @@ static void non_empty_list_write(int node, int indent) {
   if (has_right_comment(item)) {
     fputc(' ', OUT);
   }
-  right_comments_write(item, 6);
+  right_comments_write(item, 4);
   if (is_multiline(node) || left_is_multiline) {
     fputc('\n', OUT);
     for (int j = 0; j < indent - 1; ++j) {
@@ -465,6 +465,7 @@ static void zero_ast() {
   NUM_EMPTY_LIST = 0;
   NUM_LIST_ITEM = 0;
   NUM_IS_MULTILINE = 0;
+  NUM_RIGHT_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -1174,7 +1175,6 @@ static void comment_write(int node, int indent) {
     fputs("{--}", OUT);
     return;
   }
-
   const int is_block = is_non_empty_block_comment(node);
   if (is_block) {
     non_empty_block_comment_write(node, indent);
@@ -1203,6 +1203,10 @@ static void right_comments_write(int node, int indent) {
   int start = 0;
   if (get_right_comment(node, &right_comment, &start) == 0) {
     comment_write(right_comment, indent);
+  }
+  int second_start = start;
+  if (get_right_comment(node, &right_comment, &second_start) == 0) {
+    fputc('\n', OUT);
   }
   while (get_right_comment(node, &right_comment, &start) == 0) {
     fputc('\n', OUT);
