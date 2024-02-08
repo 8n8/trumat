@@ -51,11 +51,6 @@ static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
 static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
 int NUM_LEFT_COMMENT = 0;
 
-#define MAX_RIGHT_COMMENT 10000
-static uint32_t RIGHT_COMMENT[MAX_RIGHT_COMMENT];
-static uint32_t RIGHT_COMMENT_PARENT[MAX_RIGHT_COMMENT];
-int NUM_RIGHT_COMMENT = 0;
-
 #define MAX_EMPTY_BLOCK_COMMENT 10000
 static uint32_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
 int NUM_EMPTY_BLOCK_COMMENT = 0;
@@ -83,14 +78,45 @@ int NUM_LIST_ITEM = 0;
 static uint32_t IS_MULTILINE[MAX_IS_MULTILINE];
 int NUM_IS_MULTILINE = 0;
 
-static void append_right_comment(int parent, int comment_node) {
-  if (NUM_RIGHT_COMMENT == MAX_RIGHT_COMMENT) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_RIGHT_COMMENT);
+#define MAX_SAME_LINE_COMMENT 10000
+static uint32_t SAME_LINE_COMMENT[MAX_SAME_LINE_COMMENT];
+static uint32_t SAME_LINE_COMMENT_PARENT[MAX_SAME_LINE_COMMENT];
+int NUM_SAME_LINE_COMMENT = 0;
+
+#define MAX_TITLE_COMMENT 10000
+static uint32_t TITLE_COMMENT[MAX_TITLE_COMMENT];
+static uint32_t TITLE_COMMENT_PARENT[MAX_TITLE_COMMENT];
+int NUM_TITLE_COMMENT = 0;
+
+static int is_multiline(int node) {
+  for (int i = 0; i < NUM_IS_MULTILINE; ++i) {
+    if (IS_MULTILINE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void append_same_line_comment(int node, int comment) {
+  if (NUM_SAME_LINE_COMMENT == MAX_SAME_LINE_COMMENT) {
+    fprintf(stderr, "too many same line comment nodes, maximum is %d\n",
+            MAX_SAME_LINE_COMMENT);
     exit(-1);
   }
-  RIGHT_COMMENT[NUM_RIGHT_COMMENT] = comment_node;
-  RIGHT_COMMENT_PARENT[NUM_RIGHT_COMMENT] = parent;
-  ++NUM_RIGHT_COMMENT;
+  SAME_LINE_COMMENT[NUM_SAME_LINE_COMMENT] = comment;
+  SAME_LINE_COMMENT_PARENT[NUM_SAME_LINE_COMMENT] = node;
+  ++NUM_SAME_LINE_COMMENT;
+}
+
+static void append_title_comment(int node, int comment) {
+  if (NUM_TITLE_COMMENT == MAX_TITLE_COMMENT) {
+    fprintf(stderr, "too many title comment nodes, maximum is %d\n",
+            MAX_TITLE_COMMENT);
+    exit(-1);
+  }
+  TITLE_COMMENT[NUM_TITLE_COMMENT] = comment;
+  TITLE_COMMENT_PARENT[NUM_TITLE_COMMENT] = node;
+  ++NUM_TITLE_COMMENT;
 }
 
 static void append_is_multiline(int node) {
@@ -305,27 +331,9 @@ static int get_list_item(int node) {
   exit(-1);
 }
 
-static int is_multiline(int node) {
-  for (int i = 0; i < NUM_IS_MULTILINE; ++i) {
-    if (IS_MULTILINE[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 static int has_left_comment(int node) {
   for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
     if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static int has_right_comment(int node) {
-  for (int i = 0; i < NUM_RIGHT_COMMENT; ++i) {
-    if (RIGHT_COMMENT_PARENT[i] == (uint32_t)node) {
       return 1;
     }
   }
@@ -378,6 +386,15 @@ void indent_write(int indent) {
   }
 }
 
+static int has_same_line_comment(int node) {
+  for (int i = 0; i < NUM_SAME_LINE_COMMENT; ++i) {
+    if (SAME_LINE_COMMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void non_empty_list_write(int node, int indent) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
@@ -390,14 +407,16 @@ static void non_empty_list_write(int node, int indent) {
     fputc(' ', OUT);
   }
   expression_write(item, indent + 2);
-  if (has_right_comment(item)) {
+  if (has_same_line_comment(item)) {
     fputc(' ', OUT);
   }
-  right_comments_write(item, 4);
-  if (is_multiline(node) || left_is_multiline) {
-    indent_write(indent - 1);
+  right_comments_write(item, indent);
+  if (left_is_multiline || is_multiline(node)) {
+    indent_write(indent);
+  } else {
+    fputc(' ', OUT);
   }
-  fputs(" ]", OUT);
+  fputc(']', OUT);
 }
 
 static int is_non_empty_list(int node) {
@@ -469,7 +488,8 @@ static void zero_ast() {
   NUM_EMPTY_LIST = 0;
   NUM_LIST_ITEM = 0;
   NUM_IS_MULTILINE = 0;
-  NUM_RIGHT_COMMENT = 0;
+  NUM_SAME_LINE_COMMENT = 0;
+  NUM_TITLE_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -833,18 +853,24 @@ static int list_item_parse(int *node) {
     I = start;
     return -1;
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
   for (int i = 0; i < num_left_comment; ++i) {
     append_left_comment(*node, left_comment[i]);
   }
-  static uint32_t right_comment[1000];
-  int num_right_comment = 0;
-  comments_parse(right_comment, &num_right_comment);
+  while (char_parse(' ') == 0) {
+  }
+  int same_line_comment;
+  if (line_comment_parse(&same_line_comment) == 0) {
+    append_same_line_comment(*node, same_line_comment);
+  }
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  for (int i = 0; i < num_right_comment; ++i) {
-    append_right_comment(*node, right_comment[i]);
+  static uint32_t title_comment[1000];
+  int num_title_comment = 0;
+  comments_parse(title_comment, &num_title_comment);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  for (int i = 0; i < num_title_comment; ++i) {
+    append_title_comment(*node, title_comment[i]);
   }
   return 0;
 }
@@ -1075,10 +1101,10 @@ static int get_left_comment(int node, int *left_comment, int *i) {
   return -1;
 }
 
-static int get_right_comment(int node, int *right_comment, int *i) {
-  for (; *i < NUM_RIGHT_COMMENT; ++*i) {
-    if (RIGHT_COMMENT_PARENT[*i] == (uint32_t)node) {
-      *right_comment = RIGHT_COMMENT[*i];
+static int get_title_comment(int node, int *comment, int *i) {
+  for (; *i < NUM_TITLE_COMMENT; ++*i) {
+    if (TITLE_COMMENT_PARENT[*i] == (uint32_t)node) {
+      *comment = TITLE_COMMENT[*i];
       ++*i;
       return 0;
     }
@@ -1199,20 +1225,47 @@ static void left_comments_write(int node, int indent) {
   }
 }
 
-static void right_comments_write(int node, int indent) {
-  int right_comment;
-  int start = 0;
-  if (get_right_comment(node, &right_comment, &start) == 0) {
-    comment_write(right_comment, indent);
+static int get_same_line_comment(int node, int *same_line_comment) {
+  for (int i = 0; i < NUM_SAME_LINE_COMMENT; ++i) {
+    if (SAME_LINE_COMMENT_PARENT[i] == (uint32_t)node) {
+      *same_line_comment = SAME_LINE_COMMENT[i];
+      return 0;
+    }
   }
-  int second_start = start;
-  if (get_right_comment(node, &right_comment, &second_start) == 0) {
+  return -1;
+}
+
+static void same_line_comment_write(int node, int indent) {
+  int same_line_comment;
+  if (get_same_line_comment(node, &same_line_comment) == 0) {
+    comment_write(same_line_comment, indent);
+  }
+}
+
+static void title_comments_write(int node, int indent) {
+  int title_comment;
+  int start = 0;
+  while (get_title_comment(node, &title_comment, &start) == 0) {
+    indent_write(indent);
+    comment_write(title_comment, indent);
+  }
+}
+
+static int has_title_comment(int node) {
+  for (int i = 0; i < NUM_TITLE_COMMENT; ++i) {
+    if (TITLE_COMMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void right_comments_write(int node, int indent) {
+  same_line_comment_write(node, indent);
+  if (has_title_comment(node)) {
     fputc('\n', OUT);
   }
-  while (get_right_comment(node, &right_comment, &start) == 0) {
-    indent_write(indent);
-    comment_write(right_comment, indent);
-  }
+  title_comments_write(node, indent);
 }
 
 static void module_write(int node) {
