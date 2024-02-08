@@ -1209,10 +1209,7 @@ static void non_empty_block_comment_write(int node, int indent) {
     block_comment_line_write(line, i, indent);
   }
   if (is_multi) {
-    fputc('\n', OUT);
-    for (int j = 0; j < indent; ++j) {
-      fputc(' ', OUT);
-    }
+    indent_write(indent);
   }
   if (!is_multi) {
     fputc(' ', OUT);
