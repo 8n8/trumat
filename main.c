@@ -91,7 +91,8 @@ int NUM_TITLE_COMMENT = 0;
 
 static int is_any_multiline_title_comment(int node) {
   for (int i = 0; i < NUM_TITLE_COMMENT; ++i) {
-    if (TITLE_COMMENT_PARENT[i] == (uint32_t)node && is_multiline_comment(TITLE_COMMENT[i])) {
+    if (TITLE_COMMENT_PARENT[i] == (uint32_t)node &&
+        is_multiline_comment(TITLE_COMMENT[i])) {
       return 1;
     }
   }
@@ -850,6 +851,25 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
+static void list_item_after_expression_parse(int node) {
+  while (char_parse(' ') == 0) {
+  }
+  int same_line_comment;
+  if (line_comment_parse(&same_line_comment) == 0) {
+    append_same_line_comment(node, same_line_comment);
+  }
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  static uint32_t title_comment[1000];
+  int num_title_comment = 0;
+  comments_parse(title_comment, &num_title_comment);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  for (int i = 0; i < num_title_comment; ++i) {
+    append_title_comment(node, title_comment[i]);
+  }
+}
+
 static int list_item_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
@@ -866,22 +886,7 @@ static int list_item_parse(int *node) {
   for (int i = 0; i < num_left_comment; ++i) {
     append_left_comment(*node, left_comment[i]);
   }
-  while (char_parse(' ') == 0) {
-  }
-  int same_line_comment;
-  if (line_comment_parse(&same_line_comment) == 0) {
-    append_same_line_comment(*node, same_line_comment);
-  }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
-  static uint32_t title_comment[1000];
-  int num_title_comment = 0;
-  comments_parse(title_comment, &num_title_comment);
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
-  for (int i = 0; i < num_title_comment; ++i) {
-    append_title_comment(*node, title_comment[i]);
-  }
+  list_item_after_expression_parse(*node);
   return 0;
 }
 
