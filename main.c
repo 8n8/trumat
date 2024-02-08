@@ -13,6 +13,7 @@ static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
 static int is_line_comment(int node);
 static void right_comments_write(int node, int indent);
+static int is_multiline_comment(int node);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -87,6 +88,15 @@ int NUM_SAME_LINE_COMMENT = 0;
 static uint32_t TITLE_COMMENT[MAX_TITLE_COMMENT];
 static uint32_t TITLE_COMMENT_PARENT[MAX_TITLE_COMMENT];
 int NUM_TITLE_COMMENT = 0;
+
+static int is_any_multiline_title_comment(int node) {
+  for (int i = 0; i < NUM_TITLE_COMMENT; ++i) {
+    if (TITLE_COMMENT_PARENT[i] == (uint32_t)node && is_multiline_comment(TITLE_COMMENT[i])) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 static int is_multiline(int node) {
   for (int i = 0; i < NUM_IS_MULTILINE; ++i) {
@@ -1242,16 +1252,6 @@ static void same_line_comment_write(int node, int indent) {
   }
 }
 
-static int is_single_line_block_comment(int node) {
-  int num_lines = 0;
-  for (int i = 0; i < NUM_BLOCK_COMMENT_LINE && num_lines < 2; ++i) {
-    if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
-      ++num_lines;
-    }
-  }
-  return num_lines == 1;
-}
-
 static void title_comments_write(int node, int indent) {
   int title_comment;
   int start = 0;
@@ -1259,11 +1259,12 @@ static void title_comments_write(int node, int indent) {
     indent_write(indent);
     comment_write(title_comment, indent);
   }
+  const int is_multi = is_any_multiline_title_comment(node);
   while (get_title_comment(node, &title_comment, &start) == 0) {
-    if (is_single_line_block_comment(title_comment)) {
-      fputc(' ', OUT);
-    } else {
+    if (is_multi) {
       indent_write(indent);
+    } else {
+      fputc(' ', OUT);
     }
     comment_write(title_comment, indent);
   }
