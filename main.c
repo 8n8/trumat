@@ -371,16 +371,20 @@ static int is_line_comment(int node) {
   return SRC[start] == '-' && SRC[start + 1] == '-';
 }
 
+void indent_write(int indent) {
+  fputc('\n', OUT);
+  for (int i = 0; i < indent; ++i) {
+    fputc(' ', OUT);
+  }
+}
+
 static void non_empty_list_write(int node, int indent) {
   fputs("[ ", OUT);
   const int item = get_list_item(node);
   const int left_is_multiline = has_multiline_left_comment(item);
   left_comments_write(item, indent + 2);
   if (left_is_multiline) {
-    fputc('\n', OUT);
-    for (int j = 0; j < indent+2; ++j) {
-      fputc(' ', OUT);
-    }
+    indent_write(indent + 2);
   }
   if (has_left_comment(item) && !left_is_multiline) {
     fputc(' ', OUT);
@@ -391,10 +395,7 @@ static void non_empty_list_write(int node, int indent) {
   }
   right_comments_write(item, 4);
   if (is_multiline(node) || left_is_multiline) {
-    fputc('\n', OUT);
-    for (int j = 0; j < indent - 1; ++j) {
-      fputc(' ', OUT);
-    }
+    indent_write(indent - 1);
   }
   fputs(" ]", OUT);
 }
@@ -1193,10 +1194,7 @@ static void left_comments_write(int node, int indent) {
     comment_write(left_comment, indent);
   }
   while (get_left_comment(node, &left_comment, &start) == 0) {
-    fputc('\n', OUT);
-    for (int i = 0; i < indent; ++i) {
-      fputc(' ', OUT);
-    }
+    indent_write(indent);
     comment_write(left_comment, indent);
   }
 }
@@ -1212,10 +1210,7 @@ static void right_comments_write(int node, int indent) {
     fputc('\n', OUT);
   }
   while (get_right_comment(node, &right_comment, &start) == 0) {
-    fputc('\n', OUT);
-    for (int i = 0; i < indent; ++i) {
-      fputc(' ', OUT);
-    }
+    indent_write(indent);
     comment_write(right_comment, indent);
   }
 }
