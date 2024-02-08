@@ -1181,8 +1181,7 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
-static void block_comment_line_write(int line, int i,
-                                     int indent) {
+static void block_comment_line_write(int line, int i, int indent) {
   const uint32_t start = BLOCK_COMMENT_LINE_START[line];
   const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
   if (i == 0 && size > 0) {
