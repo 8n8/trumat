@@ -1068,11 +1068,27 @@ static int non_empty_block_comment_parse(int *node) {
   return 0;
 }
 
+static int double_hyphen_block_comment_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("{--")) {
+    return -1;
+  }
+  uint8_t dont_care;
+  while (chunk_parse("-}") && any_char_parse(&dont_care) == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int comment_parse(int *node) {
   if (line_comment_parse(node) == 0) {
     return 0;
   }
   if (empty_block_comment_parse(node) == 0) {
+    return 0;
+  }
+  if (double_hyphen_block_comment_parse(node) == 0) {
     return 0;
   }
   return non_empty_block_comment_parse(node);
@@ -1165,11 +1181,11 @@ static int get_comment_line(int node, int *line, int start) {
   return -1;
 }
 
-static void block_comment_line_write(int line, int i, int is_double_hyphen,
+static void block_comment_line_write(int line, int i,
                                      int indent) {
   const uint32_t start = BLOCK_COMMENT_LINE_START[line];
   const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
-  if (i == 0 && !is_double_hyphen && size > 0) {
+  if (i == 0 && size > 0) {
     fputc(' ', OUT);
   }
   if (i > 0) {
@@ -1184,24 +1200,14 @@ static void block_comment_line_write(int line, int i, int is_double_hyphen,
   fwrite(SRC + start, 1, size, OUT);
 }
 
-static int is_double_hyphen_start_block(int node) {
-  for (int i = 0; i < NUM_HAS_DOUBLE_HYPHEN_BLOCK; ++i) {
-    if (HAS_DOUBLE_HYPHEN_BLOCK[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 static void non_empty_block_comment_write(int node, int indent) {
   fputs("{-", OUT);
-  const int is_double_hyphen = is_double_hyphen_start_block(node);
   const int is_multi = is_multiline_block_comment(node);
   int start = 0;
   int i = 0;
   for (int line; get_comment_line(node, &line, start) == 0;
        start = line + 1, ++i) {
-    block_comment_line_write(line, i, is_double_hyphen, indent);
+    block_comment_line_write(line, i, indent);
   }
   if (is_multi) {
     fputc('\n', OUT);
@@ -1209,7 +1215,7 @@ static void non_empty_block_comment_write(int node, int indent) {
       fputc(' ', OUT);
     }
   }
-  if (!is_multi && !is_double_hyphen) {
+  if (!is_multi) {
     fputc(' ', OUT);
   }
   fputs("-}", OUT);
