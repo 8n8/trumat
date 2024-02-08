@@ -1242,11 +1242,29 @@ static void same_line_comment_write(int node, int indent) {
   }
 }
 
+static int is_single_line_block_comment(int node) {
+  int num_lines = 0;
+  for (int i = 0; i < NUM_BLOCK_COMMENT_LINE && num_lines < 2; ++i) {
+    if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
+      ++num_lines;
+    }
+  }
+  return num_lines == 1;
+}
+
 static void title_comments_write(int node, int indent) {
   int title_comment;
   int start = 0;
-  while (get_title_comment(node, &title_comment, &start) == 0) {
+  if (get_title_comment(node, &title_comment, &start) == 0) {
     indent_write(indent);
+    comment_write(title_comment, indent);
+  }
+  while (get_title_comment(node, &title_comment, &start) == 0) {
+    if (is_single_line_block_comment(title_comment)) {
+      fputc(' ', OUT);
+    } else {
+      indent_write(indent);
+    }
     comment_write(title_comment, indent);
   }
 }
