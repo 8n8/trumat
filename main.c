@@ -923,6 +923,35 @@ static int list_item_parse(int *node) {
   return 0;
 }
 
+static int lines_in_list_triple_quote(int node) {
+  int src_index;
+  if (get_src(node, &src_index) == 0) {
+    return 0;
+  }
+  const int start = SRC_START[src_index];
+  const int size = SRC_SIZE[src_index];
+  if (size < 3 || SRC[start] != '"' || SRC[start + 1] != '"' ||
+      SRC[start + 2] != '"') {
+    return 0;
+  }
+  int num_lines = 0;
+  for (int i = start; i < start + size; ++i) {
+    if (SRC[i] == '\n') {
+      ++num_lines;
+    }
+  }
+  return num_lines;
+}
+
+static int lines_in_list_triple_quotes(int node) {
+  int num_lines = 0;
+  int start = 0;
+  for (int item; get_list_item(node, &item, &start) == 0;) {
+    num_lines += lines_in_list_triple_quote(item);
+  }
+  return num_lines;
+}
+
 static int non_empty_list_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
@@ -950,7 +979,8 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  const int is_multiline = (start_row != ROW[I]);
+  const int is_multiline =
+      (ROW[I] - start_row) > lines_in_list_triple_quotes(*node);
   if (is_multiline) {
     append_is_multiline(*node);
   }
