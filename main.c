@@ -1256,6 +1256,12 @@ static void non_empty_block_comment_write(int node, int indent) {
   fputs("-}", OUT);
 }
 
+static void double_hypen_block_comment_write(int node) {
+  fputs("{--", OUT);
+  src_write(node);
+  fputs("-}", OUT);
+}
+
 static void comment_write(int node, int indent) {
   if (is_empty_block_comment(node)) {
     fputs("{--}", OUT);
@@ -1265,14 +1271,11 @@ static void comment_write(int node, int indent) {
     non_empty_block_comment_write(node, indent);
     return;
   }
-  const int is_double_hyphen = is_double_hyphen_block_comment(node);
-  if (is_double_hyphen) {
-    fputs("{--", OUT);
+  if (is_double_hyphen_block_comment(node)) {
+    double_hypen_block_comment_write(node);
+    return;
   }
   src_write(node);
-  if (is_double_hyphen) {
-    fputs("-}", OUT);
-  }
 }
 
 static void left_comments_write(int node, int indent) {
