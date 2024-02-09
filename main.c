@@ -347,14 +347,15 @@ static int is_empty_list(int node) {
 
 static void expression_write(int node, int indent);
 
-static int get_list_item(int node) {
-  for (int i = 0; i < NUM_LIST_ITEM; ++i) {
+static int get_list_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_LIST_ITEM; ++i) {
     if (LIST[i] == (uint32_t)node) {
-      return LIST_ITEM[i];
+      *item = LIST_ITEM[i];
+      *start = i + 1;
+      return 0;
     }
   }
-  fprintf(stderr, "could not find list item for node %d\n", node);
-  exit(-1);
+  return -1;
 }
 
 static int has_left_comment(int node) {
@@ -421,9 +422,7 @@ static int has_same_line_comment(int node) {
   return 0;
 }
 
-static void non_empty_list_write(int node, int indent) {
-  fputs("[ ", OUT);
-  const int item = get_list_item(node);
+static void list_item_write(int item, int indent) {
   const int left_is_multiline = has_multiline_left_comment(item);
   left_comments_write(item, indent + 2);
   if (left_is_multiline) {
@@ -437,6 +436,24 @@ static void non_empty_list_write(int node, int indent) {
     fputc(' ', OUT);
   }
   right_comments_write(item, indent);
+}
+
+static void non_empty_list_write(int node, int indent) {
+  fputs("[ ", OUT);
+  int item;
+  int start = 0;
+  if (get_list_item(node, &item, &start) == 0) {
+    list_item_write(item, indent);
+  }
+  int left_is_multiline = has_multiline_left_comment(item);
+  while (get_list_item(node, &item, &start) == 0) {
+    left_is_multiline = has_multiline_left_comment(item);
+    if (left_is_multiline || is_multiline(node)) {
+      indent_write(indent);
+    }
+    fputs(", ", OUT);
+    list_item_write(item, indent);
+  }
   if (left_is_multiline || is_multiline(node)) {
     indent_write(indent);
   } else {
@@ -912,21 +929,31 @@ static int non_empty_list_parse(int *node) {
   if (char_parse('[')) {
     return -1;
   }
-  int contents;
-  if (list_item_parse(&contents)) {
+  int item;
+  if (list_item_parse(&item)) {
     I = start;
     return -1;
+  }
+  *node = get_new_node();
+  append_list_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (list_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_list_item(*node, item);
   }
   if (char_parse(']')) {
     I = start;
     return -1;
   }
   const int is_multiline = (start_row != ROW[I]);
-  *node = get_new_node();
   if (is_multiline) {
     append_is_multiline(*node);
   }
-  append_list_item(*node, contents);
   return 0;
 }
 
