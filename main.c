@@ -1094,8 +1094,19 @@ static int double_hyphen_block_comment_parse(int *node) {
   uint8_t dont_care;
   while (chunk_parse("-}") && any_char_parse(&dont_care) == 0) {
   }
+  I -= 2;
+  while (SRC[I] == ' ') {
+    --I;
+  }
+  const int end = I;
+  while (char_parse(' ') == 0) {
+  }
+  if (chunk_parse("-}")) {
+    I = start;
+    return -1;
+  }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start + 1, end - start);
   append_is_double_hyphen_block_comment(*node);
   return 0;
 }
@@ -1254,10 +1265,14 @@ static void comment_write(int node, int indent) {
     non_empty_block_comment_write(node, indent);
     return;
   }
-  if (is_double_hyphen_block_comment(node)) {
+  const int is_double_hyphen = is_double_hyphen_block_comment(node);
+  if (is_double_hyphen) {
     fputs("{--", OUT);
   }
   src_write(node);
+  if (is_double_hyphen) {
+    fputs("-}", OUT);
+  }
 }
 
 static void left_comments_write(int node, int indent) {
