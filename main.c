@@ -89,6 +89,21 @@ static uint32_t TITLE_COMMENT[MAX_TITLE_COMMENT];
 static uint32_t TITLE_COMMENT_PARENT[MAX_TITLE_COMMENT];
 int NUM_TITLE_COMMENT = 0;
 
+#define MAX_DOUBLE_HYPHEN_BLOCK 10000
+static uint32_t DOUBLE_HYPHEN_BLOCK[MAX_DOUBLE_HYPHEN_BLOCK];
+int NUM_DOUBLE_HYPHEN_BLOCK = 0;
+
+static void append_is_double_hyphen_block_comment(int node) {
+  if (NUM_DOUBLE_HYPHEN_BLOCK == MAX_DOUBLE_HYPHEN_BLOCK) {
+    fprintf(stderr,
+            "too many double hyphen block comment nodes, maximum is %d\n",
+            MAX_DOUBLE_HYPHEN_BLOCK);
+    exit(-1);
+  }
+  DOUBLE_HYPHEN_BLOCK[NUM_DOUBLE_HYPHEN_BLOCK] = node;
+  ++NUM_DOUBLE_HYPHEN_BLOCK;
+}
+
 static int is_any_multiline_title_comment(int node) {
   for (int i = 0; i < NUM_TITLE_COMMENT; ++i) {
     if (TITLE_COMMENT_PARENT[i] == (uint32_t)node &&
@@ -501,6 +516,7 @@ static void zero_ast() {
   NUM_IS_MULTILINE = 0;
   NUM_SAME_LINE_COMMENT = 0;
   NUM_TITLE_COMMENT = 0;
+  NUM_DOUBLE_HYPHEN_BLOCK = 0;
 }
 
 static int get_new_node() {
@@ -1069,15 +1085,18 @@ static int non_empty_block_comment_parse(int *node) {
 }
 
 static int double_hyphen_block_comment_parse(int *node) {
-  const int start = I;
   if (chunk_parse("{--")) {
     return -1;
   }
+  while (char_parse(' ') == 0) {
+  }
+  const int start = I;
   uint8_t dont_care;
   while (chunk_parse("-}") && any_char_parse(&dont_care) == 0) {
   }
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
+  append_is_double_hyphen_block_comment(*node);
   return 0;
 }
 
@@ -1146,6 +1165,15 @@ static int get_title_comment(int node, int *comment, int *i) {
 static int is_non_empty_block_comment(int node) {
   for (int i = 0; i < NUM_BLOCK_COMMENT_LINE; ++i) {
     if (BLOCK_COMMENT_LINE_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int is_double_hyphen_block_comment(int node) {
+  for (int i = 0; i < NUM_DOUBLE_HYPHEN_BLOCK; ++i) {
+    if (DOUBLE_HYPHEN_BLOCK[i] == (uint32_t)node) {
       return 1;
     }
   }
@@ -1222,10 +1250,12 @@ static void comment_write(int node, int indent) {
     fputs("{--}", OUT);
     return;
   }
-  const int is_block = is_non_empty_block_comment(node);
-  if (is_block) {
+  if (is_non_empty_block_comment(node)) {
     non_empty_block_comment_write(node, indent);
     return;
+  }
+  if (is_double_hyphen_block_comment(node)) {
+    fputs("{--", OUT);
   }
   src_write(node);
 }
