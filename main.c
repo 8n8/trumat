@@ -1058,7 +1058,7 @@ static int function_call_parse(int *node) {
     return -1;
   }
   int argument;
-  if (lower_name_parse(&argument)) {
+  if (expression_parse(&argument)) {
     I = start;
     return -1;
   }
