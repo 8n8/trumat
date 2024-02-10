@@ -1064,11 +1064,12 @@ static int function_call_parse(int *node) {
   }
   append_argument(*node, argument);
   while (1) {
+    const int before_whitespace = I;
     if (char_parse(' ')) {
       return 0;
     }
     if (expression_parse(&argument)) {
-      --I;
+      I = before_whitespace;
       return 0;
     }
     append_argument(*node, argument);
