@@ -486,10 +486,11 @@ static int is_non_empty_list(int node) {
   return 0;
 }
 
-static int get_argument(int node, int *argument) {
-  for (int i = 0; i < NUM_ARGUMENT; ++i) {
+static int get_argument(int node, int *argument, int *start) {
+  for (int i = *start; i < NUM_ARGUMENT; ++i) {
     if (ARGUMENT_PARENT[i] == (uint32_t)node) {
       *argument = ARGUMENT[i];
+      *start = i + 1;
       return 0;
     }
   }
@@ -500,8 +501,13 @@ static void function_call_write(int node) {
   src_write(node);
   fputc(' ', OUT);
   int argument;
-  get_argument(node, &argument);
+  int start = 0;
+  get_argument(node, &argument, &start);
   expression_write(argument, 0);
+  while (get_argument(node, &argument, &start) == 0) {
+    fputc(' ', OUT);
+    expression_write(argument, 0);
+  }
 }
 
 static int has_arguments(int node) {
@@ -1057,6 +1063,16 @@ static int function_call_parse(int *node) {
     return -1;
   }
   append_argument(*node, argument);
+  while (1) {
+    if (char_parse(' ')) {
+      return 0;
+    }
+    if (lower_name_parse(&argument)) {
+      --I;
+      return 0;
+    }
+    append_argument(*node, argument);
+  }
   return 0;
 }
 
