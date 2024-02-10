@@ -1042,23 +1042,12 @@ static int list_parse(int *node) {
   return non_empty_list_parse(node);
 }
 
-static int floor_parse() {
-  const int start = I;
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
-  if (COLUMN[I] == 0) {
-    I = start;
-    return -1;
-  }
-  return 0;
-}
-
 static int function_call_parse(int *node) {
   const int start = I;
   if (lower_name_parse(node)) {
     return -1;
   }
-  if (floor_parse()) {
+  if (char_parse(' ')) {
     I = start;
     return -1;
   }
