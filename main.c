@@ -93,6 +93,21 @@ int NUM_TITLE_COMMENT = 0;
 static uint32_t DOUBLE_HYPHEN_BLOCK[MAX_DOUBLE_HYPHEN_BLOCK];
 int NUM_DOUBLE_HYPHEN_BLOCK = 0;
 
+#define MAX_ARGUMENT 10000
+static uint32_t ARGUMENT[MAX_ARGUMENT];
+static uint32_t ARGUMENT_PARENT[MAX_ARGUMENT];
+int NUM_ARGUMENT = 0;
+
+static void append_argument(int parent, int child) {
+  if (NUM_ARGUMENT == MAX_ARGUMENT) {
+    fprintf(stderr, "too many arguments, maximum is %d\n", MAX_ARGUMENT);
+    exit(-1);
+  }
+  ARGUMENT[NUM_ARGUMENT] = child;
+  ARGUMENT_PARENT[NUM_ARGUMENT] = parent;
+  ++NUM_ARGUMENT;
+}
+
 static void append_is_double_hyphen_block_comment(int node) {
   if (NUM_DOUBLE_HYPHEN_BLOCK == MAX_DOUBLE_HYPHEN_BLOCK) {
     fprintf(stderr,
@@ -471,6 +486,33 @@ static int is_non_empty_list(int node) {
   return 0;
 }
 
+static int get_argument(int node, int *argument) {
+  for (int i = 0; i < NUM_ARGUMENT; ++i) {
+    if (ARGUMENT_PARENT[i] == (uint32_t)node) {
+      *argument = ARGUMENT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void function_call_write(int node) {
+  src_write(node);
+  fputc(' ', OUT);
+  int argument;
+  get_argument(node, &argument);
+  expression_write(argument, 0);
+}
+
+static int has_arguments(int node) {
+  for (int i = 0; i < NUM_ARGUMENT; ++i) {
+    if (ARGUMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -486,6 +528,10 @@ static void expression_write(int node, int indent) {
   }
   if (is_non_empty_list(node)) {
     non_empty_list_write(node, indent);
+    return;
+  }
+  if (has_arguments(node)) {
+    function_call_write(node);
     return;
   }
   src_write(node);
@@ -534,6 +580,7 @@ static void zero_ast() {
   NUM_SAME_LINE_COMMENT = 0;
   NUM_TITLE_COMMENT = 0;
   NUM_DOUBLE_HYPHEN_BLOCK = 0;
+  NUM_ARGUMENT = 0;
 }
 
 static int get_new_node() {
@@ -995,6 +1042,35 @@ static int list_parse(int *node) {
   return non_empty_list_parse(node);
 }
 
+static int floor_parse() {
+  const int start = I;
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  if (COLUMN[I] == 0) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int function_call_parse(int *node) {
+  const int start = I;
+  if (lower_name_parse(node)) {
+    return -1;
+  }
+  if (floor_parse()) {
+    I = start;
+    return -1;
+  }
+  int argument;
+  if (lower_name_parse(&argument)) {
+    I = start;
+    return -1;
+  }
+  append_argument(*node, argument);
+  return 0;
+}
+
 static int expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -1006,6 +1082,9 @@ static int expression_parse(int *node) {
     return 0;
   }
   if (normal_string_parse(node) == 0) {
+    return 0;
+  }
+  if (function_call_parse(node) == 0) {
     return 0;
   }
   if (upper_name_parse(node) == 0) {
