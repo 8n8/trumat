@@ -1053,9 +1053,7 @@ static int function_call_parse(int *node) {
   if (lower_name_parse(node)) {
     return -1;
   }
-  if (char_parse(' ')) {
-    I = start;
-    return -1;
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   int argument;
   if (expression_parse(&argument)) {
@@ -1065,7 +1063,7 @@ static int function_call_parse(int *node) {
   append_argument(*node, argument);
   while (1) {
     const int before_whitespace = I;
-    if (char_parse(' ')) {
+    if (char_parse(' ') ) {
       return 0;
     }
     if (expression_parse(&argument)) {
