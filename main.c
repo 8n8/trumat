@@ -14,6 +14,7 @@ static int is_empty_block_comment(int node);
 static int is_line_comment(int node);
 static void right_comments_write(int node, int indent);
 static int is_multiline_comment(int node);
+static int argument_parse(int *node);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -510,7 +511,7 @@ static void function_call_write(int node) {
   expression_write(argument, 0);
   while (get_argument(node, &argument, &start) == 0) {
     if (is_multiline(node)) {
-      indent_write(4);
+      indent_write(8);
     } else {
       fputc(' ', OUT);
     }
@@ -1065,7 +1066,7 @@ static int function_call_parse(int *node) {
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   int argument;
-  if (expression_parse(&argument)) {
+  if (argument_parse(&argument)) {
     I = start;
     return -1;
   }
@@ -1082,6 +1083,13 @@ static int function_call_parse(int *node) {
     append_is_multiline(*node);
   }
   return 0;
+}
+
+static int argument_parse(int *node) {
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  return int_parse(node);
 }
 
 static int expression_parse(int *node) {
