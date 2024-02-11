@@ -1092,6 +1092,9 @@ static int argument_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
+  if (triple_string_parse(node) == 0) {
+    return 0;
+  }
   return int_parse(node);
 }
 
