@@ -1074,7 +1074,7 @@ static int function_call_parse(int *node) {
   while (1) {
     while (char_parse(' ') == 0) {
     }
-    if (expression_parse(&argument)) {
+    if (argument_parse(&argument)) {
       break;
     }
     append_argument(*node, argument);
