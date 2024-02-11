@@ -1089,6 +1089,9 @@ static int argument_parse(int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
   }
+  if (float_parse(node) == 0) {
+    return 0;
+  }
   return int_parse(node);
 }
 
