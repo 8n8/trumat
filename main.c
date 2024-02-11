@@ -499,13 +499,21 @@ static int get_argument(int node, int *argument, int *start) {
 
 static void function_call_write(int node) {
   src_write(node);
-  fputc(' ', OUT);
+  if (is_multiline(node)) {
+    indent_write(8);
+  } else {
+    fputc(' ', OUT);
+  }
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
   expression_write(argument, 0);
   while (get_argument(node, &argument, &start) == 0) {
-    fputc(' ', OUT);
+    if (is_multiline(node)) {
+      indent_write(4);
+    } else {
+      fputc(' ', OUT);
+    }
     expression_write(argument, 0);
   }
 }
@@ -1050,10 +1058,11 @@ static int list_parse(int *node) {
 
 static int function_call_parse(int *node) {
   const int start = I;
+  const int start_row = ROW[I];
   if (lower_name_parse(node)) {
     return -1;
   }
-  while (char_parse(' ') == 0) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   int argument;
   if (expression_parse(&argument)) {
@@ -1062,14 +1071,15 @@ static int function_call_parse(int *node) {
   }
   append_argument(*node, argument);
   while (1) {
-    const int before_whitespace = I;
     while (char_parse(' ') == 0) {
     }
     if (expression_parse(&argument)) {
-      I = before_whitespace;
-      return 0;
+      break;
     }
     append_argument(*node, argument);
+  }
+  if (ROW[I] > start_row) {
+    append_is_multiline(*node);
   }
   return 0;
 }
