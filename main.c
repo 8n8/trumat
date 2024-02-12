@@ -512,14 +512,14 @@ static void function_call_write(int node, int indent) {
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
-  left_comments_write(argument, indent + 4);
+  left_comments_write(argument, floor_to_four(indent + 4));
   const int left_is_multiline = has_multiline_left_comment(argument);
   const int has_left = has_left_comment(argument);
   if (has_left && !left_is_multiline) {
     fputc(' ', OUT);
   }
   if (has_left && left_is_multiline) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   }
   expression_write(argument, indent + 4);
   while (get_argument(node, &argument, &start) == 0) {
