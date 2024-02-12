@@ -1628,11 +1628,38 @@ static int triple_string_mask_line_comment_parse(int *i) {
   return 0;
 }
 
+static int triple_string_mask_block_comment_item_parse(int *i) {
+  if (triple_string_mask_chunk_parse("-}", i) == 0) {
+    *i = *i - 2;
+    return -1;
+  }
+  uint8_t dont_care;
+  if (triple_string_mask_any_char_parse(&dont_care, i)) {
+    return -1;
+  }
+  return 0;
+}
+
+static int triple_string_mask_block_comment_parse(int *i) {
+  if (triple_string_mask_chunk_parse("{-", i)) {
+    return -1;
+  }
+  while (triple_string_mask_block_comment_item_parse(i) == 0) {
+  }
+  if (triple_string_mask_chunk_parse("-}", i)) {
+    return -1;
+  }
+  return 0;
+}
+
 static int calculate_triple_string_mask_item(int *i) {
   if (triple_string_mask_triple_string_parse(i) == 0) {
     return 0;
   }
   if (triple_string_mask_line_comment_parse(i) == 0) {
+    return 0;
+  }
+  if (triple_string_mask_block_comment_parse(i) == 0) {
     return 0;
   }
   uint8_t dont_care;
