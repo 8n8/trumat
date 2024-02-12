@@ -1607,8 +1607,32 @@ static int triple_string_mask_triple_string_parse(int *i) {
   return 0;
 }
 
+static int triple_string_mask_not_newline_parse(int *i) {
+  uint8_t c;
+  if (triple_string_mask_any_char_parse(&c, i)) {
+    return -1;
+  }
+  if (c == '\n') {
+    --*i;
+    return -1;
+  }
+  return 0;
+}
+
+static int triple_string_mask_line_comment_parse(int *i) {
+  if (triple_string_mask_chunk_parse("--", i)) {
+    return -1;
+  }
+  while (triple_string_mask_not_newline_parse(i) == 0) {
+  }
+  return 0;
+}
+
 static int calculate_triple_string_mask_item(int *i) {
   if (triple_string_mask_triple_string_parse(i) == 0) {
+    return 0;
+  }
+  if (triple_string_mask_line_comment_parse(i) == 0) {
     return 0;
   }
   uint8_t dont_care;
