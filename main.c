@@ -510,7 +510,7 @@ static void function_call_write(int node) {
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
-  expression_write(argument, 0);
+  expression_write(argument, 8);
   while (get_argument(node, &argument, &start) == 0) {
     if (is_multiline(node)) {
       indent_write(8);
@@ -1065,6 +1065,9 @@ static int argument_parse(int *node) {
     return 0;
   }
   if (triple_string_parse(node) == 0) {
+    return 0;
+  }
+  if (list_parse(node) == 0) {
     return 0;
   }
   return int_parse(node);
