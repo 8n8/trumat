@@ -500,20 +500,22 @@ static int get_argument(int node, int *argument, int *start) {
   return -1;
 }
 
-static void function_call_write(int node) {
+int floor_to_four(int x) { return x / 4 * 4; }
+
+static void function_call_write(int node, int indent) {
   src_write(node);
   if (is_multiline(node)) {
-    indent_write(8);
+    indent_write(floor_to_four(indent + 4));
   } else {
     fputc(' ', OUT);
   }
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
-  expression_write(argument, 8);
+  expression_write(argument, indent + 4);
   while (get_argument(node, &argument, &start) == 0) {
     if (is_multiline(node)) {
-      indent_write(8);
+      indent_write(indent + 4);
     } else {
       fputc(' ', OUT);
     }
@@ -548,7 +550,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   if (has_arguments(node)) {
-    function_call_write(node);
+    function_call_write(node, indent);
     return;
   }
   src_write(node);
