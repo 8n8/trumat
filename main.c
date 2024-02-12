@@ -15,10 +15,12 @@ static int is_line_comment(int node);
 static void right_comments_write(int node, int indent);
 static int is_multiline_comment(int node);
 static int argument_parse(int *node);
+static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
 static uint8_t SRC[MAX_SRC];
+static uint8_t TRIPLE_STRING_MASK[MAX_SRC];
 static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
 static int NUM_SRC = 0;
@@ -985,35 +987,6 @@ static int list_item_parse(int *node) {
   return 0;
 }
 
-static int lines_in_list_triple_quote(int node) {
-  int src_index;
-  if (get_src(node, &src_index) == 0) {
-    return 0;
-  }
-  const int start = SRC_START[src_index];
-  const int size = SRC_SIZE[src_index];
-  if (size < 3 || SRC[start] != '"' || SRC[start + 1] != '"' ||
-      SRC[start + 2] != '"') {
-    return 0;
-  }
-  int num_lines = 0;
-  for (int i = start; i < start + size; ++i) {
-    if (SRC[i] == '\n') {
-      ++num_lines;
-    }
-  }
-  return num_lines;
-}
-
-static int lines_in_list_triple_quotes(int node) {
-  int num_lines = 0;
-  int start = 0;
-  for (int item; get_list_item(node, &item, &start) == 0;) {
-    num_lines += lines_in_list_triple_quote(item);
-  }
-  return num_lines;
-}
-
 static int non_empty_list_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
@@ -1041,8 +1014,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  const int is_multiline =
-      (ROW[I] - start_row) > lines_in_list_triple_quotes(*node);
+  const int is_multiline = ROW[I] - start_row;
   if (is_multiline) {
     append_is_multiline(*node);
   }
@@ -1529,7 +1501,7 @@ static void calculate_row_numbers() {
   int row = 0;
   for (int i = 0; i < NUM_SRC; ++i) {
     ROW[i] = row;
-    if (SRC[i] == '\n') {
+    if (SRC[i] == '\n' && !TRIPLE_STRING_MASK[i]) {
       ++row;
     }
   }
@@ -1562,11 +1534,102 @@ static int read_src(char *path) {
   return 0;
 }
 
+static int triple_string_mask_any_char_parse(uint8_t *c, int *i) {
+  if (*i == NUM_SRC - 1) {
+    return -1;
+  }
+  ++*i;
+  *c = SRC[*i];
+  return 0;
+}
+
+static int triple_string_mask_char_parse(uint8_t c, int *i) {
+  if (*i == NUM_SRC - 1) {
+    return -1;
+  }
+  ++*i;
+  if (SRC[*i] != c) {
+    --*i;
+    return -1;
+  }
+  return 0;
+}
+
+static int triple_string_mask_chunk_parse(char *chunk, int *i) {
+  const int start = *i;
+  for (; *chunk != '\0' && triple_string_mask_char_parse(*chunk, i) == 0;
+       ++chunk) {
+  }
+  if (*chunk != '\0') {
+    *i = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int triple_string_mask_triple_string_item_parse(int *i) {
+  const int start = *i;
+  if (triple_string_mask_chunk_parse("\"\"\"", i) == 0) {
+    *i = start;
+    return -1;
+  }
+  if (triple_string_mask_chunk_parse("\\\"", i) == 0) {
+    return 0;
+  }
+  if (triple_string_mask_chunk_parse("\\\\", i) == 0) {
+    return 0;
+  }
+  if (triple_string_mask_chunk_parse("\\u", i) == 0) {
+    return 0;
+  }
+  uint8_t dont_care;
+  if (triple_string_mask_any_char_parse(&dont_care, i)) {
+    *i = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int triple_string_mask_triple_string_parse(int *i) {
+  const int start = *i;
+  if (triple_string_mask_chunk_parse("\"\"\"", i)) {
+    return -1;
+  }
+  while (triple_string_mask_triple_string_item_parse(i) == 0) {
+  }
+  if (triple_string_mask_chunk_parse("\"\"\"", i)) {
+    return -1;
+  }
+  const int end = *i;
+  for (int j = start; j < end; ++j) {
+    TRIPLE_STRING_MASK[j] = 1;
+  }
+  return 0;
+}
+
+static int calculate_triple_string_mask_item(int *i) {
+  if (triple_string_mask_triple_string_parse(i) == 0) {
+    return 0;
+  }
+  uint8_t dont_care;
+  return triple_string_mask_any_char_parse(&dont_care, i);
+}
+
+static void calculate_triple_string_mask() {
+  for (int i = 0; i < NUM_SRC; ++i) {
+    TRIPLE_STRING_MASK[i] = 0;
+  }
+  int i = 0;
+  while (calculate_triple_string_mask_item(&i) == 0) {
+  }
+}
+
 static void format_file(char *path) {
   if (read_src(path)) {
     return;
   }
 
+  calculate_triple_string_mask();
   calculate_row_numbers();
   calculate_column_numbers();
 
