@@ -512,6 +512,10 @@ static void function_call_write(int node, int indent) {
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
+  left_comments_write(argument, indent + 4);
+  if (has_left_comment(argument)) {
+    fputc(' ', OUT);
+  }
   expression_write(argument, indent + 4);
   while (get_argument(node, &argument, &start) == 0) {
     if (is_multiline(node)) {
@@ -1039,10 +1043,16 @@ static int function_call_parse(int *node) {
   }
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
+  static uint32_t left_comments[1000];
+  int num_left_comments = 0;
+  comments_parse(left_comments, &num_left_comments);
   int argument;
   if (argument_parse(&argument)) {
     I = start;
     return -1;
+  }
+  for (int i = 0; i < num_left_comments; ++i) {
+    append_left_comment(argument, left_comments[i]);
   }
   append_argument(*node, argument);
   while (1) {
