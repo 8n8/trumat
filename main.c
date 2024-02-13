@@ -1470,7 +1470,8 @@ static int is_single_line_comments(int node) {
   int left_comment;
   int start = 0;
   while (get_left_comment(node, &left_comment, &start) == 0) {
-    if (is_multiline_block_comment(left_comment) || is_empty_block_comment(left_comment) || is_line_comment(left_comment)) {
+    if (is_multiline_block_comment(left_comment) ||
+        is_empty_block_comment(left_comment) || is_line_comment(left_comment)) {
       return 0;
     }
   }
