@@ -526,7 +526,7 @@ static int is_arg1_line1(int node) {
 }
 
 static void argument_write(int is_multi, int argument, int indent) {
-  int left_is_multiline = has_multiline_left_comment(argument);
+  const int left_is_multiline = has_multiline_left_comment(argument);
   if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   } else {
@@ -534,7 +534,7 @@ static void argument_write(int is_multi, int argument, int indent) {
   }
   const int comment_indent = floor_to_four(indent + 4);
   left_comments_write(0, argument, comment_indent);
-  int has_left = has_left_comment(argument);
+  const int has_left = has_left_comment(argument);
   if (has_left && !left_is_multiline) {
     fputc(' ', OUT);
   }
