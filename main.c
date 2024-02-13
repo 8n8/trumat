@@ -525,12 +525,8 @@ static int is_single_line(int node) {
   return 0;
 }
 
-static void function_call_write(int node, int indent) {
-  src_write(node);
-  int argument;
-  int start = 0;
-  get_argument(node, &argument, &start);
-  if (is_multiline(node) && !is_single_line(argument)) {
+static void argument_write(int is_multi, int argument, int indent) {
+  if (is_multi && !is_single_line(argument)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     fputc(' ', OUT);
@@ -545,22 +541,17 @@ static void function_call_write(int node, int indent) {
     indent_write(floor_to_four(indent + 4));
   }
   expression_write(argument, indent + 4);
+}
+
+static void function_call_write(int node, int indent) {
+  src_write(node);
+  int argument;
+  int start = 0;
+  get_argument(node, &argument, &start);
+  const int is_multi = is_multiline(node);
+  argument_write(is_multi, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
-    if (is_multiline(node)) {
-      indent_write(indent + 4);
-    } else {
-      fputc(' ', OUT);
-    }
-    left_comments_write(argument, floor_to_four(indent + 4));
-    left_is_multiline = has_multiline_left_comment(argument);
-    has_left = has_left_comment(argument);
-    if (has_left && !left_is_multiline) {
-      fputc(' ', OUT);
-    }
-    if (has_left && left_is_multiline) {
-      indent_write(floor_to_four(indent + 4));
-    }
-    expression_write(argument, 0);
+    argument_write(is_multi, argument, indent);
   }
 }
 
