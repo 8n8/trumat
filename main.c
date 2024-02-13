@@ -993,7 +993,7 @@ static void list_item_after_expression_parse(int node) {
   }
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t title_comment[100];
+  uint32_t title_comment[1000];
   int num_title_comment = 0;
   comments_parse(title_comment, &num_title_comment);
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
@@ -1007,7 +1007,7 @@ static int list_item_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t left_comment[100];
+  uint32_t left_comment[1000];
   int num_left_comment = 0;
   comments_parse(left_comment, &num_left_comment);
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
@@ -1068,7 +1068,7 @@ static int list_parse(int *node) {
 static int argument_and_comments_parse(int *argument) {
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t left_comments[100];
+  uint32_t left_comments[1000];
   int num_left_comments = 0;
   comments_parse(left_comments, &num_left_comments);
   if (argument_parse(argument)) {
@@ -1326,7 +1326,7 @@ static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  uint32_t left_comment[100];
+  uint32_t left_comment[1000];
   int num_left_comment = 0;
   comments_parse(left_comment, &num_left_comment);
   while (char_parse(' ') == 0) {
