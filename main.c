@@ -101,18 +101,18 @@ static uint32_t ARGUMENT[MAX_ARGUMENT];
 static uint32_t ARGUMENT_PARENT[MAX_ARGUMENT];
 int NUM_ARGUMENT = 0;
 
-#define MAX_IS_SINGLE_LINE 10000
-static uint32_t IS_SINGLE_LINE[MAX_IS_SINGLE_LINE];
-int NUM_IS_SINGLE_LINE = 0;
+#define MAX_IS_ARG1_LINE1 10000
+static uint32_t IS_ARG1_LINE1[MAX_IS_ARG1_LINE1];
+int NUM_IS_ARG1_LINE1 = 0;
 
-static void append_is_single_line(int node) {
-  if (NUM_IS_SINGLE_LINE == MAX_IS_SINGLE_LINE) {
+static void append_is_arg1_line1(int node) {
+  if (NUM_IS_ARG1_LINE1 == MAX_IS_ARG1_LINE1) {
     fprintf(stderr, "too many single line nodes, maximum is %d\n",
-            MAX_IS_SINGLE_LINE);
+            MAX_IS_ARG1_LINE1);
     exit(-1);
   }
-  IS_SINGLE_LINE[NUM_IS_SINGLE_LINE] = node;
-  ++NUM_IS_SINGLE_LINE;
+  IS_ARG1_LINE1[NUM_IS_ARG1_LINE1] = node;
+  ++NUM_IS_ARG1_LINE1;
 }
 
 static void append_argument(int parent, int child) {
@@ -516,9 +516,9 @@ static int get_argument(int node, int *argument, int *start) {
 
 int floor_to_four(int x) { return x / 4 * 4; }
 
-static int is_single_line(int node) {
-  for (int i = 0; i < NUM_IS_SINGLE_LINE; ++i) {
-    if (IS_SINGLE_LINE[i] == (uint32_t)node) {
+static int is_arg1_line1(int node) {
+  for (int i = 0; i < NUM_IS_ARG1_LINE1; ++i) {
+    if (IS_ARG1_LINE1[i] == (uint32_t)node) {
       return 1;
     }
   }
@@ -527,7 +527,7 @@ static int is_single_line(int node) {
 
 static void argument_write(int is_multi, int argument, int indent) {
   int left_is_multiline = has_multiline_left_comment(argument);
-  if ((is_multi && !is_single_line(argument)) || left_is_multiline) {
+  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   } else {
     fputc(' ', OUT);
@@ -633,7 +633,7 @@ static void zero_ast() {
   NUM_TITLE_COMMENT = 0;
   NUM_DOUBLE_HYPHEN_BLOCK = 0;
   NUM_ARGUMENT = 0;
-  NUM_IS_SINGLE_LINE = 0;
+  NUM_IS_ARG1_LINE1 = 0;
 }
 
 static int get_new_node() {
@@ -1094,7 +1094,7 @@ static int function_call_parse(int *node) {
   }
   append_argument(*node, argument);
   if (ROW[I] == start_row) {
-    append_is_single_line(argument);
+    append_is_arg1_line1(argument);
   }
   while (1) {
     if (argument_and_comments_parse(&argument)) {
