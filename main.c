@@ -526,13 +526,14 @@ static int is_single_line(int node) {
 }
 
 static void argument_write(int is_multi, int argument, int indent) {
-  if (is_multi && !is_single_line(argument)) {
+  int left_is_multiline = has_multiline_left_comment(argument);
+  if ((is_multi && !is_single_line(argument)) || left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   } else {
     fputc(' ', OUT);
   }
-  left_comments_write(0, argument, floor_to_four(indent + 4));
-  int left_is_multiline = has_multiline_left_comment(argument);
+  const int comment_indent = floor_to_four(indent + 4);
+  left_comments_write(0, argument, comment_indent);
   int has_left = has_left_comment(argument);
   if (has_left && !left_is_multiline) {
     fputc(' ', OUT);
@@ -1067,7 +1068,7 @@ static int list_parse(int *node) {
 static int argument_and_comments_parse(int *argument) {
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  static uint32_t left_comments[1000];
+  uint32_t left_comments[100];
   int num_left_comments = 0;
   comments_parse(left_comments, &num_left_comments);
   if (argument_parse(argument)) {
@@ -1759,6 +1760,7 @@ static void calculate_triple_string_mask() {
 }
 
 static void format_file(char *path) {
+  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }
