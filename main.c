@@ -146,7 +146,7 @@ static int is_any_multiline_title_comment(int node) {
   return 0;
 }
 
-static int is_multiline(int node) {
+static int is_multiline_node(int node) {
   for (int i = 0; i < NUM_IS_MULTILINE; ++i) {
     if (IS_MULTILINE[i] == (uint32_t)node) {
       return 1;
@@ -480,13 +480,13 @@ static void non_empty_list_write(int node, int indent) {
   int left_is_multiline = has_multiline_left_comment(item);
   while (get_list_item(node, &item, &start) == 0) {
     left_is_multiline = has_multiline_left_comment(item);
-    if (left_is_multiline || is_multiline(node)) {
+    if (left_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
     fputs(", ", OUT);
     list_item_write(item, indent);
   }
-  if (left_is_multiline || is_multiline(node)) {
+  if (left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
     fputc(' ', OUT);
@@ -548,7 +548,7 @@ static void function_call_write(int node, int indent) {
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
-  const int is_multi = is_multiline(node);
+  const int is_multi = is_multiline_node(node);
   argument_write(is_multi, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
     argument_write(is_multi, argument, indent);
