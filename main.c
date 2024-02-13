@@ -551,6 +551,10 @@ static void function_call_write(int node, int indent) {
     } else {
       fputc(' ', OUT);
     }
+    left_comments_write(argument, floor_to_four(indent + 4));
+    if (has_left_comment(argument)) {
+      indent_write(floor_to_four(indent + 4));
+    }
     expression_write(argument, 0);
   }
 }
@@ -1090,8 +1094,13 @@ static int function_call_parse(int *node) {
   while (1) {
     while (char_parse(' ') == 0 || char_parse('\n') == 0) {
     }
+    num_left_comments = 0;
+    comments_parse(left_comments, &num_left_comments);
     if (argument_parse(&argument)) {
       break;
+    }
+    for (int i = 0; i < num_left_comments; ++i) {
+      append_left_comment(argument, left_comments[i]);
     }
     append_argument(*node, argument);
   }
