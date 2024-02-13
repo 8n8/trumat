@@ -7,7 +7,7 @@ static int expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static void comments_parse(uint32_t comments[1000], int *num_comments);
-static void left_comments_write(int node, int indent);
+static void left_comments_write(int is_multi_context, int node, int indent);
 static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
@@ -456,7 +456,7 @@ static int has_same_line_comment(int node) {
 
 static void list_item_write(int item, int indent) {
   const int left_is_multiline = has_multiline_left_comment(item);
-  left_comments_write(item, indent + 2);
+  left_comments_write(1, item, indent + 2);
   if (left_is_multiline) {
     indent_write(indent + 2);
   }
@@ -531,7 +531,7 @@ static void argument_write(int is_multi, int argument, int indent) {
   } else {
     fputc(' ', OUT);
   }
-  left_comments_write(argument, floor_to_four(indent + 4));
+  left_comments_write(0, argument, floor_to_four(indent + 4));
   int left_is_multiline = has_multiline_left_comment(argument);
   int has_left = has_left_comment(argument);
   if (has_left && !left_is_multiline) {
@@ -1466,14 +1466,34 @@ static void comment_write(int node, int indent) {
   src_write(node);
 }
 
-static void left_comments_write(int node, int indent) {
+static int is_single_line_comments(int node) {
+  int left_comment;
+  int start = 0;
+  while (get_left_comment(node, &left_comment, &start) == 0) {
+    if (is_multiline_block_comment(left_comment) || is_empty_block_comment(left_comment) || is_line_comment(left_comment)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static void left_comments_write(
+    // For example, if you have two single line block comments before the
+    // body of a function they go on separate lines. But if they are before
+    // a function argument they go on the same line.
+    int is_multi_context, int node, int indent) {
+  const int is_single = is_single_line_comments(node);
   int left_comment;
   int start = 0;
   if (get_left_comment(node, &left_comment, &start) == 0) {
     comment_write(left_comment, indent);
   }
   while (get_left_comment(node, &left_comment, &start) == 0) {
-    indent_write(indent);
+    if (is_single && !is_multi_context) {
+      fputc(' ', OUT);
+    } else {
+      indent_write(indent);
+    }
     comment_write(left_comment, indent);
   }
 }
@@ -1532,7 +1552,7 @@ static void right_comments_write(int node, int indent) {
 
 static void module_write(int node) {
   fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
-  left_comments_write(node, 4);
+  left_comments_write(1, node, 4);
   if (has_left_comment(node)) {
     fputs("\n    ", OUT);
   }
