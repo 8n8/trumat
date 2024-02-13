@@ -1068,39 +1068,40 @@ static int list_parse(int *node) {
   return non_empty_list_parse(node);
 }
 
+static int argument_and_comments_parse(int *argument) {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  static uint32_t left_comments[1000];
+  int num_left_comments = 0;
+  comments_parse(left_comments, &num_left_comments);
+  if (argument_parse(argument)) {
+    return -1;
+  }
+  for (int i = 0; i < num_left_comments; ++i) {
+    append_left_comment(*argument, left_comments[i]);
+  }
+  return 0;
+}
+
 static int function_call_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
   if (lower_name_parse(node)) {
     return -1;
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
-  static uint32_t left_comments[1000];
-  int num_left_comments = 0;
-  comments_parse(left_comments, &num_left_comments);
   int argument;
-  if (argument_parse(&argument)) {
+  const int first_arg_result = argument_and_comments_parse(&argument);
+  if (first_arg_result) {
     I = start;
     return -1;
-  }
-  for (int i = 0; i < num_left_comments; ++i) {
-    append_left_comment(argument, left_comments[i]);
   }
   append_argument(*node, argument);
   if (ROW[I] == start_row) {
     append_is_single_line(argument);
   }
   while (1) {
-    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-    }
-    num_left_comments = 0;
-    comments_parse(left_comments, &num_left_comments);
-    if (argument_parse(&argument)) {
+    if (argument_and_comments_parse(&argument)) {
       break;
-    }
-    for (int i = 0; i < num_left_comments; ++i) {
-      append_left_comment(argument, left_comments[i]);
     }
     append_argument(*node, argument);
   }
