@@ -8,6 +8,7 @@ static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static void comments_parse(uint32_t comments[1000], int *num_comments);
 static void left_comments_write(int is_multi_context, int node, int indent);
+static int not_infixed_parse(int *node);
 static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
@@ -16,6 +17,7 @@ static void right_comments_write(int node, int indent);
 static int is_multiline_comment(int node);
 static int argument_parse(int *node);
 static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
+static void not_infixed_write(int node, int indent);
 
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
@@ -104,6 +106,21 @@ int NUM_ARGUMENT = 0;
 #define MAX_IS_ARG1_LINE1 10000
 static uint32_t IS_ARG1_LINE1[MAX_IS_ARG1_LINE1];
 int NUM_IS_ARG1_LINE1 = 0;
+
+#define MAX_HAS_PLUS 10000
+static uint32_t HAS_PLUS[MAX_HAS_PLUS];
+static uint32_t PLUS_RIGHT[MAX_HAS_PLUS];
+int NUM_HAS_PLUS = 0;
+
+static void append_has_plus(int node, int right) {
+  if (NUM_HAS_PLUS == MAX_HAS_PLUS) {
+    fprintf(stderr, "too many has plus nodes, maximum is %d\n", MAX_HAS_PLUS);
+    exit(-1);
+  }
+  HAS_PLUS[NUM_HAS_PLUS] = node;
+  PLUS_RIGHT[NUM_HAS_PLUS] = right;
+  ++NUM_HAS_PLUS;
+}
 
 static void append_is_arg1_line1(int node) {
   if (NUM_IS_ARG1_LINE1 == MAX_IS_ARG1_LINE1) {
@@ -565,7 +582,32 @@ static int has_arguments(int node) {
   return 0;
 }
 
+static void plus_infix_write(int node, int right, int indent) {
+  not_infixed_write(node, indent);
+  fputs(" + ", OUT);
+  not_infixed_write(right, indent);
+}
+
+static int get_plus_right(int node, int *right) {
+  for (int i = 0; i < NUM_HAS_PLUS; ++i) {
+    if (HAS_PLUS[i] == (uint32_t)node) {
+      *right = PLUS_RIGHT[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node, int indent) {
+  int right;
+  if (get_plus_right(node, &right)) {
+    plus_infix_write(node, right, indent);
+    return;
+  }
+  not_infixed_write(node, indent);
+}
+
+static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
     return;
@@ -634,6 +676,7 @@ static void zero_ast() {
   NUM_DOUBLE_HYPHEN_BLOCK = 0;
   NUM_ARGUMENT = 0;
   NUM_IS_ARG1_LINE1 = 0;
+  NUM_HAS_PLUS = 0;
 }
 
 static int get_new_node() {
@@ -1124,7 +1167,36 @@ static int argument_parse(int *node) {
   return int_parse(node);
 }
 
+static int infix_plus_parse(int *node) {
+  const int start = I;
+  if (not_infixed_parse(node)) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
+  if (char_parse('+')) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
+  int right;
+  if (not_infixed_parse(&right)) {
+    I = start;
+    return -1;
+  }
+  append_has_plus(*node, right);
+  return 0;
+}
+
 static int expression_parse(int *node) {
+  if (infix_plus_parse(node) == 0) {
+    return 0;
+  }
+
+  return not_infixed_parse(node);
+}
+
+static int not_infixed_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
