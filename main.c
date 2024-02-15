@@ -588,6 +588,10 @@ static void plus_write(int is_multi, int right, int indent) {
   } else {
     fputc(' ', OUT);
   }
+  left_comments_write(0, right, indent + 4);
+  if (has_left_comment(right)) {
+    indent_write(indent + 4);
+  }
   fputs("+ ", OUT);
   not_infixed_write(right, indent);
 }
@@ -1176,6 +1180,11 @@ static int plus_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
+  uint32_t left_comment[100];
+  int num_left_comment = 0;
+  comments_parse(left_comment, &num_left_comment);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
   if (char_parse('+')) {
     I = start;
     return -1;
@@ -1185,6 +1194,9 @@ static int plus_parse(int *node) {
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
+  }
+  for (int i = 0; i < num_left_comment; ++i) {
+    append_left_comment(*node, left_comment[i]);
   }
   return 0;
 }
