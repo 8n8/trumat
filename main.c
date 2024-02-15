@@ -582,7 +582,7 @@ static int has_arguments(int node) {
   return 0;
 }
 
-static void plus_infix_write(int is_multi, int right, int indent) {
+static void plus_write(int is_multi, int right, int indent) {
   if (is_multi) {
     indent_write(indent + 4);
   } else {
@@ -608,7 +608,7 @@ static void expression_write(int node, int indent) {
   int left = node;
   int right;
   for (; get_plus_right(left, &right) == 0; left = right) {
-    plus_infix_write(is_multi, right, indent);
+    plus_write(is_multi, right, indent);
   }
 }
 
