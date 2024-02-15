@@ -107,19 +107,19 @@ int NUM_ARGUMENT = 0;
 static uint32_t IS_ARG1_LINE1[MAX_IS_ARG1_LINE1];
 int NUM_IS_ARG1_LINE1 = 0;
 
-#define MAX_HAS_PLUS 10000
-static uint32_t HAS_PLUS[MAX_HAS_PLUS];
-static uint32_t PLUS_RIGHT[MAX_HAS_PLUS];
-int NUM_HAS_PLUS = 0;
+#define MAX_PLUS 10000
+static uint32_t PLUS_LEFT[MAX_PLUS];
+static uint32_t PLUS_RIGHT[MAX_PLUS];
+int NUM_PLUS = 0;
 
-static void append_has_plus(int node, int right) {
-  if (NUM_HAS_PLUS == MAX_HAS_PLUS) {
-    fprintf(stderr, "too many has plus nodes, maximum is %d\n", MAX_HAS_PLUS);
+static void append_plus(int left, int right) {
+  if (NUM_PLUS == MAX_PLUS) {
+    fprintf(stderr, "too many plus nodes, maximum is %d\n", MAX_PLUS);
     exit(-1);
   }
-  HAS_PLUS[NUM_HAS_PLUS] = node;
-  PLUS_RIGHT[NUM_HAS_PLUS] = right;
-  ++NUM_HAS_PLUS;
+  PLUS_LEFT[NUM_PLUS] = left;
+  PLUS_RIGHT[NUM_PLUS] = right;
+  ++NUM_PLUS;
 }
 
 static void append_is_arg1_line1(int node) {
@@ -582,29 +582,29 @@ static int has_arguments(int node) {
   return 0;
 }
 
-static void plus_infix_write(int node, int right, int indent) {
-  not_infixed_write(node, indent);
+static void plus_infix_write(int right, int indent) {
   fputs(" + ", OUT);
   not_infixed_write(right, indent);
 }
 
 static int get_plus_right(int node, int *right) {
-  for (int i = 0; i < NUM_HAS_PLUS; ++i) {
-    if (HAS_PLUS[i] == (uint32_t)node) {
+  for (int i = 0; i < NUM_PLUS; ++i) {
+    if (PLUS_LEFT[i] == (uint32_t)node) {
       *right = PLUS_RIGHT[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static void expression_write(int node, int indent) {
-  int right;
-  if (get_plus_right(node, &right)) {
-    plus_infix_write(node, right, indent);
-    return;
-  }
   not_infixed_write(node, indent);
+
+  int left = node;
+  int right;
+  for (; get_plus_right(left, &right) == 0; left = right) {
+    plus_infix_write(right, indent);
+  }
 }
 
 static void not_infixed_write(int node, int indent) {
@@ -676,7 +676,7 @@ static void zero_ast() {
   NUM_DOUBLE_HYPHEN_BLOCK = 0;
   NUM_ARGUMENT = 0;
   NUM_IS_ARG1_LINE1 = 0;
-  NUM_HAS_PLUS = 0;
+  NUM_PLUS = 0;
 }
 
 static int get_new_node() {
@@ -1167,33 +1167,25 @@ static int argument_parse(int *node) {
   return int_parse(node);
 }
 
-static int infix_plus_parse(int *node) {
+static int plus_parse(int *node) {
   const int start = I;
-  if (not_infixed_parse(node)) {
+  if (chunk_parse(" + ")) {
     I = start;
     return -1;
   }
-  char_parse(' ');
-  if (char_parse('+')) {
-    I = start;
-    return -1;
-  }
-  char_parse(' ');
-  int right;
-  if (not_infixed_parse(&right)) {
-    I = start;
-    return -1;
-  }
-  append_has_plus(*node, right);
-  return 0;
+  return not_infixed_parse(node);
 }
 
 static int expression_parse(int *node) {
-  if (infix_plus_parse(node) == 0) {
-    return 0;
+  if (not_infixed_parse(node)) {
+    return -1;
   }
 
-  return not_infixed_parse(node);
+  int right;
+  for (int left = *node; plus_parse(&right) == 0; left = right) {
+    append_plus(left, right);
+  }
+  return 0;
 }
 
 static int not_infixed_parse(int *node) {
