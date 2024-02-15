@@ -583,7 +583,13 @@ static int has_arguments(int node) {
 }
 
 static void plus_infix_write(int right, int indent) {
-  fputs(" + ", OUT);
+  if (is_multiline_node(right)) {
+    indent_write(indent + 4);
+  } else {
+    fputc(' ', OUT);
+  }
+  fputc('+', OUT);
+  fputc(' ', OUT);
   not_infixed_write(right, indent);
 }
 
@@ -1169,11 +1175,23 @@ static int argument_parse(int *node) {
 
 static int plus_parse(int *node) {
   const int start = I;
-  if (chunk_parse(" + ")) {
+  const int start_row = ROW[I];
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  if (char_parse('+')) {
     I = start;
     return -1;
   }
-  return not_infixed_parse(node);
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+  if (not_infixed_parse(node)) {
+    I = start;
+    return -1;
+  }
+  if (ROW[I] > start_row) {
+    append_is_multiline(*node);
+  }
+  return 0;
 }
 
 static int expression_parse(int *node) {
