@@ -589,8 +589,13 @@ static void plus_write(int is_multi, int right, int indent) {
     fputc(' ', OUT);
   }
   left_comments_write(0, right, indent + 4);
-  if (has_left_comment(right)) {
+  const int multi_left = has_multiline_left_comment(right);
+  const int has_left = has_left_comment(right);
+  if (multi_left) {
     indent_write(indent + 4);
+  }
+  if (has_left && !multi_left) {
+    fputc(' ', OUT);
   }
   fputs("+ ", OUT);
   not_infixed_write(right, indent);
