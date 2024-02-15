@@ -588,8 +588,7 @@ static void plus_infix_write(int right, int indent) {
   } else {
     fputc(' ', OUT);
   }
-  fputc('+', OUT);
-  fputc(' ', OUT);
+  fputs("+ ", OUT);
   not_infixed_write(right, indent);
 }
 
