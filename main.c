@@ -10,6 +10,7 @@ static int has_title_comment(int node);
 static void attach_title_comments(int node, int title_comments);
 static void right_comments_in_expression_write(int node, int indent);
 static void title_comments_parse(int parent);
+static int is_single_line_right_comments(int node);
 static int get_right_comment(int node, int *right_comment, int *i);
 static void attach_left_comment(int node, int left_comment);
 static int get_same_line_comment(int node, int *same_line_comment);
@@ -647,10 +648,11 @@ static void plus_write(int is_multi, int right, int indent) {
   fputs("+ ", OUT);
   right_comments_in_expression_write(right, indent + 6);
   const int has_right = has_right_comment(right);
-  if (has_right && is_multi) {
+  const int is_single_right = is_single_line_right_comments(right);
+  if (has_right && !is_single_right) {
     indent_write(indent + 6);
   }
-  if (has_right && !is_multi) {
+  if (has_right && is_single_right) {
     fputc(' ', OUT);
   }
   not_infixed_write(right, indent);
