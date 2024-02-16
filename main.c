@@ -1978,7 +1978,6 @@ static void calculate_triple_string_mask() {
 }
 
 static void format_file(char *path) {
-  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }
