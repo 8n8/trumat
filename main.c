@@ -18,7 +18,7 @@ static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
 static int is_line_comment(int node);
-static void right_comments_write(int node, int indent);
+static void right_comments_with_title_write(int node, int indent);
 static int is_multiline_comment(int node);
 static int argument_parse(int *node);
 static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
@@ -489,7 +489,7 @@ static void list_item_write(int item, int indent) {
   if (has_same_line_comment(item)) {
     fputc(' ', OUT);
   }
-  right_comments_write(item, indent);
+  right_comments_with_title_write(item, indent);
 }
 
 static void non_empty_list_write(int node, int indent) {
@@ -607,7 +607,7 @@ static void plus_write(int is_multi, int right, int indent) {
     fputc(' ', OUT);
   }
   fputs("+ ", OUT);
-  right_comments_write(right, indent);
+  right_comments_with_title_write(right, indent);
   if (has_right_comment(right)) {
     indent_write(indent + 6);
   }
@@ -1063,7 +1063,7 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static int right_comments_parse() {
+static int right_comments_with_title_parse() {
   const int parent = get_new_node();
   spaces_parse();
   int same_line_comment;
@@ -1086,7 +1086,7 @@ static int list_item_parse(int *node) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
-  const int right_comment = right_comments_parse();
+  const int right_comment = right_comments_with_title_parse();
   attach_right_comment(*node, right_comment);
   return 0;
 }
@@ -1218,7 +1218,7 @@ static int plus_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  const int right_comment = right_comments_parse();
+  const int right_comment = right_comments_with_title_parse();
   whitespace_parse();
   if (not_infixed_parse(node)) {
     I = start;
@@ -1667,7 +1667,7 @@ static int has_title_comment(int node) {
   return 0;
 }
 
-static void right_comments_write(int node, int indent) {
+static void right_comments_with_title_write(int node, int indent) {
   same_line_comment_write(node, indent);
   if (has_title_comment(node)) {
     fputc('\n', OUT);
