@@ -8,8 +8,12 @@ static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
 static void attach_title_comments(int node, int title_comments);
+static void right_comments_in_expression_write(int node, int indent);
 static void title_comments_parse(int parent);
+static int get_right_comment(int node, int *right_comment, int *i);
 static void attach_left_comment(int node, int left_comment);
+static int get_same_line_comment(int node, int *same_line_comment);
+static int right_comments_in_expression_parse();
 static void attach_right_comment(int node, int right_comment);
 static int left_comments_parse();
 static void left_comments_write(int is_multi_context, int node, int indent);
@@ -61,6 +65,11 @@ int NUM_HAS_NEGATIVE = 0;
 static uint32_t LEFT_COMMENT[MAX_LEFT_COMMENT];
 static uint32_t LEFT_COMMENT_PARENT[MAX_LEFT_COMMENT];
 int NUM_LEFT_COMMENT = 0;
+
+#define MAX_RIGHT_COMMENT 10000
+static uint32_t RIGHT_COMMENT[MAX_RIGHT_COMMENT];
+static uint32_t RIGHT_COMMENT_PARENT[MAX_RIGHT_COMMENT];
+int NUM_RIGHT_COMMENT = 0;
 
 #define MAX_EMPTY_BLOCK_COMMENT 10000
 static uint32_t IS_EMPTY_BLOCK_COMMENT[MAX_EMPTY_BLOCK_COMMENT];
@@ -125,6 +134,30 @@ static void append_plus(int left, int right) {
   PLUS_LEFT[NUM_PLUS] = left;
   PLUS_RIGHT[NUM_PLUS] = right;
   ++NUM_PLUS;
+}
+
+static void append_right_comment(int node, int comment_node) {
+  if (NUM_RIGHT_COMMENT == MAX_RIGHT_COMMENT) {
+    fprintf(stderr, "too many right comment nodes, maximum is %d\n",
+            MAX_RIGHT_COMMENT);
+    exit(-1);
+  }
+  RIGHT_COMMENT[NUM_RIGHT_COMMENT] = comment_node;
+  RIGHT_COMMENT_PARENT[NUM_RIGHT_COMMENT] = node;
+  ++NUM_RIGHT_COMMENT;
+}
+
+static void attach_right_comment_in_expression(int node, int right_comment) {
+  for (int i = 0; i < NUM_SAME_LINE_COMMENT; ++i) {
+    if (SAME_LINE_COMMENT_PARENT[i] == (uint32_t)right_comment) {
+      SAME_LINE_COMMENT_PARENT[i] = node;
+    }
+  }
+  for (int i = 0; i < NUM_RIGHT_COMMENT; ++i) {
+    if (RIGHT_COMMENT_PARENT[i] == (uint32_t)right_comment) {
+      RIGHT_COMMENT_PARENT[i] = node;
+    }
+  }
 }
 
 static void append_is_arg1_line1(int node) {
@@ -607,7 +640,7 @@ static void plus_write(int is_multi, int right, int indent) {
     fputc(' ', OUT);
   }
   fputs("+ ", OUT);
-  right_comments_with_title_write(right, indent);
+  right_comments_in_expression_write(right, indent);
   if (has_right_comment(right)) {
     indent_write(indent + 6);
   }
@@ -704,6 +737,7 @@ static void zero_ast() {
   NUM_ARGUMENT = 0;
   NUM_IS_ARG1_LINE1 = 0;
   NUM_PLUS = 0;
+  NUM_RIGHT_COMMENT = 0;
 }
 
 static int get_new_node() {
@@ -1218,14 +1252,14 @@ static int plus_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  const int right_comment = right_comments_with_title_parse();
+  const int right_comment = right_comments_in_expression_parse();
   whitespace_parse();
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
   }
   attach_left_comment(*node, left_comment);
-  attach_right_comment(*node, right_comment);
+  attach_right_comment_in_expression(*node, right_comment);
   return 0;
 }
 
@@ -1435,6 +1469,20 @@ static int left_comments_parse() {
   return parent;
 }
 
+static int right_comments_in_expression_parse() {
+  const int node = get_new_node();
+  int same_line_comment;
+  if (line_comment_parse(&same_line_comment) == 0) {
+    append_same_line_comment(node, same_line_comment);
+  }
+  whitespace_parse();
+  for (int comment; comment_parse(&comment) == 0;
+       append_right_comment(node, comment)) {
+    whitespace_parse();
+  }
+  return node;
+}
+
 static void title_comments_parse(int parent) {
   for (int comment; comment_parse(&comment) == 0;
        append_title_comment(parent, comment)) {
@@ -1590,7 +1638,7 @@ static void comment_write(int node, int indent) {
   src_write(node);
 }
 
-static int is_single_line_comments(int node) {
+static int is_single_line_left_comments(int node) {
   int left_comment;
   int start = 0;
   while (get_left_comment(node, &left_comment, &start) == 0) {
@@ -1602,12 +1650,25 @@ static int is_single_line_comments(int node) {
   return 1;
 }
 
+static int is_single_line_right_comments(int node) {
+  int right_comment;
+  int start = 0;
+  while (get_right_comment(node, &right_comment, &start) == 0) {
+    if (is_multiline_block_comment(right_comment) ||
+        is_empty_block_comment(right_comment) ||
+        is_line_comment(right_comment)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 static void left_comments_write(
     // For example, if you have two single line block comments before the
     // body of a function they go on separate lines. But if they are before
     // a function argument they go on the same line.
     int is_multi_context, int node, int indent) {
-  const int is_single = is_single_line_comments(node);
+  const int is_single = is_single_line_left_comments(node);
   int left_comment;
   int start = 0;
   if (get_left_comment(node, &left_comment, &start) == 0) {
@@ -1618,6 +1679,34 @@ static void left_comments_write(
       fputc(' ', OUT);
     } else {
       indent_write(indent);
+    }
+    comment_write(left_comment, indent);
+  }
+}
+
+static int get_right_comment(int node, int *right_comment, int *i) {
+  for (; *i < NUM_RIGHT_COMMENT; ++*i) {
+    if (RIGHT_COMMENT_PARENT[*i] == (uint32_t)node) {
+      *right_comment = RIGHT_COMMENT[*i];
+      ++*i;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void right_comments_in_expression_write(int node, int indent) {
+  const int is_single = is_single_line_right_comments(node);
+  int left_comment;
+  int start = 0;
+  if (get_same_line_comment(node, &left_comment) == 0) {
+    comment_write(left_comment, indent);
+  }
+  while (get_right_comment(node, &left_comment, &start) == 0) {
+    if (is_single) {
+      fputc(' ', OUT);
+    } else {
+      indent_write(indent + 6);
     }
     comment_write(left_comment, indent);
   }
@@ -1883,6 +1972,7 @@ static void calculate_triple_string_mask() {
 }
 
 static void format_file(char *path) {
+  printf("%s\n", path);
   if (read_src(path)) {
     return;
   }
