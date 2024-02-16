@@ -1052,7 +1052,7 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static void list_item_after_expression_parse(int node) {
+static void right_comments_parse(int node) {
   spaces_parse();
   int same_line_comment;
   if (line_comment_parse(&same_line_comment) == 0) {
@@ -1073,7 +1073,7 @@ static int list_item_parse(int *node) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
-  list_item_after_expression_parse(*node);
+  right_comments_parse(*node);
   return 0;
 }
 
