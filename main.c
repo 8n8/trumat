@@ -646,8 +646,12 @@ static void plus_write(int is_multi, int right, int indent) {
   }
   fputs("+ ", OUT);
   right_comments_in_expression_write(right, indent + 6);
-  if (has_right_comment(right)) {
+  const int has_right = has_right_comment(right);
+  if (has_right && is_multi) {
     indent_write(indent + 6);
+  }
+  if (has_right && !is_multi) {
+    fputc(' ', OUT);
   }
   not_infixed_write(right, indent);
 }
