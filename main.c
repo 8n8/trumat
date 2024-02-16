@@ -655,7 +655,7 @@ static void plus_write(int is_multi, int right, int indent) {
   if (has_right && is_single_right) {
     fputc(' ', OUT);
   }
-  not_infixed_write(right, indent);
+  not_infixed_write(right, indent + 6);
 }
 
 static int get_plus_right(int node, int *right) {
