@@ -6,8 +6,11 @@
 static int expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
+static int has_title_comment(int node);
+static void attach_title_comments(int node, int title_comments);
 static void title_comments_parse(int parent);
 static void attach_left_comment(int node, int left_comment);
+static void attach_right_comment(int node, int right_comment);
 static int left_comments_parse();
 static void left_comments_write(int is_multi_context, int node, int indent);
 static int not_infixed_parse(int *node);
@@ -584,6 +587,10 @@ static int has_arguments(int node) {
   return 0;
 }
 
+static int has_right_comment(int node) {
+  return has_same_line_comment(node) || has_title_comment(node);
+}
+
 static void plus_write(int is_multi, int right, int indent) {
   if (is_multi) {
     indent_write(indent + 4);
@@ -600,6 +607,10 @@ static void plus_write(int is_multi, int right, int indent) {
     fputc(' ', OUT);
   }
   fputs("+ ", OUT);
+  right_comments_write(right, indent);
+  if (has_right_comment(right)) {
+    indent_write(indent + 6);
+  }
   not_infixed_write(right, indent);
 }
 
@@ -1052,15 +1063,17 @@ static int empty_list_parse(int *node) {
   return 0;
 }
 
-static void right_comments_parse(int node) {
+static int right_comments_parse() {
+  const int parent = get_new_node();
   spaces_parse();
   int same_line_comment;
   if (line_comment_parse(&same_line_comment) == 0) {
-    append_same_line_comment(node, same_line_comment);
+    append_same_line_comment(parent, same_line_comment);
   }
   whitespace_parse();
-  title_comments_parse(node);
+  title_comments_parse(parent);
   whitespace_parse();
+  return parent;
 }
 
 static int list_item_parse(int *node) {
@@ -1073,7 +1086,8 @@ static int list_item_parse(int *node) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
-  right_comments_parse(*node);
+  const int right_comment = right_comments_parse();
+  attach_right_comment(*node, right_comment);
   return 0;
 }
 
@@ -1173,6 +1187,27 @@ static int argument_parse(int *node) {
   return int_parse(node);
 }
 
+static void attach_same_line_comment(int node, int same_line_comment) {
+  for (int i = 0; i < NUM_SAME_LINE_COMMENT; ++i) {
+    if (SAME_LINE_COMMENT_PARENT[i] == (uint32_t)same_line_comment) {
+      SAME_LINE_COMMENT_PARENT[i] = node;
+    }
+  }
+}
+
+static void attach_title_comments(int node, int title_comments) {
+  for (int i = 0; i < NUM_TITLE_COMMENT; ++i) {
+    if (TITLE_COMMENT_PARENT[i] == (uint32_t)title_comments) {
+      TITLE_COMMENT_PARENT[i] = node;
+    }
+  }
+}
+
+static void attach_right_comment(int node, int right_comment) {
+  attach_same_line_comment(node, right_comment);
+  attach_title_comments(node, right_comment);
+}
+
 static int plus_parse(int *node) {
   const int start = I;
   whitespace_parse();
@@ -1183,11 +1218,14 @@ static int plus_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+  const int right_comment = right_comments_parse();
+  whitespace_parse();
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
   }
   attach_left_comment(*node, left_comment);
+  attach_right_comment(*node, right_comment);
   return 0;
 }
 

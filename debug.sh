@@ -1,6 +1,6 @@
 #!/bin/sh
 
 rm a.out
-cp input/List/MultilineString.elm test.elm
-clang -g -O0 main.c
+cp input/PlusInfix/LineCommentAfterPlus.elm test.elm
+clang -g -O0 -fsanitize=memory main.c
 gdb --args a.out --overwrite test.elm
