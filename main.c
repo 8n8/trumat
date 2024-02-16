@@ -6,7 +6,9 @@
 static int expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
-static void comments_parse(uint32_t comments[1000], int *num_comments);
+static void title_comments_parse(int parent);
+static void attach_left_comment(int node, int left_comment);
+static int left_comments_parse();
 static void left_comments_write(int is_multi_context, int node, int indent);
 static int not_infixed_parse(int *node);
 static int get_left_comment(int node, int *left_comment, int *i);
@@ -1050,13 +1052,8 @@ static void list_item_after_expression_parse(int node) {
   }
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t title_comment[1000];
-  int num_title_comment = 0;
-  comments_parse(title_comment, &num_title_comment);
+  title_comments_parse(node);
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
-  for (int i = 0; i < num_title_comment; ++i) {
-    append_title_comment(node, title_comment[i]);
   }
 }
 
@@ -1064,18 +1061,14 @@ static int list_item_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t left_comment[1000];
-  int num_left_comment = 0;
-  comments_parse(left_comment, &num_left_comment);
+  const int left_comment = left_comments_parse();
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (expression_parse(node)) {
     I = start;
     return -1;
   }
-  for (int i = 0; i < num_left_comment; ++i) {
-    append_left_comment(*node, left_comment[i]);
-  }
+  attach_left_comment(*node, left_comment);
   list_item_after_expression_parse(*node);
   return 0;
 }
@@ -1125,15 +1118,11 @@ static int list_parse(int *node) {
 static int argument_and_comments_parse(int *argument) {
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t left_comments[1000];
-  int num_left_comments = 0;
-  comments_parse(left_comments, &num_left_comments);
+  const int left_comment = left_comments_parse();
   if (argument_parse(argument)) {
     return -1;
   }
-  for (int i = 0; i < num_left_comments; ++i) {
-    append_left_comment(*argument, left_comments[i]);
-  }
+  attach_left_comment(*argument, left_comment);
   return 0;
 }
 
@@ -1185,9 +1174,7 @@ static int plus_parse(int *node) {
   const int start = I;
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
-  uint32_t left_comment[100];
-  int num_left_comment = 0;
-  comments_parse(left_comment, &num_left_comment);
+  const int left_comment = left_comments_parse();
   while (char_parse(' ') == 0 || char_parse('\n') == 0) {
   }
   if (char_parse('+')) {
@@ -1200,9 +1187,7 @@ static int plus_parse(int *node) {
     I = start;
     return -1;
   }
-  for (int i = 0; i < num_left_comment; ++i) {
-    append_left_comment(*node, left_comment[i]);
-  }
+  attach_left_comment(*node, left_comment);
   return 0;
 }
 
@@ -1411,11 +1396,28 @@ static int comment_parse(int *node) {
   return non_empty_block_comment_parse(node);
 }
 
-static void comments_parse(uint32_t comments[1000], int *num_comments) {
-  for (; *num_comments < 1000 &&
-         comment_parse((int *)&comments[*num_comments]) == 0;
-       ++*num_comments) {
+static int left_comments_parse() {
+  const int parent = get_new_node();
+  for (int comment; comment_parse(&comment) == 0;
+       append_left_comment(parent, comment)) {
     while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+    }
+  }
+  return parent;
+}
+
+static void title_comments_parse(int parent) {
+  for (int comment; comment_parse(&comment) == 0;
+       append_title_comment(parent, comment)) {
+    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+    }
+  }
+}
+
+static void attach_left_comment(int node, int left_comment) {
+  for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
+    if (LEFT_COMMENT_PARENT[i] == (uint32_t)left_comment) {
+      LEFT_COMMENT_PARENT[i] = (uint32_t)node;
     }
   }
 }
@@ -1424,17 +1426,13 @@ static int module_parse(int *node) {
   if (chunk_parse("module X exposing (x)\n\n\nx =\n    ")) {
     return -1;
   }
-  uint32_t left_comment[1000];
-  int num_left_comment = 0;
-  comments_parse(left_comment, &num_left_comment);
+  const int left_comment = left_comments_parse();
   while (char_parse(' ') == 0) {
   }
   if (expression_parse(node)) {
     return -1;
   }
-  for (int i = 0; i < num_left_comment; ++i) {
-    append_left_comment(*node, left_comment[i]);
-  }
+  attach_left_comment(*node, left_comment);
   return 0;
 }
 
