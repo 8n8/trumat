@@ -1027,13 +1027,17 @@ static int upper_name_parse(int *node) {
   return 0;
 }
 
+static void whitespace_parse() {
+  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
+  }
+}
+
 static int empty_list_parse(int *node) {
   const int start = I;
   if (char_parse('[')) {
     return -1;
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   if (char_parse(']')) {
     I = start;
     return -1;
@@ -1050,20 +1054,16 @@ static void list_item_after_expression_parse(int node) {
   if (line_comment_parse(&same_line_comment) == 0) {
     append_same_line_comment(node, same_line_comment);
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   title_comments_parse(node);
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
 }
 
 static int list_item_parse(int *node) {
   const int start = I;
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   const int left_comment = left_comments_parse();
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   if (expression_parse(node)) {
     I = start;
     return -1;
@@ -1116,8 +1116,7 @@ static int list_parse(int *node) {
 }
 
 static int argument_and_comments_parse(int *argument) {
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   const int left_comment = left_comments_parse();
   if (argument_parse(argument)) {
     return -1;
@@ -1172,17 +1171,14 @@ static int argument_parse(int *node) {
 
 static int plus_parse(int *node) {
   const int start = I;
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   const int left_comment = left_comments_parse();
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   if (char_parse('+')) {
     I = start;
     return -1;
   }
-  while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-  }
+  whitespace_parse();
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
@@ -1400,8 +1396,7 @@ static int left_comments_parse() {
   const int parent = get_new_node();
   for (int comment; comment_parse(&comment) == 0;
        append_left_comment(parent, comment)) {
-    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-    }
+    whitespace_parse();
   }
   return parent;
 }
@@ -1409,8 +1404,7 @@ static int left_comments_parse() {
 static void title_comments_parse(int parent) {
   for (int comment; comment_parse(&comment) == 0;
        append_title_comment(parent, comment)) {
-    while (char_parse(' ') == 0 || char_parse('\n') == 0) {
-    }
+    whitespace_parse();
   }
 }
 
