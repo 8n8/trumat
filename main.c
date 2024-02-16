@@ -632,15 +632,15 @@ static int has_right_comment(int node) {
 
 static void plus_write(int is_multi, int right, int indent) {
   if (is_multi) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   } else {
     fputc(' ', OUT);
   }
-  left_comments_write(0, right, indent + 4);
+  left_comments_write(0, right, floor_to_four(indent + 4));
   const int multi_left = has_multiline_left_comment(right);
   const int has_left = has_left_comment(right);
   if (multi_left) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   }
   if (has_left && !multi_left) {
     fputc(' ', OUT);
