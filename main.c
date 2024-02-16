@@ -1032,6 +1032,11 @@ static void whitespace_parse() {
   }
 }
 
+static void spaces_parse() {
+  while (char_parse(' ') == 0) {
+  }
+}
+
 static int empty_list_parse(int *node) {
   const int start = I;
   if (char_parse('[')) {
@@ -1048,8 +1053,7 @@ static int empty_list_parse(int *node) {
 }
 
 static void list_item_after_expression_parse(int node) {
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   int same_line_comment;
   if (line_comment_parse(&same_line_comment) == 0) {
     append_same_line_comment(node, same_line_comment);
@@ -1251,8 +1255,7 @@ static int line_comment_parse(int *node) {
     --I;
   }
   const int end = I;
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   *node = get_new_node();
   append_has_src(*node, start + 1, end - start);
   return 0;
@@ -1264,8 +1267,7 @@ static int empty_block_comment_parse(int *node) {
   if (chunk_parse("{-")) {
     return -1;
   }
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   if (chunk_parse("-}")) {
     I = start;
     return -1;
@@ -1297,8 +1299,7 @@ static int block_comment_item_parse(int *nesting) {
 
 static void block_comment_line_parse(uint32_t *start, uint16_t *size,
                                      int *nesting) {
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   *start = I + 1;
   while (block_comment_item_parse(nesting) == 0) {
   }
@@ -1306,15 +1307,13 @@ static void block_comment_line_parse(uint32_t *start, uint16_t *size,
     --I;
   }
   *size = I - *start + 1;
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   char_parse('\n');
 }
 
 static int is_block_comment_end() {
   const int start = I;
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   if (chunk_parse("-}")) {
     I = start;
     return 0;
@@ -1343,8 +1342,7 @@ static int non_empty_block_comment_parse(int *node) {
     block_comment_line_parse(&line_start, &line_size, &nesting);
     append_block_comment_line(*node, line_start, line_size);
   }
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   if (chunk_parse("-}")) {
     I = start;
     return -1;
@@ -1356,8 +1354,7 @@ static int double_hyphen_block_comment_parse(int *node) {
   if (chunk_parse("{--")) {
     return -1;
   }
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   const int start = I;
   uint8_t dont_care;
   while (chunk_parse("-}") && any_char_parse(&dont_care) == 0) {
@@ -1367,8 +1364,7 @@ static int double_hyphen_block_comment_parse(int *node) {
     --I;
   }
   const int end = I;
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   if (chunk_parse("-}")) {
     I = start;
     return -1;
@@ -1421,8 +1417,7 @@ static int module_parse(int *node) {
     return -1;
   }
   const int left_comment = left_comments_parse();
-  while (char_parse(' ') == 0) {
-  }
+  spaces_parse();
   if (expression_parse(node)) {
     return -1;
   }
