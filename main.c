@@ -621,7 +621,12 @@ static int has_arguments(int node) {
 }
 
 static int has_right_comment(int node) {
-  return has_same_line_comment(node) || has_title_comment(node);
+  for (int i = 0; i < NUM_RIGHT_COMMENT; ++i) {
+    if (RIGHT_COMMENT_PARENT[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static void plus_write(int is_multi, int right, int indent) {
@@ -640,7 +645,7 @@ static void plus_write(int is_multi, int right, int indent) {
     fputc(' ', OUT);
   }
   fputs("+ ", OUT);
-  right_comments_in_expression_write(right, indent);
+  right_comments_in_expression_write(right, indent + 6);
   if (has_right_comment(right)) {
     indent_write(indent + 6);
   }
@@ -1471,11 +1476,6 @@ static int left_comments_parse() {
 
 static int right_comments_in_expression_parse() {
   const int node = get_new_node();
-  int same_line_comment;
-  if (line_comment_parse(&same_line_comment) == 0) {
-    append_same_line_comment(node, same_line_comment);
-  }
-  whitespace_parse();
   for (int comment; comment_parse(&comment) == 0;
        append_right_comment(node, comment)) {
     whitespace_parse();
@@ -1699,14 +1699,14 @@ static void right_comments_in_expression_write(int node, int indent) {
   const int is_single = is_single_line_right_comments(node);
   int left_comment;
   int start = 0;
-  if (get_same_line_comment(node, &left_comment) == 0) {
+  if (get_right_comment(node, &left_comment, &start) == 0) {
     comment_write(left_comment, indent);
   }
   while (get_right_comment(node, &left_comment, &start) == 0) {
     if (is_single) {
       fputc(' ', OUT);
     } else {
-      indent_write(indent + 6);
+      indent_write(indent);
     }
     comment_write(left_comment, indent);
   }
