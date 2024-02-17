@@ -165,7 +165,8 @@ int NUM_INT_DIVIDE = 0;
 
 static void append_int_divide(int left, int right) {
   if (NUM_INT_DIVIDE == MAX_INT_DIVIDE) {
-    fprintf(stderr, "too many int divide nodes, maximum is %d\n", MAX_INT_DIVIDE);
+    fprintf(stderr, "too many int divide nodes, maximum is %d\n",
+            MAX_INT_DIVIDE);
     exit(-1);
   }
   INT_DIVIDE_LEFT[NUM_INT_DIVIDE] = left;
