@@ -152,6 +152,21 @@ static uint32_t GREATER_THAN_LEFT[MAX_GREATER_THAN];
 static uint32_t GREATER_THAN_RIGHT[MAX_GREATER_THAN];
 int NUM_GREATER_THAN = 0;
 
+#define MAX_LESS_THAN 10000
+static uint32_t LESS_THAN_LEFT[MAX_LESS_THAN];
+static uint32_t LESS_THAN_RIGHT[MAX_LESS_THAN];
+int NUM_LESS_THAN = 0;
+
+static void append_less_than(int left, int right) {
+  if (NUM_LESS_THAN == MAX_LESS_THAN) {
+    fprintf(stderr, "too many less than nodes, maximum is %d\n", MAX_LESS_THAN);
+    exit(-1);
+  }
+  LESS_THAN_LEFT[NUM_LESS_THAN] = left;
+  LESS_THAN_RIGHT[NUM_LESS_THAN] = right;
+  ++NUM_LESS_THAN;
+}
+
 static void append_greater_than(int left, int right) {
   if (NUM_GREATER_THAN == MAX_GREATER_THAN) {
     fprintf(stderr, "too many greater than nodes, maximum is %d\n",
@@ -796,6 +811,16 @@ static int get_greater_than(int node, int *right) {
   return -1;
 }
 
+static int get_less_than(int node, int *right) {
+  for (int i = 0; i < NUM_LESS_THAN; ++i) {
+    if (LESS_THAN_LEFT[i] == (uint32_t)node) {
+      *right = LESS_THAN_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -825,6 +850,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_greater_than(*left, &right) == 0) {
     infix_write_helper('>', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_less_than(*left, &right) == 0) {
+    infix_write_helper('<', is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -915,6 +945,7 @@ static void zero_ast() {
   NUM_DIVIDE = 0;
   NUM_POWER = 0;
   NUM_GREATER_THAN = 0;
+  NUM_LESS_THAN = 0;
 }
 
 static int get_new_node() {
@@ -1469,6 +1500,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, '>') == 0) {
     append_greater_than(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, '<') == 0) {
+    append_less_than(*left, right);
     *left = right;
     return 0;
   }
