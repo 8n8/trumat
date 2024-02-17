@@ -147,6 +147,22 @@ static uint32_t POWER_LEFT[MAX_POWER];
 static uint32_t POWER_RIGHT[MAX_POWER];
 int NUM_POWER = 0;
 
+#define MAX_GREATER_THAN 10000
+static uint32_t GREATER_THAN_LEFT[MAX_GREATER_THAN];
+static uint32_t GREATER_THAN_RIGHT[MAX_GREATER_THAN];
+int NUM_GREATER_THAN = 0;
+
+static void append_greater_than(int left, int right) {
+  if (NUM_GREATER_THAN == MAX_GREATER_THAN) {
+    fprintf(stderr, "too many greater than nodes, maximum is %d\n",
+            MAX_GREATER_THAN);
+    exit(-1);
+  }
+  GREATER_THAN_LEFT[NUM_GREATER_THAN] = left;
+  GREATER_THAN_RIGHT[NUM_GREATER_THAN] = right;
+  ++NUM_GREATER_THAN;
+}
+
 static void append_power(int left, int right) {
   if (NUM_POWER == MAX_POWER) {
     fprintf(stderr, "too many power nodes, maximum is %d\n", MAX_POWER);
@@ -690,7 +706,8 @@ static int has_right_comment(int node) {
   return 0;
 }
 
-static void arithmetic_write(char infix, int is_multi, int right, int indent) {
+static void infix_write_helper(char infix, int is_multi, int right,
+                               int indent) {
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
   } else {
@@ -769,30 +786,45 @@ static int get_power_right(int node, int *right) {
   return -1;
 }
 
+static int get_greater_than(int node, int *right) {
+  for (int i = 0; i < NUM_GREATER_THAN; ++i) {
+    if (GREATER_THAN_LEFT[i] == (uint32_t)node) {
+      *right = GREATER_THAN_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
-    arithmetic_write('+', is_multi, right, indent);
+    infix_write_helper('+', is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_minus_right(*left, &right) == 0) {
-    arithmetic_write('-', is_multi, right, indent);
+    infix_write_helper('-', is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_asterisk_right(*left, &right) == 0) {
-    arithmetic_write('*', is_multi, right, indent);
+    infix_write_helper('*', is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_divide_right(*left, &right) == 0) {
-    arithmetic_write('/', is_multi, right, indent);
+    infix_write_helper('/', is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_power_right(*left, &right) == 0) {
-    arithmetic_write('^', is_multi, right, indent);
+    infix_write_helper('^', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_greater_than(*left, &right) == 0) {
+    infix_write_helper('>', is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -805,9 +837,6 @@ static void expression_write(int node, int indent) {
   int left = node;
   while (infix_write(&left, is_multi, indent) == 0) {
   }
-  // for (; get_plus_right(left, &right) == 0; left = right) {
-  //   arithmetic_write('+', is_multi, right, indent);
-  // }
 }
 
 static void not_infixed_write(int node, int indent) {
@@ -885,6 +914,7 @@ static void zero_ast() {
   NUM_ASTERISK = 0;
   NUM_DIVIDE = 0;
   NUM_POWER = 0;
+  NUM_GREATER_THAN = 0;
 }
 
 static int get_new_node() {
@@ -1389,7 +1419,7 @@ static void attach_right_comment(int node, int right_comment) {
   attach_title_comments(node, right_comment);
 }
 
-static int arithmetic_parse(int *node, char infix) {
+static int infix_parse_helper(int *node, char infix) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -1412,28 +1442,33 @@ static int arithmetic_parse(int *node, char infix) {
 
 static int infix_parse(int *left) {
   int right;
-  if (arithmetic_parse(&right, '+') == 0) {
+  if (infix_parse_helper(&right, '+') == 0) {
     append_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (arithmetic_parse(&right, '-') == 0) {
+  if (infix_parse_helper(&right, '-') == 0) {
     append_minus(*left, right);
     *left = right;
     return 0;
   }
-  if (arithmetic_parse(&right, '*') == 0) {
+  if (infix_parse_helper(&right, '*') == 0) {
     append_asterisk(*left, right);
     *left = right;
     return 0;
   }
-  if (arithmetic_parse(&right, '/') == 0) {
+  if (infix_parse_helper(&right, '/') == 0) {
     append_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (arithmetic_parse(&right, '^') == 0) {
+  if (infix_parse_helper(&right, '^') == 0) {
     append_power(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, '>') == 0) {
+    append_greater_than(*left, right);
     *left = right;
     return 0;
   }
