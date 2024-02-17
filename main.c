@@ -132,6 +132,21 @@ static uint32_t MINUS_LEFT[MAX_MINUS];
 static uint32_t MINUS_RIGHT[MAX_MINUS];
 int NUM_MINUS = 0;
 
+#define MAX_ASTERISK 10000
+static uint32_t ASTERISK_LEFT[MAX_ASTERISK];
+static uint32_t ASTERISK_RIGHT[MAX_ASTERISK];
+int NUM_ASTERISK = 0;
+
+static void append_asterisk(int left, int right) {
+  if (NUM_ASTERISK == MAX_ASTERISK) {
+    fprintf(stderr, "too many asterisk nodes, maximum is %d\n", MAX_ASTERISK);
+    exit(-1);
+  }
+  ASTERISK_LEFT[NUM_ASTERISK] = left;
+  ASTERISK_RIGHT[NUM_ASTERISK] = right;
+  ++NUM_ASTERISK;
+}
+
 static void append_minus(int left, int right) {
   if (NUM_MINUS == MAX_MINUS) {
     fprintf(stderr, "too many minus nodes, maximum is %d\n", MAX_MINUS);
@@ -694,6 +709,16 @@ static int get_minus_right(int node, int *right) {
   return -1;
 }
 
+static int get_asterisk_right(int node, int *right) {
+  for (int i = 0; i < NUM_ASTERISK; ++i) {
+    if (ASTERISK_LEFT[i] == (uint32_t)node) {
+      *right = ASTERISK_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -703,6 +728,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_minus_right(*left, &right) == 0) {
     arithmetic_write('-', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_asterisk_right(*left, &right) == 0) {
+    arithmetic_write('*', is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -792,6 +822,7 @@ static void zero_ast() {
   NUM_PLUS = 0;
   NUM_RIGHT_COMMENT = 0;
   NUM_MINUS = 0;
+  NUM_ASTERISK = 0;
 }
 
 static int get_new_node() {
@@ -1329,6 +1360,11 @@ static int infix_parse(int *left) {
     *left = right;
     return 0;
   }
+  if (arithmetic_parse(&right, '*') == 0) {
+    append_asterisk(*left, right);
+    *left = right;
+    return 0;
+  }
   return -1;
 }
 
@@ -1338,11 +1374,6 @@ static int expression_parse(int *node) {
     return -1;
   }
 
-  // int right;
-  // for (int left = *node; plus_parse(&right) == 0; left = right) {
-  //   append_plus(left, right);
-  // }
-  
   int left = *node;
   while (infix_parse(&left) == 0) {
   }
