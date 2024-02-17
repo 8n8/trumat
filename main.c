@@ -127,6 +127,21 @@ static uint32_t PLUS_LEFT[MAX_PLUS];
 static uint32_t PLUS_RIGHT[MAX_PLUS];
 int NUM_PLUS = 0;
 
+#define MAX_MINUS 10000
+static uint32_t MINUS_LEFT[MAX_MINUS];
+static uint32_t MINUS_RIGHT[MAX_MINUS];
+int NUM_MINUS = 0;
+
+static void append_minus(int left, int right) {
+  if (NUM_MINUS == MAX_MINUS) {
+    fprintf(stderr, "too many minus nodes, maximum is %d\n", MAX_MINUS);
+    exit(-1);
+  }
+  MINUS_LEFT[NUM_MINUS] = left;
+  MINUS_RIGHT[NUM_MINUS] = right;
+  ++NUM_MINUS;
+}
+
 static void append_plus(int left, int right) {
   if (NUM_PLUS == MAX_PLUS) {
     fprintf(stderr, "too many plus nodes, maximum is %d\n", MAX_PLUS);
@@ -630,7 +645,7 @@ static int has_right_comment(int node) {
   return 0;
 }
 
-static void plus_write(int is_multi, int right, int indent) {
+static void arithmetic_write(char infix, int is_multi, int right, int indent) {
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
   } else {
@@ -645,7 +660,8 @@ static void plus_write(int is_multi, int right, int indent) {
   if (has_left && !multi_left) {
     fputc(' ', OUT);
   }
-  fputs("+ ", OUT);
+  fputc(infix, OUT);
+  fputc(' ', OUT);
   right_comments_in_expression_write(right, indent + 6);
   const int has_right = has_right_comment(right);
   const int is_single_right = is_single_line_right_comments(right);
@@ -668,14 +684,40 @@ static int get_plus_right(int node, int *right) {
   return -1;
 }
 
+static int get_minus_right(int node, int *right) {
+  for (int i = 0; i < NUM_MINUS; ++i) {
+    if (MINUS_LEFT[i] == (uint32_t)node) {
+      *right = MINUS_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static int infix_write(int *left, int is_multi, int indent) {
+  int right;
+  if (get_plus_right(*left, &right) == 0) {
+    arithmetic_write('+', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_minus_right(*left, &right) == 0) {
+    arithmetic_write('-', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  return -1;
+}
+
 static void expression_write(int node, int indent) {
   not_infixed_write(node, indent);
   const int is_multi = is_multiline_node(node);
   int left = node;
-  int right;
-  for (; get_plus_right(left, &right) == 0; left = right) {
-    plus_write(is_multi, right, indent);
+  while (infix_write(&left, is_multi, indent) == 0) {
   }
+  // for (; get_plus_right(left, &right) == 0; left = right) {
+  //   arithmetic_write('+', is_multi, right, indent);
+  // }
 }
 
 static void not_infixed_write(int node, int indent) {
@@ -749,6 +791,7 @@ static void zero_ast() {
   NUM_IS_ARG1_LINE1 = 0;
   NUM_PLUS = 0;
   NUM_RIGHT_COMMENT = 0;
+  NUM_MINUS = 0;
 }
 
 static int get_new_node() {
@@ -1253,12 +1296,12 @@ static void attach_right_comment(int node, int right_comment) {
   attach_title_comments(node, right_comment);
 }
 
-static int plus_parse(int *node) {
+static int arithmetic_parse(int *node, char infix) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (char_parse('+')) {
+  if (char_parse(infix)) {
     I = start;
     return -1;
   }
@@ -1274,16 +1317,36 @@ static int plus_parse(int *node) {
   return 0;
 }
 
+static int infix_parse(int *left) {
+  int right;
+  if (arithmetic_parse(&right, '+') == 0) {
+    append_plus(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (arithmetic_parse(&right, '-') == 0) {
+    append_minus(*left, right);
+    *left = right;
+    return 0;
+  }
+  return -1;
+}
+
 static int expression_parse(int *node) {
   const int start_row = ROW[I];
   if (not_infixed_parse(node)) {
     return -1;
   }
 
-  int right;
-  for (int left = *node; plus_parse(&right) == 0; left = right) {
-    append_plus(left, right);
+  // int right;
+  // for (int left = *node; plus_parse(&right) == 0; left = right) {
+  //   append_plus(left, right);
+  // }
+  
+  int left = *node;
+  while (infix_parse(&left) == 0) {
   }
+
   if (ROW[I] > start_row) {
     append_is_multiline(*node);
   }
