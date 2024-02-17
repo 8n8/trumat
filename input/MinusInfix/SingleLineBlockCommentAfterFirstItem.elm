@@ -2,4 +2,4 @@ module X exposing (x)
 
 
 x =
-    a - b
+    a{-b-}- c

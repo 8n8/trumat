@@ -2,5 +2,5 @@ module X exposing (x)
 
 
 x =
-    a{-b-}+
-    c
+    1 - a
+    b
