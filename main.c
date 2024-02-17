@@ -142,6 +142,21 @@ static uint32_t DIVIDE_LEFT[MAX_DIVIDE];
 static uint32_t DIVIDE_RIGHT[MAX_DIVIDE];
 int NUM_DIVIDE = 0;
 
+#define MAX_POWER 10000
+static uint32_t POWER_LEFT[MAX_POWER];
+static uint32_t POWER_RIGHT[MAX_POWER];
+int NUM_POWER = 0;
+
+static void append_power(int left, int right) {
+  if (NUM_POWER == MAX_POWER) {
+    fprintf(stderr, "too many power nodes, maximum is %d\n", MAX_POWER);
+    exit(-1);
+  }
+  POWER_LEFT[NUM_POWER] = left;
+  POWER_RIGHT[NUM_POWER] = right;
+  ++NUM_POWER;
+}
+
 static void append_divide(int left, int right) {
   if (NUM_DIVIDE == MAX_DIVIDE) {
     fprintf(stderr, "too many divide nodes, maximum is %d\n", MAX_DIVIDE);
@@ -744,6 +759,16 @@ static int get_divide_right(int node, int *right) {
   return -1;
 }
 
+static int get_power_right(int node, int *right) {
+  for (int i = 0; i < NUM_POWER; ++i) {
+    if (POWER_LEFT[i] == (uint32_t)node) {
+      *right = POWER_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -763,6 +788,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_divide_right(*left, &right) == 0) {
     arithmetic_write('/', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_power_right(*left, &right) == 0) {
+    arithmetic_write('^', is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -854,6 +884,7 @@ static void zero_ast() {
   NUM_MINUS = 0;
   NUM_ASTERISK = 0;
   NUM_DIVIDE = 0;
+  NUM_POWER = 0;
 }
 
 static int get_new_node() {
@@ -1398,6 +1429,11 @@ static int infix_parse(int *left) {
   }
   if (arithmetic_parse(&right, '/') == 0) {
     append_divide(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (arithmetic_parse(&right, '^') == 0) {
+    append_power(*left, right);
     *left = right;
     return 0;
   }
