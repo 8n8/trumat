@@ -7,6 +7,7 @@ static int expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
+static int string_length(char *s);
 static void attach_title_comments(int node, int title_comments);
 static void right_comments_in_expression_write(int node, int indent);
 static void title_comments_parse(int parent);
@@ -156,6 +157,21 @@ int NUM_GREATER_THAN = 0;
 static uint32_t LESS_THAN_LEFT[MAX_LESS_THAN];
 static uint32_t LESS_THAN_RIGHT[MAX_LESS_THAN];
 int NUM_LESS_THAN = 0;
+
+#define MAX_INT_DIVIDE 10000
+static uint32_t INT_DIVIDE_LEFT[MAX_INT_DIVIDE];
+static uint32_t INT_DIVIDE_RIGHT[MAX_INT_DIVIDE];
+int NUM_INT_DIVIDE = 0;
+
+static void append_int_divide(int left, int right) {
+  if (NUM_INT_DIVIDE == MAX_INT_DIVIDE) {
+    fprintf(stderr, "too many int divide nodes, maximum is %d\n", MAX_INT_DIVIDE);
+    exit(-1);
+  }
+  INT_DIVIDE_LEFT[NUM_INT_DIVIDE] = left;
+  INT_DIVIDE_RIGHT[NUM_INT_DIVIDE] = right;
+  ++NUM_INT_DIVIDE;
+}
 
 static void append_less_than(int left, int right) {
   if (NUM_LESS_THAN == MAX_LESS_THAN) {
@@ -721,7 +737,7 @@ static int has_right_comment(int node) {
   return 0;
 }
 
-static void infix_write_helper(char infix, int is_multi, int right,
+static void infix_write_helper(char *infix, int is_multi, int right,
                                int indent) {
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
@@ -737,18 +753,19 @@ static void infix_write_helper(char infix, int is_multi, int right,
   if (has_left && !multi_left) {
     fputc(' ', OUT);
   }
-  fputc(infix, OUT);
+  fputs(infix, OUT);
   fputc(' ', OUT);
-  right_comments_in_expression_write(right, indent + 6);
+  const int new_indent = indent + 4 + string_length(infix) + 1;
+  right_comments_in_expression_write(right, new_indent);
   const int has_right = has_right_comment(right);
   const int is_single_right = is_single_line_right_comments(right);
   if (has_right && !is_single_right) {
-    indent_write(indent + 6);
+    indent_write(new_indent);
   }
   if (has_right && is_single_right) {
     fputc(' ', OUT);
   }
-  not_infixed_write(right, indent + 6);
+  not_infixed_write(right, new_indent);
 }
 
 static int get_plus_right(int node, int *right) {
@@ -821,40 +838,55 @@ static int get_less_than(int node, int *right) {
   return -1;
 }
 
+static int get_int_divide(int node, int *right) {
+  for (int i = 0; i < NUM_INT_DIVIDE; ++i) {
+    if (INT_DIVIDE_LEFT[i] == (uint32_t)node) {
+      *right = INT_DIVIDE_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
-    infix_write_helper('+', is_multi, right, indent);
+    infix_write_helper("+", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_minus_right(*left, &right) == 0) {
-    infix_write_helper('-', is_multi, right, indent);
+    infix_write_helper("-", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_asterisk_right(*left, &right) == 0) {
-    infix_write_helper('*', is_multi, right, indent);
+    infix_write_helper("*", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_divide_right(*left, &right) == 0) {
-    infix_write_helper('/', is_multi, right, indent);
+    infix_write_helper("/", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_power_right(*left, &right) == 0) {
-    infix_write_helper('^', is_multi, right, indent);
+    infix_write_helper("^", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_greater_than(*left, &right) == 0) {
-    infix_write_helper('>', is_multi, right, indent);
+    infix_write_helper(">", is_multi, right, indent);
     *left = right;
     return 0;
   }
   if (get_less_than(*left, &right) == 0) {
-    infix_write_helper('<', is_multi, right, indent);
+    infix_write_helper("<", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_int_divide(*left, &right) == 0) {
+    infix_write_helper("//", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -946,6 +978,7 @@ static void zero_ast() {
   NUM_POWER = 0;
   NUM_GREATER_THAN = 0;
   NUM_LESS_THAN = 0;
+  NUM_INT_DIVIDE = 0;
 }
 
 static int get_new_node() {
@@ -1450,12 +1483,12 @@ static void attach_right_comment(int node, int right_comment) {
   attach_title_comments(node, right_comment);
 }
 
-static int infix_parse_helper(int *node, char infix) {
+static int infix_parse_helper(int *node, char *infix) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (char_parse(infix)) {
+  if (chunk_parse(infix)) {
     I = start;
     return -1;
   }
@@ -1473,37 +1506,42 @@ static int infix_parse_helper(int *node, char infix) {
 
 static int infix_parse(int *left) {
   int right;
-  if (infix_parse_helper(&right, '+') == 0) {
+  if (infix_parse_helper(&right, "+") == 0) {
     append_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '-') == 0) {
+  if (infix_parse_helper(&right, "-") == 0) {
     append_minus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '*') == 0) {
+  if (infix_parse_helper(&right, "*") == 0) {
     append_asterisk(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '/') == 0) {
+  if (infix_parse_helper(&right, "//") == 0) {
+    append_int_divide(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "/") == 0) {
     append_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '^') == 0) {
+  if (infix_parse_helper(&right, "^") == 0) {
     append_power(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '>') == 0) {
+  if (infix_parse_helper(&right, ">") == 0) {
     append_greater_than(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, '<') == 0) {
+  if (infix_parse_helper(&right, "<") == 0) {
     append_less_than(*left, right);
     *left = right;
     return 0;
