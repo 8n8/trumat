@@ -137,6 +137,21 @@ static uint32_t ASTERISK_LEFT[MAX_ASTERISK];
 static uint32_t ASTERISK_RIGHT[MAX_ASTERISK];
 int NUM_ASTERISK = 0;
 
+#define MAX_DIVIDE 10000
+static uint32_t DIVIDE_LEFT[MAX_DIVIDE];
+static uint32_t DIVIDE_RIGHT[MAX_DIVIDE];
+int NUM_DIVIDE = 0;
+
+static void append_divide(int left, int right) {
+  if (NUM_DIVIDE == MAX_DIVIDE) {
+    fprintf(stderr, "too many divide nodes, maximum is %d\n", MAX_DIVIDE);
+    exit(-1);
+  }
+  DIVIDE_LEFT[NUM_DIVIDE] = left;
+  DIVIDE_RIGHT[NUM_DIVIDE] = right;
+  ++NUM_DIVIDE;
+}
+
 static void append_asterisk(int left, int right) {
   if (NUM_ASTERISK == MAX_ASTERISK) {
     fprintf(stderr, "too many asterisk nodes, maximum is %d\n", MAX_ASTERISK);
@@ -719,6 +734,16 @@ static int get_asterisk_right(int node, int *right) {
   return -1;
 }
 
+static int get_divide_right(int node, int *right) {
+  for (int i = 0; i < NUM_DIVIDE; ++i) {
+    if (DIVIDE_LEFT[i] == (uint32_t)node) {
+      *right = DIVIDE_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -733,6 +758,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_asterisk_right(*left, &right) == 0) {
     arithmetic_write('*', is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_divide_right(*left, &right) == 0) {
+    arithmetic_write('/', is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -823,6 +853,7 @@ static void zero_ast() {
   NUM_RIGHT_COMMENT = 0;
   NUM_MINUS = 0;
   NUM_ASTERISK = 0;
+  NUM_DIVIDE = 0;
 }
 
 static int get_new_node() {
@@ -1362,6 +1393,11 @@ static int infix_parse(int *left) {
   }
   if (arithmetic_parse(&right, '*') == 0) {
     append_asterisk(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (arithmetic_parse(&right, '/') == 0) {
+    append_divide(*left, right);
     *left = right;
     return 0;
   }
