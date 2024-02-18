@@ -31,6 +31,7 @@ static int argument_parse(int *node);
 static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
 static void not_infixed_write(int node, int indent);
 
+static char *PATH;
 // Twice the size of the largest Elm file I have seen.
 #define MAX_SRC 1400 * 1000
 static uint8_t SRC[MAX_SRC];
@@ -177,8 +178,8 @@ int NUM_EMPTY_TRIPLE_STRING = 0;
 
 static void append_empty_triple_string(int node) {
   if (NUM_EMPTY_TRIPLE_STRING == MAX_EMPTY_TRIPLE_STRING) {
-    fprintf(stderr, "too many empty triple string nodes, maximum is %d\n",
-            MAX_EMPTY_TRIPLE_STRING);
+    fprintf(stderr, "%s: too many empty triple string nodes, maximum is %d\n",
+            PATH, MAX_EMPTY_TRIPLE_STRING);
     exit(-1);
   }
   EMPTY_TRIPLE_STRING[NUM_EMPTY_TRIPLE_STRING] = node;
@@ -196,7 +197,7 @@ static int is_empty_triple_string(int node) {
 
 static void append_triple_string_item(int node, int item) {
   if (NUM_TRIPLE_STRING_ITEM == MAX_TRIPLE_STRING_ITEM) {
-    fprintf(stderr, "too many triple string items, maximum is %d\n",
+    fprintf(stderr, "%s: too many triple string items, maximum is %d\n", PATH,
             MAX_TRIPLE_STRING_ITEM);
     exit(-1);
   }
@@ -207,7 +208,8 @@ static void append_triple_string_item(int node, int item) {
 
 static void char_write(uint8_t c) {
   if (NUM_OUT == MAX_SRC) {
-    fprintf(stderr, "too many output characters, maximum is %d\n", MAX_SRC);
+    fprintf(stderr, "%s: too many output characters, maximum is %d\n", PATH,
+            MAX_SRC);
     exit(-1);
   }
   OUT[NUM_OUT] = c;
@@ -222,7 +224,7 @@ static void chunk_write(char *chunk) {
 
 static void append_int_divide(int left, int right) {
   if (NUM_INT_DIVIDE == MAX_INT_DIVIDE) {
-    fprintf(stderr, "too many int divide nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many int divide nodes, maximum is %d\n", PATH,
             MAX_INT_DIVIDE);
     exit(-1);
   }
@@ -233,7 +235,8 @@ static void append_int_divide(int left, int right) {
 
 static void append_less_than(int left, int right) {
   if (NUM_LESS_THAN == MAX_LESS_THAN) {
-    fprintf(stderr, "too many less than nodes, maximum is %d\n", MAX_LESS_THAN);
+    fprintf(stderr, "%s: too many less than nodes, maximum is %d\n", PATH,
+            MAX_LESS_THAN);
     exit(-1);
   }
   LESS_THAN_LEFT[NUM_LESS_THAN] = left;
@@ -243,7 +246,7 @@ static void append_less_than(int left, int right) {
 
 static void append_greater_than(int left, int right) {
   if (NUM_GREATER_THAN == MAX_GREATER_THAN) {
-    fprintf(stderr, "too many greater than nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many greater than nodes, maximum is %d\n", PATH,
             MAX_GREATER_THAN);
     exit(-1);
   }
@@ -254,7 +257,8 @@ static void append_greater_than(int left, int right) {
 
 static void append_power(int left, int right) {
   if (NUM_POWER == MAX_POWER) {
-    fprintf(stderr, "too many power nodes, maximum is %d\n", MAX_POWER);
+    fprintf(stderr, "%s: too many power nodes, maximum is %d\n", PATH,
+            MAX_POWER);
     exit(-1);
   }
   POWER_LEFT[NUM_POWER] = left;
@@ -264,7 +268,8 @@ static void append_power(int left, int right) {
 
 static void append_divide(int left, int right) {
   if (NUM_DIVIDE == MAX_DIVIDE) {
-    fprintf(stderr, "too many divide nodes, maximum is %d\n", MAX_DIVIDE);
+    fprintf(stderr, "%s: too many divide nodes, maximum is %d\n", PATH,
+            MAX_DIVIDE);
     exit(-1);
   }
   DIVIDE_LEFT[NUM_DIVIDE] = left;
@@ -274,7 +279,8 @@ static void append_divide(int left, int right) {
 
 static void append_asterisk(int left, int right) {
   if (NUM_ASTERISK == MAX_ASTERISK) {
-    fprintf(stderr, "too many asterisk nodes, maximum is %d\n", MAX_ASTERISK);
+    fprintf(stderr, "%s: too many asterisk nodes, maximum is %d\n", PATH,
+            MAX_ASTERISK);
     exit(-1);
   }
   ASTERISK_LEFT[NUM_ASTERISK] = left;
@@ -284,7 +290,8 @@ static void append_asterisk(int left, int right) {
 
 static void append_minus(int left, int right) {
   if (NUM_MINUS == MAX_MINUS) {
-    fprintf(stderr, "too many minus nodes, maximum is %d\n", MAX_MINUS);
+    fprintf(stderr, "%s: too many minus nodes, maximum is %d\n", PATH,
+            MAX_MINUS);
     exit(-1);
   }
   MINUS_LEFT[NUM_MINUS] = left;
@@ -294,7 +301,7 @@ static void append_minus(int left, int right) {
 
 static void append_plus(int left, int right) {
   if (NUM_PLUS == MAX_PLUS) {
-    fprintf(stderr, "too many plus nodes, maximum is %d\n", MAX_PLUS);
+    fprintf(stderr, "%s: too many plus nodes, maximum is %d\n", PATH, MAX_PLUS);
     exit(-1);
   }
   PLUS_LEFT[NUM_PLUS] = left;
@@ -304,7 +311,7 @@ static void append_plus(int left, int right) {
 
 static void append_right_comment(int node, int comment_node) {
   if (NUM_RIGHT_COMMENT == MAX_RIGHT_COMMENT) {
-    fprintf(stderr, "too many right comment nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many right comment nodes, maximum is %d\n", PATH,
             MAX_RIGHT_COMMENT);
     exit(-1);
   }
@@ -328,7 +335,7 @@ static void attach_right_comment_in_expression(int node, int right_comment) {
 
 static void append_is_arg1_line1(int node) {
   if (NUM_IS_ARG1_LINE1 == MAX_IS_ARG1_LINE1) {
-    fprintf(stderr, "too many single line nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many single line nodes, maximum is %d\n", PATH,
             MAX_IS_ARG1_LINE1);
     exit(-1);
   }
@@ -338,7 +345,8 @@ static void append_is_arg1_line1(int node) {
 
 static void append_argument(int parent, int child) {
   if (NUM_ARGUMENT == MAX_ARGUMENT) {
-    fprintf(stderr, "too many arguments, maximum is %d\n", MAX_ARGUMENT);
+    fprintf(stderr, "%s: too many arguments, maximum is %d\n", PATH,
+            MAX_ARGUMENT);
     exit(-1);
   }
   ARGUMENT[NUM_ARGUMENT] = child;
@@ -349,8 +357,8 @@ static void append_argument(int parent, int child) {
 static void append_is_double_hyphen_block_comment(int node) {
   if (NUM_DOUBLE_HYPHEN_BLOCK == MAX_DOUBLE_HYPHEN_BLOCK) {
     fprintf(stderr,
-            "too many double hyphen block comment nodes, maximum is %d\n",
-            MAX_DOUBLE_HYPHEN_BLOCK);
+            "%s: too many double hyphen block comment nodes, maximum is %d\n",
+            PATH, MAX_DOUBLE_HYPHEN_BLOCK);
     exit(-1);
   }
   DOUBLE_HYPHEN_BLOCK[NUM_DOUBLE_HYPHEN_BLOCK] = node;
@@ -378,8 +386,8 @@ static int is_multiline_node(int node) {
 
 static void append_same_line_comment(int node, int comment) {
   if (NUM_SAME_LINE_COMMENT == MAX_SAME_LINE_COMMENT) {
-    fprintf(stderr, "too many same line comment nodes, maximum is %d\n",
-            MAX_SAME_LINE_COMMENT);
+    fprintf(stderr, "%s: too many same line comment nodes, maximum is %d\n",
+            PATH, MAX_SAME_LINE_COMMENT);
     exit(-1);
   }
   SAME_LINE_COMMENT[NUM_SAME_LINE_COMMENT] = comment;
@@ -389,7 +397,7 @@ static void append_same_line_comment(int node, int comment) {
 
 static void append_title_comment(int node, int comment) {
   if (NUM_TITLE_COMMENT == MAX_TITLE_COMMENT) {
-    fprintf(stderr, "too many title comment nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many title comment nodes, maximum is %d\n", PATH,
             MAX_TITLE_COMMENT);
     exit(-1);
   }
@@ -400,7 +408,8 @@ static void append_title_comment(int node, int comment) {
 
 static void append_is_multiline(int node) {
   if (NUM_IS_MULTILINE == MAX_IS_MULTILINE) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_IS_MULTILINE);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH,
+            MAX_IS_MULTILINE);
     exit(-1);
   }
   IS_MULTILINE[NUM_IS_MULTILINE] = node;
@@ -409,7 +418,8 @@ static void append_is_multiline(int node) {
 
 static void append_list_item(int parent, int child) {
   if (NUM_LIST_ITEM == MAX_LIST_ITEM) {
-    fprintf(stderr, "too many list items, maximum is %d\n", MAX_LIST_ITEM);
+    fprintf(stderr, "%s: too many list items, maximum is %d\n", PATH,
+            MAX_LIST_ITEM);
     exit(-1);
   }
   LIST_ITEM[NUM_LIST_ITEM] = child;
@@ -419,7 +429,7 @@ static void append_list_item(int parent, int child) {
 
 static void append_is_empty_list(int node) {
   if (NUM_EMPTY_LIST == MAX_EMPTY_LIST) {
-    fprintf(stderr, "too many empty list nodes, maximum is %d\n",
+    fprintf(stderr, "%s: too many empty list nodes, maximum is %d\n", PATH,
             MAX_EMPTY_LIST);
     exit(-1);
   }
@@ -429,8 +439,9 @@ static void append_is_empty_list(int node) {
 
 static void append_double_hyphen_start_block(int node) {
   if (NUM_HAS_DOUBLE_HYPHEN_BLOCK == MAX_HAS_DOUBLE_HYPHEN_BLOCK) {
-    fprintf(stderr, "too many double hyphen start block nodes, maximum is %d\n",
-            MAX_HAS_DOUBLE_HYPHEN_BLOCK);
+    fprintf(stderr,
+            "%s: too many double hyphen start block nodes, maximum is %d\n",
+            PATH, MAX_HAS_DOUBLE_HYPHEN_BLOCK);
     exit(-1);
   }
   HAS_DOUBLE_HYPHEN_BLOCK[NUM_HAS_DOUBLE_HYPHEN_BLOCK] = node;
@@ -439,7 +450,7 @@ static void append_double_hyphen_start_block(int node) {
 
 static void append_block_comment_line(int parent, int start, int size) {
   if (NUM_BLOCK_COMMENT_LINE == MAX_BLOCK_COMMENT_LINE) {
-    fprintf(stderr, "too many block comment lines, maximum is %d\n",
+    fprintf(stderr, "%s: too many block comment lines, maximum is %d\n", PATH,
             MAX_BLOCK_COMMENT_LINE);
     exit(-1);
   }
@@ -451,8 +462,8 @@ static void append_block_comment_line(int parent, int start, int size) {
 
 static void append_is_empty_block_comment(int node) {
   if (NUM_EMPTY_BLOCK_COMMENT == MAX_EMPTY_BLOCK_COMMENT) {
-    fprintf(stderr, "too many empty block comment nodes, maximum is %d\n",
-            MAX_EMPTY_BLOCK_COMMENT);
+    fprintf(stderr, "%s: too many empty block comment nodes, maximum is %d\n",
+            PATH, MAX_EMPTY_BLOCK_COMMENT);
     exit(-1);
   }
   IS_EMPTY_BLOCK_COMMENT[NUM_EMPTY_BLOCK_COMMENT] = node;
@@ -461,7 +472,8 @@ static void append_is_empty_block_comment(int node) {
 
 static void append_left_comment(int node, int comment_node) {
   if (NUM_LEFT_COMMENT == MAX_LEFT_COMMENT) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_LEFT_COMMENT);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH,
+            MAX_LEFT_COMMENT);
     exit(-1);
   }
   LEFT_COMMENT[NUM_LEFT_COMMENT] = comment_node;
@@ -471,7 +483,8 @@ static void append_left_comment(int node, int comment_node) {
 
 static void append_is_negative(int node) {
   if (NUM_HAS_NEGATIVE == MAX_HAS_NEGATIVE) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_NEGATIVE);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH,
+            MAX_HAS_NEGATIVE);
     exit(-1);
   }
   HAS_NEGATIVE[NUM_HAS_NEGATIVE] = node;
@@ -480,7 +493,8 @@ static void append_is_negative(int node) {
 
 static void append_has_exponent(int node) {
   if (NUM_HAS_EXPONENT == MAX_HAS_EXPONENT) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_EXPONENT);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH,
+            MAX_HAS_EXPONENT);
     exit(-1);
   }
   HAS_EXPONENT[NUM_HAS_EXPONENT] = node;
@@ -489,7 +503,7 @@ static void append_has_exponent(int node) {
 
 static void append_is_hex(int node) {
   if (NUM_HEX == MAX_HEX) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HEX);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH, MAX_HEX);
     exit(-1);
   }
   IS_HEX[NUM_HEX] = node;
@@ -504,7 +518,7 @@ static int NUM_HAS_SRC = 0;
 
 static void append_has_src(int node, int start, int size) {
   if (NUM_HAS_SRC == MAX_HAS_SRC) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_HAS_SRC);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH, MAX_HAS_SRC);
     exit(-1);
   }
   HAS_SRC[NUM_HAS_SRC] = node;
@@ -519,7 +533,7 @@ static int get_has_src_index(int node) {
       return i;
     }
   }
-  fprintf(stderr, "could not find node %d\n", node);
+  fprintf(stderr, "%s: could not find node %d\n", PATH, node);
   exit(-1);
 }
 
@@ -1110,7 +1124,7 @@ static void zero_ast() {
 
 static int get_new_node() {
   if (NUM_NODES == MAX_NODES) {
-    fprintf(stderr, "too many nodes, maximum is %d\n", MAX_NODES);
+    fprintf(stderr, "%s: too many nodes, maximum is %d\n", PATH, MAX_NODES);
     exit(-1);
   }
   ++NUM_NODES;
@@ -2282,15 +2296,15 @@ static void calculate_column_numbers() {
   }
 }
 
-static int read_src(char *path) {
-  FILE *file = fopen(path, "r");
+static int read_src() {
+  FILE *file = fopen(PATH, "r");
   if (file == NULL) {
     return -1;
   }
   NUM_SRC = fread(SRC, 1, MAX_SRC, file);
   fclose(file);
   if (NUM_SRC == MAX_SRC) {
-    fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", path,
+    fprintf(stderr, "file too large: %s, maximum size is %d bytes\n", PATH,
             MAX_SRC);
     return -1;
   }
@@ -2459,9 +2473,8 @@ static int file_has_changed(uint8_t original[NUM_SRC]) {
   return 0;
 }
 
-static void format_file(char *path) {
-  printf("formatting %s\n", path);
-  if (read_src(path)) {
+static void format_file() {
+  if (read_src()) {
     return;
   }
   // It used to work by writing the formatted code straight to file, with
@@ -2494,13 +2507,13 @@ static void format_file(char *path) {
 
   const int result = format_in_memory();
   if (result) {
-    fprintf(stderr, "could not format %s\n", path);
+    fprintf(stderr, "could not format %s\n", PATH);
     return;
   }
   if (!file_has_changed(original)) {
     return;
   }
-  FILE *out_file = fopen(path, "w");
+  FILE *out_file = fopen(PATH, "w");
   if (out_file == NULL) {
     return;
   }
@@ -2544,7 +2557,8 @@ static void format_src(char *path) {
   }
 
   if (directory_handle == NULL && is_elm_path(path)) {
-    format_file(path);
+    PATH = path;
+    format_file();
     return;
   }
 
