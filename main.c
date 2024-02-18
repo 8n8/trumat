@@ -197,6 +197,22 @@ static uint32_t GREATER_THAN_OR_EQUAL_LEFT[MAX_GREATER_THAN_OR_EQUAL];
 static uint32_t GREATER_THAN_OR_EQUAL_RIGHT[MAX_GREATER_THAN_OR_EQUAL];
 int NUM_GREATER_THAN_OR_EQUAL = 0;
 
+#define MAX_LESS_THAN_OR_EQUAL 10000
+static uint32_t LESS_THAN_OR_EQUAL_LEFT[MAX_LESS_THAN_OR_EQUAL];
+static uint32_t LESS_THAN_OR_EQUAL_RIGHT[MAX_LESS_THAN_OR_EQUAL];
+int NUM_LESS_THAN_OR_EQUAL = 0;
+
+static void append_less_than_or_equal(int left, int right) {
+  if (NUM_LESS_THAN_OR_EQUAL == MAX_LESS_THAN_OR_EQUAL) {
+    fprintf(stderr, "%s: too many less than or equal nodes, maximum is %d\n",
+            PATH, MAX_LESS_THAN_OR_EQUAL);
+    exit(-1);
+  }
+  LESS_THAN_OR_EQUAL_LEFT[NUM_LESS_THAN_OR_EQUAL] = left;
+  LESS_THAN_OR_EQUAL_RIGHT[NUM_LESS_THAN_OR_EQUAL] = right;
+  ++NUM_LESS_THAN_OR_EQUAL;
+}
+
 static void append_greater_than_or_equal(int left, int right) {
   if (NUM_GREATER_THAN_OR_EQUAL == MAX_GREATER_THAN_OR_EQUAL) {
     fprintf(stderr, "%s: too many greater than or equal nodes, maximum is %d\n",
@@ -1010,6 +1026,16 @@ static int get_greater_than_or_equal(int node, int *right) {
   return -1;
 }
 
+static int get_less_than_or_equal(int node, int *right) {
+  for (int i = 0; i < NUM_LESS_THAN_OR_EQUAL; ++i) {
+    if (LESS_THAN_OR_EQUAL_LEFT[i] == (uint32_t)node) {
+      *right = LESS_THAN_OR_EQUAL_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -1059,6 +1085,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_greater_than_or_equal(*left, &right) == 0) {
     infix_write_helper(">=", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_less_than_or_equal(*left, &right) == 0) {
+    infix_write_helper("<=", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1270,6 +1301,7 @@ static void zero_ast() {
   NUM_NORMAL_STRING_ITEM = 0;
   NUM_PLUS_PLUS = 0;
   NUM_GREATER_THAN_OR_EQUAL = 0;
+  NUM_LESS_THAN_OR_EQUAL = 0;
 }
 
 static int get_new_node() {
@@ -1917,6 +1949,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, ">") == 0) {
     append_greater_than(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "<=") == 0) {
+    append_less_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
