@@ -8,10 +8,12 @@ static int expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
+static int string_hex_parse(int *node);
 static int string_length(char *s);
 static void attach_title_comments(int node, int title_comments);
 static void right_comments_in_expression_write(int node, int indent);
 static void title_comments_parse(int parent);
+static int get_normal_string_item(int node, int *item, int *start);
 static int is_single_line_right_comments(int node);
 static int get_right_comment(int node, int *right_comment, int *i);
 static void attach_left_comment(int node, int left_comment);
@@ -175,6 +177,36 @@ int NUM_TRIPLE_STRING_ITEM = 0;
 #define MAX_EMPTY_TRIPLE_STRING 10000
 static uint32_t EMPTY_TRIPLE_STRING[MAX_EMPTY_TRIPLE_STRING];
 int NUM_EMPTY_TRIPLE_STRING = 0;
+
+#define MAX_EMPTY_NORMAL_STRING 10000
+static uint32_t EMPTY_NORMAL_STRING[MAX_EMPTY_NORMAL_STRING];
+int NUM_EMPTY_NORMAL_STRING = 0;
+
+#define MAX_NORMAL_STRING_ITEM 10000
+static uint32_t NORMAL_STRING[MAX_NORMAL_STRING_ITEM];
+static uint32_t NORMAL_STRING_ITEM[MAX_NORMAL_STRING_ITEM];
+int NUM_NORMAL_STRING_ITEM = 0;
+
+static void append_normal_string_item(int node, int item) {
+  if (NUM_NORMAL_STRING_ITEM == MAX_NORMAL_STRING_ITEM) {
+    fprintf(stderr, "%s: too many normal string items, maximum is %d\n", PATH,
+            MAX_NORMAL_STRING_ITEM);
+    exit(-1);
+  }
+  NORMAL_STRING[NUM_NORMAL_STRING_ITEM] = node;
+  NORMAL_STRING_ITEM[NUM_NORMAL_STRING_ITEM] = item;
+  ++NUM_NORMAL_STRING_ITEM;
+}
+
+static void append_empty_normal_string(int node) {
+  if (NUM_EMPTY_NORMAL_STRING == MAX_EMPTY_NORMAL_STRING) {
+    fprintf(stderr, "%s: too many empty normal string nodes, maximum is %d\n",
+            PATH, MAX_EMPTY_NORMAL_STRING);
+    exit(-1);
+  }
+  EMPTY_NORMAL_STRING[NUM_EMPTY_NORMAL_STRING] = node;
+  ++NUM_EMPTY_NORMAL_STRING;
+}
 
 static void append_empty_triple_string(int node) {
   if (NUM_EMPTY_TRIPLE_STRING == MAX_EMPTY_TRIPLE_STRING) {
@@ -988,14 +1020,11 @@ static int is_non_empty_triple_string(int node) {
   return 0;
 }
 
-static void triple_string_hex_write(int node) {
+static void string_hex_write(int node) {
   chunk_write("\\u{");
   const int src_index = get_has_src_index(node);
   const int start = SRC_START[src_index];
   const int size = SRC_SIZE[src_index];
-  if (size % 2 == 1) {
-    char_write('0');
-  }
   for (int i = start; i < start + size; ++i) {
     char_write(hex_to_uppercase(SRC[i]));
   }
@@ -1004,7 +1033,7 @@ static void triple_string_hex_write(int node) {
 
 static void triple_string_item_write(int item) {
   if (is_hex(item)) {
-    triple_string_hex_write(item);
+    string_hex_write(item);
     return;
   }
   src_write(item);
@@ -1021,6 +1050,33 @@ static int get_triple_string_item(int node, int *item, int *start) {
   return -1;
 }
 
+static void normal_string_item_write(int item) {
+  if (is_hex(item)) {
+    string_hex_write(item);
+    return;
+  }
+  src_write(item);
+}
+
+static int is_empty_normal_string(int node) {
+  for (int i = 0; i < NUM_EMPTY_NORMAL_STRING; ++i) {
+    if (EMPTY_NORMAL_STRING[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void normal_string_write(int node) {
+  char_write('"');
+  int item;
+  int start = 0;
+  while (get_normal_string_item(node, &item, &start) == 0) {
+    normal_string_item_write(item);
+  }
+  char_write('"');
+}
+
 static void triple_string_write(int node) {
   chunk_write("\"\"\"");
   int item;
@@ -1029,6 +1085,26 @@ static void triple_string_write(int node) {
     triple_string_item_write(item);
   }
   chunk_write("\"\"\"");
+}
+
+static int is_non_empty_normal_string(int node) {
+  for (int i = 0; i < NUM_NORMAL_STRING_ITEM; ++i) {
+    if (NORMAL_STRING[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int get_normal_string_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_NORMAL_STRING_ITEM; ++i) {
+    if (NORMAL_STRING[i] == (uint32_t)node) {
+      *item = NORMAL_STRING_ITEM[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
 }
 
 static void not_infixed_write(int node, int indent) {
@@ -1058,6 +1134,14 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_triple_string(node)) {
     triple_string_write(node);
+    return;
+  }
+  if (is_empty_normal_string(node)) {
+    chunk_write("\"\"");
+    return;
+  }
+  if (is_non_empty_normal_string(node)) {
+    normal_string_write(node);
     return;
   }
   src_write(node);
@@ -1120,6 +1204,8 @@ static void zero_ast() {
   NUM_OUT = 0;
   NUM_TRIPLE_STRING_ITEM = 0;
   NUM_EMPTY_TRIPLE_STRING = 0;
+  NUM_EMPTY_NORMAL_STRING = 0;
+  NUM_NORMAL_STRING_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -1312,22 +1398,12 @@ static int normal_string_char_parse() {
   return 0;
 }
 
-static int unicode_hex_parse() {
+static int normal_string_not_hex_item_item_parse() {
   const int start = I;
-  if (chunk_parse("\\u{")) {
-    return -1;
-  }
-
-  while (hex_char_parse() == 0) {
-  }
-  if (char_parse('}') != 0) {
+  if (chunk_parse("\\u{") == 0) {
     I = start;
     return -1;
   }
-  return 0;
-}
-
-static int normal_string_item_parse() {
   if (normal_string_char_parse() == 0) {
     return 0;
   }
@@ -1340,10 +1416,26 @@ static int normal_string_item_parse() {
   if (chunk_parse("\\n") == 0) {
     return 0;
   }
-  if (chunk_parse("\\t") == 0) {
+  return chunk_parse("\\t");
+}
+
+static int normal_string_not_hex_item_parse(int *node) {
+  const int start = I;
+  if (normal_string_not_hex_item_item_parse()) {
+    return -1;
+  }
+  while (normal_string_not_hex_item_item_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int normal_string_item_parse(int *node) {
+  if (normal_string_not_hex_item_parse(node) == 0) {
     return 0;
   }
-  return unicode_hex_parse();
+  return string_hex_parse(node);
 }
 
 static int triple_string_not_hex_item_item_parse() {
@@ -1382,7 +1474,7 @@ static int triple_string_not_hex_item_parse(int *node) {
   return 0;
 }
 
-static int triple_string_hex_parse(int *node) {
+static int string_hex_parse(int *node) {
   const int start = I;
   if (chunk_parse("\\u{")) {
     return -1;
@@ -1405,23 +1497,40 @@ static int triple_string_item_parse(int *node) {
   if (triple_string_not_hex_item_parse(node) == 0) {
     return 0;
   }
-  return triple_string_hex_parse(node);
+  return string_hex_parse(node);
 }
 
-static int normal_string_parse(int *node) {
+static int non_empty_normal_string_parse(int *node) {
   const int start = I;
   if (char_parse('"')) {
     return -1;
   }
-  while (normal_string_item_parse() == 0) {
+  int item;
+  *node = get_new_node();
+  while (normal_string_item_parse(&item) == 0) {
+    append_normal_string_item(*node, item);
   }
   if (char_parse('"')) {
     I = start;
     return -1;
   }
-  *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
   return 0;
+}
+
+static int empty_normal_string_parse(int *node) {
+  if (chunk_parse("\"\"")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_empty_normal_string(*node);
+  return 0;
+}
+
+static int normal_string_parse(int *node) {
+  if (empty_normal_string_parse(node) == 0) {
+    return 0;
+  }
+  return non_empty_normal_string_parse(node);
 }
 
 static int non_empty_triple_string_parse(int *node) {
