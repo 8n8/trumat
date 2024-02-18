@@ -212,6 +212,37 @@ static uint32_t OR_LEFT[MAX_OR];
 static uint32_t OR_RIGHT[MAX_OR];
 int NUM_OR = 0;
 
+#define MAX_AND 10000
+static uint32_t AND_LEFT[MAX_AND];
+static uint32_t AND_RIGHT[MAX_AND];
+int NUM_AND = 0;
+
+#define MAX_NOT_EQUAL 10000
+static uint32_t NOT_EQUAL_LEFT[MAX_NOT_EQUAL];
+static uint32_t NOT_EQUAL_RIGHT[MAX_NOT_EQUAL];
+int NUM_NOT_EQUAL = 0;
+
+static void append_not_equal(int left, int right) {
+  if (NUM_NOT_EQUAL == MAX_NOT_EQUAL) {
+    fprintf(stderr, "%s: too many not equal nodes, maximum is %d\n", PATH,
+            MAX_NOT_EQUAL);
+    exit(-1);
+  }
+  NOT_EQUAL_LEFT[NUM_NOT_EQUAL] = left;
+  NOT_EQUAL_RIGHT[NUM_NOT_EQUAL] = right;
+  ++NUM_NOT_EQUAL;
+}
+
+static void append_and(int left, int right) {
+  if (NUM_AND == MAX_AND) {
+    fprintf(stderr, "%s: too many and nodes, maximum is %d\n", PATH, MAX_AND);
+    exit(-1);
+  }
+  AND_LEFT[NUM_AND] = left;
+  AND_RIGHT[NUM_AND] = right;
+  ++NUM_AND;
+}
+
 static void append_or(int left, int right) {
   if (NUM_OR == MAX_OR) {
     fprintf(stderr, "%s: too many or nodes, maximum is %d\n", PATH, MAX_OR);
@@ -1087,6 +1118,26 @@ static int get_or(int node, int *right) {
   return -1;
 }
 
+static int get_and(int node, int *right) {
+  for (int i = 0; i < NUM_AND; ++i) {
+    if (AND_LEFT[i] == (uint32_t)node) {
+      *right = AND_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static int get_not_equal(int node, int *right) {
+  for (int i = 0; i < NUM_NOT_EQUAL; ++i) {
+    if (NOT_EQUAL_LEFT[i] == (uint32_t)node) {
+      *right = NOT_EQUAL_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
@@ -1151,6 +1202,16 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_or(*left, &right) == 0) {
     infix_write_helper("||", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_and(*left, &right) == 0) {
+    infix_write_helper("&&", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_not_equal(*left, &right) == 0) {
+    infix_write_helper("/=", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1365,6 +1426,8 @@ static void zero_ast() {
   NUM_LESS_THAN_OR_EQUAL = 0;
   NUM_EQUAL = 0;
   NUM_OR = 0;
+  NUM_AND = 0;
+  NUM_NOT_EQUAL = 0;
 }
 
 static int get_new_node() {
@@ -2032,6 +2095,16 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "||") == 0) {
     append_or(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "&&") == 0) {
+    append_and(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "/=") == 0) {
+    append_not_equal(*left, right);
     *left = right;
     return 0;
   }
