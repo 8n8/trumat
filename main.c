@@ -187,6 +187,22 @@ static uint32_t NORMAL_STRING[MAX_NORMAL_STRING_ITEM];
 static uint32_t NORMAL_STRING_ITEM[MAX_NORMAL_STRING_ITEM];
 int NUM_NORMAL_STRING_ITEM = 0;
 
+#define MAX_PLUS_PLUS 10000
+static uint32_t PLUS_PLUS_LEFT[MAX_PLUS_PLUS];
+static uint32_t PLUS_PLUS_RIGHT[MAX_PLUS_PLUS];
+int NUM_PLUS_PLUS = 0;
+
+static void append_plus_plus(int left, int right) {
+  if (NUM_PLUS_PLUS == MAX_PLUS_PLUS) {
+    fprintf(stderr, "%s: too many plus plus nodes, maximum is %d\n", PATH,
+            MAX_PLUS_PLUS);
+    exit(-1);
+  }
+  PLUS_PLUS_LEFT[NUM_PLUS_PLUS] = left;
+  PLUS_PLUS_RIGHT[NUM_PLUS_PLUS] = right;
+  ++NUM_PLUS_PLUS;
+}
+
 static void append_normal_string_item(int node, int item) {
   if (NUM_NORMAL_STRING_ITEM == MAX_NORMAL_STRING_ITEM) {
     fprintf(stderr, "%s: too many normal string items, maximum is %d\n", PATH,
@@ -958,6 +974,16 @@ static int get_int_divide(int node, int *right) {
   return -1;
 }
 
+static int get_plus_plus(int node, int *right) {
+  for (int i = 0; i < NUM_PLUS_PLUS; ++i) {
+    if (PLUS_PLUS_LEFT[i] == (uint32_t)node) {
+      *right = PLUS_PLUS_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -997,6 +1023,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_int_divide(*left, &right) == 0) {
     infix_write_helper("//", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_plus_plus(*left, &right) == 0) {
+    infix_write_helper("++", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1206,6 +1237,7 @@ static void zero_ast() {
   NUM_EMPTY_TRIPLE_STRING = 0;
   NUM_EMPTY_NORMAL_STRING = 0;
   NUM_NORMAL_STRING_ITEM = 0;
+  NUM_PLUS_PLUS = 0;
 }
 
 static int get_new_node() {
@@ -1811,6 +1843,11 @@ static int infix_parse_helper(int *node, char *infix) {
 
 static int infix_parse(int *left) {
   int right;
+  if (infix_parse_helper(&right, "++") == 0) {
+    append_plus_plus(*left, right);
+    *left = right;
+    return 0;
+  }
   if (infix_parse_helper(&right, "+") == 0) {
     append_plus(*left, right);
     *left = right;
