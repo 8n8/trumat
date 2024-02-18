@@ -166,6 +166,45 @@ static uint32_t INT_DIVIDE_LEFT[MAX_INT_DIVIDE];
 static uint32_t INT_DIVIDE_RIGHT[MAX_INT_DIVIDE];
 int NUM_INT_DIVIDE = 0;
 
+#define MAX_TRIPLE_STRING_ITEM 10000
+static uint32_t TRIPLE_STRING[MAX_TRIPLE_STRING_ITEM];
+static uint32_t TRIPLE_STRING_ITEM[MAX_TRIPLE_STRING_ITEM];
+int NUM_TRIPLE_STRING_ITEM = 0;
+
+#define MAX_EMPTY_TRIPLE_STRING 10000
+static uint32_t EMPTY_TRIPLE_STRING[MAX_EMPTY_TRIPLE_STRING];
+int NUM_EMPTY_TRIPLE_STRING = 0;
+
+static void append_empty_triple_string(int node) {
+  if (NUM_EMPTY_TRIPLE_STRING == MAX_EMPTY_TRIPLE_STRING) {
+    fprintf(stderr, "too many empty triple string nodes, maximum is %d\n",
+            MAX_EMPTY_TRIPLE_STRING);
+    exit(-1);
+  }
+  EMPTY_TRIPLE_STRING[NUM_EMPTY_TRIPLE_STRING] = node;
+  ++NUM_EMPTY_TRIPLE_STRING;
+}
+
+static int is_empty_triple_string(int node) {
+  for (int i = 0; i < NUM_EMPTY_TRIPLE_STRING; ++i) {
+    if (EMPTY_TRIPLE_STRING[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void append_triple_string_item(int node, int item) {
+  if (NUM_TRIPLE_STRING_ITEM == MAX_TRIPLE_STRING_ITEM) {
+    fprintf(stderr, "too many triple string items, maximum is %d\n",
+            MAX_TRIPLE_STRING_ITEM);
+    exit(-1);
+  }
+  TRIPLE_STRING[NUM_TRIPLE_STRING_ITEM] = node;
+  TRIPLE_STRING_ITEM[NUM_TRIPLE_STRING_ITEM] = item;
+  ++NUM_TRIPLE_STRING_ITEM;
+}
+
 static void char_write(uint8_t c) {
   if (NUM_OUT == MAX_SRC) {
     fprintf(stderr, "too many output characters, maximum is %d\n", MAX_SRC);
@@ -926,6 +965,58 @@ static void expression_write(int node, int indent) {
   }
 }
 
+static int is_non_empty_triple_string(int node) {
+  for (int i = 0; i < NUM_TRIPLE_STRING_ITEM; ++i) {
+    if (TRIPLE_STRING[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void triple_string_hex_write(int node) {
+  chunk_write("\\u{");
+  const int src_index = get_has_src_index(node);
+  const int start = SRC_START[src_index];
+  const int size = SRC_SIZE[src_index];
+  if (size % 2 == 1) {
+    char_write('0');
+  }
+  for (int i = start; i < start + size; ++i) {
+    char_write(hex_to_uppercase(SRC[i]));
+  }
+  char_write('}');
+}
+
+static void triple_string_item_write(int item) {
+  if (is_hex(item)) {
+    triple_string_hex_write(item);
+    return;
+  }
+  src_write(item);
+}
+
+static int get_triple_string_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_TRIPLE_STRING_ITEM; ++i) {
+    if (TRIPLE_STRING[i] == (uint32_t)node) {
+      *item = TRIPLE_STRING_ITEM[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void triple_string_write(int node) {
+  chunk_write("\"\"\"");
+  int item;
+  int start = 0;
+  while (get_triple_string_item(node, &item, &start) == 0) {
+    triple_string_item_write(item);
+  }
+  chunk_write("\"\"\"");
+}
+
 static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -945,6 +1036,14 @@ static void not_infixed_write(int node, int indent) {
   }
   if (has_arguments(node)) {
     function_call_write(node, indent);
+    return;
+  }
+  if (is_empty_triple_string(node)) {
+    chunk_write("\"\"\"\"\"\"");
+    return;
+  }
+  if (is_non_empty_triple_string(node)) {
+    triple_string_write(node);
     return;
   }
   src_write(node);
@@ -1005,6 +1104,8 @@ static void zero_ast() {
   NUM_LESS_THAN = 0;
   NUM_INT_DIVIDE = 0;
   NUM_OUT = 0;
+  NUM_TRIPLE_STRING_ITEM = 0;
+  NUM_EMPTY_TRIPLE_STRING = 0;
 }
 
 static int get_new_node() {
@@ -1135,6 +1236,18 @@ static int is_hex_char(uint8_t c) {
          (c >= 'A' && c <= 'F');
 }
 
+static int hex_char_parse_no_change() {
+  uint8_t c;
+  if (any_char_parse(&c)) {
+    return -1;
+  }
+  if (!is_hex_char(c)) {
+    --I;
+    return -1;
+  }
+  return 0;
+}
+
 static int hex_char_parse() {
   uint8_t c;
   if (any_char_parse(&c)) {
@@ -1219,9 +1332,13 @@ static int normal_string_item_parse() {
   return unicode_hex_parse();
 }
 
-static int triple_string_item_parse() {
+static int triple_string_not_hex_item_item_parse() {
   const int start = I;
   if (chunk_parse("\"\"\"") == 0) {
+    I = start;
+    return -1;
+  }
+  if (chunk_parse("\\u{") == 0) {
     I = start;
     return -1;
   }
@@ -1231,15 +1348,50 @@ static int triple_string_item_parse() {
   if (chunk_parse("\\\\") == 0) {
     return 0;
   }
-  if (unicode_hex_parse() == 0) {
-    return 0;
-  }
   uint8_t dont_care;
   if (any_char_parse(&dont_care)) {
     I = start;
     return -1;
   }
   return 0;
+}
+
+static int triple_string_not_hex_item_parse(int *node) {
+  const int start = I;
+  if (triple_string_not_hex_item_item_parse()) {
+    return -1;
+  }
+  while (triple_string_not_hex_item_item_parse() == 0) {
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
+static int triple_string_hex_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("\\u{")) {
+    return -1;
+  }
+  const int hex_start = I;
+  while (hex_char_parse_no_change() == 0) {
+  }
+  const int hex_end = I;
+  if (char_parse('}') != 0) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, hex_start + 1, hex_end - hex_start);
+  append_is_hex(*node);
+  return 0;
+}
+
+static int triple_string_item_parse(int *node) {
+  if (triple_string_not_hex_item_parse(node) == 0) {
+    return 0;
+  }
+  return triple_string_hex_parse(node);
 }
 
 static int normal_string_parse(int *node) {
@@ -1258,20 +1410,37 @@ static int normal_string_parse(int *node) {
   return 0;
 }
 
-static int triple_string_parse(int *node) {
+static int non_empty_triple_string_parse(int *node) {
   const int start = I;
   if (chunk_parse("\"\"\"")) {
     return -1;
   }
-  while (triple_string_item_parse() == 0) {
+  int item;
+  *node = get_new_node();
+  while (triple_string_item_parse(&item) == 0) {
+    append_triple_string_item(*node, item);
   }
   if (chunk_parse("\"\"\"")) {
     I = start;
     return -1;
   }
-  *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
   return 0;
+}
+
+static int empty_triple_string_parse(int *node) {
+  if (chunk_parse("\"\"\"\"\"\"")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_empty_triple_string(*node);
+  return 0;
+}
+
+static int triple_string_parse(int *node) {
+  if (empty_triple_string_parse(node) == 0) {
+    return 0;
+  }
+  return non_empty_triple_string_parse(node);
 }
 
 static int first_lower_name_char_parse() {
@@ -2291,6 +2460,7 @@ static int file_has_changed(uint8_t original[NUM_SRC]) {
 }
 
 static void format_file(char *path) {
+  printf("formatting %s\n", path);
   if (read_src(path)) {
     return;
   }
