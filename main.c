@@ -192,6 +192,22 @@ static uint32_t PLUS_PLUS_LEFT[MAX_PLUS_PLUS];
 static uint32_t PLUS_PLUS_RIGHT[MAX_PLUS_PLUS];
 int NUM_PLUS_PLUS = 0;
 
+#define MAX_GREATER_THAN_OR_EQUAL 10000
+static uint32_t GREATER_THAN_OR_EQUAL_LEFT[MAX_GREATER_THAN_OR_EQUAL];
+static uint32_t GREATER_THAN_OR_EQUAL_RIGHT[MAX_GREATER_THAN_OR_EQUAL];
+int NUM_GREATER_THAN_OR_EQUAL = 0;
+
+static void append_greater_than_or_equal(int left, int right) {
+  if (NUM_GREATER_THAN_OR_EQUAL == MAX_GREATER_THAN_OR_EQUAL) {
+    fprintf(stderr, "%s: too many greater than or equal nodes, maximum is %d\n",
+            PATH, MAX_GREATER_THAN_OR_EQUAL);
+    exit(-1);
+  }
+  GREATER_THAN_OR_EQUAL_LEFT[NUM_GREATER_THAN_OR_EQUAL] = left;
+  GREATER_THAN_OR_EQUAL_RIGHT[NUM_GREATER_THAN_OR_EQUAL] = right;
+  ++NUM_GREATER_THAN_OR_EQUAL;
+}
+
 static void append_plus_plus(int left, int right) {
   if (NUM_PLUS_PLUS == MAX_PLUS_PLUS) {
     fprintf(stderr, "%s: too many plus plus nodes, maximum is %d\n", PATH,
@@ -984,6 +1000,16 @@ static int get_plus_plus(int node, int *right) {
   return -1;
 }
 
+static int get_greater_than_or_equal(int node, int *right) {
+  for (int i = 0; i < NUM_GREATER_THAN_OR_EQUAL; ++i) {
+    if (GREATER_THAN_OR_EQUAL_LEFT[i] == (uint32_t)node) {
+      *right = GREATER_THAN_OR_EQUAL_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus_right(*left, &right) == 0) {
@@ -1028,6 +1054,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_plus_plus(*left, &right) == 0) {
     infix_write_helper("++", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_greater_than_or_equal(*left, &right) == 0) {
+    infix_write_helper(">=", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1238,6 +1269,7 @@ static void zero_ast() {
   NUM_EMPTY_NORMAL_STRING = 0;
   NUM_NORMAL_STRING_ITEM = 0;
   NUM_PLUS_PLUS = 0;
+  NUM_GREATER_THAN_OR_EQUAL = 0;
 }
 
 static int get_new_node() {
@@ -1875,6 +1907,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "^") == 0) {
     append_power(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, ">=") == 0) {
+    append_greater_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
