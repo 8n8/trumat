@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static int expression_parse(int *node);
 static int line_comment_parse(int *node);
@@ -38,7 +39,9 @@ static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
 static int NUM_SRC = 0;
 static int I = -1;
-static FILE *OUT;
+
+static uint8_t OUT[MAX_SRC];
+static int NUM_OUT = 0;
 
 // Basic assumptions:
 //
@@ -162,6 +165,21 @@ int NUM_LESS_THAN = 0;
 static uint32_t INT_DIVIDE_LEFT[MAX_INT_DIVIDE];
 static uint32_t INT_DIVIDE_RIGHT[MAX_INT_DIVIDE];
 int NUM_INT_DIVIDE = 0;
+
+static void char_write(uint8_t c) {
+  if (NUM_OUT == MAX_SRC) {
+    fprintf(stderr, "too many output characters, maximum is %d\n", MAX_SRC);
+    exit(-1);
+  }
+  OUT[NUM_OUT] = c;
+  ++NUM_OUT;
+}
+
+static void chunk_write(char *chunk) {
+  for (int i = 0; chunk[i] != '\0'; ++i) {
+    char_write(chunk[i]);
+  }
+}
 
 static void append_int_divide(int left, int right) {
   if (NUM_INT_DIVIDE == MAX_INT_DIVIDE) {
@@ -466,11 +484,17 @@ static int get_has_src_index(int node) {
   exit(-1);
 }
 
+static void out_write(uint8_t *src, int size) {
+  for (int i = 0; i < size; ++i) {
+    char_write(src[i]);
+  }
+}
+
 static void src_write(int node) {
   const int has_src_index = get_has_src_index(node);
   const int start = SRC_START[has_src_index];
   const int size = SRC_SIZE[has_src_index];
-  fwrite(SRC + start, 1, size, OUT);
+  out_write(SRC + start, size);
 }
 
 static uint8_t hex_to_uppercase(uint8_t c) {
@@ -491,17 +515,17 @@ static int is_negative(int node) {
 
 static void hex_write(int node) {
   if (is_negative(node)) {
-    fputc('-', OUT);
+    char_write('-');
   }
-  fputs("0x", OUT);
+  chunk_write("0x");
   const int src_index = get_has_src_index(node);
   const int start = SRC_START[src_index];
   const int size = SRC_SIZE[src_index];
   if (size % 2 == 1) {
-    fputc('0', OUT);
+    char_write('0');
   }
   for (int i = start; i < start + size; ++i) {
-    fputc(SRC[i], OUT);
+    char_write(SRC[i]);
   }
 }
 
@@ -525,9 +549,9 @@ static int is_exponent_float(int node) {
 
 static void exponent_float_write(int node) {
   src_write(node);
-  fputc('e', OUT);
+  char_write('e');
   if (is_negative(node + 1)) {
-    fputc('-', OUT);
+    char_write('-');
   }
   src_write(node + 1);
 }
@@ -603,9 +627,9 @@ static int is_line_comment(int node) {
 }
 
 void indent_write(int indent) {
-  fputc('\n', OUT);
+  char_write('\n');
   for (int i = 0; i < indent; ++i) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
 }
 
@@ -625,17 +649,17 @@ static void list_item_write(int item, int indent) {
     indent_write(indent + 2);
   }
   if (has_left_comment(item) && !left_is_multiline) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   expression_write(item, indent + 2);
   if (has_same_line_comment(item)) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   right_comments_with_title_write(item, indent);
 }
 
 static void non_empty_list_write(int node, int indent) {
-  fputs("[ ", OUT);
+  chunk_write("[ ");
   int item;
   int start = 0;
   if (get_list_item(node, &item, &start) == 0) {
@@ -647,15 +671,15 @@ static void non_empty_list_write(int node, int indent) {
     if (left_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
-    fputs(", ", OUT);
+    chunk_write(", ");
     list_item_write(item, indent);
   }
   if (left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
-    fputc(' ', OUT);
+    char_write(' ');
   }
-  fputc(']', OUT);
+  char_write(']');
 }
 
 static int is_non_empty_list(int node) {
@@ -694,13 +718,13 @@ static void argument_write(int is_multi, int argument, int indent) {
   if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   } else {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   const int comment_indent = floor_to_four(indent + 4);
   left_comments_write(0, argument, comment_indent);
   const int has_left = has_left_comment(argument);
   if (has_left && !left_is_multiline) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
@@ -743,7 +767,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
   } else {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   left_comments_write(0, right, floor_to_four(indent + 4));
   const int multi_left = has_multiline_left_comment(right);
@@ -752,10 +776,10 @@ static void infix_write_helper(char *infix, int is_multi, int right,
     indent_write(floor_to_four(indent + 4));
   }
   if (has_left && !multi_left) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
-  fputs(infix, OUT);
-  fputc(' ', OUT);
+  chunk_write(infix);
+  char_write(' ');
   const int new_indent = indent + 4 + string_length(infix) + 1;
   right_comments_in_expression_write(right, new_indent);
   const int has_right = has_right_comment(right);
@@ -764,7 +788,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
     indent_write(new_indent);
   }
   if (has_right && is_single_right) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   not_infixed_write(right, new_indent);
 }
@@ -912,7 +936,7 @@ static void not_infixed_write(int node, int indent) {
     return;
   }
   if (is_empty_list(node)) {
-    fputs("[]", OUT);
+    chunk_write("[]");
     return;
   }
   if (is_non_empty_list(node)) {
@@ -980,6 +1004,7 @@ static void zero_ast() {
   NUM_GREATER_THAN = 0;
   NUM_LESS_THAN = 0;
   NUM_INT_DIVIDE = 0;
+  NUM_OUT = 0;
 }
 
 static int get_new_node() {
@@ -1866,22 +1891,22 @@ static void block_comment_line_write(int line, int i, int indent) {
   const uint32_t start = BLOCK_COMMENT_LINE_START[line];
   const uint16_t size = BLOCK_COMMENT_LINE_SIZE[line];
   if (i == 0 && size > 0) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
   if (i > 0) {
-    fputc('\n', OUT);
+    char_write('\n');
   }
   if (size > 0 && i > 0) {
     for (int j = 0; j < indent; ++j) {
-      fputc(' ', OUT);
+      char_write(' ');
     }
-    fputs("   ", OUT);
+    chunk_write("   ");
   }
-  fwrite(SRC + start, 1, size, OUT);
+  out_write(SRC + start, size);
 }
 
 static void non_empty_block_comment_write(int node, int indent) {
-  fputs("{-", OUT);
+  chunk_write("{-");
   const int is_multi = is_multiline_block_comment(node);
   int start = 0;
   int i = 0;
@@ -1893,20 +1918,20 @@ static void non_empty_block_comment_write(int node, int indent) {
     indent_write(indent);
   }
   if (!is_multi) {
-    fputc(' ', OUT);
+    char_write(' ');
   }
-  fputs("-}", OUT);
+  chunk_write("-}");
 }
 
 static void double_hypen_block_comment_write(int node) {
-  fputs("{--", OUT);
+  chunk_write("{--");
   src_write(node);
-  fputs("-}", OUT);
+  chunk_write("-}");
 }
 
 static void comment_write(int node, int indent) {
   if (is_empty_block_comment(node)) {
-    fputs("{--}", OUT);
+    chunk_write("{--}");
     return;
   }
   if (is_non_empty_block_comment(node)) {
@@ -1958,7 +1983,7 @@ static void left_comments_write(
   }
   while (get_left_comment(node, &left_comment, &start) == 0) {
     if (is_single && !is_multi_context) {
-      fputc(' ', OUT);
+      char_write(' ');
     } else {
       indent_write(indent);
     }
@@ -1986,7 +2011,7 @@ static void right_comments_in_expression_write(int node, int indent) {
   }
   while (get_right_comment(node, &left_comment, &start) == 0) {
     if (is_single) {
-      fputc(' ', OUT);
+      char_write(' ');
     } else {
       indent_write(indent);
     }
@@ -2023,7 +2048,7 @@ static void title_comments_write(int node, int indent) {
     if (is_multi) {
       indent_write(indent);
     } else {
-      fputc(' ', OUT);
+      char_write(' ');
     }
     comment_write(title_comment, indent);
   }
@@ -2041,22 +2066,22 @@ static int has_title_comment(int node) {
 static void right_comments_with_title_write(int node, int indent) {
   same_line_comment_write(node, indent);
   if (has_title_comment(node)) {
-    fputc('\n', OUT);
+    char_write('\n');
   }
   title_comments_write(node, indent);
 }
 
 static void module_write(int node) {
-  fputs("module X exposing (x)\n\n\nx =\n    ", OUT);
+  chunk_write("module X exposing (x)\n\n\nx =\n    ");
   left_comments_write(1, node, 4);
   if (has_left_comment(node)) {
-    fputs("\n    ", OUT);
+    chunk_write("\n    ");
   }
   expression_write(node, 4);
-  fputc('\n', OUT);
+  char_write('\n');
 }
 
-static int with_out_file() {
+static int format_in_memory() {
   zero_ast();
   int node;
   if (module_parse(&node)) {
@@ -2253,24 +2278,64 @@ static void calculate_triple_string_mask() {
   }
 }
 
+static int file_has_changed(uint8_t original[NUM_SRC]) {
+  if (NUM_SRC != NUM_OUT) {
+    return 1;
+  }
+  for (int i = 0; i < NUM_SRC; ++i) {
+    if (original[i] != OUT[i]) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void format_file(char *path) {
   if (read_src(path)) {
     return;
   }
+  // It used to work by writing the formatted code straight to file, with
+  // fputc and fputs in the writer functions. At time of writing there are
+  // 452 tests, all of them very small files, mostly less than 100B.
+
+  // So all the time is pretty much spent in IO. I tried running gprof on it
+  // a while ago, but all the time figures were zero. I think this means it
+  // was mostly IO bound.
+
+  // It was taking 23 ms.
+
+  // The original elm-format takes 54 ms.
+
+  // I realised that a formatter mostly doesn't change the files, because on
+  // a normal run most of the files are already formatted.
+
+  // So I tried it with only writing to the file if it had changed. This
+  // takes a bit more memory because I need to keep both the original code
+  // and the formatted code in memory.
+
+  // But it now only takes 6ms.
+  //                       ~
+  static uint8_t original[MAX_SRC];
+  memcpy(original, SRC, NUM_SRC);
 
   calculate_triple_string_mask();
   calculate_row_numbers();
   calculate_column_numbers();
 
-  OUT = fopen(path, "w");
-  if (OUT == NULL) {
-    return;
-  }
-  const int result = with_out_file();
-  fclose(OUT);
+  const int result = format_in_memory();
   if (result) {
     fprintf(stderr, "could not format %s\n", path);
+    return;
   }
+  if (!file_has_changed(original)) {
+    return;
+  }
+  FILE *out_file = fopen(path, "w");
+  if (out_file == NULL) {
+    return;
+  }
+  fwrite(OUT, 1, NUM_OUT, out_file);
+  fclose(out_file);
 }
 
 static int string_length(char *s) {
