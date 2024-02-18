@@ -222,6 +222,22 @@ static uint32_t NOT_EQUAL_LEFT[MAX_NOT_EQUAL];
 static uint32_t NOT_EQUAL_RIGHT[MAX_NOT_EQUAL];
 int NUM_NOT_EQUAL = 0;
 
+#define MAX_PARSE_DOT 10000
+static uint32_t PARSE_DOT_LEFT[MAX_PARSE_DOT];
+static uint32_t PARSE_DOT_RIGHT[MAX_PARSE_DOT];
+int NUM_PARSE_DOT = 0;
+
+static void append_parse_dot(int left, int right) {
+  if (NUM_PARSE_DOT == MAX_PARSE_DOT) {
+    fprintf(stderr, "%s: too many parse dot nodes, maximum is %d\n", PATH,
+            MAX_PARSE_DOT);
+    exit(-1);
+  }
+  PARSE_DOT_LEFT[NUM_PARSE_DOT] = left;
+  PARSE_DOT_RIGHT[NUM_PARSE_DOT] = right;
+  ++NUM_PARSE_DOT;
+}
+
 static void append_not_equal(int left, int right) {
   if (NUM_NOT_EQUAL == MAX_NOT_EQUAL) {
     fprintf(stderr, "%s: too many not equal nodes, maximum is %d\n", PATH,
@@ -1138,6 +1154,16 @@ static int get_not_equal(int node, int *right) {
   return -1;
 }
 
+static int get_parse_dot(int node, int *right) {
+  for (int i = 0; i < NUM_PARSE_DOT; ++i) {
+    if (PARSE_DOT_LEFT[i] == (uint32_t)node) {
+      *right = PARSE_DOT_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
@@ -1212,6 +1238,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_not_equal(*left, &right) == 0) {
     infix_write_helper("/=", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_parse_dot(*left, &right) == 0) {
+    infix_write_helper("|.", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1428,6 +1459,7 @@ static void zero_ast() {
   NUM_OR = 0;
   NUM_AND = 0;
   NUM_NOT_EQUAL = 0;
+  NUM_PARSE_DOT = 0;
 }
 
 static int get_new_node() {
@@ -2105,6 +2137,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "/=") == 0) {
     append_not_equal(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "|.") == 0) {
+    append_parse_dot(*left, right);
     *left = right;
     return 0;
   }
