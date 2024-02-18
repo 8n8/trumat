@@ -207,6 +207,21 @@ static uint32_t EQUAL_LEFT[MAX_EQUAL];
 static uint32_t EQUAL_RIGHT[MAX_EQUAL];
 int NUM_EQUAL = 0;
 
+#define MAX_OR 10000
+static uint32_t OR_LEFT[MAX_OR];
+static uint32_t OR_RIGHT[MAX_OR];
+int NUM_OR = 0;
+
+static void append_or(int left, int right) {
+  if (NUM_OR == MAX_OR) {
+    fprintf(stderr, "%s: too many or nodes, maximum is %d\n", PATH, MAX_OR);
+    exit(-1);
+  }
+  OR_LEFT[NUM_OR] = left;
+  OR_RIGHT[NUM_OR] = right;
+  ++NUM_OR;
+}
+
 static void append_less_than_or_equal(int left, int right) {
   if (NUM_LESS_THAN_OR_EQUAL == MAX_LESS_THAN_OR_EQUAL) {
     fprintf(stderr, "%s: too many less than or equal nodes, maximum is %d\n",
@@ -1062,6 +1077,16 @@ static int get_equal(int node, int *right) {
   return -1;
 }
 
+static int get_or(int node, int *right) {
+  for (int i = 0; i < NUM_OR; ++i) {
+    if (OR_LEFT[i] == (uint32_t)node) {
+      *right = OR_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
@@ -1121,6 +1146,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_equal(*left, &right) == 0) {
     infix_write_helper("==", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_or(*left, &right) == 0) {
+    infix_write_helper("||", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1334,6 +1364,7 @@ static void zero_ast() {
   NUM_GREATER_THAN_OR_EQUAL = 0;
   NUM_LESS_THAN_OR_EQUAL = 0;
   NUM_EQUAL = 0;
+  NUM_OR = 0;
 }
 
 static int get_new_node() {
@@ -1996,6 +2027,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "==") == 0) {
     append_equal(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "||") == 0) {
+    append_or(*left, right);
     *left = right;
     return 0;
   }
