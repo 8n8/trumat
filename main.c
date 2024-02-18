@@ -610,7 +610,7 @@ static void hex_write(int node) {
     char_write('0');
   }
   for (int i = start; i < start + size; ++i) {
-    char_write(SRC[i]);
+    char_write(hex_to_uppercase(SRC[i]));
   }
 }
 
@@ -1336,18 +1336,6 @@ static int is_hex_char(uint8_t c) {
          (c >= 'A' && c <= 'F');
 }
 
-static int hex_char_parse_no_change() {
-  uint8_t c;
-  if (any_char_parse(&c)) {
-    return -1;
-  }
-  if (!is_hex_char(c)) {
-    --I;
-    return -1;
-  }
-  return 0;
-}
-
 static int hex_char_parse() {
   uint8_t c;
   if (any_char_parse(&c)) {
@@ -1357,7 +1345,6 @@ static int hex_char_parse() {
     --I;
     return -1;
   }
-  SRC[I] = hex_to_uppercase(SRC[I]);
   return 0;
 }
 
@@ -1480,7 +1467,7 @@ static int string_hex_parse(int *node) {
     return -1;
   }
   const int hex_start = I;
-  while (hex_char_parse_no_change() == 0) {
+  while (hex_char_parse() == 0) {
   }
   const int hex_end = I;
   if (char_parse('}') != 0) {
