@@ -2557,12 +2557,12 @@ static void calculate_triple_string_mask() {
   }
 }
 
-static int file_has_changed(uint8_t original[NUM_SRC]) {
+static int file_has_changed() {
   if (NUM_SRC != NUM_OUT) {
     return 1;
   }
   for (int i = 0; i < NUM_SRC; ++i) {
-    if (original[i] != OUT[i]) {
+    if (SRC[i] != OUT[i]) {
       return 1;
     }
   }
@@ -2589,13 +2589,11 @@ static void format_file() {
   // a normal run most of the files are already formatted.
 
   // So I tried it with only writing to the file if it had changed. This
-  // takes a bit more memory because I need to keep both the original code
-  // and the formatted code in memory.
+  // takes a bit more memory because I need to keep the formatted code in
+  // memory.
 
   // But it now only takes 6ms.
   //                       ~
-  static uint8_t original[MAX_SRC];
-  memcpy(original, SRC, NUM_SRC);
 
   calculate_triple_string_mask();
   calculate_row_numbers();
@@ -2606,7 +2604,7 @@ static void format_file() {
     fprintf(stderr, "could not format %s\n", PATH);
     return;
   }
-  if (!file_has_changed(original)) {
+  if (!file_has_changed()) {
     return;
   }
   FILE *out_file = fopen(PATH, "w");
