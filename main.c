@@ -942,7 +942,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   not_infixed_write(right, new_indent);
 }
 
-static int get_plus_right(int node, int *right) {
+static int get_plus(int node, int *right) {
   for (int i = 0; i < NUM_PLUS; ++i) {
     if (PLUS_LEFT[i] == (uint32_t)node) {
       *right = PLUS_RIGHT[i];
@@ -952,7 +952,7 @@ static int get_plus_right(int node, int *right) {
   return -1;
 }
 
-static int get_minus_right(int node, int *right) {
+static int get_minus(int node, int *right) {
   for (int i = 0; i < NUM_MINUS; ++i) {
     if (MINUS_LEFT[i] == (uint32_t)node) {
       *right = MINUS_RIGHT[i];
@@ -962,7 +962,7 @@ static int get_minus_right(int node, int *right) {
   return -1;
 }
 
-static int get_asterisk_right(int node, int *right) {
+static int get_asterisk(int node, int *right) {
   for (int i = 0; i < NUM_ASTERISK; ++i) {
     if (ASTERISK_LEFT[i] == (uint32_t)node) {
       *right = ASTERISK_RIGHT[i];
@@ -972,7 +972,7 @@ static int get_asterisk_right(int node, int *right) {
   return -1;
 }
 
-static int get_divide_right(int node, int *right) {
+static int get_divide(int node, int *right) {
   for (int i = 0; i < NUM_DIVIDE; ++i) {
     if (DIVIDE_LEFT[i] == (uint32_t)node) {
       *right = DIVIDE_RIGHT[i];
@@ -982,7 +982,7 @@ static int get_divide_right(int node, int *right) {
   return -1;
 }
 
-static int get_power_right(int node, int *right) {
+static int get_power(int node, int *right) {
   for (int i = 0; i < NUM_POWER; ++i) {
     if (POWER_LEFT[i] == (uint32_t)node) {
       *right = POWER_RIGHT[i];
@@ -1064,27 +1064,27 @@ static int get_equal(int node, int *right) {
 
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
-  if (get_plus_right(*left, &right) == 0) {
+  if (get_plus(*left, &right) == 0) {
     infix_write_helper("+", is_multi, right, indent);
     *left = right;
     return 0;
   }
-  if (get_minus_right(*left, &right) == 0) {
+  if (get_minus(*left, &right) == 0) {
     infix_write_helper("-", is_multi, right, indent);
     *left = right;
     return 0;
   }
-  if (get_asterisk_right(*left, &right) == 0) {
+  if (get_asterisk(*left, &right) == 0) {
     infix_write_helper("*", is_multi, right, indent);
     *left = right;
     return 0;
   }
-  if (get_divide_right(*left, &right) == 0) {
+  if (get_divide(*left, &right) == 0) {
     infix_write_helper("/", is_multi, right, indent);
     *left = right;
     return 0;
   }
-  if (get_power_right(*left, &right) == 0) {
+  if (get_power(*left, &right) == 0) {
     infix_write_helper("^", is_multi, right, indent);
     *left = right;
     return 0;
