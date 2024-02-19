@@ -1058,8 +1058,16 @@ static void left_pizza_write(int is_multi, int right, int indent) {
   } else {
     char_write(' ');
   }
-  const int new_indent = indent + 4 + 2 + 1;
-  not_infixed_write(right, new_indent);
+  right_comments_in_expression_write(right, indent);
+  const int has_right = has_right_comment(right);
+  const int is_single_right = is_single_line_right_comments(right);
+  if (has_right && !is_single_right) {
+    indent_write(indent+4);
+  }
+  if (has_right && is_single_right) {
+    char_write(' ');
+  }
+  not_infixed_write(right, indent);
 }
 
 static void infix_write_helper(char *infix, int is_multi, int right,
