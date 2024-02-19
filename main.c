@@ -1280,7 +1280,7 @@ static int get_left_pizza(int node, int *right) {
   return -1;
 }
 
-static int infix_write(int *left, int is_multi, int indent) {
+static int aligned_infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
     infix_write_helper("+", is_multi, right, indent);
@@ -1377,11 +1377,6 @@ static int infix_write(int *left, int is_multi, int indent) {
     *left = right;
     return 0;
   }
-  if (get_left_pizza(*left, &right) == 0) {
-    left_pizza_write(is_multi, right, indent);
-    *left = right;
-    return 0;
-  }
   return -1;
 }
 
@@ -1389,7 +1384,14 @@ static void expression_write(int node, int indent) {
   not_infixed_write(node, indent);
   const int is_multi = is_multiline_node(node);
   int left = node;
-  while (infix_write(&left, is_multi, indent) == 0) {
+  while (aligned_infix_write(&left, is_multi, indent) == 0) {
+  }
+  int left_pizza;
+  int pizza_node = node;
+  for (int pizza_indent = indent; get_left_pizza(pizza_node, &left_pizza) == 0;
+       pizza_indent += 4) {
+    left_pizza_write(is_multi, left_pizza, pizza_indent);
+    pizza_node = left_pizza;
   }
 }
 
