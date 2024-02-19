@@ -251,6 +251,22 @@ int NUM_LEFT_PIZZA = 0;
 static uint32_t MULTILINE_INFIX[MAX_MULTILINE_INFIX];
 int NUM_MULTILINE_INFIX = 0;
 
+#define MAX_RIGHT_PIZZA 10000
+static uint32_t RIGHT_PIZZA_LEFT[MAX_RIGHT_PIZZA];
+static uint32_t RIGHT_PIZZA_RIGHT[MAX_RIGHT_PIZZA];
+int NUM_RIGHT_PIZZA = 0;
+
+static void append_right_pizza(int left, int right) {
+  if (NUM_RIGHT_PIZZA == MAX_RIGHT_PIZZA) {
+    fprintf(stderr, "%s: too many right pizza nodes, maximum is %d\n", PATH,
+            MAX_RIGHT_PIZZA);
+    exit(-1);
+  }
+  RIGHT_PIZZA_LEFT[NUM_RIGHT_PIZZA] = left;
+  RIGHT_PIZZA_RIGHT[NUM_RIGHT_PIZZA] = right;
+  ++NUM_RIGHT_PIZZA;
+}
+
 static void append_multiline_infix(int node) {
   if (NUM_MULTILINE_INFIX == MAX_MULTILINE_INFIX) {
     fprintf(stderr, "%s: too many multiline infix nodes, maximum is %d\n", PATH,
@@ -1102,7 +1118,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   }
   chunk_write(infix);
   char_write(' ');
-  const int new_indent = indent + 4 + string_length(infix) + 1;
+  const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
   right_comments_in_expression_write(right, new_indent);
   const int has_right = has_right_comment(right);
   const int is_single_right = is_single_line_right_comments(right);
@@ -1305,6 +1321,16 @@ static int get_compose_right(int node, int *right) {
   return -1;
 }
 
+static int get_right_pizza(int node, int *right) {
+  for (int i = 0; i < NUM_RIGHT_PIZZA; ++i) {
+    if (RIGHT_PIZZA_LEFT[i] == (uint32_t)node) {
+      *right = RIGHT_PIZZA_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int get_left_pizza(int node, int *right) {
   for (int i = 0; i < NUM_LEFT_PIZZA; ++i) {
     if (LEFT_PIZZA_LEFT[i] == (uint32_t)node) {
@@ -1409,6 +1435,11 @@ static int aligned_infix_write(int *left, int is_multi, int indent) {
   }
   if (get_compose_right(*left, &right) == 0) {
     infix_write_helper(">>", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_right_pizza(*left, &right) == 0) {
+    infix_write_helper("|>", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1654,6 +1685,7 @@ static void zero_ast() {
   NUM_COMPOSE_RIGHT = 0;
   NUM_LEFT_PIZZA = 0;
   NUM_MULTILINE_INFIX = 0;
+  NUM_RIGHT_PIZZA = 0;
 }
 
 static int get_new_node() {
@@ -2356,6 +2388,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "<|") == 0) {
     append_left_pizza(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "|>") == 0) {
+    append_right_pizza(*left, right);
     *left = right;
     return 0;
   }
