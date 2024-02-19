@@ -247,6 +247,20 @@ static uint32_t LEFT_PIZZA_LEFT[MAX_LEFT_PIZZA];
 static uint32_t LEFT_PIZZA_RIGHT[MAX_LEFT_PIZZA];
 int NUM_LEFT_PIZZA = 0;
 
+#define MAX_MULTILINE_INFIX 10000
+static uint32_t MULTILINE_INFIX[MAX_MULTILINE_INFIX];
+int NUM_MULTILINE_INFIX = 0;
+
+static void append_multiline_infix(int node) {
+  if (NUM_MULTILINE_INFIX == MAX_MULTILINE_INFIX) {
+    fprintf(stderr, "%s: too many multiline infix nodes, maximum is %d\n", PATH,
+            MAX_MULTILINE_INFIX);
+    exit(-1);
+  }
+  MULTILINE_INFIX[NUM_MULTILINE_INFIX] = node;
+  ++NUM_MULTILINE_INFIX;
+}
+
 static void append_left_pizza(int left, int right) {
   if (NUM_LEFT_PIZZA == MAX_LEFT_PIZZA) {
     fprintf(stderr, "%s: too many left pizza nodes, maximum is %d\n", PATH,
@@ -1412,9 +1426,18 @@ static void left_pizzas_write(int is_multi, int node, int indent) {
   }
 }
 
+static int is_multiline_infix_node(int node) {
+  for (int i = 0; i < NUM_MULTILINE_INFIX; ++i) {
+    if (MULTILINE_INFIX[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node, int indent) {
   not_infixed_write(node, indent);
-  const int is_multi = is_multiline_node(node);
+  const int is_multi = is_multiline_infix_node(node);
   int left = node;
   while (aligned_infix_write(&left, is_multi, indent) == 0) {
   }
@@ -1628,6 +1651,7 @@ static void zero_ast() {
   NUM_COMPOSE_LEFT = 0;
   NUM_COMPOSE_RIGHT = 0;
   NUM_LEFT_PIZZA = 0;
+  NUM_MULTILINE_INFIX = 0;
 }
 
 static int get_new_node() {
@@ -2347,7 +2371,7 @@ static int expression_parse(int *node) {
   }
 
   if (ROW[I] > start_row) {
-    append_is_multiline(*node);
+    append_multiline_infix(*node);
   }
   return 0;
 }
