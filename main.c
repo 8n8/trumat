@@ -242,6 +242,22 @@ static uint32_t COMPOSE_RIGHT_LEFT[MAX_COMPOSE_RIGHT];
 static uint32_t COMPOSE_RIGHT_RIGHT[MAX_COMPOSE_RIGHT];
 int NUM_COMPOSE_RIGHT = 0;
 
+#define MAX_LEFT_PIZZA 10000
+static uint32_t LEFT_PIZZA_LEFT[MAX_LEFT_PIZZA];
+static uint32_t LEFT_PIZZA_RIGHT[MAX_LEFT_PIZZA];
+int NUM_LEFT_PIZZA = 0;
+
+static void append_left_pizza(int left, int right) {
+  if (NUM_LEFT_PIZZA == MAX_LEFT_PIZZA) {
+    fprintf(stderr, "%s: too many left pizza nodes, maximum is %d\n", PATH,
+            MAX_LEFT_PIZZA);
+    exit(-1);
+  }
+  LEFT_PIZZA_LEFT[NUM_LEFT_PIZZA] = left;
+  LEFT_PIZZA_RIGHT[NUM_LEFT_PIZZA] = right;
+  ++NUM_LEFT_PIZZA;
+}
+
 static void append_compose_right(int left, int right) {
   if (NUM_COMPOSE_RIGHT == MAX_COMPOSE_RIGHT) {
     fprintf(stderr, "%s: too many compose right nodes, maximum is %d\n", PATH,
@@ -1242,6 +1258,16 @@ static int get_compose_right(int node, int *right) {
   return -1;
 }
 
+static int get_left_pizza(int node, int *right) {
+  for (int i = 0; i < NUM_LEFT_PIZZA; ++i) {
+    if (LEFT_PIZZA_LEFT[i] == (uint32_t)node) {
+      *right = LEFT_PIZZA_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
@@ -1336,6 +1362,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_compose_right(*left, &right) == 0) {
     infix_write_helper(">>", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_left_pizza(*left, &right) == 0) {
+    infix_write_helper("<|", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1556,6 +1587,7 @@ static void zero_ast() {
   NUM_PARSE_EQUALS = 0;
   NUM_COMPOSE_LEFT = 0;
   NUM_COMPOSE_RIGHT = 0;
+  NUM_LEFT_PIZZA = 0;
 }
 
 static int get_new_node() {
@@ -2253,6 +2285,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, ">>") == 0) {
     append_compose_right(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "<|") == 0) {
+    append_left_pizza(*left, right);
     *left = right;
     return 0;
   }
