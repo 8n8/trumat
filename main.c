@@ -1051,19 +1051,19 @@ static int has_right_comment(int node) {
   return 0;
 }
 
-static void left_pizza_write(int is_multi, int right, int indent) {
+static void left_pizza_write(int is_multi, int left_is_multi, int right, int indent) {
   const int has_left = has_left_comment(right);
-  const int multi_left = has_multiline_left_comment(right);
-  if (multi_left) {
+  const int multi_left_comment = has_multiline_left_comment(right);
+  if (multi_left_comment || left_is_multi) {
     indent_write(indent);
   } else {
     char_write(' ');
   }
   left_comments_write(0, right, indent);
-  if (multi_left) {
+  if (multi_left_comment) {
     indent_write(indent);
   }
-  if (!multi_left && has_left) {
+  if (!multi_left_comment && has_left) {
     char_write(' ');
   }
   chunk_write("<|");
@@ -1419,9 +1419,11 @@ static void left_pizzas_write(int is_multi, int node, int indent) {
   int left_pizza;
   int pizza_node = node;
   int pizza_indent = indent;
+  int left_is_multi = is_multiline_node(pizza_node);
   while (get_left_pizza(pizza_node, &left_pizza) == 0) {
-    left_pizza_write(is_multi, left_pizza, pizza_indent);
+    left_pizza_write(is_multi, left_is_multi, left_pizza, pizza_indent);
     pizza_node = left_pizza;
+    left_is_multi = is_multiline_node(pizza_node);
     pizza_indent += 4;
   }
 }
