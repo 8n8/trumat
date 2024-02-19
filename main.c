@@ -232,6 +232,22 @@ static uint32_t PARSE_EQUALS_LEFT[MAX_PARSE_EQUALS];
 static uint32_t PARSE_EQUALS_RIGHT[MAX_PARSE_EQUALS];
 int NUM_PARSE_EQUALS = 0;
 
+#define MAX_COMPOSE_LEFT 10000
+static uint32_t COMPOSE_LEFT_LEFT[MAX_COMPOSE_LEFT];
+static uint32_t COMPOSE_LEFT_RIGHT[MAX_COMPOSE_LEFT];
+int NUM_COMPOSE_LEFT = 0;
+
+static void append_compose_left(int left, int right) {
+  if (NUM_COMPOSE_LEFT == MAX_COMPOSE_LEFT) {
+    fprintf(stderr, "%s: too many compose left nodes, maximum is %d\n", PATH,
+            MAX_COMPOSE_LEFT);
+    exit(-1);
+  }
+  COMPOSE_LEFT_LEFT[NUM_COMPOSE_LEFT] = left;
+  COMPOSE_LEFT_RIGHT[NUM_COMPOSE_LEFT] = right;
+  ++NUM_COMPOSE_LEFT;
+}
+
 static void append_parse_equals(int left, int right) {
   if (NUM_PARSE_EQUALS == MAX_PARSE_EQUALS) {
     fprintf(stderr, "%s: too many parse equal nodes, maximum is %d\n", PATH,
@@ -1190,6 +1206,16 @@ static int get_parse_equals(int node, int *right) {
   return -1;
 }
 
+static int get_compose_left(int node, int *right) {
+  for (int i = 0; i < NUM_COMPOSE_LEFT; ++i) {
+    if (COMPOSE_LEFT_LEFT[i] == (uint32_t)node) {
+      *right = COMPOSE_LEFT_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_plus(*left, &right) == 0) {
@@ -1274,6 +1300,11 @@ static int infix_write(int *left, int is_multi, int indent) {
   }
   if (get_parse_equals(*left, &right) == 0) {
     infix_write_helper("|=", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  if (get_compose_left(*left, &right) == 0) {
+    infix_write_helper("<<", is_multi, right, indent);
     *left = right;
     return 0;
   }
@@ -1492,6 +1523,7 @@ static void zero_ast() {
   NUM_NOT_EQUAL = 0;
   NUM_PARSE_DOT = 0;
   NUM_PARSE_EQUALS = 0;
+  NUM_COMPOSE_LEFT = 0;
 }
 
 static int get_new_node() {
@@ -2179,6 +2211,11 @@ static int infix_parse(int *left) {
   }
   if (infix_parse_helper(&right, "|=") == 0) {
     append_parse_equals(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_parse_helper(&right, "<<") == 0) {
+    append_compose_left(*left, right);
     *left = right;
     return 0;
   }
