@@ -1041,13 +1041,13 @@ static void left_pizza_write(int is_multi, int right, int indent) {
   const int has_left = has_left_comment(right);
   const int multi_left = has_multiline_left_comment(right);
   if (multi_left) {
-    indent_write(floor_to_four(indent));
+    indent_write(indent);
   } else {
     char_write(' ');
   }
   left_comments_write(0, right, indent);
   if (multi_left) {
-    indent_write(floor_to_four(indent));
+    indent_write(indent);
   }
   if (!multi_left && has_left) {
     char_write(' ');
