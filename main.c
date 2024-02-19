@@ -1072,7 +1072,7 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right, int ind
   } else {
     char_write(' ');
   }
-  right_comments_in_expression_write(right, indent);
+  right_comments_in_expression_write(right, indent+4);
   const int has_right = has_right_comment(right);
   const int is_single_right = is_single_line_right_comments(right);
   if (has_right && !is_single_right) {
