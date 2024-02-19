@@ -1039,14 +1039,18 @@ static int has_right_comment(int node) {
 
 static void left_pizza_write(int is_multi, int right, int indent) {
   const int has_left = has_left_comment(right);
-  if (has_left) {
+  const int multi_left = has_multiline_left_comment(right);
+  if (multi_left) {
     indent_write(floor_to_four(indent));
   } else {
     char_write(' ');
   }
   left_comments_write(0, right, floor_to_four(indent + 4));
-  if (has_left) {
+  if (multi_left) {
     indent_write(floor_to_four(indent));
+  }
+  if (!multi_left && has_left) {
+    char_write(' ');
   }
   chunk_write("<|");
   if (is_multi) {
