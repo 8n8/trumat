@@ -1037,6 +1037,18 @@ static int has_right_comment(int node) {
   return 0;
 }
 
+static void left_pizza_write(int is_multi, int right, int indent) {
+  char_write(' ');
+  chunk_write("<|");
+  if (is_multi) {
+    indent_write(floor_to_four(indent + 4));
+  } else {
+    char_write(' ');
+  }
+  const int new_indent = indent + 4 + 2 + 1;
+  not_infixed_write(right, new_indent);
+}
+
 static void infix_write_helper(char *infix, int is_multi, int right,
                                int indent) {
   if (is_multi) {
@@ -1366,7 +1378,7 @@ static int infix_write(int *left, int is_multi, int indent) {
     return 0;
   }
   if (get_left_pizza(*left, &right) == 0) {
-    infix_write_helper("<|", is_multi, right, indent);
+    left_pizza_write(is_multi, right, indent);
     *left = right;
     return 0;
   }
