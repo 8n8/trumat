@@ -1067,7 +1067,7 @@ static void left_pizza_write(int is_multi, int right, int indent) {
   if (has_right && is_single_right) {
     char_write(' ');
   }
-  not_infixed_write(right, indent);
+  not_infixed_write(right, indent + 4);
 }
 
 static void infix_write_helper(char *infix, int is_multi, int right,
