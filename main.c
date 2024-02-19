@@ -1045,7 +1045,7 @@ static void left_pizza_write(int is_multi, int right, int indent) {
   } else {
     char_write(' ');
   }
-  left_comments_write(0, right, floor_to_four(indent + 4));
+  left_comments_write(0, right, indent);
   if (multi_left) {
     indent_write(floor_to_four(indent));
   }
