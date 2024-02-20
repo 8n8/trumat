@@ -2443,6 +2443,22 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
+static int in_unnecessary_parens(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  if (expression_parse(node)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int not_infixed_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -2466,6 +2482,9 @@ static int not_infixed_parse(int *node) {
     return 0;
   }
   if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (in_unnecessary_parens(node) == 0) {
     return 0;
   }
   return list_parse(node);
