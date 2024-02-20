@@ -2249,6 +2249,9 @@ static int argument_parse(int *node) {
   if (qualified_name_parse(node) == 0) {
     return 0;
   }
+  if (upper_name_parse(node) == 0) {
+    return 0;
+  }
   if (lower_name_parse(node) == 0) {
     return 0;
   }
@@ -2441,6 +2444,10 @@ static int qualified_name_parse(int *node) {
   const int start = I;
   int dont_care;
   if (upper_name_parse(&dont_care)) {
+    return -1;
+  }
+  if (qualified_name_part_parse()) {
+    I = start;
     return -1;
   }
   while (qualified_name_part_parse() == 0) {
