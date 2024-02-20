@@ -2416,20 +2416,27 @@ static int expression_parse(int *node) {
   return 0;
 }
 
-static int qualified_name_parse(int *node) {
+static int qualified_name_part_parse() {
   const int start = I;
-  int upper_name;
-  if (upper_name_parse(&upper_name)) {
-    return -1;
-  }
   if (char_parse('.')) {
     I = start;
     return -1;
   }
-  int lower_name;
-  if (lower_name_parse(&lower_name)) {
+  int dont_care;
+  if (lower_name_parse(&dont_care)) {
     I = start;
     return -1;
+  }
+  return 0;
+}
+
+static int qualified_name_parse(int *node) {
+  const int start = I;
+  int dont_care;
+  if (upper_name_parse(&dont_care)) {
+    return -1;
+  }
+  while (qualified_name_part_parse() == 0) {
   }
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
