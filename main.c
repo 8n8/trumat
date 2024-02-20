@@ -5,6 +5,7 @@
 #include <string.h>
 
 static int expression_parse(int *node);
+static int qualified_name_parse(int *node);
 static int line_comment_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
@@ -2240,6 +2241,9 @@ static int argument_parse(int *node) {
     return 0;
   }
   if (triple_string_parse(node) == 0) {
+    return 0;
+  }
+  if (qualified_name_parse(node) == 0) {
     return 0;
   }
   if (normal_string_parse(node) == 0) {
