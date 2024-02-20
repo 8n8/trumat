@@ -2524,12 +2524,19 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
+static int in_unnecessary_parens_contents_parse(int *node) {
+  if (float_parse(node) == 0) {
+    return 0;
+  }
+  return int_parse(node);
+}
+
 static int in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
-  if (int_parse(node)) {
+  if (in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
   }
