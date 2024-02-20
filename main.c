@@ -2234,25 +2234,25 @@ static int function_call_parse(int *node) {
 }
 
 static int argument_parse(int *node) {
-  if (lower_name_parse(node) == 0) {
+  if (float_parse(node) == 0) {
     return 0;
   }
-  if (float_parse(node) == 0) {
+  if (int_parse(node) == 0) {
     return 0;
   }
   if (triple_string_parse(node) == 0) {
     return 0;
   }
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
   if (normal_string_parse(node) == 0) {
     return 0;
   }
-  if (list_parse(node) == 0) {
+  if (qualified_name_parse(node) == 0) {
     return 0;
   }
-  return int_parse(node);
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  return list_parse(node);
 }
 
 static void attach_same_line_comment(int node, int same_line_comment) {
