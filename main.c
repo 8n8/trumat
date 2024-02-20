@@ -7,6 +7,7 @@
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int line_comment_parse(int *node);
+static int in_unnecessary_parens_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
 static int string_hex_parse(int *node);
@@ -2255,6 +2256,9 @@ static int argument_parse(int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
   }
+  if (in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
   return list_parse(node);
 }
 
@@ -2457,7 +2461,7 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
-static int in_unnecessary_parens(int *node) {
+static int in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
@@ -2498,7 +2502,7 @@ static int not_infixed_parse(int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
   }
-  if (in_unnecessary_parens(node) == 0) {
+  if (in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
