@@ -258,6 +258,20 @@ static uint32_t RIGHT_PIZZA_LEFT[MAX_RIGHT_PIZZA];
 static uint32_t RIGHT_PIZZA_RIGHT[MAX_RIGHT_PIZZA];
 int NUM_RIGHT_PIZZA = 0;
 
+#define MAX_IN_PARENS 10000
+static uint32_t IN_PARENS[MAX_IN_PARENS];
+int NUM_IN_PARENS = 0;
+
+static void append_in_parens(int node) {
+  if (NUM_IN_PARENS == MAX_IN_PARENS) {
+    fprintf(stderr, "%s: too many in parens nodes, maximum is %d\n", PATH,
+            MAX_IN_PARENS);
+    exit(-1);
+  }
+  IN_PARENS[NUM_IN_PARENS] = node;
+  ++NUM_IN_PARENS;
+}
+
 static void append_right_pizza(int left, int right) {
   if (NUM_RIGHT_PIZZA == MAX_RIGHT_PIZZA) {
     fprintf(stderr, "%s: too many right pizza nodes, maximum is %d\n", PATH,
@@ -1471,13 +1485,29 @@ static int is_multiline_infix_node(int node) {
   return 0;
 }
 
+static int is_in_parens(int node) {
+  for (int i = 0; i < NUM_IN_PARENS; ++i) {
+    if (IN_PARENS[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void expression_write(int node, int indent) {
+  const int in_parens = is_in_parens(node);
+  if (in_parens) {
+    char_write('(');
+  }
   not_infixed_write(node, indent);
   const int is_multi = is_multiline_infix_node(node);
   int left = node;
   while (aligned_infix_write(&left, is_multi, indent) == 0) {
   }
   left_pizzas_write(is_multi, node, indent);
+  if (in_parens) {
+    char_write(')');
+  }
 }
 
 static int is_non_empty_triple_string(int node) {
@@ -1689,6 +1719,7 @@ static void zero_ast() {
   NUM_LEFT_PIZZA = 0;
   NUM_MULTILINE_INFIX = 0;
   NUM_RIGHT_PIZZA = 0;
+  NUM_IN_PARENS = 0;
 }
 
 static int get_new_node() {
@@ -2234,6 +2265,23 @@ static int function_call_parse(int *node) {
   return 0;
 }
 
+static int in_necessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  if (function_call_parse(node)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  append_in_parens(*node);
+  return 0;
+}
+
 static int argument_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -2257,6 +2305,9 @@ static int argument_parse(int *node) {
     return 0;
   }
   if (in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
+  if (in_necessary_parens_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
@@ -2466,7 +2517,7 @@ static int in_unnecessary_parens_parse(int *node) {
   if (char_parse('(')) {
     return -1;
   }
-  if (expression_parse(node)) {
+  if (int_parse(node)) {
     I = start;
     return -1;
   }
