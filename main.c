@@ -2528,7 +2528,13 @@ static int in_unnecessary_parens_contents_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
-  return int_parse(node);
+  if (int_parse(node) == 0) {
+    return 0;
+  }
+  if (triple_string_parse(node) == 0) {
+    return 0;
+  }
+  return -1;
 }
 
 static int in_unnecessary_parens_parse(int *node) {
