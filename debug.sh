@@ -1,6 +1,6 @@
 #!/bin/sh
 
 rm a.out
-cp input/Parens/NecessaryArg.elm test.elm
+cp input/List/MultilineBlockInInfix.elm test.elm
 clang -g -O0 -fsanitize=memory main.c
 gdb --args a.out --overwrite test.elm

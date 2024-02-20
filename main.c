@@ -6,6 +6,7 @@
 
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int infixed_parse(int *node);
 static int line_comment_parse(int *node);
 static int in_unnecessary_parens_parse(int *node);
 static int comment_parse(int *node);
@@ -2270,7 +2271,7 @@ static int in_necessary_parens_parse(int *node) {
   if (char_parse('(')) {
     return -1;
   }
-  if (function_call_parse(node)) {
+  if (function_call_parse(node) && infixed_parse(node)) {
     I = start;
     return -1;
   }
@@ -2465,20 +2466,31 @@ static int infix_parse(int *left) {
   return -1;
 }
 
-static int expression_parse(int *node) {
+static int infixed_parse(int *node) {
+  const int start = I;
   const int start_row = ROW[I];
   if (not_infixed_parse(node)) {
+    I = start;
     return -1;
   }
-
   int left = *node;
+  if (infix_parse(&left)) {
+    I = start;
+    return -1;
+  }
   while (infix_parse(&left) == 0) {
   }
-
   if (ROW[I] > start_row) {
     append_multiline_infix(*node);
   }
   return 0;
+}
+
+static int expression_parse(int *node) {
+  if (infixed_parse(node) == 0) {
+    return 0;
+  }
+  return not_infixed_parse(node);
 }
 
 static int qualified_name_part_parse() {
