@@ -2423,7 +2423,7 @@ static int qualified_name_part_parse() {
     return -1;
   }
   int dont_care;
-  if (lower_name_parse(&dont_care)) {
+  if (lower_name_parse(&dont_care) && upper_name_parse(&dont_care)) {
     I = start;
     return -1;
   }
