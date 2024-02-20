@@ -2534,6 +2534,9 @@ static int in_unnecessary_parens_contents_parse(int *node) {
   if (triple_string_parse(node) == 0) {
     return 0;
   }
+  if (normal_string_parse(node) == 0) {
+    return 0;
+  }
   return -1;
 }
 
