@@ -2242,6 +2242,9 @@ static int argument_parse(int *node) {
   if (triple_string_parse(node) == 0) {
     return 0;
   }
+  if (normal_string_parse(node) == 0) {
+    return 0;
+  }
   if (list_parse(node) == 0) {
     return 0;
   }
