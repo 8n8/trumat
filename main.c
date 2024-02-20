@@ -1067,7 +1067,8 @@ static int has_right_comment(int node) {
   return 0;
 }
 
-static void left_pizza_write(int is_multi, int left_is_multi, int right, int indent) {
+static void left_pizza_write(int is_multi, int left_is_multi, int right,
+                             int indent) {
   const int has_left = has_left_comment(right);
   const int multi_left_comment = has_multiline_left_comment(right);
   if (multi_left_comment || left_is_multi) {
@@ -1088,7 +1089,7 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right, int ind
   } else {
     char_write(' ');
   }
-  right_comments_in_expression_write(right, floor_to_four(indent+4));
+  right_comments_in_expression_write(right, floor_to_four(indent + 4));
   const int has_right = has_right_comment(right);
   const int is_single_right = is_single_line_right_comments(right);
   if (has_right && !is_single_right) {
@@ -2415,6 +2416,26 @@ static int expression_parse(int *node) {
   return 0;
 }
 
+static int qualified_name_parse(int *node) {
+  const int start = I;
+  int upper_name;
+  if (upper_name_parse(&upper_name)) {
+    return -1;
+  }
+  if (char_parse('.')) {
+    I = start;
+    return -1;
+  }
+  int lower_name;
+  if (lower_name_parse(&lower_name)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int not_infixed_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -2429,6 +2450,9 @@ static int not_infixed_parse(int *node) {
     return 0;
   }
   if (function_call_parse(node) == 0) {
+    return 0;
+  }
+  if (qualified_name_parse(node) == 0) {
     return 0;
   }
   if (upper_name_parse(node) == 0) {
