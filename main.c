@@ -2550,6 +2550,9 @@ static int in_unnecessary_parens_contents_parse(int is_parens_context,
   if (lower_name_parse(node) == 0) {
     return 0;
   }
+  if (in_unnecessary_parens_parse(is_parens_context, node) == 0) {
+    return 0;
+  }
   return list_parse(node);
 }
 
