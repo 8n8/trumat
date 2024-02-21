@@ -2547,6 +2547,9 @@ static int in_unnecessary_parens_contents_parse(int is_parens_context,
   if (upper_name_parse(node) == 0) {
     return 0;
   }
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
   return -1;
 }
 
