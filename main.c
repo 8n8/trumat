@@ -7,6 +7,7 @@
 static int expression_parse(int is_parens_context, int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
+static int simple_expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int in_unnecessary_parens_parse(int is_parens_context, int *node);
 static int comment_parse(int *node);
@@ -2284,34 +2285,13 @@ static int in_necessary_parens_parse(int *node) {
 }
 
 static int argument_parse(int *node) {
-  if (float_parse(node) == 0) {
-    return 0;
-  }
-  if (int_parse(node) == 0) {
-    return 0;
-  }
-  if (triple_string_parse(node) == 0) {
-    return 0;
-  }
-  if (normal_string_parse(node) == 0) {
-    return 0;
-  }
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
-  if (upper_name_parse(node) == 0) {
-    return 0;
-  }
-  if (lower_name_parse(node) == 0) {
+  if (simple_expression_parse(node) == 0) {
     return 0;
   }
   if (in_unnecessary_parens_parse(1, node) == 0) {
     return 0;
   }
-  if (in_necessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  return list_parse(node);
+  return in_necessary_parens_parse(node);
 }
 
 static void attach_same_line_comment(int node, int same_line_comment) {
@@ -2526,37 +2506,16 @@ static int qualified_name_parse(int *node) {
 
 static int in_unnecessary_parens_contents_parse(int is_parens_context,
                                                 int *node) {
-  if (float_parse(node) == 0) {
-    return 0;
-  }
-  if (int_parse(node) == 0) {
-    return 0;
-  }
-  if (triple_string_parse(node) == 0) {
-    return 0;
-  }
-  if (normal_string_parse(node) == 0) {
-    return 0;
-  }
   if (!is_parens_context && function_call_parse(node) == 0) {
     return 0;
   }
   if (!is_parens_context && infixed_parse(node) == 0) {
     return 0;
   }
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
-  if (upper_name_parse(node) == 0) {
-    return 0;
-  }
-  if (lower_name_parse(node) == 0) {
-    return 0;
-  }
   if (in_unnecessary_parens_parse(is_parens_context, node) == 0) {
     return 0;
   }
-  return list_parse(node);
+  return simple_expression_parse(node);
 }
 
 static int in_unnecessary_parens_parse(int is_parens_context, int *node) {
@@ -2575,7 +2534,7 @@ static int in_unnecessary_parens_parse(int is_parens_context, int *node) {
   return 0;
 }
 
-static int not_infixed_parse(int is_parens_context, int *node) {
+static int simple_expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
   }
@@ -2588,9 +2547,6 @@ static int not_infixed_parse(int is_parens_context, int *node) {
   if (normal_string_parse(node) == 0) {
     return 0;
   }
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
   if (qualified_name_parse(node) == 0) {
     return 0;
   }
@@ -2600,10 +2556,17 @@ static int not_infixed_parse(int is_parens_context, int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
   }
-  if (in_unnecessary_parens_parse(is_parens_context, node) == 0) {
+  return list_parse(node);
+}
+
+static int not_infixed_parse(int is_parens_context, int *node) {
+  if (function_call_parse(node) == 0) {
     return 0;
   }
-  return list_parse(node);
+  if (simple_expression_parse(node) == 0) {
+    return 0;
+  }
+  return in_unnecessary_parens_parse(is_parens_context, node);
 }
 
 static int not_newline_parse() {
