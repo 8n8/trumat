@@ -7,6 +7,7 @@
 static int expression_parse(int is_parens_context, int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
+static int argument_in_unnecessary_parens_parse(int *node);
 static int simple_expression_parse(int *node);
 static int line_comment_parse(int *node);
 static int in_unnecessary_parens_parse(int is_parens_context, int *node);
@@ -2288,7 +2289,7 @@ static int argument_parse(int *node) {
   if (simple_expression_parse(node) == 0) {
     return 0;
   }
-  if (in_unnecessary_parens_parse(1, node) == 0) {
+  if (argument_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return in_necessary_parens_parse(node);
@@ -2504,6 +2505,13 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
+static int argument_in_unnecessary_parens_contents_parse(int *node) {
+  if (argument_in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
+  return simple_expression_parse(node);
+}
+
 static int in_unnecessary_parens_contents_parse(int is_parens_context,
                                                 int *node) {
   if (!is_parens_context && function_call_parse(node) == 0) {
@@ -2516,6 +2524,22 @@ static int in_unnecessary_parens_contents_parse(int is_parens_context,
     return 0;
   }
   return simple_expression_parse(node);
+}
+
+static int argument_in_unnecessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  if (argument_in_unnecessary_parens_contents_parse(node)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  return 0;
 }
 
 static int in_unnecessary_parens_parse(int is_parens_context, int *node) {
