@@ -2315,7 +2315,7 @@ static void attach_right_comment(int node, int right_comment) {
   attach_title_comments(node, right_comment);
 }
 
-static int infix_parse_helper(int *node, char *infix) {
+static int infix_then_expression_parse(int *node, char *infix) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -2338,107 +2338,107 @@ static int infix_parse_helper(int *node, char *infix) {
 
 static int infix_parse(int *left) {
   int right;
-  if (infix_parse_helper(&right, "++") == 0) {
+  if (infix_then_expression_parse(&right, "++") == 0) {
     append_plus_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "+") == 0) {
+  if (infix_then_expression_parse(&right, "+") == 0) {
     append_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "-") == 0) {
+  if (infix_then_expression_parse(&right, "-") == 0) {
     append_minus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "*") == 0) {
+  if (infix_then_expression_parse(&right, "*") == 0) {
     append_asterisk(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "//") == 0) {
+  if (infix_then_expression_parse(&right, "//") == 0) {
     append_int_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "/") == 0) {
+  if (infix_then_expression_parse(&right, "/") == 0) {
     append_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "^") == 0) {
+  if (infix_then_expression_parse(&right, "^") == 0) {
     append_power(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, ">=") == 0) {
+  if (infix_then_expression_parse(&right, ">=") == 0) {
     append_greater_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, ">") == 0) {
+  if (infix_then_expression_parse(&right, ">") == 0) {
     append_greater_than(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "<=") == 0) {
+  if (infix_then_expression_parse(&right, "<=") == 0) {
     append_less_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "<") == 0) {
+  if (infix_then_expression_parse(&right, "<") == 0) {
     append_less_than(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "==") == 0) {
+  if (infix_then_expression_parse(&right, "==") == 0) {
     append_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "||") == 0) {
+  if (infix_then_expression_parse(&right, "||") == 0) {
     append_or(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "&&") == 0) {
+  if (infix_then_expression_parse(&right, "&&") == 0) {
     append_and(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "/=") == 0) {
+  if (infix_then_expression_parse(&right, "/=") == 0) {
     append_not_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "|.") == 0) {
+  if (infix_then_expression_parse(&right, "|.") == 0) {
     append_parse_dot(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "|=") == 0) {
+  if (infix_then_expression_parse(&right, "|=") == 0) {
     append_parse_equals(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "<<") == 0) {
+  if (infix_then_expression_parse(&right, "<<") == 0) {
     append_compose_left(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, ">>") == 0) {
+  if (infix_then_expression_parse(&right, ">>") == 0) {
     append_compose_right(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "<|") == 0) {
+  if (infix_then_expression_parse(&right, "<|") == 0) {
     append_left_pizza(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_parse_helper(&right, "|>") == 0) {
+  if (infix_then_expression_parse(&right, "|>") == 0) {
     append_right_pizza(*left, right);
     *left = right;
     return 0;
