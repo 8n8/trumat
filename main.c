@@ -9,6 +9,7 @@ static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int simple_expression_parse(int *node);
+static int infixed_item_parse(int *node);
 static int line_comment_parse(int *node);
 static int in_unnecessary_parens_parse(int is_parens_context, int *node);
 static int comment_parse(int *node);
@@ -2328,7 +2329,7 @@ static int infix_then_expression_parse(int *node, char *infix) {
   whitespace_parse();
   const int right_comment = right_comments_in_expression_parse();
   whitespace_parse();
-  if (not_infixed_parse(1, node)) {
+  if (infixed_item_parse(node)) {
     I = start;
     return -1;
   }
@@ -2583,14 +2584,14 @@ static int simple_expression_parse(int *node) {
   return list_parse(node);
 }
 
-static int not_infixed_parse(int is_parens_context, int *node) {
+static int infixed_item_parse(int *node) {
   if (function_call_parse(node) == 0) {
     return 0;
   }
   if (simple_expression_parse(node) == 0) {
     return 0;
   }
-  return in_unnecessary_parens_parse(is_parens_context, node);
+  return argument_in_unnecessary_parens_parse(node);
 }
 
 static int not_newline_parse() {
@@ -2603,6 +2604,16 @@ static int not_newline_parse() {
     return -1;
   }
   return 0;
+}
+
+static int not_infixed_parse(int is_parens_context, int *node) {
+  if (function_call_parse(node) == 0) {
+    return 0;
+  }
+  if (simple_expression_parse(node) == 0) {
+    return 0;
+  }
+  return in_unnecessary_parens_parse(is_parens_context, node);
 }
 
 static int line_comment_parse(int *node) {
