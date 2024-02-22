@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int expression_parse(int is_parens_context, int *node);
+static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int line_comment_parse(int *node);
-static int in_unnecessary_parens_parse(int is_parens_context, int *node);
+static int in_unnecessary_parens_parse(int *node);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
 static int string_hex_parse(int *node);
@@ -28,7 +28,7 @@ static int right_comments_in_expression_parse();
 static void attach_right_comment(int node, int right_comment);
 static int left_comments_parse();
 static void left_comments_write(int is_multi_context, int node, int indent);
-static int not_infixed_parse(int is_parens_context, int *node);
+static int not_infixed_parse(int *node);
 static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
@@ -2179,7 +2179,7 @@ static int list_item_parse(int *node) {
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (expression_parse(0, node)) {
+  if (expression_parse(node)) {
     I = start;
     return -1;
   }
@@ -2451,7 +2451,7 @@ static int infix_parse(int *left) {
 static int infixed_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
-  if (not_infixed_parse(1, node)) {
+  if (not_infixed_parse(node)) {
     I = start;
     return -1;
   }
@@ -2468,11 +2468,11 @@ static int infixed_parse(int *node) {
   return 0;
 }
 
-static int expression_parse(int is_parens_context, int *node) {
+static int expression_parse(int *node) {
   if (infixed_parse(node) == 0) {
     return 0;
   }
-  return not_infixed_parse(is_parens_context, node);
+  return not_infixed_parse(node);
 }
 
 static int qualified_name_part_parse() {
@@ -2513,15 +2513,14 @@ static int argument_in_unnecessary_parens_contents_parse(int *node) {
   return simple_expression_parse(node);
 }
 
-static int in_unnecessary_parens_contents_parse(int is_parens_context,
-                                                int *node) {
-  if (!is_parens_context && function_call_parse(node) == 0) {
+static int in_unnecessary_parens_contents_parse(int *node) {
+  if (function_call_parse(node) == 0) {
     return 0;
   }
-  if (!is_parens_context && infixed_parse(node) == 0) {
+  if (infixed_parse(node) == 0) {
     return 0;
   }
-  if (in_unnecessary_parens_parse(is_parens_context, node) == 0) {
+  if (in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return simple_expression_parse(node);
@@ -2543,12 +2542,12 @@ static int argument_in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
-static int in_unnecessary_parens_parse(int is_parens_context, int *node) {
+static int in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
-  if (in_unnecessary_parens_contents_parse(is_parens_context, node)) {
+  if (in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
   }
@@ -2606,14 +2605,14 @@ static int not_newline_parse() {
   return 0;
 }
 
-static int not_infixed_parse(int is_parens_context, int *node) {
+static int not_infixed_parse(int *node) {
   if (function_call_parse(node) == 0) {
     return 0;
   }
   if (simple_expression_parse(node) == 0) {
     return 0;
   }
-  return in_unnecessary_parens_parse(is_parens_context, node);
+  return in_unnecessary_parens_parse(node);
 }
 
 static int line_comment_parse(int *node) {
@@ -2799,7 +2798,7 @@ static int module_parse(int *node) {
   }
   const int left_comment = left_comments_parse();
   spaces_parse();
-  if (expression_parse(0, node)) {
+  if (expression_parse(node)) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
