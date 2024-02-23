@@ -1650,17 +1650,6 @@ static void not_infixed_write(int node, int indent) {
   src_write(node);
 }
 
-void dbg_src() {
-  for (int i = 0; i < NUM_SRC; ++i) {
-    if (SRC[i] == '\n') {
-      fputs("\\n", stdout);
-      continue;
-    }
-    fputc(SRC[i], stdout);
-  }
-  fputc('\n', stdout);
-}
-
 static const char *usage = "expecting two arguments:\n"
                            "1. --overwrite to confirm it's OK to recursively "
                            "overwrite all the Elm files in the path\n"
