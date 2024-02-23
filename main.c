@@ -2263,6 +2263,7 @@ static int in_necessary_parens_parse(int *node) {
   if (char_parse('(')) {
     return -1;
   }
+  spaces_parse();
   if (function_call_parse(node) && infixed_parse(node)) {
     I = start;
     return -1;
