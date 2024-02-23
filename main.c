@@ -2268,7 +2268,7 @@ static int in_necessary_parens_parse(int *node) {
     I = start;
     return -1;
   }
-  spaces_parse();
+  whitespace_parse();
   if (char_parse(')')) {
     I = start;
     return -1;
