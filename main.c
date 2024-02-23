@@ -2536,7 +2536,7 @@ static int in_unnecessary_parens_parse(int *node) {
   if (char_parse('(')) {
     return -1;
   }
-  spaces_parse();
+  whitespace_parse();
   if (in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
