@@ -3289,7 +3289,7 @@ static void format_file() {
   // a while ago, but all the time figures were zero. I think this means it
   // was mostly IO bound.
 
-  // It was taking 23 ms.
+  // It currently takes 23 ms to format the test suite.
 
   // The original elm-format takes 54 ms.
 
