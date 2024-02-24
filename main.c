@@ -1602,11 +1602,11 @@ static void in_parens_write(int node, int indent) {
   const int has_left = has_left_comment(node);
   left_comments_write(0, node, indent + 1);
   if (has_left) {
-    chunk_write("\n     ");
+    indent_write(indent + 1);
   }
   expression_write(node, indent);
   if (has_left) {
-    chunk_write("\n    ");
+    indent_write(indent);
   }
   char_write(')');
 }
