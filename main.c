@@ -2813,6 +2813,9 @@ static int some_left_comments_parse(int *node) {
     return -1;
   }
   append_left_comment(*node, comment);
+  for (; comment_parse(&comment) == 0; append_left_comment(*node, comment)) {
+    whitespace_parse();
+  }
   return 0;
 }
 
