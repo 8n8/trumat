@@ -1644,7 +1644,7 @@ static void in_parens_write(int node, int indent) {
   if (has_left && left_is_multiline && !has_right) {
     indent_write(indent);
   }
-  if (!has_left && has_right && right_is_multiline) {
+  if (has_right && right_is_multiline) {
     indent_write(indent + 1);
   }
   if (!has_left && has_right && !right_is_multiline) {
