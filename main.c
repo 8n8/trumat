@@ -8,7 +8,6 @@ static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
-static int some_left_comments_parse(int *node);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int line_comment_parse(int *node);
@@ -267,6 +266,26 @@ int NUM_RIGHT_PIZZA = 0;
 static uint32_t IN_PARENS[MAX_IN_PARENS];
 static uint32_t IN_PARENS_PARENT[MAX_IN_PARENS];
 int NUM_IN_PARENS = 0;
+
+static int num_left_comments(int node) {
+  int num = 0;
+  for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
+    if (LEFT_COMMENT_PARENT[i] == (uint32_t)node) {
+      ++num;
+    }
+  }
+  return num;
+}
+
+static int num_right_comments(int node) {
+  int num = 0;
+  for (int i = 0; i < NUM_RIGHT_COMMENT; ++i) {
+    if (RIGHT_COMMENT_PARENT[i] == (uint32_t)node) {
+      ++num;
+    }
+  }
+  return num;
+}
 
 static void append_in_parens(int node, int expression) {
   if (NUM_IN_PARENS == MAX_IN_PARENS) {
@@ -1609,7 +1628,15 @@ static void in_parens_write(int node, int indent) {
     char_write(' ');
   }
   expression_write(node, indent + 1);
-  if (has_left && left_is_multiline) {
+  const int has_right = has_right_comment(node);
+  if (has_left && left_is_multiline && !has_right) {
+    indent_write(indent);
+  }
+  if (!has_left && has_right) {
+    indent_write(indent+1);
+  }
+  right_comments_in_expression_write(node, indent+1);
+  if (has_right) {
     indent_write(indent);
   }
   char_write(')');
@@ -2581,11 +2608,7 @@ static int with_comments_in_parentheses_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  int left_comment;
-  if (some_left_comments_parse(&left_comment)) {
-    I = start;
-    return -1;
-  }
+  const int left_comment = left_comments_parse();
   whitespace_parse();
   int expression;
   if (expression_parse(&expression)) {
@@ -2593,13 +2616,21 @@ static int with_comments_in_parentheses_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
   if (char_parse(')')) {
     I = start;
     return -1;
   }
   *node = get_new_node();
-  attach_left_comment(expression, left_comment);
+  const int num_comments = num_left_comments(left_comment) +
+                          num_right_comments(right_comment);
+  if (num_comments == 0) {
+    I = start;
+    return -1;
+  }
   append_in_parens(*node, expression);
+  attach_left_comment(expression, left_comment);
+  attach_right_comment_in_expression(expression, right_comment);
   return 0;
 }
 
@@ -2805,20 +2836,6 @@ static int comment_parse(int *node) {
     return 0;
   }
   return non_empty_block_comment_parse(node);
-}
-
-static int some_left_comments_parse(int *node) {
-  *node = get_new_node();
-  int comment;
-  if (comment_parse(&comment)) {
-    return -1;
-  }
-  append_left_comment(*node, comment);
-  whitespace_parse();
-  for (; comment_parse(&comment) == 0; append_left_comment(*node, comment)) {
-    whitespace_parse();
-  }
-  return 0;
 }
 
 static int left_comments_parse() {
