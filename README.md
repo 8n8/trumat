@@ -1,6 +1,6 @@
 # trumat
 
-A work in progress Elm formatter. Don't use it yet.
+A work in progress Elm formatter. It doesn't work yet so don't use it.
 
 # Install
 
