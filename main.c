@@ -264,15 +264,17 @@ int NUM_RIGHT_PIZZA = 0;
 
 #define MAX_IN_PARENS 10000
 static uint32_t IN_PARENS[MAX_IN_PARENS];
+static uint32_t IN_PARENS_PARENT[MAX_IN_PARENS];
 int NUM_IN_PARENS = 0;
 
-static void append_in_parens(int node) {
+static void append_in_parens(int node, int expression) {
   if (NUM_IN_PARENS == MAX_IN_PARENS) {
     fprintf(stderr, "%s: too many in parens nodes, maximum is %d\n", PATH,
             MAX_IN_PARENS);
     exit(-1);
   }
-  IN_PARENS[NUM_IN_PARENS] = node;
+  IN_PARENS[NUM_IN_PARENS] = expression;
+  IN_PARENS_PARENT[NUM_IN_PARENS] = node;
   ++NUM_IN_PARENS;
 }
 
@@ -1489,29 +1491,13 @@ static int is_multiline_infix_node(int node) {
   return 0;
 }
 
-static int is_in_parens(int node) {
-  for (int i = 0; i < NUM_IN_PARENS; ++i) {
-    if (IN_PARENS[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 static void expression_write(int node, int indent) {
-  const int in_parens = is_in_parens(node);
-  if (in_parens) {
-    char_write('(');
-  }
   not_infixed_write(node, indent);
   const int is_multi = is_multiline_infix_node(node);
   int left = node;
   while (aligned_infix_write(&left, is_multi, indent) == 0) {
   }
   left_pizzas_write(is_multi, node, indent);
-  if (in_parens) {
-    char_write(')');
-  }
 }
 
 static int is_non_empty_triple_string(int node) {
@@ -1610,6 +1596,22 @@ static int get_normal_string_item(int node, int *item, int *start) {
   return -1;
 }
 
+static void in_parens_write(int node, int indent) {
+  chunk_write("(");
+  expression_write(node, indent);
+  chunk_write(")");
+}
+
+static int get_in_parens(int node, int *expression) {
+  for (int i = 0; i < NUM_IN_PARENS; ++i) {
+    if (IN_PARENS_PARENT[i] == (uint32_t)node) {
+      *expression = IN_PARENS[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -1645,6 +1647,11 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
+    return;
+  }
+  int expression;
+  if (get_in_parens(node, &expression)) {
+    in_parens_write(expression, indent);
     return;
   }
   src_write(node);
@@ -2264,7 +2271,8 @@ static int in_necessary_parens_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  if (function_call_parse(node) && infixed_parse(node)) {
+  int expression;
+  if (function_call_parse(&expression) && infixed_parse(&expression)) {
     I = start;
     return -1;
   }
@@ -2273,7 +2281,8 @@ static int in_necessary_parens_parse(int *node) {
     I = start;
     return -1;
   }
-  append_in_parens(*node);
+  *node = get_new_node();
+  append_in_parens(*node, expression);
   return 0;
 }
 
