@@ -1600,12 +1600,16 @@ static int get_normal_string_item(int node, int *item, int *start) {
 static void in_parens_write(int node, int indent) {
   chunk_write("(");
   const int has_left = has_left_comment(node);
+  const int left_is_multiline = has_multiline_left_comment(node);
   left_comments_write(0, node, indent + 1);
-  if (has_left) {
+  if (has_left && left_is_multiline) {
     indent_write(indent + 1);
   }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
+  }
   expression_write(node, indent);
-  if (has_left) {
+  if (has_left && left_is_multiline) {
     indent_write(indent);
   }
   char_write(')');
