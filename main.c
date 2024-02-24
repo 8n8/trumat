@@ -8,6 +8,7 @@ static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
+static int some_left_comments_parse(int *node);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int line_comment_parse(int *node);
@@ -1598,8 +1599,16 @@ static int get_normal_string_item(int node, int *item, int *start) {
 
 static void in_parens_write(int node, int indent) {
   chunk_write("(");
+  const int has_left = has_left_comment(node);
+  left_comments_write(0, node, indent + 1);
+  if (has_left) {
+    chunk_write("\n     ");
+  }
   expression_write(node, indent);
-  chunk_write(")");
+  if (has_left) {
+    chunk_write("\n    ");
+  }
+  char_write(')');
 }
 
 static int get_in_parens(int node, int *expression) {
@@ -2562,6 +2571,33 @@ static int in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
+static int with_comments_in_parentheses_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  int left_comment;
+  if (some_left_comments_parse(&left_comment)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int expression;
+  if (expression_parse(&expression)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  attach_left_comment(expression, left_comment);
+  append_in_parens(*node, expression);
+  return 0;
+}
+
 static int simple_expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -2582,6 +2618,9 @@ static int simple_expression_parse(int *node) {
     return 0;
   }
   if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (with_comments_in_parentheses_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
@@ -2761,6 +2800,16 @@ static int comment_parse(int *node) {
     return 0;
   }
   return non_empty_block_comment_parse(node);
+}
+
+static int some_left_comments_parse(int *node) {
+  *node = get_new_node();
+  int comment;
+  if (comment_parse(&comment)) {
+    return -1;
+  }
+  append_left_comment(*node, comment);
+  return 0;
 }
 
 static int left_comments_parse() {
