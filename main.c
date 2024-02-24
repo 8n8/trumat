@@ -1644,14 +1644,16 @@ static void in_parens_write(int node, int indent) {
   if (has_left && left_is_multiline && !has_right) {
     indent_write(indent);
   }
-  if (has_right && right_is_multiline) {
+  const int is_newline_right =
+      has_right && ((has_left && left_is_multiline) || right_is_multiline);
+  if (is_newline_right) {
     indent_write(indent + 1);
   }
   if (!has_left && has_right && !right_is_multiline) {
     char_write(' ');
   }
   right_comments_in_expression_write(node, indent + 1);
-  if (has_right && right_is_multiline) {
+  if (is_newline_right) {
     indent_write(indent);
   }
   char_write(')');
