@@ -1608,7 +1608,7 @@ static void in_parens_write(int node, int indent) {
   if (has_left && !left_is_multiline) {
     char_write(' ');
   }
-  expression_write(node, indent);
+  expression_write(node, indent + 1);
   if (has_left && left_is_multiline) {
     indent_write(indent);
   }
