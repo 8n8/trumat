@@ -2580,7 +2580,7 @@ static int with_comments_in_parentheses_parse(int *node) {
   if (char_parse('(')) {
     return -1;
   }
-  spaces_parse();
+  whitespace_parse();
   int left_comment;
   if (some_left_comments_parse(&left_comment)) {
     I = start;
