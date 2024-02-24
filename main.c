@@ -950,6 +950,17 @@ static int has_multiline_left_comment(int node) {
   return 0;
 }
 
+static int has_multiline_right_comment(int node) {
+  int right_comment;
+  int start = 0;
+  while (get_right_comment(node, &right_comment, &start) == 0) {
+    if (is_multiline_comment(right_comment)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int get_src(int node, int *src_index) {
   for (int i = 0; i < NUM_HAS_SRC; ++i) {
     if (HAS_SRC[i] == (uint32_t)node) {
@@ -1629,14 +1640,18 @@ static void in_parens_write(int node, int indent) {
   }
   expression_write(node, indent + 1);
   const int has_right = has_right_comment(node);
+  const int right_is_multiline = has_multiline_right_comment(node);
   if (has_left && left_is_multiline && !has_right) {
     indent_write(indent);
   }
-  if (!has_left && has_right) {
-    indent_write(indent+1);
+  if (!has_left && has_right && right_is_multiline) {
+    indent_write(indent + 1);
   }
-  right_comments_in_expression_write(node, indent+1);
-  if (has_right) {
+  if (!has_left && has_right && !right_is_multiline) {
+    char_write(' ');
+  }
+  right_comments_in_expression_write(node, indent + 1);
+  if (has_right && right_is_multiline) {
     indent_write(indent);
   }
   char_write(')');
@@ -2622,8 +2637,8 @@ static int with_comments_in_parentheses_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  const int num_comments = num_left_comments(left_comment) +
-                          num_right_comments(right_comment);
+  const int num_comments =
+      num_left_comments(left_comment) + num_right_comments(right_comment);
   if (num_comments == 0) {
     I = start;
     return -1;
