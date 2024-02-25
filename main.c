@@ -8,6 +8,7 @@ static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
+static int has_right_comment(int node);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int line_comment_parse(int *node);
@@ -1050,7 +1051,7 @@ static int has_same_line_comment(int node) {
   return 0;
 }
 
-static void tuple_or_list_item_write(int item, int indent) {
+static void list_item_write(int item, int indent) {
   const int left_is_multiline = has_multiline_left_comment(item);
   left_comments_write(1, item, indent + 2);
   if (left_is_multiline) {
@@ -1066,12 +1067,28 @@ static void tuple_or_list_item_write(int item, int indent) {
   right_comments_with_title_write(item, indent);
 }
 
+static void tuple_item_write(int item, int indent) {
+  const int left_is_multiline = has_multiline_left_comment(item);
+  left_comments_write(1, item, indent + 2);
+  if (left_is_multiline) {
+    indent_write(indent + 2);
+  }
+  if (has_left_comment(item) && !left_is_multiline) {
+    char_write(' ');
+  }
+  expression_write(item, indent + 2);
+  if (has_right_comment(item)) {
+    indent_write(indent + 2);
+  }
+  right_comments_in_expression_write(item, indent);
+}
+
 static void non_empty_tuple_write(int node, int indent) {
   chunk_write("( ");
   int item;
   int start = 0;
   if (get_tuple_item(node, &item, &start) == 0) {
-    tuple_or_list_item_write(item, indent);
+    tuple_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
   while (get_tuple_item(node, &item, &start) == 0) {
@@ -1080,7 +1097,7 @@ static void non_empty_tuple_write(int node, int indent) {
       indent_write(indent);
     }
     chunk_write(", ");
-    tuple_or_list_item_write(item, indent);
+    tuple_item_write(item, indent);
   }
   if (left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
@@ -1095,7 +1112,7 @@ static void non_empty_list_write(int node, int indent) {
   int item;
   int start = 0;
   if (get_list_item(node, &item, &start) == 0) {
-    tuple_or_list_item_write(item, indent);
+    list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
   while (get_list_item(node, &item, &start) == 0) {
@@ -1104,7 +1121,7 @@ static void non_empty_list_write(int node, int indent) {
       indent_write(indent);
     }
     chunk_write(", ");
-    tuple_or_list_item_write(item, indent);
+    list_item_write(item, indent);
   }
   if (left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
@@ -2320,7 +2337,7 @@ static int right_comments_with_title_parse() {
   return parent;
 }
 
-static int tuple_or_list_item_parse(int *node) {
+static int list_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -2335,6 +2352,22 @@ static int tuple_or_list_item_parse(int *node) {
   return 0;
 }
 
+static int tuple_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (expression_parse(node)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  attach_left_comment(*node, left_comment);
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(*node, right_comment);
+  return 0;
+}
+
 static int non_empty_list_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
@@ -2342,7 +2375,7 @@ static int non_empty_list_parse(int *node) {
     return -1;
   }
   int item;
-  if (tuple_or_list_item_parse(&item)) {
+  if (list_item_parse(&item)) {
     I = start;
     return -1;
   }
@@ -2352,7 +2385,7 @@ static int non_empty_list_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (tuple_or_list_item_parse(&item)) {
+    if (list_item_parse(&item)) {
       I = start;
       return -1;
     }
@@ -2751,7 +2784,7 @@ static int non_empty_tuple_parse(int *node) {
     return -1;
   }
   int item;
-  if (tuple_or_list_item_parse(&item)) {
+  if (tuple_item_parse(&item)) {
     I = start;
     return -1;
   }
@@ -2761,7 +2794,7 @@ static int non_empty_tuple_parse(int *node) {
     I = start;
     return -1;
   }
-  if (tuple_or_list_item_parse(&item)) {
+  if (tuple_item_parse(&item)) {
     I = start;
     return -1;
   }
@@ -2770,7 +2803,7 @@ static int non_empty_tuple_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (tuple_or_list_item_parse(&item)) {
+    if (tuple_item_parse(&item)) {
       I = start;
       return -1;
     }
