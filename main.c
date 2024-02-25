@@ -103,6 +103,10 @@ int NUM_HAS_DOUBLE_HYPHEN_BLOCK = 0;
 static uint32_t IS_EMPTY_LIST[MAX_EMPTY_LIST];
 int NUM_EMPTY_LIST = 0;
 
+#define MAX_EMPTY_TUPLE 10000
+static uint32_t IS_EMPTY_TUPLE[MAX_EMPTY_TUPLE];
+int NUM_EMPTY_TUPLE = 0;
+
 #define MAX_LIST_ITEM 10000
 static uint32_t LIST_ITEM[MAX_LIST_ITEM];
 static uint32_t LIST[MAX_LIST_ITEM];
@@ -737,6 +741,16 @@ static void append_tuple_item(int parent, int child) {
   ++NUM_TUPLE_ITEM;
 }
 
+static void append_is_empty_tuple(int node) {
+  if (NUM_EMPTY_TUPLE == MAX_EMPTY_TUPLE) {
+    fprintf(stderr, "%s: too many empty tuple nodes, maximum is %d\n", PATH,
+            MAX_EMPTY_TUPLE);
+    exit(-1);
+  }
+  IS_EMPTY_TUPLE[NUM_EMPTY_TUPLE] = node;
+  ++NUM_EMPTY_TUPLE;
+}
+
 static void append_is_empty_list(int node) {
   if (NUM_EMPTY_LIST == MAX_EMPTY_LIST) {
     fprintf(stderr, "%s: too many empty list nodes, maximum is %d\n", PATH,
@@ -917,6 +931,15 @@ static void exponent_float_write(int node) {
     char_write('-');
   }
   src_write(node + 1);
+}
+
+static int is_empty_tuple(int node) {
+  for (int i = 0; i < NUM_EMPTY_TUPLE; ++i) {
+    if (IS_EMPTY_TUPLE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static int is_empty_list(int node) {
@@ -1742,6 +1765,10 @@ static void not_infixed_write(int node, int indent) {
     chunk_write("[]");
     return;
   }
+  if (is_empty_tuple(node)) {
+    chunk_write("()");
+    return;
+  }
   if (is_non_empty_list(node)) {
     non_empty_list_write(node, indent);
     return;
@@ -1842,6 +1869,7 @@ static void zero_ast() {
   NUM_RIGHT_PIZZA = 0;
   NUM_IN_PARENS = 0;
   NUM_TUPLE_ITEM = 0;
+  NUM_EMPTY_TUPLE = 0;
 }
 
 static int get_new_node() {
@@ -2761,11 +2789,16 @@ static int non_empty_tuple_parse(int *node) {
 
 static int empty_tuple_parse(int *node) {
   const int start = I;
-  if (chunk_parse("()")) {
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_is_empty_tuple(*node);
   return 0;
 }
 
