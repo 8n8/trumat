@@ -2651,6 +2651,16 @@ static int with_comments_in_parentheses_parse(int *node) {
   return 0;
 }
 
+static int tuple_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("()")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int simple_expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -2674,6 +2684,9 @@ static int simple_expression_parse(int *node) {
     return 0;
   }
   if (with_comments_in_parentheses_parse(node) == 0) {
+    return 0;
+  }
+  if (tuple_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
