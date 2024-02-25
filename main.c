@@ -1077,8 +1077,13 @@ static void tuple_item_write(int item, int indent) {
     char_write(' ');
   }
   expression_write(item, indent + 2);
-  if (has_right_comment(item)) {
+  const int has_right = has_right_comment(item);
+  const int has_multiline_right = has_multiline_right_comment(item);
+  if (has_right && has_multiline_right) {
     indent_write(indent + 2);
+  }
+  if (has_right && !has_multiline_right) {
+    char_write(' ');
   }
   right_comments_in_expression_write(item, indent + 2);
 }
