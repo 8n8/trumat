@@ -108,6 +108,11 @@ static uint32_t LIST_ITEM[MAX_LIST_ITEM];
 static uint32_t LIST[MAX_LIST_ITEM];
 int NUM_LIST_ITEM = 0;
 
+#define MAX_TUPLE_ITEM 10000
+static uint32_t TUPLE_ITEM[MAX_TUPLE_ITEM];
+static uint32_t TUPLE[MAX_TUPLE_ITEM];
+int NUM_TUPLE_ITEM = 0;
+
 #define MAX_IS_MULTILINE 10000
 static uint32_t IS_MULTILINE[MAX_IS_MULTILINE];
 int NUM_IS_MULTILINE = 0;
@@ -721,6 +726,17 @@ static void append_list_item(int parent, int child) {
   ++NUM_LIST_ITEM;
 }
 
+static void append_tuple_item(int parent, int child) {
+  if (NUM_TUPLE_ITEM == MAX_TUPLE_ITEM) {
+    fprintf(stderr, "%s: too many tuple items, maximum is %d\n", PATH,
+            MAX_TUPLE_ITEM);
+    exit(-1);
+  }
+  TUPLE_ITEM[NUM_TUPLE_ITEM] = child;
+  TUPLE[NUM_TUPLE_ITEM] = parent;
+  ++NUM_TUPLE_ITEM;
+}
+
 static void append_is_empty_list(int node) {
   if (NUM_EMPTY_LIST == MAX_EMPTY_LIST) {
     fprintf(stderr, "%s: too many empty list nodes, maximum is %d\n", PATH,
@@ -914,6 +930,17 @@ static int is_empty_list(int node) {
 
 static void expression_write(int node, int indent);
 
+static int get_tuple_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_TUPLE_ITEM; ++i) {
+    if (TUPLE[i] == (uint32_t)node) {
+      *item = TUPLE_ITEM[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int get_list_item(int node, int *item, int *start) {
   for (int i = *start; i < NUM_LIST_ITEM; ++i) {
     if (LIST[i] == (uint32_t)node) {
@@ -1000,7 +1027,7 @@ static int has_same_line_comment(int node) {
   return 0;
 }
 
-static void list_item_write(int item, int indent) {
+static void tuple_or_list_item_write(int item, int indent) {
   const int left_is_multiline = has_multiline_left_comment(item);
   left_comments_write(1, item, indent + 2);
   if (left_is_multiline) {
@@ -1016,12 +1043,36 @@ static void list_item_write(int item, int indent) {
   right_comments_with_title_write(item, indent);
 }
 
+static void non_empty_tuple_write(int node, int indent) {
+  chunk_write("( ");
+  int item;
+  int start = 0;
+  if (get_tuple_item(node, &item, &start) == 0) {
+    tuple_or_list_item_write(item, indent);
+  }
+  int left_is_multiline = has_multiline_left_comment(item);
+  while (get_tuple_item(node, &item, &start) == 0) {
+    left_is_multiline = has_multiline_left_comment(item);
+    if (left_is_multiline || is_multiline_node(node)) {
+      indent_write(indent);
+    }
+    chunk_write(", ");
+    tuple_or_list_item_write(item, indent);
+  }
+  if (left_is_multiline || is_multiline_node(node)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write(')');
+}
+
 static void non_empty_list_write(int node, int indent) {
   chunk_write("[ ");
   int item;
   int start = 0;
   if (get_list_item(node, &item, &start) == 0) {
-    list_item_write(item, indent);
+    tuple_or_list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
   while (get_list_item(node, &item, &start) == 0) {
@@ -1030,7 +1081,7 @@ static void non_empty_list_write(int node, int indent) {
       indent_write(indent);
     }
     chunk_write(", ");
-    list_item_write(item, indent);
+    tuple_or_list_item_write(item, indent);
   }
   if (left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
@@ -1038,6 +1089,15 @@ static void non_empty_list_write(int node, int indent) {
     char_write(' ');
   }
   char_write(']');
+}
+
+static int is_non_empty_tuple(int node) {
+  for (int i = 0; i < NUM_TUPLE_ITEM; ++i) {
+    if (TUPLE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static int is_non_empty_list(int node) {
@@ -1686,6 +1746,10 @@ static void not_infixed_write(int node, int indent) {
     non_empty_list_write(node, indent);
     return;
   }
+  if (is_non_empty_tuple(node)) {
+    non_empty_tuple_write(node, indent);
+    return;
+  }
   if (has_arguments(node)) {
     function_call_write(node, indent);
     return;
@@ -1777,6 +1841,7 @@ static void zero_ast() {
   NUM_MULTILINE_INFIX = 0;
   NUM_RIGHT_PIZZA = 0;
   NUM_IN_PARENS = 0;
+  NUM_TUPLE_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -2227,7 +2292,7 @@ static int right_comments_with_title_parse() {
   return parent;
 }
 
-static int list_item_parse(int *node) {
+static int tuple_or_list_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -2249,7 +2314,7 @@ static int non_empty_list_parse(int *node) {
     return -1;
   }
   int item;
-  if (list_item_parse(&item)) {
+  if (tuple_or_list_item_parse(&item)) {
     I = start;
     return -1;
   }
@@ -2259,7 +2324,7 @@ static int non_empty_list_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (list_item_parse(&item)) {
+    if (tuple_or_list_item_parse(&item)) {
       I = start;
       return -1;
     }
@@ -2651,7 +2716,50 @@ static int with_comments_in_parentheses_parse(int *node) {
   return 0;
 }
 
-static int tuple_parse(int *node) {
+static int non_empty_tuple_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('(')) {
+    return -1;
+  }
+  int item;
+  if (tuple_or_list_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_tuple_item(*node, item);
+  if (char_parse(',')) {
+    I = start;
+    return -1;
+  }
+  if (tuple_or_list_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  append_tuple_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (tuple_or_list_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_tuple_item(*node, item);
+  }
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  const int is_multiline = ROW[I] - start_row;
+  if (is_multiline) {
+    append_is_multiline(*node);
+  }
+  return 0;
+}
+
+static int empty_tuple_parse(int *node) {
   const int start = I;
   if (chunk_parse("()")) {
     return -1;
@@ -2659,6 +2767,13 @@ static int tuple_parse(int *node) {
   *node = get_new_node();
   append_has_src(*node, start + 1, I - start);
   return 0;
+}
+
+static int tuple_parse(int *node) {
+  if (non_empty_tuple_parse(node) == 0) {
+    return 0;
+  }
+  return empty_tuple_parse(node);
 }
 
 static int simple_expression_parse(int *node) {
