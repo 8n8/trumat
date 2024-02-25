@@ -1069,7 +1069,7 @@ static void list_item_write(int item, int indent) {
 
 static void tuple_item_write(int item, int indent) {
   const int left_is_multiline = has_multiline_left_comment(item);
-  left_comments_write(1, item, indent + 2);
+  left_comments_write(0, item, indent + 2);
   if (left_is_multiline) {
     indent_write(indent + 2);
   }
