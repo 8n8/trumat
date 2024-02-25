@@ -1080,7 +1080,7 @@ static void tuple_item_write(int item, int indent) {
   if (has_right_comment(item)) {
     indent_write(indent + 2);
   }
-  right_comments_in_expression_write(item, indent);
+  right_comments_in_expression_write(item, indent+2);
 }
 
 static void non_empty_tuple_write(int node, int indent) {
