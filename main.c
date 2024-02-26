@@ -1238,6 +1238,10 @@ static void non_empty_record_write(int node, int indent) {
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
     record_item_write(name, value, indent);
   }
+  while (get_record_item(node, &item, &name, &value, &start) == 0) {
+    chunk_write(", ");
+    record_item_write(name, value, indent);
+  }
   chunk_write(" }");
 }
 
@@ -2545,6 +2549,16 @@ static int non_empty_record_parse(int *node) {
   }
   *node = get_new_node();
   append_record_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (record_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_record_item(*node, item);
+  }
   char_parse(' ');
   if (char_parse('}')) {
     I = start;
