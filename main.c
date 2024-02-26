@@ -2840,6 +2840,16 @@ static int empty_tuple_parse(int *node) {
   return 0;
 }
 
+static int empty_record_parse(int *node) {
+  const int start = I;
+  if (chunk_parse("{}")) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int tuple_parse(int *node) {
   if (non_empty_tuple_parse(node) == 0) {
     return 0;
@@ -2873,6 +2883,9 @@ static int simple_expression_parse(int *node) {
     return 0;
   }
   if (tuple_parse(node) == 0) {
+    return 0;
+  }
+  if (empty_record_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
