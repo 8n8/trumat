@@ -286,6 +286,40 @@ static uint32_t IN_PARENS[MAX_IN_PARENS];
 static uint32_t IN_PARENS_PARENT[MAX_IN_PARENS];
 int NUM_IN_PARENS = 0;
 
+#define MAX_RECORD_FIELD 10000
+static uint32_t RECORD_FIELD[MAX_RECORD_FIELD];
+static uint32_t RECORD_FIELD_NAME[MAX_RECORD_FIELD];
+static uint32_t RECORD_FIELD_VALUE[MAX_RECORD_FIELD];
+int NUM_RECORD_FIELD = 0;
+
+#define MAX_RECORD_ITEM 10000
+static uint32_t RECORD[MAX_RECORD_ITEM];
+static uint32_t RECORD_ITEM[MAX_RECORD_ITEM];
+int NUM_RECORD_ITEM = 0;
+
+static void append_record_item(int node, int item) {
+  if (NUM_RECORD_ITEM == MAX_RECORD_ITEM) {
+    fprintf(stderr, "%s: too many record items, maximum is %d\n", PATH,
+            MAX_RECORD_ITEM);
+    exit(-1);
+  }
+  RECORD_ITEM[NUM_RECORD_ITEM] = item;
+  RECORD[NUM_RECORD_ITEM] = node;
+  ++NUM_RECORD_ITEM;
+}
+
+static void append_record_field(int node, int name, int value) {
+  if (NUM_RECORD_FIELD == MAX_RECORD_FIELD) {
+    fprintf(stderr, "%s: too many record fields, maximum is %d\n", PATH,
+            MAX_RECORD_FIELD);
+    exit(-1);
+  }
+  RECORD_FIELD[NUM_RECORD_FIELD] = node;
+  RECORD_FIELD_NAME[NUM_RECORD_FIELD] = name;
+  RECORD_FIELD_VALUE[NUM_RECORD_FIELD] = value;
+  ++NUM_RECORD_FIELD;
+}
+
 static int num_left_comments(int node) {
   int num = 0;
   for (int i = 0; i < NUM_LEFT_COMMENT; ++i) {
@@ -1174,6 +1208,39 @@ static void non_empty_list_write(int node, int indent) {
   char_write(']');
 }
 
+static void record_item_write(int name, int value, int indent) {
+  src_write(name);
+  chunk_write(" = ");
+  expression_write(value, indent);
+}
+
+static int get_record_item(int node, int *item, int *name, int *value,
+                           int *start) {
+
+  for (int i = *start; i < NUM_RECORD_FIELD; ++i) {
+    if (RECORD[i] == (uint32_t)node) {
+      *item = RECORD_FIELD[i];
+      *name = RECORD_FIELD_NAME[i];
+      *value = RECORD_FIELD_VALUE[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void non_empty_record_write(int node, int indent) {
+  chunk_write("{ ");
+  int start = 0;
+  int item;
+  int name;
+  int value;
+  if (get_record_item(node, &item, &name, &value, &start) == 0) {
+    record_item_write(name, value, indent);
+  }
+  chunk_write(" }");
+}
+
 static int is_non_empty_tuple(int node) {
   for (int i = 0; i < NUM_TUPLE_ITEM; ++i) {
     if (TUPLE[i] == (uint32_t)node) {
@@ -1186,6 +1253,15 @@ static int is_non_empty_tuple(int node) {
 static int is_non_empty_list(int node) {
   for (int i = 0; i < NUM_LIST_ITEM; ++i) {
     if (LIST[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int is_non_empty_record(int node) {
+  for (int i = 0; i < NUM_RECORD_ITEM; ++i) {
+    if (RECORD[i] == (uint32_t)node) {
       return 1;
     }
   }
@@ -1852,6 +1928,10 @@ static void not_infixed_write(int node, int indent) {
     non_empty_list_write(node, indent);
     return;
   }
+  if (is_non_empty_record(node)) {
+    non_empty_record_write(node, indent);
+    return;
+  }
   if (is_non_empty_tuple(node)) {
     non_empty_tuple_write(node, indent);
     return;
@@ -1951,6 +2031,8 @@ static void zero_ast() {
   NUM_EMPTY_TUPLE = 0;
   NUM_EMPTY_RECORD = 0;
   NUM_CONS = 0;
+  NUM_RECORD_FIELD = 0;
+  NUM_RECORD_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -2429,6 +2511,45 @@ static int tuple_item_parse(int *node) {
   attach_left_comment(*node, left_comment);
   const int right_comment = right_comments_in_expression_parse();
   attach_right_comment_in_expression(*node, right_comment);
+  return 0;
+}
+
+static int record_item_parse(int *node) {
+  const int start = I;
+  char_parse(' ');
+  int name;
+  if (lower_name_parse(&name)) {
+    I = start;
+    return -1;
+  }
+  chunk_parse(" = ");
+  int value;
+  if (expression_parse(&value)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_record_field(*node, name, value);
+  return 0;
+}
+
+static int non_empty_record_parse(int *node) {
+  const int start = I;
+  if (char_parse('{')) {
+    return -1;
+  }
+  int item;
+  if (record_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_record_item(*node, item);
+  char_parse(' ');
+  if (char_parse('}')) {
+    I = start;
+    return -1;
+  }
   return 0;
 }
 
@@ -2919,6 +3040,13 @@ static int empty_record_parse(int *node) {
   return 0;
 }
 
+static int record_parse(int *node) {
+  if (empty_record_parse(node) == 0) {
+    return 0;
+  }
+  return non_empty_record_parse(node);
+}
+
 static int tuple_parse(int *node) {
   if (non_empty_tuple_parse(node) == 0) {
     return 0;
@@ -2954,7 +3082,7 @@ static int simple_expression_parse(int *node) {
   if (tuple_parse(node) == 0) {
     return 0;
   }
-  if (empty_record_parse(node) == 0) {
+  if (record_parse(node) == 0) {
     return 0;
   }
   return list_parse(node);
