@@ -212,6 +212,11 @@ static uint32_t PLUS_PLUS_LEFT[MAX_PLUS_PLUS];
 static uint32_t PLUS_PLUS_RIGHT[MAX_PLUS_PLUS];
 int NUM_PLUS_PLUS = 0;
 
+#define MAX_CONS 10000
+static uint32_t CONS_LEFT[MAX_CONS];
+static uint32_t CONS_RIGHT[MAX_CONS];
+int NUM_CONS = 0;
+
 #define MAX_GREATER_THAN_OR_EQUAL 10000
 static uint32_t GREATER_THAN_OR_EQUAL_LEFT[MAX_GREATER_THAN_OR_EQUAL];
 static uint32_t GREATER_THAN_OR_EQUAL_RIGHT[MAX_GREATER_THAN_OR_EQUAL];
@@ -450,6 +455,16 @@ static void append_plus_plus(int left, int right) {
   PLUS_PLUS_LEFT[NUM_PLUS_PLUS] = left;
   PLUS_PLUS_RIGHT[NUM_PLUS_PLUS] = right;
   ++NUM_PLUS_PLUS;
+}
+
+static void append_cons(int left, int right) {
+  if (NUM_CONS == MAX_CONS) {
+    fprintf(stderr, "%s: too many cons nodes, maximum is %d\n", PATH, MAX_CONS);
+    exit(-1);
+  }
+  CONS_LEFT[NUM_CONS] = left;
+  CONS_RIGHT[NUM_CONS] = right;
+  ++NUM_CONS;
 }
 
 static void append_normal_string_item(int node, int item) {
@@ -1323,6 +1338,16 @@ static int get_plus(int node, int *right) {
   return -1;
 }
 
+static int get_cons(int node, int *right) {
+  for (int i = 0; i < NUM_CONS; ++i) {
+    if (CONS_LEFT[i] == (uint32_t)node) {
+      *right = CONS_RIGHT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static int get_minus(int node, int *right) {
   for (int i = 0; i < NUM_MINUS; ++i) {
     if (MINUS_LEFT[i] == (uint32_t)node) {
@@ -1525,6 +1550,11 @@ static int get_left_pizza(int node, int *right) {
 
 static int aligned_infix_write(int *left, int is_multi, int indent) {
   int right;
+  if (get_cons(*left, &right) == 0) {
+    infix_write_helper("::", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
   if (get_plus(*left, &right) == 0) {
     infix_write_helper("+", is_multi, right, indent);
     *left = right;
@@ -1920,6 +1950,7 @@ static void zero_ast() {
   NUM_TUPLE_ITEM = 0;
   NUM_EMPTY_TUPLE = 0;
   NUM_EMPTY_RECORD = 0;
+  NUM_CONS = 0;
 }
 
 static int get_new_node() {
@@ -2558,6 +2589,11 @@ static int infix_parse(int *left) {
   int right;
   if (infix_then_expression_parse(&right, "++") == 0) {
     append_plus_plus(*left, right);
+    *left = right;
+    return 0;
+  }
+  if (infix_then_expression_parse(&right, "::") == 0) {
+    append_cons(*left, right);
     *left = right;
     return 0;
   }
