@@ -2526,7 +2526,12 @@ static int record_item_parse(int *node) {
     I = start;
     return -1;
   }
-  chunk_parse(" = ");
+  char_parse(' ');
+  if (char_parse('=')) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
   int value;
   if (expression_parse(&value)) {
     I = start;
