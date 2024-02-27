@@ -1217,7 +1217,7 @@ static void record_item_write(int node, int name, int value, int indent) {
   } else {
     char_write(' ');
   }
-  expression_write(value, indent);
+  expression_write(value, indent + 4);
 }
 
 static int get_record_item(int node, int *item, int *name, int *value,
