@@ -1241,14 +1241,18 @@ static void non_empty_record_write(int node, int indent) {
   int item;
   int name;
   int value;
+  const int is_multi = is_multiline_node(node);
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
     record_item_write(item, name, value, indent);
   }
   while (get_record_item(node, &item, &name, &value, &start) == 0) {
+    if (is_multi) {
+      indent_write(indent);
+    }
     chunk_write(", ");
     record_item_write(item, name, value, indent);
   }
-  if (is_multiline_node(node)) {
+  if (is_multi) {
     indent_write(indent);
   } else {
     char_write(' ');
