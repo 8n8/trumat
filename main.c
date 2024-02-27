@@ -1224,7 +1224,17 @@ static void record_item_write(int node, int name, int value, int indent) {
     char_write(' ');
   }
   src_write(name);
-  chunk_write(" =");
+  const int has_comment_after_name = has_right_comment(name);
+  if (has_comment_after_name) {
+    indent_write(indent + 2);
+  }
+  right_comments_in_expression_write(name, indent + 2);
+  if (has_comment_after_name) {
+    indent_write(indent + 4);
+  } else {
+    char_write(' ');
+  }
+  char_write('=');
   if (is_multiline_node(node)) {
     indent_write(floor_to_four(indent + 4));
   } else {
@@ -2563,6 +2573,9 @@ static int record_item_parse(int *node) {
     I = start;
     return -1;
   }
+  whitespace_parse();
+  const int comments_after_name = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(name, comments_after_name);
   whitespace_parse();
   if (char_parse('=')) {
     I = start;
