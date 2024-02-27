@@ -1230,13 +1230,13 @@ static void record_item_write(int node, int name, int value, int indent) {
   }
   right_comments_in_expression_write(name, indent + 2);
   if (has_comment_after_name) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
   }
   char_write('=');
   if (is_multiline_node(node)) {
-    indent_write(floor_to_four(indent + 4));
+    indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
   }
