@@ -1225,11 +1225,16 @@ static void record_item_write(int node, int name, int value, int indent) {
   }
   src_write(name);
   const int has_comment_after_name = has_right_comment(name);
-  if (has_comment_after_name) {
+  const int has_multiline_comment_after_name =
+      has_multiline_right_comment(name);
+  if (has_comment_after_name && has_multiline_comment_after_name) {
     indent_write(indent + 2);
   }
+  if (has_comment_after_name && !has_multiline_comment_after_name) {
+    char_write(' ');
+  }
   right_comments_in_expression_write(name, indent + 2);
-  if (has_comment_after_name) {
+  if (has_comment_after_name && has_multiline_comment_after_name) {
     indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
