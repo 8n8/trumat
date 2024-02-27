@@ -1254,18 +1254,24 @@ static void non_empty_record_write(int node, int indent) {
   int item;
   int name;
   int value;
+  int left_is_multiline;
+  int any_left_is_multiline;
   const int is_multi = is_multiline_node(node);
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
+    left_is_multiline = has_multiline_left_comment(item);
+    any_left_is_multiline = left_is_multiline;
     record_item_write(item, name, value, indent);
   }
   while (get_record_item(node, &item, &name, &value, &start) == 0) {
-    if (is_multi) {
+    left_is_multiline = has_multiline_left_comment(item);
+    any_left_is_multiline = any_left_is_multiline || left_is_multiline;
+    if (any_left_is_multiline || is_multi) {
       indent_write(indent);
     }
     chunk_write(", ");
     record_item_write(item, name, value, indent);
   }
-  if (is_multi) {
+  if (any_left_is_multiline || is_multi) {
     indent_write(indent);
   } else {
     char_write(' ');
