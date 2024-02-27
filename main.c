@@ -1193,15 +1193,17 @@ static void non_empty_list_write(int node, int indent) {
     list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
+  int any_left_is_multiline = left_is_multiline;
   while (get_list_item(node, &item, &start) == 0) {
     left_is_multiline = has_multiline_left_comment(item);
-    if (left_is_multiline || is_multiline_node(node)) {
+    any_left_is_multiline = any_left_is_multiline || left_is_multiline;
+    if (any_left_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
     chunk_write(", ");
     list_item_write(item, indent);
   }
-  if (left_is_multiline || is_multiline_node(node)) {
+  if (any_left_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
     char_write(' ');
