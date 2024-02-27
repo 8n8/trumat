@@ -1211,7 +1211,7 @@ static void non_empty_list_write(int node, int indent) {
 
 static void record_item_write(int node, int name, int value, int indent) {
   const int has_left = has_left_comment(node);
-  left_comments_write(0, node, indent);
+  left_comments_write(0, node, indent + 2);
   if (has_left) {
     indent_write(indent + 2);
   }
