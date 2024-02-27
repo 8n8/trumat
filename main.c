@@ -11,6 +11,7 @@ static int argument_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
+static int floor_to_four(int x);
 static int line_comment_parse(int *node);
 static int in_unnecessary_parens_parse(int *node);
 static int comment_parse(int *node);
@@ -1208,9 +1209,14 @@ static void non_empty_list_write(int node, int indent) {
   char_write(']');
 }
 
-static void record_item_write(int name, int value, int indent) {
+static void record_item_write(int node, int name, int value, int indent) {
   src_write(name);
-  chunk_write(" = ");
+  chunk_write(" =");
+  if (is_multiline_node(node)) {
+    indent_write(floor_to_four(indent + 4));
+  } else {
+    char_write(' ');
+  }
   expression_write(value, indent);
 }
 
@@ -1236,13 +1242,18 @@ static void non_empty_record_write(int node, int indent) {
   int name;
   int value;
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
-    record_item_write(name, value, indent);
+    record_item_write(item, name, value, indent);
   }
   while (get_record_item(node, &item, &name, &value, &start) == 0) {
     chunk_write(", ");
-    record_item_write(name, value, indent);
+    record_item_write(item, name, value, indent);
   }
-  chunk_write(" }");
+  if (is_multiline_node(node)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write('}');
 }
 
 static int is_non_empty_tuple(int node) {
@@ -1283,7 +1294,7 @@ static int get_argument(int node, int *argument, int *start) {
   return -1;
 }
 
-int floor_to_four(int x) { return x / 4 * 4; }
+static int floor_to_four(int x) { return x / 4 * 4; }
 
 static int is_arg1_line1(int node) {
   for (int i = 0; i < NUM_IS_ARG1_LINE1; ++i) {
@@ -2520,30 +2531,36 @@ static int tuple_item_parse(int *node) {
 
 static int record_item_parse(int *node) {
   const int start = I;
-  char_parse(' ');
+  const int start_row = ROW[I];
+  whitespace_parse();
   int name;
   if (lower_name_parse(&name)) {
     I = start;
     return -1;
   }
-  char_parse(' ');
+  whitespace_parse();
   if (char_parse('=')) {
     I = start;
     return -1;
   }
-  char_parse(' ');
+  whitespace_parse();
   int value;
   if (expression_parse(&value)) {
     I = start;
     return -1;
   }
   *node = get_new_node();
+  if (ROW[I] > start_row) {
+    append_is_multiline(*node);
+  }
+  whitespace_parse();
   append_record_field(*node, name, value);
   return 0;
 }
 
 static int non_empty_record_parse(int *node) {
   const int start = I;
+  const int start_row = ROW[I];
   if (char_parse('{')) {
     return -1;
   }
@@ -2568,6 +2585,9 @@ static int non_empty_record_parse(int *node) {
   if (char_parse('}')) {
     I = start;
     return -1;
+  }
+  if (ROW[I] > start_row) {
+    append_is_multiline(*node);
   }
   return 0;
 }
