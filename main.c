@@ -1211,9 +1211,13 @@ static void non_empty_list_write(int node, int indent) {
 
 static void record_item_write(int node, int name, int value, int indent) {
   const int has_left = has_left_comment(node);
+  const int left_is_multiline = has_multiline_left_comment(node);
   left_comments_write(0, node, indent + 2);
-  if (has_left) {
+  if (has_left && left_is_multiline) {
     indent_write(indent + 2);
+  }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
   }
   src_write(name);
   chunk_write(" =");
