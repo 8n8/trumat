@@ -1210,6 +1210,11 @@ static void non_empty_list_write(int node, int indent) {
 }
 
 static void record_item_write(int node, int name, int value, int indent) {
+  const int has_left = has_left_comment(node);
+  left_comments_write(0, node, indent);
+  if (has_left) {
+    indent_write(indent + 2);
+  }
   src_write(name);
   chunk_write(" =");
   if (is_multiline_node(node)) {
@@ -2535,8 +2540,10 @@ static int tuple_item_parse(int *node) {
 
 static int record_item_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
   whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  const int start_row = ROW[I];
   int name;
   if (lower_name_parse(&name)) {
     I = start;
@@ -2554,6 +2561,7 @@ static int record_item_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
+  attach_left_comment(*node, left_comment);
   if (ROW[I] > start_row) {
     append_is_multiline(*node);
   }
