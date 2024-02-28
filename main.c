@@ -2590,7 +2590,7 @@ static int tuple_item_parse(int *node) {
 static int record_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
-  const int left_comment_on_name = left_comments_parse();
+  const int left_comment = left_comments_parse();
   whitespace_parse();
   const int start_row = ROW[I];
   int name;
@@ -2619,7 +2619,7 @@ static int record_item_parse(int *node) {
     append_is_multiline(*node);
   }
   const int right_comment = right_comments_with_title_parse();
-  attach_left_comment(*node, left_comment_on_name);
+  attach_left_comment(*node, left_comment);
   attach_left_comment(value, left_comment_on_value);
   attach_right_comment(*node, right_comment);
   whitespace_parse();
