@@ -2706,11 +2706,13 @@ static int record_update_parse(int *node) {
   if (char_parse('{')) {
     return -1;
   }
+  whitespace_parse();
   int name;
   if (lower_name_parse(&name)) {
     I = start;
     return -1;
   }
+  whitespace_parse();
   if (char_parse('|')) {
     I = start;
     return -1;
