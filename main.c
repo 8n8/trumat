@@ -9,6 +9,7 @@ static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
+static void record_after_start_write(int node, int indent);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int floor_to_four(int x);
@@ -297,6 +298,22 @@ int NUM_RECORD_FIELD = 0;
 static uint32_t RECORD[MAX_RECORD_ITEM];
 static uint32_t RECORD_ITEM[MAX_RECORD_ITEM];
 int NUM_RECORD_ITEM = 0;
+
+#define MAX_RECORD_UPDATE_NAME 10000
+static uint32_t RECORD_UPDATE[MAX_RECORD_UPDATE_NAME];
+static uint32_t RECORD_UPDATE_NAME[MAX_RECORD_UPDATE_NAME];
+int NUM_RECORD_UPDATE_NAME = 0;
+
+static void append_record_update_name(int node, int name) {
+  if (NUM_RECORD_UPDATE_NAME == MAX_RECORD_UPDATE_NAME) {
+    fprintf(stderr, "%s: too many record update names, maximum is %d\n", PATH,
+            MAX_RECORD_UPDATE_NAME);
+    exit(-1);
+  }
+  RECORD_UPDATE_NAME[NUM_RECORD_UPDATE_NAME] = name;
+  RECORD_UPDATE[NUM_RECORD_UPDATE_NAME] = node;
+  ++NUM_RECORD_UPDATE_NAME;
+}
 
 static void append_record_item(int node, int item) {
   if (NUM_RECORD_ITEM == MAX_RECORD_ITEM) {
@@ -1285,6 +1302,10 @@ static int multiline_comment_in_record_item(int item, int name, int value) {
 
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
+  record_after_start_write(node, indent);
+}
+
+static void record_after_start_write(int node, int indent) {
   int start = 0;
   int item;
   int name;
@@ -1976,6 +1997,23 @@ static int get_in_parens(int node, int *expression) {
   return 0;
 }
 
+static int get_record_update_name(int node, int *name) {
+  for (int i = 0; i < NUM_RECORD_UPDATE_NAME; ++i) {
+    if (RECORD_UPDATE[i] == (uint32_t)node) {
+      *name = RECORD_UPDATE_NAME[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void record_update_write(int node, int name, int indent) {
+  chunk_write("{ ");
+  src_write(name);
+  chunk_write(" | ");
+  record_after_start_write(node, indent);
+}
+
 static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -1999,6 +2037,11 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_list(node)) {
     non_empty_list_write(node, indent);
+    return;
+  }
+  int update_name;
+  if (get_record_update_name(node, &update_name)) {
+    record_update_write(node, update_name, indent);
     return;
   }
   if (is_non_empty_record(node)) {
@@ -2106,6 +2149,7 @@ static void zero_ast() {
   NUM_CONS = 0;
   NUM_RECORD_FIELD = 0;
   NUM_RECORD_ITEM = 0;
+  NUM_RECORD_UPDATE_NAME = 0;
 }
 
 static int get_new_node() {
@@ -2627,12 +2671,7 @@ static int record_item_parse(int *node) {
   return 0;
 }
 
-static int non_empty_record_parse(int *node) {
-  const int start = I;
-  const int start_row = ROW[I];
-  if (char_parse('{')) {
-    return -1;
-  }
+static int record_items_parse(int *node, int start, int start_row) {
   int item;
   if (record_item_parse(&item)) {
     I = start;
@@ -2659,6 +2698,39 @@ static int non_empty_record_parse(int *node) {
     append_is_multiline(*node);
   }
   return 0;
+}
+
+static int record_update_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('{')) {
+    return -1;
+  }
+  int name;
+  if (lower_name_parse(&name)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse('|')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  if (record_items_parse(node, start, start_row)) {
+    I = start;
+    return -1;
+  }
+  append_record_update_name(*node, name);
+  return 0;
+}
+
+static int non_empty_record_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('{')) {
+    return -1;
+  }
+  return record_items_parse(node, start, start_row);
 }
 
 static int non_empty_list_parse(int *node) {
@@ -3152,7 +3224,10 @@ static int record_parse(int *node) {
   if (empty_record_parse(node) == 0) {
     return 0;
   }
-  return non_empty_record_parse(node);
+  if (non_empty_record_parse(node) == 0) {
+    return 0;
+  }
+  return record_update_parse(node);
 }
 
 static int tuple_parse(int *node) {
