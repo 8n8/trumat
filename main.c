@@ -2614,17 +2614,14 @@ static int record_item_parse(int *node) {
     I = start;
     return -1;
   }
-  const int right_comment = right_comments_with_title_parse();
-  int end_i = I;
-  for (; SRC[end_i] == ' '; --end_i) {
-  }
   *node = get_new_node();
+  if (ROW[I] > start_row) {
+    append_is_multiline(*node);
+  }
+  const int right_comment = right_comments_with_title_parse();
   attach_left_comment(*node, left_comment_on_name);
   attach_left_comment(value, left_comment_on_value);
   attach_right_comment(*node, right_comment);
-  if (ROW[end_i] > start_row) {
-    append_is_multiline(*node);
-  }
   whitespace_parse();
   append_record_field(*node, name, value);
   return 0;
