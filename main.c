@@ -1245,6 +1245,12 @@ static void record_item_write(int node, int name, int value, int indent) {
   } else {
     char_write(' ');
   }
+  left_comments_write(0, value, indent + 2);
+  const int has_left_comment_value = has_left_comment(value);
+  const int left_is_multiline_value = has_multiline_left_comment(value);
+  if (has_left_comment_value && left_is_multiline_value) {
+    indent_write(floor_to_four(indent + 6));
+  }
   expression_write(value, indent + 4);
 }
 
@@ -2570,7 +2576,7 @@ static int tuple_item_parse(int *node) {
 static int record_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
-  const int left_comment = left_comments_parse();
+  const int left_comment_on_name = left_comments_parse();
   whitespace_parse();
   const int start_row = ROW[I];
   int name;
@@ -2587,13 +2593,16 @@ static int record_item_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+  const int left_comment_on_value = left_comments_parse();
+  whitespace_parse();
   int value;
   if (expression_parse(&value)) {
     I = start;
     return -1;
   }
   *node = get_new_node();
-  attach_left_comment(*node, left_comment);
+  attach_left_comment(*node, left_comment_on_name);
+  attach_left_comment(value, left_comment_on_value);
   if (ROW[I] > start_row) {
     append_is_multiline(*node);
   }
