@@ -1245,7 +1245,7 @@ static void record_item_write(int node, int name, int value, int indent) {
   } else {
     char_write(' ');
   }
-  left_comments_write(0, value, indent + 2);
+  left_comments_write(0, value, indent + 4);
   const int has_left_comment_value = has_left_comment(value);
   const int left_is_multiline_value = has_multiline_left_comment(value);
   if (has_left_comment_value && left_is_multiline_value) {
