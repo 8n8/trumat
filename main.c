@@ -1252,6 +1252,9 @@ static void record_item_write(int node, int name, int value, int indent) {
   if (has_left_comment_value && left_is_multiline_value) {
     indent_write(floor_to_four(indent + 6));
   }
+  if (has_left_comment_value && !left_is_multiline_value) {
+    char_write(' ');
+  }
   expression_write(value, indent + 4);
 }
 
