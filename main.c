@@ -1278,9 +1278,9 @@ static int get_record_item(int node, int *item, int *name, int *value,
 }
 
 static int multiline_comment_in_record_item(int item, int name, int value) {
-  return has_multiline_left_comment(item) ||
-         has_multiline_right_comment(item) ||
-         has_multiline_right_comment(name) || has_multiline_left_comment(value);
+  return has_multiline_left_comment(item) || has_title_comment(item) ||
+         has_same_line_comment(item) || has_multiline_right_comment(name) ||
+         has_multiline_left_comment(value);
 }
 
 static void non_empty_record_write(int node, int indent) {
