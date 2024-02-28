@@ -1256,6 +1256,10 @@ static void record_item_write(int node, int name, int value, int indent) {
     char_write(' ');
   }
   expression_write(value, indent + 4);
+  if (has_same_line_comment(node)) {
+    char_write(' ');
+  }
+  right_comments_with_title_write(node, indent);
 }
 
 static int get_record_item(int node, int *item, int *name, int *value,
@@ -2610,10 +2614,15 @@ static int record_item_parse(int *node) {
     I = start;
     return -1;
   }
+  const int right_comment = right_comments_with_title_parse();
+  int end_i = I;
+  for (; SRC[end_i] == ' '; --end_i) {
+  }
   *node = get_new_node();
   attach_left_comment(*node, left_comment_on_name);
   attach_left_comment(value, left_comment_on_value);
-  if (ROW[I] > start_row) {
+  attach_right_comment(*node, right_comment);
+  if (ROW[end_i] > start_row) {
     append_is_multiline(*node);
   }
   whitespace_parse();
