@@ -1240,14 +1240,14 @@ static void record_item_write(int node, int name, int value, int indent) {
     char_write(' ');
   }
   char_write('=');
-  if (is_multiline_node(node)) {
+  const int has_left_comment_value = has_left_comment(value);
+  const int left_is_multiline_value = has_multiline_left_comment(value);
+  if (is_multiline_node(node) || left_is_multiline_value) {
     indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
   }
   left_comments_write(0, value, floor_to_four(indent + 6));
-  const int has_left_comment_value = has_left_comment(value);
-  const int left_is_multiline_value = has_multiline_left_comment(value);
   if (has_left_comment_value && left_is_multiline_value) {
     indent_write(floor_to_four(indent + 6));
   }
@@ -1269,30 +1269,36 @@ static int get_record_item(int node, int *item, int *name, int *value,
   return -1;
 }
 
+static int multiline_comment_in_record_item(int item, int name, int value) {
+  return has_multiline_left_comment(item) ||
+         has_multiline_right_comment(item) ||
+         has_multiline_right_comment(name) || has_multiline_left_comment(value);
+}
+
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
   int start = 0;
   int item;
   int name;
   int value;
-  int left_is_multiline;
-  int any_left_is_multiline;
+  int comment_is_multiline;
+  int any_comment_is_multiline;
   const int is_multi = is_multiline_node(node);
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
-    left_is_multiline = has_multiline_left_comment(item);
-    any_left_is_multiline = left_is_multiline;
+    comment_is_multiline = multiline_comment_in_record_item(item, name, value);
+    any_comment_is_multiline = comment_is_multiline;
     record_item_write(item, name, value, indent);
   }
   while (get_record_item(node, &item, &name, &value, &start) == 0) {
-    left_is_multiline = has_multiline_left_comment(item);
-    any_left_is_multiline = any_left_is_multiline || left_is_multiline;
-    if (any_left_is_multiline || is_multi) {
+    comment_is_multiline = multiline_comment_in_record_item(item, name, value);
+    any_comment_is_multiline = any_comment_is_multiline || comment_is_multiline;
+    if (any_comment_is_multiline || is_multi) {
       indent_write(indent);
     }
     chunk_write(", ");
     record_item_write(item, name, value, indent);
   }
-  if (any_left_is_multiline || is_multi) {
+  if (any_comment_is_multiline || is_multi) {
     indent_write(indent);
   } else {
     char_write(' ');
