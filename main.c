@@ -1272,10 +1272,10 @@ static void record_item_write(int node, int name, int value, int indent) {
     char_write(' ');
   }
   expression_write(value, indent + 4);
-  if (has_same_line_comment(node)) {
+  if (has_same_line_comment(value)) {
     char_write(' ');
   }
-  right_comments_with_title_write(node, indent);
+  right_comments_with_title_write(value, indent);
 }
 
 static int get_record_item(int node, int *item, int *name, int *value,
@@ -1294,8 +1294,8 @@ static int get_record_item(int node, int *item, int *name, int *value,
 }
 
 static int multiline_comment_in_record_item(int item, int name, int value) {
-  return has_multiline_left_comment(item) || has_title_comment(item) ||
-         has_same_line_comment(item) || has_multiline_right_comment(name) ||
+  return has_multiline_left_comment(item) || has_title_comment(value) ||
+         has_same_line_comment(value) || has_multiline_right_comment(name) ||
          has_multiline_left_comment(value);
 }
 
@@ -2664,7 +2664,7 @@ static int record_item_name_parse(int node, int *name, int *start_row) {
   return 0;
 }
 
-static int record_item_value_parse(int *node, int *value, int *end_row) {
+static int record_item_value_parse(int *value, int *end_row) {
   const int left_comment_on_value = left_comments_parse();
   const int start = I;
   whitespace_parse();
@@ -2675,7 +2675,7 @@ static int record_item_value_parse(int *node, int *value, int *end_row) {
   *end_row = ROW[I];
   const int right_comment = right_comments_with_title_parse();
   attach_left_comment(*value, left_comment_on_value);
-  attach_right_comment(*node, right_comment);
+  attach_right_comment(*value, right_comment);
   return 0;
 }
 
@@ -2697,7 +2697,7 @@ static int record_item_parse(int *node) {
   whitespace_parse();
   int value;
   int end_row;
-  record_item_value_parse(node, &value, &end_row);
+  record_item_value_parse(&value, &end_row);
   if (end_row > start_row) {
     append_is_multiline(*node);
   }
