@@ -2648,9 +2648,8 @@ static int tuple_item_parse(int *node) {
   return 0;
 }
 
-static int record_item_name_parse(int node, int *name, int *start_row) {
+static int record_item_name_parse(int *name, int *start_row) {
   const int start = I;
-  const int left_comment = left_comments_parse();
   whitespace_parse();
   *start_row = ROW[I];
   if (lower_name_parse(name)) {
@@ -2659,7 +2658,6 @@ static int record_item_name_parse(int node, int *name, int *start_row) {
   }
   whitespace_parse();
   const int comments_after_name = right_comments_in_expression_parse();
-  attach_left_comment(node, left_comment);
   attach_right_comment_in_expression(*name, comments_after_name);
   return 0;
 }
@@ -2685,7 +2683,9 @@ static int record_item_parse(int *node) {
   *node = get_new_node();
   int name;
   int start_row;
-  if (record_item_name_parse(*node, &name, &start_row)) {
+  const int left_comment = left_comments_parse();
+  attach_left_comment(*node, left_comment);
+  if (record_item_name_parse(&name, &start_row)) {
     I = start;
     return -1;
   }
