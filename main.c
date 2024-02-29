@@ -2021,7 +2021,7 @@ static int get_record_update_name(int node, int *name) {
   return 0;
 }
 
-static void record_update_write(int node, int name, int indent) {
+static void record_update_before_pipe_write(int node, int name, int indent) {
   chunk_write("{ ");
   const int has_left = has_left_comment(name);
   const int left_is_multiline = has_multiline_left_comment(name);
@@ -2054,11 +2054,15 @@ static void record_update_write(int node, int name, int indent) {
   if (!has_right && !is_multiline_node(node)) {
     char_write(' ');
   }
+}
+
+static void record_update_write(int node, int name, int indent) {
+  record_update_before_pipe_write(node, name, indent);
   chunk_write("| ");
   int any_comment_is_multiline;
   const int is_multi = is_multiline_node(node);
-  record_items_write(node, floor_to_four(indent + 4), &any_comment_is_multiline, is_multi);
-
+  record_items_write(node, floor_to_four(indent + 4), &any_comment_is_multiline,
+                     is_multi);
   if (any_comment_is_multiline || is_multi) {
     indent_write(indent);
   } else {
