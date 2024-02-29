@@ -2648,20 +2648,34 @@ static int tuple_item_parse(int *node) {
   return 0;
 }
 
-static int record_item_parse(int *node) {
+static int record_item_name_parse(int node, int *name, int *start_row) {
   const int start = I;
-  whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  const int start_row = ROW[I];
-  int name;
-  if (lower_name_parse(&name)) {
+  *start_row = ROW[I];
+  if (lower_name_parse(name)) {
     I = start;
     return -1;
   }
   whitespace_parse();
   const int comments_after_name = right_comments_in_expression_parse();
-  attach_right_comment_in_expression(name, comments_after_name);
+  attach_left_comment(node, left_comment);
+  attach_right_comment_in_expression(*name, comments_after_name);
+  return 0;
+}
+
+static int record_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  *node = get_new_node();
+
+  int name;
+  int start_row;
+  if (record_item_name_parse(*node, &name, &start_row)) {
+    I = start;
+    return -1;
+  }
+
   whitespace_parse();
   if (char_parse('=')) {
     I = start;
@@ -2675,12 +2689,10 @@ static int record_item_parse(int *node) {
     I = start;
     return -1;
   }
-  *node = get_new_node();
   if (ROW[I] > start_row) {
     append_is_multiline(*node);
   }
   const int right_comment = right_comments_with_title_parse();
-  attach_left_comment(*node, left_comment);
   attach_left_comment(value, left_comment_on_value);
   attach_right_comment(*node, right_comment);
   whitespace_parse();
