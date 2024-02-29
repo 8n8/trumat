@@ -1299,10 +1299,8 @@ static int multiline_comment_in_record_item(int item, int name, int value) {
          has_multiline_left_comment(value);
 }
 
-static void non_empty_record_write(int node, int indent) {
-  chunk_write("{ ");
-  int any_comment_is_multiline;
-  const int is_multi = is_multiline_node(node);
+static void normal_record_items_write(int node, int indent, int is_multi,
+                                      int *any_comment_is_multiline) {
   int start = 0;
   int item;
   int name;
@@ -1310,18 +1308,25 @@ static void non_empty_record_write(int node, int indent) {
   int comment_is_multiline;
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
     comment_is_multiline = multiline_comment_in_record_item(item, name, value);
-    any_comment_is_multiline = comment_is_multiline;
+    *any_comment_is_multiline = comment_is_multiline;
     record_item_write(item, name, value, indent);
   }
   while (get_record_item(node, &item, &name, &value, &start) == 0) {
     comment_is_multiline = multiline_comment_in_record_item(item, name, value);
-    any_comment_is_multiline = any_comment_is_multiline || comment_is_multiline;
-    if (any_comment_is_multiline || is_multi) {
+    *any_comment_is_multiline = *any_comment_is_multiline || comment_is_multiline;
+    if (*any_comment_is_multiline || is_multi) {
       indent_write(indent);
     }
     chunk_write(", ");
     record_item_write(item, name, value, indent);
   }
+}
+
+static void non_empty_record_write(int node, int indent) {
+  chunk_write("{ ");
+  int any_comment_is_multiline;
+  const int is_multi = is_multiline_node(node);
+  normal_record_items_write(node, indent, is_multi, &any_comment_is_multiline);
   if (any_comment_is_multiline || is_multi) {
     indent_write(indent);
   } else {
@@ -2020,7 +2025,7 @@ static void record_items_write(int node, int indent,
         multiline_comment_in_record_item(item, field_name, value);
     *any_comment_is_multiline =
         *any_comment_is_multiline || comment_is_multiline;
-    if (any_comment_is_multiline || is_multi) {
+    if (*any_comment_is_multiline || is_multi) {
       indent_write(indent);
     }
     chunk_write(", ");
