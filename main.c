@@ -1301,13 +1301,13 @@ static int multiline_comment_in_record_item(int item, int name, int value) {
 
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
+  int any_comment_is_multiline;
+  const int is_multi = is_multiline_node(node);
   int start = 0;
   int item;
   int name;
   int value;
   int comment_is_multiline;
-  int any_comment_is_multiline;
-  const int is_multi = is_multiline_node(node);
   if (get_record_item(node, &item, &name, &value, &start) == 0) {
     comment_is_multiline = multiline_comment_in_record_item(item, name, value);
     any_comment_is_multiline = comment_is_multiline;
@@ -2013,7 +2013,7 @@ static void record_items_write(int node, int indent,
     comment_is_multiline =
         multiline_comment_in_record_item(item, field_name, value);
     *any_comment_is_multiline = comment_is_multiline;
-    record_item_write(item, field_name, value, indent + 4);
+    record_item_write(item, field_name, value, indent);
   }
   while (get_record_item(node, &item, &field_name, &value, &start) == 0) {
     comment_is_multiline =
@@ -2039,7 +2039,7 @@ static void record_update_write(int node, int name, int indent) {
   chunk_write("| ");
   int any_comment_is_multiline;
   const int is_multi = is_multiline_node(node);
-  record_items_write(node, indent, &any_comment_is_multiline, is_multi);
+  record_items_write(node, indent + 4, &any_comment_is_multiline, is_multi);
 
   if (any_comment_is_multiline || is_multi) {
     indent_write(indent);
