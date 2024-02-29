@@ -1229,7 +1229,10 @@ static void non_empty_list_write(int node, int indent) {
   char_write(']');
 }
 
-static void record_item_write(int node, int name, int value, int indent) {
+static void record_item_left_write(int node, int name, int indent) {
+  const int has_multiline_comment_after_name =
+      has_multiline_right_comment(name);
+  const int has_comment_after_name = has_right_comment(name);
   const int has_left = has_left_comment(node);
   const int left_is_multiline = has_multiline_left_comment(node);
   left_comments_write(0, node, indent + 2);
@@ -1240,9 +1243,6 @@ static void record_item_write(int node, int name, int value, int indent) {
     char_write(' ');
   }
   src_write(name);
-  const int has_comment_after_name = has_right_comment(name);
-  const int has_multiline_comment_after_name =
-      has_multiline_right_comment(name);
   if (has_comment_after_name && has_multiline_comment_after_name) {
     indent_write(indent + 2);
   }
@@ -1255,6 +1255,15 @@ static void record_item_write(int node, int name, int value, int indent) {
   } else {
     char_write(' ');
   }
+}
+
+static void record_item_write(int node, int name, int value, int indent) {
+  const int has_multiline_comment_after_name =
+      has_multiline_right_comment(name);
+  const int has_comment_after_name = has_right_comment(name);
+
+  record_item_left_write(node, name, indent);
+
   char_write('=');
   const int has_left_comment_value = has_left_comment(value);
   const int left_is_multiline_value = has_multiline_left_comment(value);
