@@ -2033,9 +2033,25 @@ static void record_update_write(int node, int name, int indent) {
     char_write(' ');
   }
   src_write(name);
-  if (is_multiline_node(node)) {
+  const int has_right = has_right_comment(name);
+  const int right_is_multiline = has_multiline_right_comment(name);
+  if (has_right && !right_is_multiline) {
+    char_write(' ');
+  }
+  if (has_right && right_is_multiline) {
+    indent_write(indent + 2);
+  }
+  right_comments_in_expression_write(name, floor_to_four(indent));
+  if (has_right && !right_is_multiline) {
+    char_write(' ');
+  }
+  if (has_right && right_is_multiline) {
     indent_write(floor_to_four(indent + 4));
-  } else {
+  }
+  if (!has_right && is_multiline_node(node)) {
+    indent_write(floor_to_four(indent + 4));
+  }
+  if (!has_right && !is_multiline_node(node)) {
     char_write(' ');
   }
   chunk_write("| ");
@@ -2770,6 +2786,9 @@ static int record_update_parse(int *node) {
     return -1;
   }
   attach_left_comment(name, left_comment);
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(name, right_comment);
   whitespace_parse();
   if (char_parse('|')) {
     I = start;
