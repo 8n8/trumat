@@ -2023,6 +2023,11 @@ static int get_record_update_name(int node, int *name) {
 
 static void record_update_write(int node, int name, int indent) {
   chunk_write("{ ");
+  const int has_left = has_left_comment(name);
+  left_comments_write(0, name, indent + 2);
+  if (has_left) {
+    indent_write(indent + 2);
+  }
   src_write(name);
   if (is_multiline_node(node)) {
     indent_write(indent + 4);
@@ -2753,11 +2758,14 @@ static int record_update_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
   int name;
   if (lower_name_parse(&name)) {
     I = start;
     return -1;
   }
+  attach_left_comment(name, left_comment);
   whitespace_parse();
   if (char_parse('|')) {
     I = start;
