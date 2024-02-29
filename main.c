@@ -2024,9 +2024,13 @@ static int get_record_update_name(int node, int *name) {
 static void record_update_write(int node, int name, int indent) {
   chunk_write("{ ");
   const int has_left = has_left_comment(name);
+  const int left_is_multiline = has_multiline_left_comment(name);
   left_comments_write(0, name, indent + 2);
-  if (has_left) {
+  if (has_left && left_is_multiline) {
     indent_write(indent + 2);
+  }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
   }
   src_write(name);
   if (is_multiline_node(node)) {
