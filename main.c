@@ -9,7 +9,6 @@ static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
-static void record_after_start_write(int node, int indent);
 static int simple_expression_parse(int *node);
 static int infixed_item_parse(int *node);
 static int floor_to_four(int x);
@@ -1302,10 +1301,6 @@ static int multiline_comment_in_record_item(int item, int name, int value) {
 
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
-  record_after_start_write(node, indent);
-}
-
-static void record_after_start_write(int node, int indent) {
   int start = 0;
   int item;
   int name;
@@ -2010,8 +2005,39 @@ static int get_record_update_name(int node, int *name) {
 static void record_update_write(int node, int name, int indent) {
   chunk_write("{ ");
   src_write(name);
-  chunk_write(" | ");
-  record_after_start_write(node, indent);
+  if (is_multiline_node(node)) {
+    indent_write(indent + 4);
+  } else {
+    char_write(' ');
+  }
+  chunk_write("| ");
+  int start = 0;
+  int item;
+  int field_name;
+  int value;
+  int comment_is_multiline;
+  int any_comment_is_multiline;
+  const int is_multi = is_multiline_node(node);
+  if (get_record_item(node, &item, &field_name, &value, &start) == 0) {
+    comment_is_multiline = multiline_comment_in_record_item(item, field_name, value);
+    any_comment_is_multiline = comment_is_multiline;
+    record_item_write(item, field_name, value, indent + 4);
+  }
+  while (get_record_item(node, &item, &field_name, &value, &start) == 0) {
+    comment_is_multiline = multiline_comment_in_record_item(item, field_name, value);
+    any_comment_is_multiline = any_comment_is_multiline || comment_is_multiline;
+    if (any_comment_is_multiline || is_multi) {
+      indent_write(indent);
+    }
+    chunk_write(", ");
+    record_item_write(item, field_name, value, indent);
+  }
+  if (any_comment_is_multiline || is_multi) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write('}');
 }
 
 static void not_infixed_write(int node, int indent) {
