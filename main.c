@@ -2041,7 +2041,7 @@ static void record_update_write(int node, int name, int indent) {
   if (has_right && right_is_multiline) {
     indent_write(indent + 2);
   }
-  right_comments_in_expression_write(name, floor_to_four(indent));
+  right_comments_in_expression_write(name, indent + 2);
   if (has_right && !right_is_multiline) {
     char_write(' ');
   }
