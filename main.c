@@ -2030,7 +2030,7 @@ static void record_update_write(int node, int name, int indent) {
   }
   src_write(name);
   if (is_multiline_node(node)) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
   }
