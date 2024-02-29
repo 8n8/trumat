@@ -2057,7 +2057,7 @@ static void record_update_write(int node, int name, int indent) {
   chunk_write("| ");
   int any_comment_is_multiline;
   const int is_multi = is_multiline_node(node);
-  record_items_write(node, indent + 4, &any_comment_is_multiline, is_multi);
+  record_items_write(node, floor_to_four(indent + 4), &any_comment_is_multiline, is_multi);
 
   if (any_comment_is_multiline || is_multi) {
     indent_write(indent);
