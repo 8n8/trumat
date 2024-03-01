@@ -7,6 +7,7 @@
 static int dot_function_parse(int *node);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int record_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
@@ -2125,8 +2126,16 @@ static int get_dot_function(int node, int *dot_function) {
   return 0;
 }
 
-static void dotted_write(int dotted_head, int dotted_tail) {
+static void dotted_head_write(int dotted_head, int indent) {
+  if (is_non_empty_record(dotted_head)) {
+    non_empty_record_write(dotted_head, indent);
+    return;
+  } 
   src_write(dotted_head);
+}
+
+static void dotted_write(int dotted_head, int dotted_tail, int indent) {
+  dotted_head_write(dotted_head, indent);
   src_write(dotted_tail);
 }
 
@@ -2141,6 +2150,11 @@ static int get_dotted(int dotted_head, int *dotted_tail) {
 }
 
 static void not_infixed_write(int node, int indent) {
+  int dotted_tail;
+  if (get_dotted(node, &dotted_tail)) {
+    dotted_write(node, dotted_tail, indent);
+    return;
+  }
   if (is_hex(node)) {
     hex_write(node);
     return;
@@ -2202,11 +2216,6 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
-    return;
-  }
-  int dotted_tail;
-  if (get_dotted(node, &dotted_tail)) {
-    dotted_write(node, dotted_tail);
     return;
   }
   int expression;
@@ -3268,9 +3277,19 @@ static int dottable_name_part_parse() {
   return 0;
 }
 
+static int dottable_parse(int *node) {
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (record_parse(node) == 0) {
+    return 0;
+  }
+  return -1;
+}
+
 static int dotted_parse(int *node) {
   const int start = I;
-  if (lower_name_parse(node)) {
+  if (dottable_parse(node)) {
     return -1;
   }
   const int tail_start = I;
