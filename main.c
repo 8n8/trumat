@@ -310,6 +310,22 @@ static uint32_t DOT_FUNCTION[MAX_DOT_FUNCTION];
 static uint32_t DOT_FUNCTION_NAME[MAX_DOT_FUNCTION];
 int NUM_DOT_FUNCTION = 0;
 
+#define MAX_DOTTED 10000
+static uint32_t DOTTED_HEAD[MAX_DOTTED];
+static uint32_t DOTTED_TAIL[MAX_DOTTED];
+int NUM_DOTTED = 0;
+
+static void append_dotted(int head, int tail) {
+  if (NUM_DOTTED == MAX_DOTTED) {
+    fprintf(stderr, "%s: too many dotted nodes, maximum is %d\n", PATH,
+            MAX_DOTTED);
+    exit(-1);
+  }
+  DOTTED_HEAD[NUM_DOTTED] = head;
+  DOTTED_TAIL[NUM_DOTTED] = tail;
+  ++NUM_DOTTED;
+}
+
 static void append_dot_function(int node, int name) {
   if (NUM_DOT_FUNCTION == MAX_DOT_FUNCTION) {
     fprintf(stderr, "%s: too many dot functions, maximum is %d\n", PATH,
@@ -2109,6 +2125,21 @@ static int get_dot_function(int node, int *dot_function) {
   return 0;
 }
 
+static void dotted_write(int dotted_head, int dotted_tail) {
+  src_write(dotted_head);
+  src_write(dotted_tail);
+}
+
+static int get_dotted(int dotted_head, int *dotted_tail) {
+  for (int i = 0; i < NUM_DOTTED; ++i) {
+    if (DOTTED_HEAD[i] == (uint32_t)dotted_head) {
+      *dotted_tail = DOTTED_TAIL[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -2171,6 +2202,11 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
+    return;
+  }
+  int dotted_tail;
+  if (get_dotted(node, &dotted_tail)) {
+    dotted_write(node, dotted_tail);
     return;
   }
   int expression;
@@ -2252,6 +2288,7 @@ static void zero_ast() {
   NUM_RECORD_ITEM = 0;
   NUM_RECORD_UPDATE_NAME = 0;
   NUM_DOT_FUNCTION = 0;
+  NUM_DOTTED = 0;
 }
 
 static int get_new_node() {
@@ -3217,6 +3254,38 @@ static int qualified_name_part_parse() {
   return 0;
 }
 
+static int dottable_name_part_parse() {
+  const int start = I;
+  if (char_parse('.')) {
+    I = start;
+    return -1;
+  }
+  int dont_care;
+  if (lower_name_parse(&dont_care)) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int dotted_parse(int *node) {
+  const int start = I;
+  if (lower_name_parse(node)) {
+    return -1;
+  }
+  const int tail_start = I;
+  if (dottable_name_part_parse()) {
+    I = start;
+    return -1;
+  }
+  while (dottable_name_part_parse() == 0) {
+  }
+  int tail = get_new_node();
+  append_has_src(tail, tail_start + 1, I - tail_start);
+  append_dotted(*node, tail);
+  return 0;
+}
+
 static int qualified_name_parse(int *node) {
   const int start = I;
   int dont_care;
@@ -3428,6 +3497,9 @@ static int dot_function_parse(int *node) {
 }
 
 static int simple_expression_parse(int *node) {
+  if (dotted_parse(node) == 0) {
+    return 0;
+  }
   if (float_parse(node) == 0) {
     return 0;
   }
