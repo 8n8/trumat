@@ -2918,6 +2918,9 @@ static int argument_and_comments_parse(int *argument) {
 }
 
 static int callable_parse(int *node) {
+  if (upper_name_parse(node) == 0) {
+    return 0;
+  }
   if (lower_name_parse(node) == 0) {
     return 0;
   }
@@ -2927,10 +2930,40 @@ static int callable_parse(int *node) {
   return -1;
 }
 
+static int after_callable_parse() {
+  if (char_parse('(') == 0) {
+    --I;
+    return 0;
+  }
+  if (char_parse('[') == 0) {
+    --I;
+    return 0;
+  }
+  if (char_parse('{') == 0) {
+    --I;
+    return 0;
+  }
+  if (char_parse('-') == 0) {
+    --I;
+    return 0;
+  }
+  if (char_parse(' ') == 0) {
+    return 0;
+  }
+  if (char_parse('\n') == 0) {
+    return 0;
+  }
+  return -1;
+}
+
 static int function_call_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
   if (callable_parse(node)) {
+    return -1;
+  }
+  if (after_callable_parse()) {
+    I = start;
     return -1;
   }
   int argument;
