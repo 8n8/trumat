@@ -10,6 +10,7 @@ static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
 static int simple_expression_parse(int *node);
+static int get_dot_function(int node, int *dot_function);
 static int infixed_item_parse(int *node);
 static int floor_to_four(int x);
 static int line_comment_parse(int *node);
@@ -302,6 +303,22 @@ int NUM_RECORD_ITEM = 0;
 static uint32_t RECORD_UPDATE[MAX_RECORD_UPDATE_NAME];
 static uint32_t RECORD_UPDATE_NAME[MAX_RECORD_UPDATE_NAME];
 int NUM_RECORD_UPDATE_NAME = 0;
+
+#define MAX_DOT_FUNCTION 10000
+static uint32_t DOT_FUNCTION[MAX_DOT_FUNCTION];
+static uint32_t DOT_FUNCTION_NAME[MAX_DOT_FUNCTION];
+int NUM_DOT_FUNCTION = 0;
+
+static void append_dot_function(int node, int name) {
+  if (NUM_DOT_FUNCTION == MAX_DOT_FUNCTION) {
+    fprintf(stderr, "%s: too many dot functions, maximum is %d\n", PATH,
+            MAX_DOT_FUNCTION);
+    exit(-1);
+  }
+  DOT_FUNCTION_NAME[NUM_DOT_FUNCTION] = name;
+  DOT_FUNCTION[NUM_DOT_FUNCTION] = node;
+  ++NUM_DOT_FUNCTION;
+}
 
 static void append_record_update_name(int node, int name) {
   if (NUM_RECORD_UPDATE_NAME == MAX_RECORD_UPDATE_NAME) {
@@ -2071,6 +2088,16 @@ static void record_update_write(int node, int name, int indent) {
   char_write('}');
 }
 
+static int get_dot_function(int node, int *dot_function) {
+  for (int i = 0; i < NUM_DOT_FUNCTION; ++i) {
+    if (DOT_FUNCTION[i] == (uint32_t)node) {
+      *dot_function = DOT_FUNCTION_NAME[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void not_infixed_write(int node, int indent) {
   if (is_hex(node)) {
     hex_write(node);
@@ -2094,6 +2121,12 @@ static void not_infixed_write(int node, int indent) {
   }
   if (is_non_empty_list(node)) {
     non_empty_list_write(node, indent);
+    return;
+  }
+  int dot_function;
+  if (get_dot_function(node, &dot_function)) {
+    char_write('.');
+    src_write(dot_function);
     return;
   }
   int update_name;
@@ -2207,6 +2240,7 @@ static void zero_ast() {
   NUM_RECORD_FIELD = 0;
   NUM_RECORD_ITEM = 0;
   NUM_RECORD_UPDATE_NAME = 0;
+  NUM_DOT_FUNCTION = 0;
 }
 
 static int get_new_node() {
@@ -2273,6 +2307,10 @@ static int simple_float_parse(int *node) {
   while (digit_parse() == 0) {
   }
   if (char_parse('.') != 0) {
+    I = start;
+    return -1;
+  }
+  if (digit_parse()) {
     I = start;
     return -1;
   }
@@ -3320,6 +3358,21 @@ static int tuple_parse(int *node) {
   return empty_tuple_parse(node);
 }
 
+static int dot_function_parse(int *node) {
+  const int start = I;
+  if (char_parse('.')) {
+    return -1;
+  }
+  int name;
+  if (lower_name_parse(&name)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_dot_function(*node, name);
+  return 0;
+}
+
 static int simple_expression_parse(int *node) {
   if (float_parse(node) == 0) {
     return 0;
@@ -3340,6 +3393,9 @@ static int simple_expression_parse(int *node) {
     return 0;
   }
   if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (dot_function_parse(node) == 0) {
     return 0;
   }
   if (with_comments_in_parentheses_parse(node) == 0) {
