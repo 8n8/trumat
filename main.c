@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int dot_function_parse(int *node);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int infixed_parse(int *node);
@@ -1434,8 +1435,18 @@ static void argument_write(int is_multi, int argument, int indent) {
   expression_write(argument, indent + 4);
 }
 
-static void function_call_write(int node, int indent) {
+static void callable_write(int node) {
+  int dot_function;
+  if (get_dot_function(node, &dot_function)) {
+    char_write('.');
+    src_write(dot_function);
+    return;
+  }
   src_write(node);
+}
+
+static void function_call_write(int node, int indent) {
+  callable_write(node);
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
@@ -2123,12 +2134,6 @@ static void not_infixed_write(int node, int indent) {
     non_empty_list_write(node, indent);
     return;
   }
-  int dot_function;
-  if (get_dot_function(node, &dot_function)) {
-    char_write('.');
-    src_write(dot_function);
-    return;
-  }
   int update_name;
   if (get_record_update_name(node, &update_name)) {
     record_update_write(node, update_name, indent);
@@ -2144,6 +2149,12 @@ static void not_infixed_write(int node, int indent) {
   }
   if (has_arguments(node)) {
     function_call_write(node, indent);
+    return;
+  }
+  int dot_function;
+  if (get_dot_function(node, &dot_function)) {
+    char_write('.');
+    src_write(dot_function);
     return;
   }
   if (is_empty_triple_string(node)) {
@@ -2906,10 +2917,20 @@ static int argument_and_comments_parse(int *argument) {
   return 0;
 }
 
+static int callable_parse(int *node) {
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (dot_function_parse(node) == 0) {
+    return 0;
+  }
+  return -1;
+}
+
 static int function_call_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
-  if (lower_name_parse(node)) {
+  if (callable_parse(node)) {
     return -1;
   }
   int argument;
