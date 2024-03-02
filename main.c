@@ -3694,12 +3694,12 @@ static int if_then_else_helper_parse(int *node) {
   if (keyword_parse("if")) {
     return -1;
   }
-  char_parse(' ');
+  whitespace_parse();
   int condition;
   if (if_item_parse(&condition)) {
     return -1;
   }
-  char_parse(' ');
+  whitespace_parse();
   if (keyword_parse("then")) {
     return -1;
   }
