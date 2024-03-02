@@ -2188,7 +2188,14 @@ static int is_if_then_else_node(int node) {
 static void if_then_else_write(int condition, int then_branch, int else_branch,
                                int indent) {
   chunk_write("if");
-  const int is_multi_condition = is_multiline_node(condition);
+  const int has_left = has_left_comment(condition);
+  const int left_is_multiline = has_multiline_left_comment(condition);
+  if (has_left && left_is_multiline) {
+    indent_write(indent + 4);
+  }
+  left_comments_write(0, condition, indent + 4);
+  const int is_multi_condition =
+      is_multiline_node(condition) || left_is_multiline;
   if (is_multi_condition) {
     indent_write(indent + 4);
   } else {
@@ -3706,7 +3713,7 @@ static int not_newline_parse() {
 
 static int is_after_keyword_char(uint8_t c) {
   return c == ' ' || c == '\n' || c == '(' || c == '[' || c == '{' ||
-         c == '}' || c == ']' || c == ')';
+         c == '}' || c == ']' || c == ')' || c == '-';
 }
 
 static int after_keyword_char_parse() {
@@ -3735,16 +3742,26 @@ static int keyword_parse(char *keyword) {
   return 0;
 }
 
+static int condition_parse(int *node) {
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (expression_parse(node)) {
+    return -1;
+  }
+  attach_left_comment(*node, left_comment);
+  whitespace_parse();
+  return 0;
+}
+
 static int if_then_else_helper_parse(int *node) {
   if (keyword_parse("if")) {
     return -1;
   }
-  whitespace_parse();
   int condition;
-  if (expression_parse(&condition)) {
+  if (condition_parse(&condition)) {
     return -1;
   }
-  whitespace_parse();
   if (keyword_parse("then")) {
     return -1;
   }
