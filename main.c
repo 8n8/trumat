@@ -3693,23 +3693,13 @@ static int keyword_parse(char *keyword) {
   return 0;
 }
 
-static int if_item_parse(int *node) {
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
-  if (simple_expression_parse(node) == 0) {
-    return 0;
-  }
-  return in_unnecessary_parens_parse(node);
-}
-
 static int if_then_else_helper_parse(int *node) {
   if (keyword_parse("if")) {
     return -1;
   }
   whitespace_parse();
   int condition;
-  if (if_item_parse(&condition)) {
+  if (expression_parse(&condition)) {
     return -1;
   }
   whitespace_parse();
@@ -3718,7 +3708,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int then_branch;
-  if (if_item_parse(&then_branch)) {
+  if (expression_parse(&then_branch)) {
     return -1;
   }
   whitespace_parse();
@@ -3727,7 +3717,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int else_branch;
-  if (if_item_parse(&else_branch)) {
+  if (expression_parse(&else_branch)) {
     return -1;
   }
   *node = get_new_node();
@@ -3741,6 +3731,7 @@ static int if_then_else_parse(int *node) {
     I = start;
     return -1;
   }
+  append_is_multiline(*node);
   return 0;
 }
 
