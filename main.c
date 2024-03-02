@@ -1268,17 +1268,17 @@ static void non_empty_list_write(int node, int indent) {
     list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
-  int any_left_is_multiline = left_is_multiline;
+  int any_is_multiline = left_is_multiline || is_multiline_node(item);
   while (get_list_item(node, &item, &start) == 0) {
-    left_is_multiline = has_multiline_left_comment(item);
-    any_left_is_multiline = any_left_is_multiline || left_is_multiline;
-    if (any_left_is_multiline || is_multiline_node(node)) {
+    any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
+                       is_multiline_node(item);
+    if (any_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
     chunk_write(", ");
     list_item_write(item, indent);
   }
-  if (any_left_is_multiline || is_multiline_node(node)) {
+  if (any_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
     char_write(' ');
@@ -2187,12 +2187,12 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
     char_write(' ');
   }
   chunk_write("then");
-  indent_write(indent + 4);
+  indent_write(floor_to_four(indent + 4));
   expression_write(then_branch, indent + 4);
   char_write('\n');
   indent_write(indent);
   chunk_write("else");
-  indent_write(indent + 4);
+  indent_write(floor_to_four(indent + 4));
   expression_write(else_branch, indent + 4);
 }
 
