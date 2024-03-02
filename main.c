@@ -2191,13 +2191,13 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   const int has_left = has_left_comment(condition);
   const int left_is_multiline = has_multiline_left_comment(condition);
   if (has_left && left_is_multiline) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   }
-  left_comments_write(0, condition, indent + 4);
+  left_comments_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition =
       is_multiline_node(condition) || left_is_multiline;
   if (is_multi_condition) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
   }
