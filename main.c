@@ -324,7 +324,8 @@ static uint32_t IF_THEN_ELSE_THEN[MAX_IF_THEN_ELSE];
 static uint32_t IF_THEN_ELSE_ELSE[MAX_IF_THEN_ELSE];
 int NUM_IF_THEN_ELSE = 0;
 
-static void append_if_then_else(int node, int condition, int then_branch, int else_branch) {
+static void append_if_then_else(int node, int condition, int then_branch,
+                                int else_branch) {
   if (NUM_IF_THEN_ELSE == MAX_IF_THEN_ELSE) {
     fprintf(stderr, "%s: too many if then else nodes, maximum is %d\n", PATH,
             MAX_IF_THEN_ELSE);
@@ -2151,7 +2152,7 @@ static void dotted_head_write(int dotted_head, int indent) {
   if (is_non_empty_record(dotted_head)) {
     non_empty_record_write(dotted_head, indent);
     return;
-  } 
+  }
   src_write(dotted_head);
 }
 
@@ -2170,11 +2171,22 @@ static int get_dotted(int dotted_head, int *dotted_tail) {
   return 0;
 }
 
-static void if_then_else_write(int condition, int then_branch,
-                               int else_branch, int indent) {
-  chunk_write("if ");
-  expression_write(condition, indent);
-  chunk_write(" then");
+static void if_then_else_write(int condition, int then_branch, int else_branch,
+                               int indent) {
+  chunk_write("if");
+  const int is_multi_condition = is_multiline_node(condition);
+  if (is_multi_condition) {
+    indent_write(indent + 4);
+  } else {
+    char_write(' ');
+  }
+  expression_write(condition, indent + 4);
+  if (is_multi_condition) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  chunk_write("then");
   indent_write(indent + 4);
   expression_write(then_branch, indent + 4);
   char_write('\n');
@@ -3651,7 +3663,8 @@ static int not_newline_parse() {
 }
 
 static int is_after_keyword_char(uint8_t c) {
-  return c == ' ' || c == '\n' || c == '(' || c == '[' || c == '{' || c == '}' || c == ']' || c == ')';
+  return c == ' ' || c == '\n' || c == '(' || c == '[' || c == '{' ||
+         c == '}' || c == ']' || c == ')';
 }
 
 static int after_keyword_char_parse() {
