@@ -2173,6 +2173,15 @@ static int get_dotted(int dotted_head, int *dotted_tail) {
   return 0;
 }
 
+static int is_if_then_else_node(int node) {
+  for (int i = 0; i < NUM_IF_THEN_ELSE; ++i) {
+    if (IF_THEN_ELSE[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void if_then_else_write(int condition, int then_branch, int else_branch,
                                int indent) {
   chunk_write("if");
@@ -2194,6 +2203,11 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   char_write('\n');
   indent_write(indent);
   chunk_write("else");
+  if (is_if_then_else_node(else_branch)) {
+    char_write(' ');
+    expression_write(else_branch, indent);
+    return;
+  }
   indent_write(floor_to_four(indent + 4));
   expression_write(else_branch, indent + 4);
 }
