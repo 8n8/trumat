@@ -3090,8 +3090,8 @@ static int after_callable_parse() {
     --I;
     return 0;
   }
-  if (char_parse('-') == 0) {
-    --I;
+  if (chunk_parse("--") == 0) {
+    I -= 2;
     return 0;
   }
   if (char_parse(' ') == 0) {
@@ -3616,6 +3616,21 @@ static int dot_function_parse(int *node) {
   return 0;
 }
 
+static int negative_lower_name_parse(int *node) {
+  const int start = I;
+  if (char_parse('-')) {
+    return -1;
+  }
+  int dont_care;
+  if (lower_name_parse(&dont_care)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start + 1, I - start);
+  return 0;
+}
+
 static int simple_expression_parse(int *node) {
   if (dotted_parse(node) == 0) {
     return 0;
@@ -3636,6 +3651,9 @@ static int simple_expression_parse(int *node) {
     return 0;
   }
   if (upper_name_parse(node) == 0) {
+    return 0;
+  }
+  if (negative_lower_name_parse(node) == 0) {
     return 0;
   }
   if (lower_name_parse(node) == 0) {
