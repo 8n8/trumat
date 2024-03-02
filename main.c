@@ -2173,12 +2173,11 @@ static int get_dotted(int dotted_head, int *dotted_tail) {
 static void if_then_else_write(int condition, int then_branch,
                                int else_branch, int indent) {
   chunk_write("if ");
-  char_write('A');
   expression_write(condition, indent);
-  char_write('B');
   chunk_write(" then");
   indent_write(indent + 4);
   expression_write(then_branch, indent + 4);
+  char_write('\n');
   indent_write(indent);
   chunk_write("else");
   indent_write(indent + 4);
