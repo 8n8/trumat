@@ -2151,6 +2151,9 @@ static int get_dot_function(int node, int *dot_function) {
 }
 
 static void dotted_head_write(int dotted_head, int indent) {
+  if (is_negative(dotted_head)) {
+    chunk_write("-");
+  }
   if (is_non_empty_record(dotted_head)) {
     non_empty_record_write(dotted_head, indent);
     return;
@@ -3390,8 +3393,13 @@ static int dottable_parse(int *node) {
 
 static int dotted_parse(int *node) {
   const int start = I;
+  const int is_negative = char_parse('-') == 0;
   if (dottable_parse(node)) {
+    I = start;
     return -1;
+  }
+  if (is_negative) {
+    append_is_negative(*node);
   }
   const int tail_start = I;
   if (dottable_name_part_parse()) {
