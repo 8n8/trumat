@@ -7,6 +7,7 @@
 static int dot_function_parse(int *node);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
 static int argument_in_unnecessary_parens_parse(int *node);
@@ -315,6 +316,26 @@ int NUM_DOT_FUNCTION = 0;
 static uint32_t DOTTED_HEAD[MAX_DOTTED];
 static uint32_t DOTTED_TAIL[MAX_DOTTED];
 int NUM_DOTTED = 0;
+
+#define MAX_IF_THEN_ELSE 10000
+static uint32_t IF_THEN_ELSE[MAX_IF_THEN_ELSE];
+static uint32_t IF_THEN_ELSE_CONDITION[MAX_IF_THEN_ELSE];
+static uint32_t IF_THEN_ELSE_THEN[MAX_IF_THEN_ELSE];
+static uint32_t IF_THEN_ELSE_ELSE[MAX_IF_THEN_ELSE];
+int NUM_IF_THEN_ELSE = 0;
+
+static void append_if_then_else(int node, int condition, int then_branch, int else_branch) {
+  if (NUM_IF_THEN_ELSE == MAX_IF_THEN_ELSE) {
+    fprintf(stderr, "%s: too many if then else nodes, maximum is %d\n", PATH,
+            MAX_IF_THEN_ELSE);
+    exit(-1);
+  }
+  IF_THEN_ELSE[NUM_IF_THEN_ELSE] = node;
+  IF_THEN_ELSE_CONDITION[NUM_IF_THEN_ELSE] = condition;
+  IF_THEN_ELSE_THEN[NUM_IF_THEN_ELSE] = then_branch;
+  IF_THEN_ELSE_ELSE[NUM_IF_THEN_ELSE] = else_branch;
+  ++NUM_IF_THEN_ELSE;
+}
 
 static void append_dotted(int head, int tail) {
   if (NUM_DOTTED == MAX_DOTTED) {
@@ -2149,10 +2170,45 @@ static int get_dotted(int dotted_head, int *dotted_tail) {
   return 0;
 }
 
+static void if_then_else_write(int condition, int then_branch,
+                               int else_branch, int indent) {
+  chunk_write("if ");
+  char_write('A');
+  expression_write(condition, indent);
+  char_write('B');
+  chunk_write(" then");
+  indent_write(indent + 4);
+  expression_write(then_branch, indent + 4);
+  indent_write(indent);
+  chunk_write("else");
+  indent_write(indent + 4);
+  expression_write(else_branch, indent + 4);
+}
+
+static int get_if_then_else(int node, int *condition, int *then_branch,
+                            int *else_branch) {
+  for (int i = 0; i < NUM_IF_THEN_ELSE; ++i) {
+    if (IF_THEN_ELSE[i] == (uint32_t)node) {
+      *condition = IF_THEN_ELSE_CONDITION[i];
+      *then_branch = IF_THEN_ELSE_THEN[i];
+      *else_branch = IF_THEN_ELSE_ELSE[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void not_infixed_write(int node, int indent) {
   int dotted_tail;
   if (get_dotted(node, &dotted_tail)) {
     dotted_write(node, dotted_tail, indent);
+    return;
+  }
+  int condition;
+  int then_branch;
+  int else_branch;
+  if (get_if_then_else(node, &condition, &then_branch, &else_branch)) {
+    if_then_else_write(condition, then_branch, else_branch, indent);
     return;
   }
   if (is_hex(node)) {
@@ -2298,6 +2354,7 @@ static void zero_ast() {
   NUM_RECORD_UPDATE_NAME = 0;
   NUM_DOT_FUNCTION = 0;
   NUM_DOTTED = 0;
+  NUM_IF_THEN_ELSE = 0;
 }
 
 static int get_new_node() {
@@ -2686,8 +2743,25 @@ static int subsequent_name_char_parse() {
   return -1;
 }
 
+static int any_keyword_parse() {
+  if (keyword_parse("if") == 0) {
+    return 0;
+  }
+  if (keyword_parse("then") == 0) {
+    return 0;
+  }
+  if (keyword_parse("else") == 0) {
+    return 0;
+  }
+  return -1;
+}
+
 static int lower_name_parse(int *node) {
   const int start = I;
+  if (any_keyword_parse() == 0) {
+    I = start;
+    return -1;
+  }
   if (first_lower_name_char_parse()) {
     return -1;
   }
@@ -3577,11 +3651,95 @@ static int not_newline_parse() {
   return 0;
 }
 
+static int is_after_keyword_char(uint8_t c) {
+  return c == ' ' || c == '\n' || c == '(' || c == '[' || c == '{' || c == '}' || c == ']' || c == ')';
+}
+
+static int after_keyword_char_parse() {
+  const int start = I;
+  uint8_t ch;
+  if (any_char_parse(&ch)) {
+    return -1;
+  }
+  if (!is_after_keyword_char(ch)) {
+    I = start;
+    return -1;
+  }
+  --I;
+  return 0;
+}
+
+static int keyword_parse(char *keyword) {
+  const int start = I;
+  if (chunk_parse(keyword)) {
+    return -1;
+  }
+  if (after_keyword_char_parse()) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int if_item_parse(int *node) {
+  if (function_call_parse(node) == 0) {
+    return 0;
+  }
+  if (simple_expression_parse(node) == 0) {
+    return 0;
+  }
+  return in_unnecessary_parens_parse(node);
+}
+
+static int if_then_else_helper_parse(int *node) {
+  if (keyword_parse("if")) {
+    return -1;
+  }
+  char_parse(' ');
+  int condition;
+  if (if_item_parse(&condition)) {
+    return -1;
+  }
+  char_parse(' ');
+  if (keyword_parse("then")) {
+    return -1;
+  }
+  whitespace_parse();
+  int then_branch;
+  if (if_item_parse(&then_branch)) {
+    return -1;
+  }
+  whitespace_parse();
+  if (keyword_parse("else")) {
+    return -1;
+  }
+  whitespace_parse();
+  int else_branch;
+  if (if_item_parse(&else_branch)) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_if_then_else(*node, condition, then_branch, else_branch);
+  return 0;
+}
+
+static int if_then_else_parse(int *node) {
+  const int start = I;
+  if (if_then_else_helper_parse(node)) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int not_infixed_parse(int *node) {
   if (function_call_parse(node) == 0) {
     return 0;
   }
   if (simple_expression_parse(node) == 0) {
+    return 0;
+  }
+  if (if_then_else_parse(node) == 0) {
     return 0;
   }
   return in_unnecessary_parens_parse(node);
