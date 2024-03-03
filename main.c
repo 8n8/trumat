@@ -3049,8 +3049,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  const int is_multiline = ROW[I] - start_row;
-  if (is_multiline) {
+  if (ROW[I] - start_row) {
     append_is_multiline(*node);
   }
   return 0;
