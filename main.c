@@ -1520,15 +1520,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   } else {
     char_write(' ');
   }
-  left_comments_write(0, right, floor_to_four(indent + 4));
-  const int multi_left = has_multiline_left_comment(right);
-  const int has_left = has_left_comment(right);
-  if (multi_left) {
-    indent_write(floor_to_four(indent + 4));
-  }
-  if (has_left && !multi_left) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, right, floor_to_four(indent + 4));
   chunk_write(infix);
   char_write(' ');
   const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
