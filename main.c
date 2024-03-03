@@ -2041,15 +2041,7 @@ static int get_record_update_name(int node, int *name) {
 
 static void record_update_before_pipe_write(int node, int name, int indent) {
   chunk_write("{ ");
-  const int has_left = has_left_comment(name);
-  const int left_is_multiline = has_multiline_left_comment(name);
-  left_comments_write(0, name, indent + 2);
-  if (has_left && left_is_multiline) {
-    indent_write(indent + 2);
-  }
-  if (has_left && !left_is_multiline) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, name, indent + 2);
   src_write(name);
   const int has_right = has_right_comment(name);
   const int right_is_multiline = has_multiline_right_comment(name);
