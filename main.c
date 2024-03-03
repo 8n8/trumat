@@ -11,6 +11,7 @@ static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
 static void left_comments_write(int is_multi_context, int node,
                                       int indent);
+static int if_then_else_parse(int *node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
@@ -3405,6 +3406,9 @@ static int in_unnecessary_parens_contents_parse(int *node) {
     return 0;
   }
   if (in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
+  if (if_then_else_parse(node) == 0) {
     return 0;
   }
   return simple_expression_parse(node);
