@@ -1997,13 +1997,7 @@ static void in_parens_write(int node, int indent) {
   chunk_write("(");
   const int has_left = has_left_comment(node);
   const int left_is_multiline = has_multiline_left_comment(node);
-  left_comments_write(0, node, indent + 1);
-  if (has_left && left_is_multiline) {
-    indent_write(indent + 1);
-  }
-  if (has_left && !left_is_multiline) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, node, indent + 1);
   expression_write(node, indent + 1);
   const int has_right = has_right_comment(node);
   const int right_is_multiline = has_multiline_right_comment(node);
