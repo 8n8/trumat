@@ -9,6 +9,8 @@ static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
+static void left_comments_extra_write(int is_multi_context, int node,
+                                      int indent);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
@@ -1204,14 +1206,7 @@ static int has_same_line_comment(int node) {
 }
 
 static void list_item_write(int item, int indent) {
-  const int left_is_multiline = has_multiline_left_comment(item);
-  left_comments_write(0, item, indent + 2);
-  if (left_is_multiline) {
-    indent_write(indent + 2);
-  }
-  if (has_left_comment(item) && !left_is_multiline) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, item, indent + 2);
   expression_write(item, indent + 2);
   if (has_same_line_comment(item)) {
     char_write(' ');
@@ -4153,6 +4148,34 @@ static int is_single_line_right_comments(int node) {
     }
   }
   return 1;
+}
+
+static void left_comments_extra_write(
+    // For example, if you have two single line block comments before the
+    // body of a function they go on separate lines. But if they are before
+    // a function argument they go on the same line.
+    int is_multi_context, int node, int indent) {
+  const int is_single = is_single_line_left_comments(node);
+  int left_comment;
+  int start = 0;
+  if (get_left_comment(node, &left_comment, &start)) {
+    return;
+  }
+  comment_write(left_comment, indent);
+  while (get_left_comment(node, &left_comment, &start) == 0) {
+    if (is_single && !is_multi_context) {
+      char_write(' ');
+    } else {
+      indent_write(indent);
+    }
+    comment_write(left_comment, indent);
+  }
+  const int left_is_multiline = has_multiline_left_comment(node);
+  if (left_is_multiline) {
+    indent_write(indent);
+    return;
+  }
+  char_write(' ');
 }
 
 static void left_comments_write(
