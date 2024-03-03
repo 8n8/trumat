@@ -2134,12 +2134,13 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
-  left_comments_write(0, condition, floor_to_four(indent + 4));
+  left_comments_extra_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition =
       is_multiline_node(condition) || left_is_multiline;
-  if (is_multi_condition) {
+  if (is_multi_condition && !has_left) {
     indent_write(floor_to_four(indent + 4));
-  } else {
+  }
+  if (!is_multi_condition && !has_left) {
     char_write(' ');
   }
   expression_write(condition, indent + 4);
