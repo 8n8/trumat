@@ -1215,14 +1215,7 @@ static void list_item_write(int item, int indent) {
 }
 
 static void tuple_item_write(int item, int indent) {
-  const int left_is_multiline = has_multiline_left_comment(item);
-  left_comments_write(0, item, indent + 2);
-  if (left_is_multiline) {
-    indent_write(indent + 2);
-  }
-  if (has_left_comment(item) && !left_is_multiline) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, item, indent + 2);
   expression_write(item, indent + 2);
   const int has_right = has_right_comment(item);
   const int has_multiline_right = has_multiline_right_comment(item);
