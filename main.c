@@ -7,6 +7,7 @@
 static int dot_function_parse(int *node);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int is_if_then_else_node(int node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
@@ -806,13 +807,17 @@ static int is_any_multiline_title_comment(int node) {
   return 0;
 }
 
-static int multiline_src_node(int node) {
+static int is_multiline_src_node(int node) {
   for (int i = 0; i < NUM_SRC_MULTILINE; ++i) {
     if (SRC_MULTILINE[i] == (uint32_t)node) {
       return 1;
     }
   }
   return 0;
+}
+
+static int is_multiline_node(int node) {
+  return is_multiline_src_node(node) || is_if_then_else_node(node);
 }
 
 static void append_same_line_comment(int node, int comment) {
@@ -1246,14 +1251,14 @@ static void non_empty_tuple_write(int node, int indent) {
   while (get_tuple_item(node, &item, &start) == 0) {
     left_is_multiline = has_multiline_left_comment(item);
     any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
-                       multiline_src_node(item);
-    if (any_is_multiline || multiline_src_node(node)) {
+                       is_multiline_node(item);
+    if (any_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
     chunk_write(", ");
     tuple_item_write(item, indent);
   }
-  if (any_is_multiline || multiline_src_node(node)) {
+  if (any_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
     char_write(' ');
@@ -1269,17 +1274,17 @@ static void non_empty_list_write(int node, int indent) {
     list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
-  int any_is_multiline = left_is_multiline || multiline_src_node(item);
+  int any_is_multiline = left_is_multiline || is_multiline_node(item);
   while (get_list_item(node, &item, &start) == 0) {
     any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
-                       multiline_src_node(item);
-    if (any_is_multiline || multiline_src_node(node)) {
+                       is_multiline_node(item);
+    if (any_is_multiline || is_multiline_node(node)) {
       indent_write(indent);
     }
     chunk_write(", ");
     list_item_write(item, indent);
   }
-  if (any_is_multiline || multiline_src_node(node)) {
+  if (any_is_multiline || is_multiline_node(node)) {
     indent_write(indent);
   } else {
     char_write(' ');
@@ -1320,8 +1325,8 @@ static void record_item_right_write(int node, int name, int value, int indent) {
       has_multiline_right_comment(name);
   const int has_left_comment_value = has_left_comment(value);
   const int left_is_multiline_value = has_multiline_left_comment(value);
-  if (multiline_src_node(node) || left_is_multiline_value ||
-      multiline_src_node(value) || has_multiline_comment_after_name) {
+  if (is_multiline_node(node) || left_is_multiline_value ||
+      is_multiline_node(value) || has_multiline_comment_after_name) {
     indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
@@ -1377,14 +1382,14 @@ static void record_items_write(int node, int indent, int *any_is_multiline,
   if (get_record_item(node, &item, &field_name, &value, &start) == 0) {
     comment_is_multiline =
         multiline_comment_in_record_item(item, field_name, value);
-    *any_is_multiline = comment_is_multiline || multiline_src_node(value);
+    *any_is_multiline = comment_is_multiline || is_multiline_node(value);
     record_item_write(item, field_name, value, indent);
   }
   while (get_record_item(node, &item, &field_name, &value, &start) == 0) {
     comment_is_multiline =
         multiline_comment_in_record_item(item, field_name, value);
     *any_is_multiline =
-        *any_is_multiline || comment_is_multiline || multiline_src_node(value);
+        *any_is_multiline || comment_is_multiline || is_multiline_node(value);
     if (*any_is_multiline || is_multi) {
       indent_write(indent);
     }
@@ -1396,7 +1401,7 @@ static void record_items_write(int node, int indent, int *any_is_multiline,
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
   int any_is_multiline;
-  const int is_multi = multiline_src_node(node);
+  const int is_multi = is_multiline_node(node);
   record_items_write(node, indent, &any_is_multiline, is_multi);
   if (any_is_multiline || is_multi) {
     indent_write(indent);
@@ -1489,7 +1494,7 @@ static void function_call_write(int node, int indent) {
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
-  const int is_multi = multiline_src_node(node);
+  const int is_multi = is_multiline_node(node);
   argument_write(is_multi, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
     argument_write(is_multi, argument, indent);
@@ -1913,11 +1918,11 @@ static void left_pizzas_write(int is_multi, int node, int indent) {
   int left_pizza;
   int pizza_node = node;
   int pizza_indent = indent;
-  int left_is_multi = multiline_src_node(pizza_node);
+  int left_is_multi = is_multiline_node(pizza_node);
   while (get_left_pizza(pizza_node, &left_pizza) == 0) {
     left_pizza_write(is_multi, left_is_multi, left_pizza, pizza_indent);
     pizza_node = left_pizza;
-    left_is_multi = multiline_src_node(pizza_node);
+    left_is_multi = is_multiline_node(pizza_node);
     pizza_indent += 4;
   }
 }
@@ -2115,10 +2120,10 @@ static void record_update_before_pipe_write(int node, int name, int indent) {
   if (has_right && right_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
-  if (!has_right && multiline_src_node(node)) {
+  if (!has_right && is_multiline_node(node)) {
     indent_write(floor_to_four(indent + 4));
   }
-  if (!has_right && !multiline_src_node(node)) {
+  if (!has_right && !is_multiline_node(node)) {
     char_write(' ');
   }
 }
@@ -2127,7 +2132,7 @@ static void record_update_write(int node, int name, int indent) {
   record_update_before_pipe_write(node, name, indent);
   chunk_write("| ");
   int any_comment_is_multiline;
-  const int is_multi = multiline_src_node(node);
+  const int is_multi = is_multiline_node(node);
   record_items_write(node, floor_to_four(indent + 4), &any_comment_is_multiline,
                      is_multi);
   if (any_comment_is_multiline || is_multi) {
@@ -2193,7 +2198,7 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   }
   left_comments_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition =
-      multiline_src_node(condition) || left_is_multiline;
+      is_multiline_node(condition) || left_is_multiline;
   if (is_multi_condition) {
     indent_write(floor_to_four(indent + 4));
   } else {
@@ -3786,7 +3791,6 @@ static int if_then_else_parse(int *node) {
     I = start;
     return -1;
   }
-  append_src_multiline(*node);
   return 0;
 }
 
