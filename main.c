@@ -37,7 +37,6 @@ static int get_same_line_comment(int node, int *same_line_comment);
 static int right_comments_in_expression_parse();
 static void attach_right_comment(int node, int right_comment);
 static int left_comments_parse();
-static void left_comments_write(int is_multi_context, int node, int indent);
 static int not_infixed_parse(int *node);
 static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
@@ -4114,33 +4113,11 @@ static void left_comments_extra_write(
     comment_write(left_comment, indent);
   }
   const int left_is_multiline = has_multiline_left_comment(node);
-  if (left_is_multiline) {
+  if (left_is_multiline || is_multi_context) {
     indent_write(indent);
     return;
   }
   char_write(' ');
-}
-
-static void left_comments_write(
-    // For example, if you have two single line block comments before the
-    // body of a function they go on separate lines. But if they are before
-    // a function argument they go on the same line.
-    int is_multi_context, int node, int indent) {
-  const int is_single = is_single_line_left_comments(node);
-  int left_comment;
-  int start = 0;
-  if (get_left_comment(node, &left_comment, &start)) {
-    return;
-  }
-  comment_write(left_comment, indent);
-  while (get_left_comment(node, &left_comment, &start) == 0) {
-    if (is_single && !is_multi_context) {
-      char_write(' ');
-    } else {
-      indent_write(indent);
-    }
-    comment_write(left_comment, indent);
-  }
 }
 
 static int get_right_comment(int node, int *right_comment, int *i) {
@@ -4225,10 +4202,7 @@ static void right_comments_with_title_write(int node, int indent) {
 
 static void module_write(int node) {
   chunk_write("module X exposing (x)\n\n\nx =\n    ");
-  left_comments_write(1, node, 4);
-  if (has_left_comment(node)) {
-    chunk_write("\n    ");
-  }
+  left_comments_extra_write(1, node, 4);
   expression_write(node, 4);
   char_write('\n');
 }
