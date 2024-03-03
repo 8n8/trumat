@@ -9,8 +9,8 @@ static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
-static void left_comments_write(int is_multi_context, int node,
-                                      int indent);
+static void left_comments_write(int is_multi_context, int node, int indent);
+static void comment_write(int node, int indent);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
@@ -1280,10 +1280,32 @@ static void non_empty_list_write(int node, int indent) {
   char_write(']');
 }
 
+static void right_comments_extra_write(int node, int indent) {
+  const int is_single = is_single_line_right_comments(node);
+  int left_comment;
+  int start = 0;
+  if (get_right_comment(node, &left_comment, &start) == 0) {
+    comment_write(left_comment, indent);
+  }
+  while (get_right_comment(node, &left_comment, &start) == 0) {
+    if (is_single) {
+      char_write(' ');
+    } else {
+      indent_write(indent);
+    }
+    comment_write(left_comment, indent);
+  }
+  const int has_multiline_comment_after = has_multiline_right_comment(node);
+  const int has_comment_after = has_right_comment(node);
+  if (has_comment_after && has_multiline_comment_after) {
+    indent_write(floor_to_four(indent + 4));
+  } else {
+    char_write(' ');
+  }
+}
 
 static void right_comments_after_record_name_write(int node, int indent) {
-  const int has_multiline_comment_after =
-      has_multiline_right_comment(node);
+  const int has_multiline_comment_after = has_multiline_right_comment(node);
   const int has_comment_after = has_right_comment(node);
   if (has_comment_after && has_multiline_comment_after) {
     indent_write(indent + 2);
@@ -1291,12 +1313,7 @@ static void right_comments_after_record_name_write(int node, int indent) {
   if (has_comment_after && !has_multiline_comment_after) {
     char_write(' ');
   }
-  right_comments_in_expression_write(node, indent + 2);
-  if (has_comment_after && has_multiline_comment_after) {
-    indent_write(floor_to_four(indent + 6));
-  } else {
-    char_write(' ');
-  }
+  right_comments_extra_write(node, indent + 2);
 }
 
 static void record_item_left_write(int node, int name, int indent) {
