@@ -1285,15 +1285,7 @@ static void record_item_left_write(int node, int name, int indent) {
   const int has_multiline_comment_after_name =
       has_multiline_right_comment(name);
   const int has_comment_after_name = has_right_comment(name);
-  const int has_left = has_left_comment(node);
-  const int left_is_multiline = has_multiline_left_comment(node);
-  left_comments_write(0, node, indent + 2);
-  if (has_left && left_is_multiline) {
-    indent_write(indent + 2);
-  }
-  if (has_left && !left_is_multiline) {
-    char_write(' ');
-  }
+  left_comments_extra_write(0, node, indent + 2);
   src_write(name);
   if (has_comment_after_name && has_multiline_comment_after_name) {
     indent_write(indent + 2);
