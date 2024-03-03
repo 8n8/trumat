@@ -4163,9 +4163,10 @@ static void left_comments_write(
   const int is_single = is_single_line_left_comments(node);
   int left_comment;
   int start = 0;
-  if (get_left_comment(node, &left_comment, &start) == 0) {
-    comment_write(left_comment, indent);
+  if (get_left_comment(node, &left_comment, &start)) {
+    return;
   }
+  comment_write(left_comment, indent);
   while (get_left_comment(node, &left_comment, &start) == 0) {
     if (is_single && !is_multi_context) {
       char_write(' ');
