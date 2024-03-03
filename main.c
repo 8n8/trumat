@@ -2136,6 +2136,9 @@ static void between_if_and_then_write(int condition, int indent) {
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
+  }
   left_comments_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition =
       is_multiline_node(condition) || left_is_multiline;
