@@ -2130,9 +2130,7 @@ static int is_if_then_else_node(int node) {
   return 0;
 }
 
-static void if_then_else_write(int condition, int then_branch, int else_branch,
-                               int indent) {
-  chunk_write("if");
+static void between_if_and_then_write(int condition, int indent) {
   const int has_left = has_left_comment(condition);
   const int left_is_multiline = has_multiline_left_comment(condition);
   if (has_left && left_is_multiline) {
@@ -2153,6 +2151,12 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   } else {
     char_write(' ');
   }
+}
+
+static void if_then_else_write(int condition, int then_branch, int else_branch,
+                               int indent) {
+  chunk_write("if");
+  between_if_and_then_write(condition, indent);
   chunk_write("then");
   indent_write(floor_to_four(indent + 4));
   expression_write(then_branch, indent + 4);
