@@ -1318,12 +1318,11 @@ static void record_item_left_write(int node, int name, int indent) {
 static void record_item_right_write(int node, int name, int value, int indent) {
   const int has_multiline_comment_after_name =
       has_multiline_right_comment(name);
-  const int has_comment_after_name = has_right_comment(name);
   const int has_left_comment_value = has_left_comment(value);
   const int left_is_multiline_value = has_multiline_left_comment(value);
   if (is_multiline_node(node) || left_is_multiline_value ||
       is_multiline_node(value) ||
-      (has_comment_after_name && has_multiline_comment_after_name)) {
+      has_multiline_comment_after_name) {
     indent_write(floor_to_four(indent + 6));
   } else {
     char_write(' ');
