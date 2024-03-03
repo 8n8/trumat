@@ -1442,14 +1442,7 @@ static void argument_write(int is_multi, int argument, int indent) {
     char_write(' ');
   }
   const int comment_indent = floor_to_four(indent + 4);
-  left_comments_write(0, argument, comment_indent);
-  const int has_left = has_left_comment(argument);
-  if (has_left && !left_is_multiline) {
-    char_write(' ');
-  }
-  if (has_left && left_is_multiline) {
-    indent_write(floor_to_four(indent + 4));
-  }
+  left_comments_extra_write(0, argument, comment_indent);
   expression_write(argument, indent + 4);
 }
 
