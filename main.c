@@ -7,6 +7,7 @@
 static int dot_function_parse(int *node);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
@@ -54,7 +55,7 @@ static uint8_t TRIPLE_STRING_MASK[MAX_SRC];
 static uint16_t ROW[MAX_SRC];
 static uint16_t COLUMN[MAX_SRC];
 static int NUM_SRC = 0;
-static int I = -1;
+static int I = 0;
 
 static uint8_t OUT[MAX_SRC];
 static int NUM_OUT = 0;
@@ -2338,7 +2339,7 @@ static int string_equal(char *a, char *b) {
 }
 
 static void zero_ast() {
-  I = -1;
+  I = 0;
   NUM_HAS_SRC = 0;
   NUM_NODES = 0;
   NUM_HEX = 0;
@@ -2409,11 +2410,11 @@ static int get_new_node() {
 static int is_digit(uint8_t c) { return c >= '0' && c <= '9'; }
 
 static int any_char_parse(uint8_t *c) {
-  if (I == NUM_SRC - 1) {
+  if (I == NUM_SRC) {
     return -1;
   }
-  ++I;
   *c = SRC[I];
+  ++I;
   return 0;
 }
 
@@ -2430,14 +2431,13 @@ static int digit_parse() {
 }
 
 static int char_parse(uint8_t c) {
-  if (I == NUM_SRC - 1) {
+  if (I == NUM_SRC) {
+    return -1;
+  }
+  if (SRC[I] != c) {
     return -1;
   }
   ++I;
-  if (SRC[I] != c) {
-    --I;
-    return -1;
-  }
   return 0;
 }
 
@@ -2451,7 +2451,7 @@ static int simple_int_parse(int *node) {
   while (digit_parse() == 0) {
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -2471,14 +2471,13 @@ static int simple_float_parse(int *node) {
   while (digit_parse() == 0) {
   }
   int end = I;
-  while (SRC[end] == '0') {
-    --end;
+  while (backwards_char_parse('0', &end) == 0) {
   }
-  if (SRC[end] == '.') {
+  if (SRC[end - 1] == '.') {
     ++end;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, end - start);
+  append_has_src(*node, start, end - start);
   return 0;
 }
 
@@ -2502,7 +2501,7 @@ static int exponent_float_parse(int *node) {
   const int start_exp = I;
   while (digit_parse() == 0) {
   }
-  append_has_src(exp_node, start_exp + 1, I - start_exp);
+  append_has_src(exp_node, start_exp, I - start_exp);
   return 0;
 }
 
@@ -2554,7 +2553,7 @@ static int hex_int_parse(int *node) {
   const int start = I;
   while (hex_char_parse() == 0) {
   }
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   append_is_hex(*node);
   return 0;
 }
@@ -2607,7 +2606,7 @@ static int normal_string_not_hex_item_parse(int *node) {
   while (normal_string_not_hex_item_item_parse() == 0) {
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -2650,7 +2649,7 @@ static int triple_string_not_hex_item_parse(int *node) {
   while (triple_string_not_hex_item_item_parse() == 0) {
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -2668,7 +2667,7 @@ static int string_hex_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, hex_start + 1, hex_end - hex_start);
+  append_has_src(*node, hex_start, hex_end - hex_start);
   append_is_hex(*node);
   return 0;
 }
@@ -2810,7 +2809,7 @@ static int lower_name_parse(int *node) {
   }
 
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -2824,7 +2823,7 @@ static int upper_name_parse(int *node) {
   }
 
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -2900,7 +2899,7 @@ static int tuple_item_parse(int *node) {
 static int record_item_name_parse(int *name, int *start_row) {
   const int start = I;
   whitespace_parse();
-  *start_row = ROW[I];
+  *start_row = ROW[I-1];
   if (lower_name_parse(name)) {
     I = start;
     return -1;
@@ -2919,7 +2918,7 @@ static int record_item_value_parse(int *value, int *end_row) {
     I = start;
     return -1;
   }
-  *end_row = ROW[I];
+  *end_row = ROW[I-1];
   const int right_comment = right_comments_with_title_parse();
   attach_left_comment(*value, left_comment_on_value);
   attach_right_comment(*value, right_comment);
@@ -2978,7 +2977,7 @@ static int record_items_parse(int *node, int start, int start_row) {
     I = start;
     return -1;
   }
-  if (ROW[I] > start_row) {
+  if (ROW[I-1] > start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -2986,7 +2985,7 @@ static int record_items_parse(int *node, int start, int start_row) {
 
 static int record_update_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (char_parse('{')) {
     return -1;
   }
@@ -3018,7 +3017,7 @@ static int record_update_parse(int *node) {
 
 static int non_empty_record_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (char_parse('{')) {
     return -1;
   }
@@ -3027,7 +3026,7 @@ static int non_empty_record_parse(int *node) {
 
 static int non_empty_list_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (char_parse('[')) {
     return -1;
   }
@@ -3052,7 +3051,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  if (ROW[I] - start_row) {
+  if (ROW[I-1] - start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -3117,7 +3116,7 @@ static int after_callable_parse() {
 
 static int function_call_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (callable_parse(node)) {
     return -1;
   }
@@ -3132,7 +3131,7 @@ static int function_call_parse(int *node) {
     return -1;
   }
   append_argument(*node, argument);
-  if (ROW[I] == start_row) {
+  if (ROW[I-1] == start_row) {
     append_is_arg1_line1(argument);
   }
   while (1) {
@@ -3141,7 +3140,7 @@ static int function_call_parse(int *node) {
     }
     append_argument(*node, argument);
   }
-  if (ROW[I] > start_row) {
+  if (ROW[I-1] > start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -3337,7 +3336,7 @@ static int infix_parse(int *left) {
 
 static int infixed_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
@@ -3349,7 +3348,7 @@ static int infixed_parse(int *node) {
   }
   while (infix_parse(&left) == 0) {
   }
-  if (ROW[I] > start_row) {
+  if (ROW[I-1] > start_row) {
     append_multiline_infix(*node);
   }
   return 0;
@@ -3418,7 +3417,7 @@ static int dotted_parse(int *node) {
   while (dottable_name_part_parse() == 0) {
   }
   int tail = get_new_node();
-  append_has_src(tail, tail_start + 1, I - tail_start);
+  append_has_src(tail, tail_start, I - tail_start);
   append_dotted(*node, tail);
   return 0;
 }
@@ -3436,7 +3435,7 @@ static int qualified_name_parse(int *node) {
   while (qualified_name_part_parse() == 0) {
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -3530,7 +3529,7 @@ static int with_comments_in_parentheses_parse(int *node) {
 
 static int non_empty_tuple_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
+  const int start_row = ROW[I-1];
   if (char_parse('(')) {
     return -1;
   }
@@ -3564,7 +3563,7 @@ static int non_empty_tuple_parse(int *node) {
     I = start;
     return -1;
   }
-  if (ROW[I] - start_row) {
+  if (ROW[I-1] - start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -3643,7 +3642,7 @@ static int negative_lower_name_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, I - start);
+  append_has_src(*node, start, I - start);
   return 0;
 }
 
@@ -3814,13 +3813,12 @@ static int line_comment_parse(int *node) {
   }
   while (not_newline_parse() == 0) {
   }
-  while (SRC[I] == ' ') {
-    --I;
+  while (backwards_char_parse(' ', &I) == 0) {
   }
   const int end = I;
   spaces_parse();
   *node = get_new_node();
-  append_has_src(*node, start + 1, end - start);
+  append_has_src(*node, start, end - start);
   return 0;
 }
 
@@ -3860,16 +3858,23 @@ static int block_comment_item_parse(int *nesting) {
   return any_char_parse(&c);
 }
 
+static int backwards_char_parse(uint8_t c, int *i) {
+  if (*i > 2 && SRC[*i - 1] == c) {
+    --*i;
+    return 0;
+  }
+  return -1;
+}
+
 static void block_comment_line_parse(uint32_t *start, uint16_t *size,
                                      int *nesting) {
   spaces_parse();
-  *start = I + 1;
+  *start = I;
   while (block_comment_item_parse(nesting) == 0) {
   }
-  while (SRC[I] == ' ') {
-    --I;
+  while (backwards_char_parse(' ', &I) == 0) {
   }
-  *size = I - *start + 1;
+  *size = I - *start;
   spaces_parse();
   char_parse('\n');
 }
@@ -3923,8 +3928,7 @@ static int double_hyphen_block_comment_parse(int *node) {
   while (chunk_parse("-}") && any_char_parse(&dont_care) == 0) {
   }
   I -= 2;
-  while (SRC[I] == ' ') {
-    --I;
+  while (backwards_char_parse(' ', &I) == 0) {
   }
   const int end = I;
   spaces_parse();
@@ -3933,7 +3937,7 @@ static int double_hyphen_block_comment_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_has_src(*node, start + 1, end - start);
+  append_has_src(*node, start, end - start);
   append_is_double_hyphen_block_comment(*node);
   return 0;
 }
