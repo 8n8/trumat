@@ -2899,7 +2899,7 @@ static int tuple_item_parse(int *node) {
 static int record_item_name_parse(int *name, int *start_row) {
   const int start = I;
   whitespace_parse();
-  *start_row = ROW[I-1];
+  *start_row = ROW[I];
   if (lower_name_parse(name)) {
     I = start;
     return -1;
@@ -2918,7 +2918,7 @@ static int record_item_value_parse(int *value, int *end_row) {
     I = start;
     return -1;
   }
-  *end_row = ROW[I-1];
+  *end_row = ROW[I];
   const int right_comment = right_comments_with_title_parse();
   attach_left_comment(*value, left_comment_on_value);
   attach_right_comment(*value, right_comment);
@@ -2977,7 +2977,7 @@ static int record_items_parse(int *node, int start, int start_row) {
     I = start;
     return -1;
   }
-  if (ROW[I-1] > start_row) {
+  if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -2985,7 +2985,7 @@ static int record_items_parse(int *node, int start, int start_row) {
 
 static int record_update_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (char_parse('{')) {
     return -1;
   }
@@ -3017,7 +3017,7 @@ static int record_update_parse(int *node) {
 
 static int non_empty_record_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (char_parse('{')) {
     return -1;
   }
@@ -3026,7 +3026,7 @@ static int non_empty_record_parse(int *node) {
 
 static int non_empty_list_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (char_parse('[')) {
     return -1;
   }
@@ -3051,7 +3051,7 @@ static int non_empty_list_parse(int *node) {
     I = start;
     return -1;
   }
-  if (ROW[I-1] - start_row) {
+  if (ROW[I] - start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -3066,9 +3066,11 @@ static int list_parse(int *node) {
 }
 
 static int argument_and_comments_parse(int *argument) {
+  const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   if (argument_parse(argument)) {
+    I = start;
     return -1;
   }
   attach_left_comment(*argument, left_comment);
@@ -3116,7 +3118,7 @@ static int after_callable_parse() {
 
 static int function_call_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (callable_parse(node)) {
     return -1;
   }
@@ -3131,7 +3133,7 @@ static int function_call_parse(int *node) {
     return -1;
   }
   append_argument(*node, argument);
-  if (ROW[I-1] == start_row) {
+  if (ROW[I] == start_row) {
     append_is_arg1_line1(argument);
   }
   while (1) {
@@ -3140,7 +3142,7 @@ static int function_call_parse(int *node) {
     }
     append_argument(*node, argument);
   }
-  if (ROW[I-1] > start_row) {
+  if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
   return 0;
@@ -3336,7 +3338,7 @@ static int infix_parse(int *left) {
 
 static int infixed_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (not_infixed_parse(node)) {
     I = start;
     return -1;
@@ -3348,7 +3350,7 @@ static int infixed_parse(int *node) {
   }
   while (infix_parse(&left) == 0) {
   }
-  if (ROW[I-1] > start_row) {
+  if (ROW[I] > start_row) {
     append_multiline_infix(*node);
   }
   return 0;
@@ -3529,7 +3531,7 @@ static int with_comments_in_parentheses_parse(int *node) {
 
 static int non_empty_tuple_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I-1];
+  const int start_row = ROW[I];
   if (char_parse('(')) {
     return -1;
   }
@@ -3563,7 +3565,7 @@ static int non_empty_tuple_parse(int *node) {
     I = start;
     return -1;
   }
-  if (ROW[I-1] - start_row) {
+  if (ROW[I] - start_row) {
     append_src_multiline(*node);
   }
   return 0;
