@@ -5,12 +5,12 @@
 #include <string.h>
 
 static int dot_function_parse(int *node);
+static int get_list_item(int node, int *item, int *start);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
-static void left_comments_write(int is_multi_context, int node,
-                                      int indent);
+static void left_comments_write(int is_multi_context, int node, int indent);
 static int if_then_else_parse(int *node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
@@ -820,7 +820,18 @@ static int is_multiline_src_node(int node) {
 }
 
 static int is_multiline_node(int node) {
-  return is_multiline_src_node(node) || is_if_then_else_node(node);
+  if (is_multiline_src_node(node)) {
+    return 1;
+  }
+  if (is_if_then_else_node(node)) {
+    return 1;
+  }
+  int item;
+  int start = 0;
+  if (get_list_item(node, &item, &start) == 0) {
+    return is_multiline_node(item);
+  }
+  return 0;
 }
 
 static void append_same_line_comment(int node, int comment) {
@@ -1281,10 +1292,8 @@ static void non_empty_list_write(int node, int indent) {
   char_write(']');
 }
 
-
 static void right_comments_after_record_name_write(int node, int indent) {
-  const int has_multiline_comment_after =
-      has_multiline_right_comment(node);
+  const int has_multiline_comment_after = has_multiline_right_comment(node);
   const int has_comment_after = has_right_comment(node);
   if (has_comment_after && has_multiline_comment_after) {
     indent_write(indent + 2);
