@@ -2070,15 +2070,9 @@ static void record_update_before_pipe_write(int node, int name, int indent) {
   chunk_write("{ ");
   left_comments_write(0, name, indent + 2);
   src_write(name);
+  right_comments_with_spaces_write(name, indent + 2);
   const int has_right = has_right_comment(name);
   const int right_is_multiline = has_multiline_right_comment(name);
-  if (has_right && !right_is_multiline) {
-    char_write(' ');
-  }
-  if (has_right && right_is_multiline) {
-    indent_write(indent + 2);
-  }
-  right_comments_in_expression_write(name, indent + 2);
   if (has_right && !right_is_multiline) {
     char_write(' ');
   }
