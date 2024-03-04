@@ -5,8 +5,10 @@
 #include <string.h>
 
 static int dot_function_parse(int *node);
+static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
 static int expression_parse(int *node);
+static int get_in_parens(int node, int *expression);
 static int qualified_name_parse(int *node);
 static int get_tuple_item(int node, int *item, int *start);
 static int backwards_char_parse(uint8_t c, int *i);
@@ -840,6 +842,17 @@ static int is_multiline_node(int node) {
       return 1;
     }
   }
+  start = 0;
+  while (get_argument(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  if (get_in_parens(node, &item)) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
   return 0;
 }
 
@@ -1459,7 +1472,7 @@ static int is_arg1_line1(int node) {
 
 static void argument_write(int is_multi, int argument, int indent) {
   const int left_is_multiline = has_multiline_left_comment(argument);
-  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline) {
+  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline || is_multiline_node(argument)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
@@ -2024,7 +2037,10 @@ static void in_parens_write(int node, int indent) {
   expression_write(node, indent + 1);
   const int has_right = has_right_comment(node);
   const int right_is_multiline = has_multiline_right_comment(node);
-  if (has_left && left_is_multiline && !has_right) {
+  if (left_is_multiline && !has_right) {
+    indent_write(indent);
+  }
+  if (!left_is_multiline && !has_right && is_multiline_node(node)) {
     indent_write(indent);
   }
   const int is_newline_right =
@@ -3123,7 +3139,7 @@ static int in_necessary_parens_parse(int *node) {
   }
   whitespace_parse();
   int expression;
-  if (function_call_parse(&expression) && infixed_parse(&expression)) {
+  if (function_call_parse(&expression) && infixed_parse(&expression) && if_then_else_parse(&expression)) {
     I = start;
     return -1;
   }
