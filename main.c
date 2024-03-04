@@ -2189,7 +2189,7 @@ static void between_if_and_then_write(int condition, int indent) {
 
 static void between_then_and_else_write(int then_branch, int indent) {
   indent_write(floor_to_four(indent + 4));
-  left_comments_write(0, then_branch, floor_to_four(indent + 4));
+  left_comments_write(1, then_branch, floor_to_four(indent + 4));
   expression_write(then_branch, indent + 4);
   char_write('\n');
   indent_write(indent);
