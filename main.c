@@ -2187,15 +2187,20 @@ static void between_if_and_then_write(int condition, int indent) {
   }
 }
 
+static void between_then_and_else_write(int then_branch, int indent) {
+  indent_write(floor_to_four(indent + 4));
+  left_comments_write(0, then_branch, floor_to_four(indent + 4));
+  expression_write(then_branch, indent + 4);
+  char_write('\n');
+  indent_write(indent);
+}
+
 static void if_then_else_write(int condition, int then_branch, int else_branch,
                                int indent) {
   chunk_write("if");
   between_if_and_then_write(condition, indent);
   chunk_write("then");
-  indent_write(floor_to_four(indent + 4));
-  expression_write(then_branch, indent + 4);
-  char_write('\n');
-  indent_write(indent);
+  between_then_and_else_write(then_branch, indent);
   chunk_write("else");
   if (is_if_then_else_node(else_branch)) {
     char_write(' ');
@@ -3756,10 +3761,9 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int then_branch;
-  if (expression_parse(&then_branch)) {
+  if (condition_parse(&then_branch)) {
     return -1;
   }
-  whitespace_parse();
   if (keyword_parse("else")) {
     return -1;
   }
