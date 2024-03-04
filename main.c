@@ -10,6 +10,7 @@ static int get_list_item(int node, int *item, int *start);
 static int expression_parse(int *node);
 static int get_in_parens(int node, int *expression);
 static int qualified_name_parse(int *node);
+static void right_comments_with_spaces_write(int node, int indent);
 static int get_tuple_item(int node, int *item, int *start);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
@@ -1250,15 +1251,7 @@ static void list_item_write(int item, int indent) {
 static void tuple_item_write(int item, int indent) {
   left_comments_write(0, item, indent + 2);
   expression_write(item, indent + 2);
-  const int has_right = has_right_comment(item);
-  const int has_multiline_right = has_multiline_right_comment(item);
-  if (has_right && has_multiline_right) {
-    indent_write(indent + 2);
-  }
-  if (has_right && !has_multiline_right) {
-    char_write(' ');
-  }
-  right_comments_in_expression_write(item, indent + 2);
+  right_comments_with_spaces_write(item, indent + 2);
 }
 
 static void non_empty_tuple_write(int node, int indent) {
@@ -2188,8 +2181,9 @@ static void between_if_and_then_write(int condition, int indent) {
     char_write(' ');
   }
   left_comments_write(0, condition, floor_to_four(indent + 4));
-  const int is_multi_condition =
-      is_multiline_node(condition) || left_is_multiline || has_multiline_right_comment(condition);
+  const int is_multi_condition = is_multiline_node(condition) ||
+                                 left_is_multiline ||
+                                 has_multiline_right_comment(condition);
   if (is_multi_condition && !has_left) {
     indent_write(floor_to_four(indent + 4));
   }
