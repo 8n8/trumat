@@ -2192,6 +2192,7 @@ static void between_then_and_else_write(int then_branch, int indent) {
   indent_write(floor_to_four(indent + 4));
   left_comments_after_then_write(then_branch, floor_to_four(indent + 4));
   expression_write(then_branch, indent + 4);
+  right_comments_with_spaces_write(then_branch, indent + 4);
   char_write('\n');
   indent_write(indent);
 }
