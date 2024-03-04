@@ -2177,7 +2177,7 @@ static void between_if_and_then_write(int condition, int indent) {
   }
   left_comments_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition =
-      is_multiline_node(condition) || left_is_multiline;
+      is_multiline_node(condition) || left_is_multiline || has_multiline_right_comment(condition);
   if (is_multi_condition && !has_left) {
     indent_write(floor_to_four(indent + 4));
   }
@@ -2185,6 +2185,15 @@ static void between_if_and_then_write(int condition, int indent) {
     char_write(' ');
   }
   expression_write(condition, indent + 4);
+  const int has_right = has_right_comment(condition);
+  const int has_multiline_right = has_multiline_right_comment(condition);
+  if (has_right && has_multiline_right) {
+    indent_write(indent + 4);
+  }
+  if (has_right && !has_multiline_right) {
+    char_write(' ');
+  }
+  right_comments_in_expression_write(condition, indent + 4);
   if (is_multi_condition) {
     indent_write(indent);
   } else {
@@ -3740,6 +3749,8 @@ static int condition_parse(int *node) {
   if (expression_parse(node)) {
     return -1;
   }
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(*node, right_comment);
   attach_left_comment(*node, left_comment);
   whitespace_parse();
   return 0;
