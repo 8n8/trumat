@@ -3735,6 +3735,7 @@ static int condition_parse(int *node) {
   if (expression_parse(node)) {
     return -1;
   }
+  whitespace_parse();
   const int right_comment = right_comments_in_expression_parse();
   attach_right_comment_in_expression(*node, right_comment);
   attach_left_comment(*node, left_comment);
