@@ -1310,13 +1310,7 @@ static void non_empty_list_write(int node, int indent) {
 static void right_comments_after_record_name_write(int node, int indent) {
   const int has_multiline_comment_after = has_multiline_right_comment(node);
   const int has_comment_after = has_right_comment(node);
-  if (has_comment_after && has_multiline_comment_after) {
-    indent_write(indent + 2);
-  }
-  if (has_comment_after && !has_multiline_comment_after) {
-    char_write(' ');
-  }
-  right_comments_in_expression_write(node, indent + 2);
+  right_comments_with_spaces_write(node, indent + 2);
   if (has_comment_after && has_multiline_comment_after) {
     indent_write(floor_to_four(indent + 6));
   } else {
