@@ -2180,7 +2180,7 @@ static void between_if_and_then_write(int condition, int indent) {
     char_write(' ');
   }
   expression_write(condition, indent + 4);
-  right_comments_with_spaces_write(condition, indent + 4);
+  right_comments_with_spaces_write(condition, floor_to_four(indent + 4));
   if (is_multi_condition) {
     indent_write(indent);
   } else {
