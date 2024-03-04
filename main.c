@@ -8,6 +8,7 @@ static int dot_function_parse(int *node);
 static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
 static int expression_parse(int *node);
+static void left_comments_after_then_write(int node, int indent);
 static int get_in_parens(int node, int *expression);
 static int qualified_name_parse(int *node);
 static void right_comments_with_spaces_write(int node, int indent);
@@ -2189,7 +2190,7 @@ static void between_if_and_then_write(int condition, int indent) {
 
 static void between_then_and_else_write(int then_branch, int indent) {
   indent_write(floor_to_four(indent + 4));
-  left_comments_write(1, then_branch, floor_to_four(indent + 4));
+  left_comments_after_then_write(then_branch, floor_to_four(indent + 4));
   expression_write(then_branch, indent + 4);
   char_write('\n');
   indent_write(indent);
@@ -4144,6 +4145,25 @@ static int is_single_line_right_comments(int node) {
     }
   }
   return 1;
+}
+
+static void left_comments_after_then_write(int node, int indent) {
+  const int is_single = is_single_line_left_comments(node);
+  int left_comment;
+  int start = 0;
+  if (get_left_comment(node, &left_comment, &start)) {
+    return;
+  }
+  comment_write(left_comment, indent);
+  while (get_left_comment(node, &left_comment, &start) == 0) {
+    if (is_single) {
+      char_write(' ');
+    } else {
+      indent_write(indent);
+    }
+    comment_write(left_comment, indent);
+  }
+  indent_write(indent);
 }
 
 static void left_comments_write(
