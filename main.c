@@ -828,8 +828,10 @@ static int is_multiline_node(int node) {
   }
   int item;
   int start = 0;
-  if (get_list_item(node, &item, &start) == 0) {
-    return is_multiline_node(item);
+  while (get_list_item(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
   }
   return 0;
 }
