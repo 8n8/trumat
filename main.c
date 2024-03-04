@@ -8,6 +8,7 @@ static int dot_function_parse(int *node);
 static int get_list_item(int node, int *item, int *start);
 static int expression_parse(int *node);
 static int qualified_name_parse(int *node);
+static int get_tuple_item(int node, int *item, int *start);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
 static void left_comments_write(int is_multi_context, int node, int indent);
@@ -829,6 +830,12 @@ static int is_multiline_node(int node) {
   int item;
   int start = 0;
   while (get_list_item(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  start = 0;
+  while (get_tuple_item(node, &item, &start) == 0) {
     if (is_multiline_node(item)) {
       return 1;
     }
