@@ -1472,7 +1472,8 @@ static int is_arg1_line1(int node) {
 
 static void argument_write(int is_multi, int argument, int indent) {
   const int left_is_multiline = has_multiline_left_comment(argument);
-  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline || is_multiline_node(argument)) {
+  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline ||
+      is_multiline_node(argument)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
@@ -3139,7 +3140,8 @@ static int in_necessary_parens_parse(int *node) {
   }
   whitespace_parse();
   int expression;
-  if (function_call_parse(&expression) && infixed_parse(&expression) && if_then_else_parse(&expression)) {
+  if (function_call_parse(&expression) && infixed_parse(&expression) &&
+      if_then_else_parse(&expression)) {
     I = start;
     return -1;
   }
