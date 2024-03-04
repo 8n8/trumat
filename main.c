@@ -3734,7 +3734,7 @@ static int keyword_parse(char *keyword) {
   return 0;
 }
 
-static int condition_parse(int *node) {
+static int if_then_else_part_parse(int *node) {
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
@@ -3754,7 +3754,7 @@ static int if_then_else_helper_parse(int *node) {
     return -1;
   }
   int condition;
-  if (condition_parse(&condition)) {
+  if (if_then_else_part_parse(&condition)) {
     return -1;
   }
   if (keyword_parse("then")) {
@@ -3762,7 +3762,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int then_branch;
-  if (condition_parse(&then_branch)) {
+  if (if_then_else_part_parse(&then_branch)) {
     return -1;
   }
   if (keyword_parse("else")) {
