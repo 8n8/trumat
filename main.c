@@ -2166,6 +2166,18 @@ static int is_if_then_else_node(int node) {
   return 0;
 }
 
+static void right_comments_with_spaces_write(int node, int indent) {
+  const int has_right = has_right_comment(node);
+  const int has_multiline_right = has_multiline_right_comment(node);
+  if (has_right && has_multiline_right) {
+    indent_write(indent);
+  }
+  if (has_right && !has_multiline_right) {
+    char_write(' ');
+  }
+  right_comments_in_expression_write(node, indent);
+}
+
 static void between_if_and_then_write(int condition, int indent) {
   const int has_left = has_left_comment(condition);
   const int left_is_multiline = has_multiline_left_comment(condition);
@@ -2185,15 +2197,7 @@ static void between_if_and_then_write(int condition, int indent) {
     char_write(' ');
   }
   expression_write(condition, indent + 4);
-  const int has_right = has_right_comment(condition);
-  const int has_multiline_right = has_multiline_right_comment(condition);
-  if (has_right && has_multiline_right) {
-    indent_write(indent + 4);
-  }
-  if (has_right && !has_multiline_right) {
-    char_write(' ');
-  }
-  right_comments_in_expression_write(condition, indent + 4);
+  right_comments_with_spaces_write(condition, indent + 4);
   if (is_multi_condition) {
     indent_write(indent);
   } else {
