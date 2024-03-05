@@ -2225,7 +2225,7 @@ static void after_else_write(int else_branch, int indent) {
     expression_write(else_branch, floor_to_four(indent + 4));
     return;
   }
-  comment_write(left_comment, indent +4);
+  comment_write(left_comment, floor_to_four(indent +4));
   while (get_left_comment(else_branch, &left_comment, &start) == 0) {
     if (is_single) {
       char_write(' ');
