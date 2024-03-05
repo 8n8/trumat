@@ -2234,6 +2234,11 @@ static void after_else_write(int else_branch, int indent) {
     }
     comment_write(left_comment, indent);
   }
+  if (is_if_then_else_node(else_branch)) {
+    char_write(' ');
+    expression_write(else_branch, indent);
+    return;
+  }
   indent_write(floor_to_four(indent + 4));
   expression_write(else_branch, indent + 4);
 }
