@@ -7,6 +7,8 @@
 static int dot_function_parse(int *node);
 static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
+static void comment_write(int node, int indent);
+static int is_single_line_left_comments(int node);
 static int expression_parse(int *node);
 static void left_comments_after_then_write(int node, int indent);
 static int get_in_parens(int node, int *expression);
@@ -2201,6 +2203,41 @@ static void between_then_and_else_write(int then_branch, int indent) {
   indent_write(indent);
 }
 
+static void after_else_write(int else_branch, int indent) {
+  const int has_left = has_left_comment(else_branch);
+  const int left_is_multiline = has_multiline_left_comment(else_branch);
+  if (has_left && left_is_multiline) {
+    indent_write(floor_to_four(indent + 4));
+  }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
+  }
+  const int is_single = is_single_line_left_comments(else_branch);
+  int left_comment;
+  int start = 0;
+  if (get_left_comment(else_branch, &left_comment, &start)) {
+    if (is_if_then_else_node(else_branch)) {
+      char_write(' ');
+      expression_write(else_branch, indent);
+      return;
+    }
+    indent_write(floor_to_four(indent + 4));
+    expression_write(else_branch, floor_to_four(indent + 4));
+    return;
+  }
+  comment_write(left_comment, indent);
+  while (get_left_comment(else_branch, &left_comment, &start) == 0) {
+    if (is_single) {
+      char_write(' ');
+    } else {
+      indent_write(indent);
+    }
+    comment_write(left_comment, indent);
+  }
+  indent_write(floor_to_four(indent+ 4));
+  expression_write(else_branch, indent + 4);
+}
+
 static void if_then_else_write(int condition, int then_branch, int else_branch,
                                int indent) {
   chunk_write("if");
@@ -2208,13 +2245,7 @@ static void if_then_else_write(int condition, int then_branch, int else_branch,
   chunk_write("then");
   between_then_and_else_write(then_branch, indent);
   chunk_write("else");
-  if (is_if_then_else_node(else_branch)) {
-    char_write(' ');
-    expression_write(else_branch, indent);
-    return;
-  }
-  indent_write(floor_to_four(indent + 4));
-  expression_write(else_branch, indent + 4);
+  after_else_write(else_branch, indent);
 }
 
 static int get_if_then_else(int node, int *condition, int *then_branch,
@@ -3775,7 +3806,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int else_branch;
-  if (expression_parse(&else_branch)) {
+  if (if_then_else_part_parse(&else_branch)) {
     return -1;
   }
   *node = get_new_node();
