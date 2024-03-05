@@ -2230,7 +2230,7 @@ static void after_else_write(int else_branch, int indent) {
     if (is_single) {
       char_write(' ');
     } else {
-      indent_write(indent + 4);
+      indent_write(floor_to_four(indent + 4));
     }
     comment_write(left_comment, indent);
   }
