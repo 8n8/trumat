@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int get_if_then_else(int node, int *condition, int *then_branch,
+                            int *else_branch);
+static void if_then_else_write(int is_in_else, int condition, int then_branch,
+                               int else_branch, int indent);
 static int dot_function_parse(int *node);
 static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
@@ -2163,7 +2167,8 @@ static void right_comments_with_spaces_write(int node, int indent) {
   right_comments_in_expression_write(node, indent);
 }
 
-static void between_if_and_then_write(int condition, int indent) {
+static void between_if_and_then_write(int is_in_else, int condition,
+                                      int indent) {
   const int has_left = has_left_comment(condition);
   const int left_is_multiline = has_multiline_left_comment(condition);
   if (has_left && left_is_multiline) {
@@ -2174,7 +2179,7 @@ static void between_if_and_then_write(int condition, int indent) {
   }
   left_comments_with_spaces_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition = is_multiline_node(condition) ||
-                                 left_is_multiline ||
+                                 left_is_multiline || is_in_else ||
                                  has_multiline_right_comment(condition);
   if (is_multi_condition && !has_left) {
     indent_write(floor_to_four(indent + 4));
@@ -2227,14 +2232,22 @@ static void whitespace_after_else_write(int else_branch, int indent) {
   const int left_is_multiline = has_multiline_left_comment(else_branch);
   const int is_if = is_if_then_else_node(else_branch);
   if (has_left && left_is_multiline) {
-    indent_write(floor_to_four(indent + 4));
+    if (is_if) {
+      indent_write(floor_to_four(indent));
+    } else {
+      indent_write(floor_to_four(indent + 4));
+    }
   }
   if (has_left && !left_is_multiline) {
     char_write(' ');
   }
   left_comments_in_else_write(else_branch, indent);
-  if (is_if) {
+  if (is_if && !left_is_multiline) {
     char_write(' ');
+    return;
+  }
+  if (is_if && left_is_multiline) {
+    indent_write(indent);
     return;
   }
   indent_write(floor_to_four(indent + 4));
@@ -2242,15 +2255,25 @@ static void whitespace_after_else_write(int else_branch, int indent) {
 
 static void after_else_write(int else_branch, int indent) {
   whitespace_after_else_write(else_branch, indent);
-  const int is_if = is_if_then_else_node(else_branch);
+  int condition_nested;
+  int then_branch_nested;
+  int else_branch_nested;
+  const int is_if = get_if_then_else(else_branch, &condition_nested,
+                                     &then_branch_nested, &else_branch_nested);
   const int expression_indent = is_if ? indent : indent + 4;
+  const int has_multiline_left = has_multiline_left_comment(else_branch);
+  if (is_if) {
+    if_then_else_write(1 && has_multiline_left, condition_nested,
+                       then_branch_nested, else_branch_nested, indent);
+    return;
+  }
   expression_write(else_branch, expression_indent);
 }
 
-static void if_then_else_write(int condition, int then_branch, int else_branch,
-                               int indent) {
+static void if_then_else_write(int is_in_else, int condition, int then_branch,
+                               int else_branch, int indent) {
   chunk_write("if");
-  between_if_and_then_write(condition, indent);
+  between_if_and_then_write(is_in_else, condition, indent);
   chunk_write("then");
   between_then_and_else_write(then_branch, indent);
   chunk_write("else");
@@ -2280,7 +2303,7 @@ static void not_infixed_write(int node, int indent) {
   int then_branch;
   int else_branch;
   if (get_if_then_else(node, &condition, &then_branch, &else_branch)) {
-    if_then_else_write(condition, then_branch, else_branch, indent);
+    if_then_else_write(0, condition, then_branch, else_branch, indent);
     return;
   }
   if (is_hex(node)) {
