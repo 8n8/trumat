@@ -2233,7 +2233,7 @@ static void whitespace_after_else_write(int else_branch, int indent) {
   const int is_if = is_if_then_else_node(else_branch);
   if (has_left && left_is_multiline) {
     if (is_if) {
-      indent_write(floor_to_four(indent));
+      indent_write(indent);
     } else {
       indent_write(floor_to_four(indent + 4));
     }
