@@ -17,7 +17,8 @@ static void right_comments_with_spaces_write(int node, int indent);
 static int get_tuple_item(int node, int *item, int *start);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
-static void left_comments_with_spaces_write(int is_multi_context, int node, int indent);
+static void left_comments_with_spaces_write(int is_multi_context, int node,
+                                            int indent);
 static int if_then_else_parse(int *node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
