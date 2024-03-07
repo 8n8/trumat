@@ -2211,6 +2211,8 @@ static void between_then_and_else_write(int then_branch, int indent) {
 
 static void left_comments_in_else_write(int node, int indent) {
   const int is_single = is_single_line_left_comments(node);
+  const int is_if = is_if_then_else_node(node);
+  const int new_indent = is_if ? indent : floor_to_four(indent + 4);
   int left_comment;
   int start = 0;
   if (get_left_comment(node, &left_comment, &start)) {
@@ -2221,7 +2223,7 @@ static void left_comments_in_else_write(int node, int indent) {
     if (is_single) {
       char_write(' ');
     } else {
-      indent_write(floor_to_four(indent + 4));
+      indent_write(new_indent);
     }
     comment_write(left_comment, indent);
   }
