@@ -2263,7 +2263,7 @@ static void after_else_write(int else_branch, int indent) {
   const int expression_indent = is_if ? indent : indent + 4;
   const int has_multiline_left = has_multiline_left_comment(else_branch);
   if (is_if) {
-    if_then_else_write(1 && has_multiline_left, condition_nested,
+    if_then_else_write(has_multiline_left, condition_nested,
                        then_branch_nested, else_branch_nested, indent);
     return;
   }
