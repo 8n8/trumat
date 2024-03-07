@@ -17,7 +17,7 @@ static void right_comments_with_spaces_write(int node, int indent);
 static int get_tuple_item(int node, int *item, int *start);
 static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
-static void left_comments_write(int is_multi_context, int node, int indent);
+static void left_comments_with_spaces_write(int is_multi_context, int node, int indent);
 static int if_then_else_parse(int *node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
@@ -1243,7 +1243,7 @@ static int has_same_line_comment(int node) {
 }
 
 static void list_item_write(int item, int indent) {
-  left_comments_write(0, item, indent + 2);
+  left_comments_with_spaces_write(0, item, indent + 2);
   expression_write(item, indent + 2);
   if (has_same_line_comment(item)) {
     char_write(' ');
@@ -1252,7 +1252,7 @@ static void list_item_write(int item, int indent) {
 }
 
 static void tuple_item_write(int item, int indent) {
-  left_comments_write(0, item, indent + 2);
+  left_comments_with_spaces_write(0, item, indent + 2);
   expression_write(item, indent + 2);
   right_comments_with_spaces_write(item, indent + 2);
 }
@@ -1322,7 +1322,7 @@ static void right_comments_after_record_name_write(int node, int indent) {
 }
 
 static void record_item_left_write(int node, int name, int indent) {
-  left_comments_write(0, node, indent + 2);
+  left_comments_with_spaces_write(0, node, indent + 2);
   src_write(name);
   right_comments_after_record_name_write(name, indent);
 }
@@ -1337,7 +1337,7 @@ static void record_item_right_write(int node, int name, int value, int indent) {
   } else {
     char_write(' ');
   }
-  left_comments_write(0, value, floor_to_four(indent + 6));
+  left_comments_with_spaces_write(0, value, floor_to_four(indent + 6));
   expression_write(value, indent + 4);
   if (has_same_line_comment(value)) {
     char_write(' ');
@@ -1469,7 +1469,7 @@ static void argument_write(int is_multi, int argument, int indent) {
     char_write(' ');
   }
   const int comment_indent = floor_to_four(indent + 4);
-  left_comments_write(0, argument, comment_indent);
+  left_comments_with_spaces_write(0, argument, comment_indent);
   expression_write(argument, indent + 4);
 }
 
@@ -1521,7 +1521,7 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right,
   } else {
     char_write(' ');
   }
-  left_comments_write(0, right, indent);
+  left_comments_with_spaces_write(0, right, indent);
   chunk_write("<|");
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
@@ -1547,7 +1547,7 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   } else {
     char_write(' ');
   }
-  left_comments_write(0, right, floor_to_four(indent + 4));
+  left_comments_with_spaces_write(0, right, floor_to_four(indent + 4));
   chunk_write(infix);
   char_write(' ');
   const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
@@ -2024,7 +2024,7 @@ static void in_parens_write(int node, int indent) {
   chunk_write("(");
   const int has_left = has_left_comment(node);
   const int left_is_multiline = has_multiline_left_comment(node);
-  left_comments_write(0, node, indent + 1);
+  left_comments_with_spaces_write(0, node, indent + 1);
   expression_write(node, indent + 1);
   const int has_right = has_right_comment(node);
   const int right_is_multiline = has_multiline_right_comment(node);
@@ -2071,7 +2071,7 @@ static int get_record_update_name(int node, int *name) {
 
 static void record_update_before_pipe_write(int node, int name, int indent) {
   chunk_write("{ ");
-  left_comments_write(0, name, indent + 2);
+  left_comments_with_spaces_write(0, name, indent + 2);
   src_write(name);
   right_comments_with_spaces_write(name, indent + 2);
   const int has_right = has_right_comment(name);
@@ -2171,7 +2171,7 @@ static void between_if_and_then_write(int condition, int indent) {
   if (has_left && !left_is_multiline) {
     char_write(' ');
   }
-  left_comments_write(0, condition, floor_to_four(indent + 4));
+  left_comments_with_spaces_write(0, condition, floor_to_four(indent + 4));
   const int is_multi_condition = is_multiline_node(condition) ||
                                  left_is_multiline ||
                                  has_multiline_right_comment(condition);
@@ -4210,7 +4210,7 @@ static void left_comments_after_then_write(int node, int indent) {
   indent_write(indent);
 }
 
-static void left_comments_write(
+static void left_comments_with_spaces_write(
     // For example, if you have two single line block comments before the
     // body of a function they go on separate lines. But if they are before
     // a function argument they go on the same line.
@@ -4320,7 +4320,7 @@ static void right_comments_with_title_write(int node, int indent) {
 
 static void module_write(int node) {
   chunk_write("module X exposing (x)\n\n\nx =\n    ");
-  left_comments_write(1, node, 4);
+  left_comments_with_spaces_write(1, node, 4);
   expression_write(node, 4);
   char_write('\n');
 }
