@@ -2206,6 +2206,7 @@ static void between_then_and_else_write(int then_branch, int indent) {
 static void after_else_write(int else_branch, int indent) {
   const int has_left = has_left_comment(else_branch);
   const int left_is_multiline = has_multiline_left_comment(else_branch);
+  const int is_if = is_if_then_else_node(else_branch);
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
@@ -2216,7 +2217,7 @@ static void after_else_write(int else_branch, int indent) {
   int left_comment;
   int start = 0;
   if (get_left_comment(else_branch, &left_comment, &start)) {
-    if (is_if_then_else_node(else_branch)) {
+    if (is_if) {
       char_write(' ');
       expression_write(else_branch, indent);
       return;
@@ -2234,7 +2235,7 @@ static void after_else_write(int else_branch, int indent) {
     }
     comment_write(left_comment, indent);
   }
-  if (is_if_then_else_node(else_branch)) {
+  if (is_if) {
     char_write(' ');
     expression_write(else_branch, indent);
     return;
