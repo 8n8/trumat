@@ -2233,11 +2233,12 @@ static void whitespace_after_else_write(int else_branch, int indent) {
   const int has_left = has_left_comment(else_branch);
   const int left_is_multiline = has_multiline_left_comment(else_branch);
   const int is_if = is_if_then_else_node(else_branch);
-  const int new_indent = is_if && left_is_multiline ? indent : floor_to_four(indent + 4);
-  if (has_left && left_is_multiline) {
-      indent_write(new_indent);
+  const int new_indent =
+      is_if && left_is_multiline ? indent : floor_to_four(indent + 4);
+  if (left_is_multiline || (has_left && !left_is_multiline && !is_if)) {
+    indent_write(new_indent);
   }
-  if (has_left && !left_is_multiline) {
+  if (has_left && !left_is_multiline && is_if) {
     char_write(' ');
   }
   left_comments_in_else_write(else_branch, indent);
@@ -2258,8 +2259,8 @@ static void after_else_write(int else_branch, int indent) {
   const int expression_indent = is_if ? indent : indent + 4;
   const int has_multiline_left = has_multiline_left_comment(else_branch);
   if (is_if) {
-    if_then_else_write(has_multiline_left, condition_nested,
-                       then_branch_nested, else_branch_nested, indent);
+    if_then_else_write(has_multiline_left, condition_nested, then_branch_nested,
+                       else_branch_nested, indent);
     return;
   }
   expression_write(else_branch, expression_indent);
