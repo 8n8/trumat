@@ -2218,7 +2218,7 @@ static void left_comments_in_else_write(int node, int indent) {
   if (get_left_comment(node, &left_comment, &start)) {
     return;
   }
-  comment_write(left_comment, floor_to_four(indent + 4));
+  comment_write(left_comment, new_indent);
   while (get_left_comment(node, &left_comment, &start) == 0) {
     if (is_single) {
       char_write(' ');
