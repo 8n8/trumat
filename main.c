@@ -2231,12 +2231,9 @@ static void whitespace_after_else_write(int else_branch, int indent) {
   const int has_left = has_left_comment(else_branch);
   const int left_is_multiline = has_multiline_left_comment(else_branch);
   const int is_if = is_if_then_else_node(else_branch);
+  const int new_indent = is_if && left_is_multiline ? indent : floor_to_four(indent + 4);
   if (has_left && left_is_multiline) {
-    if (is_if) {
-      indent_write(indent);
-    } else {
-      indent_write(floor_to_four(indent + 4));
-    }
+      indent_write(new_indent);
   }
   if (has_left && !left_is_multiline) {
     char_write(' ');
@@ -2246,11 +2243,7 @@ static void whitespace_after_else_write(int else_branch, int indent) {
     char_write(' ');
     return;
   }
-  if (is_if && left_is_multiline) {
-    indent_write(indent);
-    return;
-  }
-  indent_write(floor_to_four(indent + 4));
+  indent_write(new_indent);
 }
 
 static void after_else_write(int else_branch, int indent) {
