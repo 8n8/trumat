@@ -2203,6 +2203,24 @@ static void between_then_and_else_write(int then_branch, int indent) {
   indent_write(indent);
 }
 
+static void left_comments_in_else_write(int node, int indent) {
+  const int is_single = is_single_line_left_comments(node);
+  int left_comment;
+  int start = 0;
+  if (get_left_comment(node, &left_comment, &start)) {
+    return;
+  }
+  comment_write(left_comment, floor_to_four(indent + 4));
+  while (get_left_comment(node, &left_comment, &start) == 0) {
+    if (is_single) {
+      char_write(' ');
+    } else {
+      indent_write(floor_to_four(indent + 4));
+    }
+    comment_write(left_comment, indent);
+  }
+}
+
 static void whitespace_after_else_write(int else_branch, int indent) {
   const int has_left = has_left_comment(else_branch);
   const int left_is_multiline = has_multiline_left_comment(else_branch);
@@ -2213,26 +2231,7 @@ static void whitespace_after_else_write(int else_branch, int indent) {
   if (has_left && !left_is_multiline) {
     char_write(' ');
   }
-  const int is_single = is_single_line_left_comments(else_branch);
-  int left_comment;
-  int start = 0;
-  if (get_left_comment(else_branch, &left_comment, &start)) {
-    if (is_if) {
-      char_write(' ');
-      return;
-    }
-    indent_write(floor_to_four(indent + 4));
-    return;
-  }
-  comment_write(left_comment, floor_to_four(indent + 4));
-  while (get_left_comment(else_branch, &left_comment, &start) == 0) {
-    if (is_single) {
-      char_write(' ');
-    } else {
-      indent_write(floor_to_four(indent + 4));
-    }
-    comment_write(left_comment, indent);
-  }
+  left_comments_in_else_write(else_branch, indent);
   if (is_if) {
     char_write(' ');
     return;
