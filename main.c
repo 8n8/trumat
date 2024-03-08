@@ -2346,10 +2346,10 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
 }
 
 static void case_of_branch_write(int left, int right, int indent) {
-  indent_write(indent + 4);
+  indent_write(floor_to_four(indent + 4));
   src_write(left);
   chunk_write(" ->");
-  indent_write(indent + 8);
+  indent_write(floor_to_four(indent + 8));
   src_write(right);
 }
 
