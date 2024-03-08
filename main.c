@@ -351,6 +351,14 @@ static uint32_t CASE_OF[MAX_CASE_OF];
 static uint32_t CASE_OF_PIVOT[MAX_CASE_OF];
 int NUM_CASE_OF = 0;
 
+static void attach_case_of_branch(int node, int branch) {
+  for (int i = 0; i < NUM_CASE_BRANCH; ++i) {
+    if (CASE_OF_BRANCH_PARENT[i] == (uint32_t)branch) {
+      CASE_OF_BRANCH_PARENT[i] = node;
+    }
+  }
+}
+
 static void append_case_of(int node, int pivot) {
   if (NUM_CASE_OF == MAX_CASE_OF) {
     fprintf(stderr, "%s: too many case of nodes, maximum is %d\n", PATH,
@@ -3978,29 +3986,37 @@ static int case_of_pivot_parse(int *node) {
   return 0;
 }
 
-static int case_of_parse(int *node) {
+static int case_of_branch_parse(int *node) {
   const int start = I;
+  whitespace_parse();
+  int pattern;
+  if (lower_name_parse(&pattern)) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
+  if (chunk_parse("->")) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int result;
+  if (lower_name_parse(&result)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_case_branch(*node, pattern, result);
+  return 0;
+}
+
+static int case_of_parse(int *node) {
   if (case_of_pivot_parse(node)) {
     return -1;
   }
-  while (1) {
-    whitespace_parse();
-    int pattern;
-    if (lower_name_parse(&pattern)) {
-      break;
-    }
-    char_parse(' ');
-    if (chunk_parse("->")) {
-      I = start;
-      return -1;
-    }
-    whitespace_parse();
-    int result;
-    if (lower_name_parse(&result)) {
-      I = start;
-      return -1;
-    }
-    append_case_branch(*node, pattern, result);
+  int branch;
+  while (case_of_branch_parse(&branch) == 0) {
+    attach_case_of_branch(*node, branch);
   }
   return 0;
 }
