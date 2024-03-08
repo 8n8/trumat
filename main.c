@@ -340,6 +340,40 @@ static uint32_t IF_THEN_ELSE_THEN[MAX_IF_THEN_ELSE];
 static uint32_t IF_THEN_ELSE_ELSE[MAX_IF_THEN_ELSE];
 int NUM_IF_THEN_ELSE = 0;
 
+#define MAX_CASE_BRANCH 10000
+static uint32_t CASE_OF_BRANCH_PARENT[MAX_CASE_BRANCH];
+static uint32_t CASE_OF_BRANCH_LEFT[MAX_CASE_BRANCH];
+static uint32_t CASE_OF_BRANCH_RIGHT[MAX_CASE_BRANCH];
+int NUM_CASE_BRANCH = 0;
+
+#define MAX_CASE_OF 10000
+static uint32_t CASE_OF[MAX_CASE_OF];
+static uint32_t CASE_OF_PIVOT[MAX_CASE_OF];
+int NUM_CASE_OF = 0;
+
+static void append_case_of(int node, int pivot) {
+  if (NUM_CASE_OF == MAX_CASE_OF) {
+    fprintf(stderr, "%s: too many case of nodes, maximum is %d\n", PATH,
+            MAX_CASE_OF);
+    exit(-1);
+  }
+  CASE_OF[NUM_CASE_OF] = node;
+  CASE_OF_PIVOT[NUM_CASE_OF] = pivot;
+  ++NUM_CASE_OF;
+}
+
+static void append_case_branch(int parent, int left, int right) {
+  if (NUM_CASE_BRANCH == MAX_CASE_BRANCH) {
+    fprintf(stderr, "%s: too many case branches, maximum is %d\n", PATH,
+            MAX_CASE_BRANCH);
+    exit(-1);
+  }
+  CASE_OF_BRANCH_PARENT[NUM_CASE_BRANCH] = parent;
+  CASE_OF_BRANCH_LEFT[NUM_CASE_BRANCH] = left;
+  CASE_OF_BRANCH_RIGHT[NUM_CASE_BRANCH] = right;
+  ++NUM_CASE_BRANCH;
+}
+
 static void append_if_then_else(int node, int condition, int then_branch,
                                 int else_branch) {
   if (NUM_IF_THEN_ELSE == MAX_IF_THEN_ELSE) {
@@ -2289,17 +2323,60 @@ static int get_if_then_else(int node, int *condition, int *then_branch,
   return 0;
 }
 
+static int get_case_of_pivot(int node, int *pivot) {
+  for (int i = 0; i < NUM_CASE_OF; ++i) {
+    if (CASE_OF[i] == (uint32_t)node) {
+      *pivot = CASE_OF_PIVOT[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int get_case_of_branch(int node, int *left, int *right, int *start) {
+  for (int i = *start; i < NUM_CASE_BRANCH; ++i) {
+    if (CASE_OF_BRANCH_PARENT[i] == (uint32_t)node) {
+      *left = CASE_OF_BRANCH_LEFT[i];
+      *right = CASE_OF_BRANCH_RIGHT[i];
+      *start = i + 1;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void case_of_write(int node, int pivot, int indent) {
+  chunk_write("case ");
+  src_write(pivot);
+  chunk_write(" of");
+  int left;
+  int right;
+  int start = 0;
+  while (get_case_of_branch(node, &left, &right, &start)) {
+    indent_write(indent + 4);
+    src_write(left);
+    chunk_write(" ->");
+    indent_write(indent + 8);
+    src_write(right);
+  }
+}
+
 static void not_infixed_write(int node, int indent) {
   int dotted_tail;
   if (get_dotted(node, &dotted_tail)) {
     dotted_write(node, dotted_tail, indent);
     return;
   }
-  int condition;
-  int then_branch;
-  int else_branch;
-  if (get_if_then_else(node, &condition, &then_branch, &else_branch)) {
-    if_then_else_write(0, condition, then_branch, else_branch, indent);
+  int if_condition;
+  int if_then_branch;
+  int if_else_branch;
+  if (get_if_then_else(node, &if_condition, &if_then_branch, &if_else_branch)) {
+    if_then_else_write(0, if_condition, if_then_branch, if_else_branch, indent);
+    return;
+  }
+  int case_of_pivot;
+  if (get_case_of_pivot(node, &case_of_pivot)) {
+    case_of_write(node, case_of_pivot, indent);
     return;
   }
   if (is_hex(node)) {
@@ -2446,6 +2523,8 @@ static void zero_ast() {
   NUM_DOT_FUNCTION = 0;
   NUM_DOTTED = 0;
   NUM_IF_THEN_ELSE = 0;
+  NUM_CASE_OF = 0;
+  NUM_CASE_BRANCH = 0;
 }
 
 static int get_new_node() {
@@ -2840,6 +2919,12 @@ static int any_keyword_parse() {
     return 0;
   }
   if (keyword_parse("else") == 0) {
+    return 0;
+  }
+  if (keyword_parse("case") == 0) {
+    return 0;
+  }
+  if (keyword_parse("of") == 0) {
     return 0;
   }
   return -1;
@@ -3851,6 +3936,45 @@ static int if_then_else_parse(int *node) {
   return 0;
 }
 
+static int case_of_parse(int *node) {
+  const int start = I;
+  if (keyword_parse("case")) {
+    return -1;
+  }
+  char_parse(' ');
+  int expression;
+  if (lower_name_parse(&expression)) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
+  if (keyword_parse("of")) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int pattern;
+  if (lower_name_parse(&pattern)) {
+    I = start;
+    return -1;
+  }
+  char_parse(' ');
+  if (chunk_parse("->")) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int result;
+  if (lower_name_parse(&result)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_case_of(*node, expression);
+  append_case_branch(*node, pattern, result);
+  return 0;
+}
+
 static int not_infixed_parse(int *node) {
   if (function_call_parse(node) == 0) {
     return 0;
@@ -3859,6 +3983,9 @@ static int not_infixed_parse(int *node) {
     return 0;
   }
   if (if_then_else_parse(node) == 0) {
+    return 0;
+  }
+  if (case_of_parse(node) == 0) {
     return 0;
   }
   return in_unnecessary_parens_parse(node);
