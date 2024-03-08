@@ -2352,7 +2352,15 @@ static void case_of_write(int node, int pivot, int indent) {
   int left;
   int right;
   int start = 0;
+  if (get_case_of_branch(node, &left, &right, &start)) {
+    indent_write(indent + 4);
+    src_write(left);
+    chunk_write(" ->");
+    indent_write(indent + 8);
+    src_write(right);
+  }
   while (get_case_of_branch(node, &left, &right, &start)) {
+    char_write('\n');
     indent_write(indent + 4);
     src_write(left);
     chunk_write(" ->");
@@ -3952,26 +3960,27 @@ static int case_of_parse(int *node) {
     I = start;
     return -1;
   }
-  whitespace_parse();
-  int pattern;
-  if (lower_name_parse(&pattern)) {
-    I = start;
-    return -1;
-  }
-  char_parse(' ');
-  if (chunk_parse("->")) {
-    I = start;
-    return -1;
-  }
-  whitespace_parse();
-  int result;
-  if (lower_name_parse(&result)) {
-    I = start;
-    return -1;
-  }
   *node = get_new_node();
   append_case_of(*node, expression);
-  append_case_branch(*node, pattern, result);
+  while (1) {
+    whitespace_parse();
+    int pattern;
+    if (lower_name_parse(&pattern)) {
+      break;
+    }
+    char_parse(' ');
+    if (chunk_parse("->")) {
+      I = start;
+      return -1;
+    }
+    whitespace_parse();
+    int result;
+    if (lower_name_parse(&result)) {
+      I = start;
+      return -1;
+    }
+    append_case_branch(*node, pattern, result);
+  }
   return 0;
 }
 
