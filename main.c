@@ -2355,7 +2355,7 @@ static void case_of_branch_write(int left, int right, int indent) {
 
 static void case_of_write(int node, int pivot, int indent) {
   chunk_write("case ");
-  src_write(pivot);
+  expression_write(pivot, indent);
   chunk_write(" of");
   int left;
   int right;
@@ -3951,7 +3951,7 @@ static int case_of_parse(int *node) {
   }
   char_parse(' ');
   int expression;
-  if (lower_name_parse(&expression)) {
+  if (expression_parse(&expression)) {
     I = start;
     return -1;
   }
