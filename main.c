@@ -2353,10 +2353,23 @@ static void case_of_branch_write(int left, int right, int indent) {
   src_write(right);
 }
 
-static void case_of_write(int node, int pivot, int indent) {
-  chunk_write("case ");
+static void between_case_and_of_write(int pivot, int indent) {
+  const int is_multiline = is_multiline_node(pivot);
+  if (is_multiline) {
+    indent_write(indent + 4);
+    expression_write(pivot, indent + 4);
+    indent_write(indent);
+    return;
+  }
+  char_write(' ');
   expression_write(pivot, indent);
-  chunk_write(" of");
+  char_write(' ');
+}
+
+static void case_of_write(int node, int pivot, int indent) {
+  chunk_write("case");
+  between_case_and_of_write(pivot, indent);
+  chunk_write("of");
   int left;
   int right;
   int start = 0;
