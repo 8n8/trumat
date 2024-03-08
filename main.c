@@ -2345,6 +2345,14 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
   return 0;
 }
 
+static void case_of_branch_write(int left, int right, int indent) {
+  indent_write(indent + 4);
+  src_write(left);
+  chunk_write(" ->");
+  indent_write(indent + 8);
+  src_write(right);
+}
+
 static void case_of_write(int node, int pivot, int indent) {
   chunk_write("case ");
   src_write(pivot);
@@ -2353,19 +2361,11 @@ static void case_of_write(int node, int pivot, int indent) {
   int right;
   int start = 0;
   if (get_case_of_branch(node, &left, &right, &start)) {
-    indent_write(indent + 4);
-    src_write(left);
-    chunk_write(" ->");
-    indent_write(indent + 8);
-    src_write(right);
+    case_of_branch_write(left, right, indent);
   }
   while (get_case_of_branch(node, &left, &right, &start)) {
     char_write('\n');
-    indent_write(indent + 4);
-    src_write(left);
-    chunk_write(" ->");
-    indent_write(indent + 8);
-    src_write(right);
+    case_of_branch_write(left, right, indent);
   }
 }
 
