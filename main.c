@@ -3957,7 +3957,7 @@ static int if_then_else_parse(int *node) {
   return 0;
 }
 
-static int case_of_parse(int *node) {
+static int case_of_pivot_parse(int *node) {
   const int start = I;
   if (keyword_parse("case")) {
     return -1;
@@ -3975,6 +3975,14 @@ static int case_of_parse(int *node) {
   }
   *node = get_new_node();
   append_case_of(*node, expression);
+  return 0;
+}
+
+static int case_of_parse(int *node) {
+  const int start = I;
+  if (case_of_pivot_parse(node)) {
+    return -1;
+  }
   while (1) {
     whitespace_parse();
     int pattern;
