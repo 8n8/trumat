@@ -2356,7 +2356,7 @@ static void case_of_branch_write(int left, int right, int indent) {
 static void between_case_and_of_write(int pivot, int indent) {
   const int is_multiline = is_multiline_node(pivot);
   if (is_multiline) {
-    indent_write(indent + 4);
+    indent_write(floor_to_four(indent + 4));
     expression_write(pivot, indent + 4);
     indent_write(indent);
     return;
