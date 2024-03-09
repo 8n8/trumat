@@ -2380,7 +2380,9 @@ static void between_case_and_of_write(int node, int pivot, int indent) {
     indent_write(indent);
     return;
   }
-  char_write(' ');
+  if (!has_left) {
+    char_write(' ');
+  }
   expression_write(pivot, indent);
   char_write(' ');
 }
