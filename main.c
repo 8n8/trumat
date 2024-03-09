@@ -1588,14 +1588,18 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right,
   not_infixed_write(right, floor_to_four(indent + 4));
 }
 
-static void infix_write_helper(char *infix, int is_multi, int right,
-                               int indent) {
+static void whitespace_before_infix(int is_multi, int right, int indent) {
   if (is_multi) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
   }
   left_comments_with_spaces_write(0, right, floor_to_four(indent + 4));
+}
+
+static void infix_write_helper(char *infix, int is_multi, int right,
+                               int indent) {
+  whitespace_before_infix(is_multi, right, indent);
   chunk_write(infix);
   char_write(' ');
   const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
