@@ -1597,21 +1597,25 @@ static void whitespace_before_infix_write(int is_multi, int right, int indent) {
   left_comments_with_spaces_write(0, right, floor_to_four(indent + 4));
 }
 
-static void infix_write_helper(char *infix, int is_multi, int right,
-                               int indent) {
-  whitespace_before_infix_write(is_multi, right, indent);
-  chunk_write(infix);
+static void whitespace_after_infix_write(int node, int new_indent) {
   char_write(' ');
-  const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
-  right_comments_in_expression_write(right, new_indent);
-  const int has_right = has_right_comment(right);
-  const int is_single_right = is_single_line_right_comments(right);
+  right_comments_in_expression_write(node, new_indent);
+  const int has_right = has_right_comment(node);
+  const int is_single_right = is_single_line_right_comments(node);
   if (has_right && !is_single_right) {
     indent_write(new_indent);
   }
   if (has_right && is_single_right) {
     char_write(' ');
   }
+}
+
+static void infix_write_helper(char *infix, int is_multi, int right,
+                               int indent) {
+  whitespace_before_infix_write(is_multi, right, indent);
+  chunk_write(infix);
+  const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
+  whitespace_after_infix_write(right, new_indent);
   int condition;
   int then_branch;
   int else_branch;
