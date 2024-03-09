@@ -3981,7 +3981,7 @@ static int case_of_pivot_parse(int *node) {
   if (keyword_parse("case")) {
     return -1;
   }
-  char_parse(' ');
+  whitespace_parse();
   const int left_comment = left_comments_parse();
   int expression;
   if (expression_parse(&expression)) {
