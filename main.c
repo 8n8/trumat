@@ -2362,9 +2362,20 @@ static void case_of_branch_write(int left, int right, int indent) {
 }
 
 static void between_case_and_of_write(int pivot, int indent) {
+  const int has_left = has_left_comment(pivot);
+  const int left_is_multiline = has_multiline_left_comment(pivot);
   const int is_multiline = is_multiline_node(pivot);
-  if (is_multiline) {
+  if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
+  }
+  if (has_left && !left_is_multiline) {
+    char_write(' ');
+  }
+  if (!has_left && is_multiline) {
+    indent_write(floor_to_four(indent + 4));
+  }
+  left_comments_with_spaces_write(0, pivot, indent + 4);
+  if (is_multiline || left_is_multiline) {
     expression_write(pivot, indent + 4);
     indent_write(indent);
     return;
@@ -3971,11 +3982,13 @@ static int case_of_pivot_parse(int *node) {
     return -1;
   }
   char_parse(' ');
+  const int left_comment = left_comments_parse();
   int expression;
   if (expression_parse(&expression)) {
     I = start;
     return -1;
   }
+  attach_left_comment(expression, left_comment);
   char_parse(' ');
   if (keyword_parse("of")) {
     I = start;
