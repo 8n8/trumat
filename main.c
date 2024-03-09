@@ -2410,6 +2410,7 @@ static void between_case_and_of_write(int node, int pivot, int indent) {
     char_write(' ');
   }
   expression_write(pivot, indent);
+  right_comments_with_spaces_write(pivot, floor_to_four(indent + 4));
   char_write(' ');
 }
 
