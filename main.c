@@ -1608,6 +1608,18 @@ static void infix_write_helper(char *infix, int is_multi, int right,
   if (has_right && is_single_right) {
     char_write(' ');
   }
+  int condition;
+  int then_branch;
+  int else_branch;
+  const int is_if =
+      get_if_then_else(right, &condition, &then_branch, &else_branch);
+  if (is_if) {
+    char_write('(');
+    if_then_else_write(0, condition, then_branch, else_branch, new_indent + 1);
+    indent_write(new_indent);
+    char_write(')');
+    return;
+  }
   not_infixed_write(right, new_indent);
 }
 
@@ -3878,6 +3890,9 @@ static int infixed_item_parse(int *node) {
     return 0;
   }
   if (simple_expression_parse(node) == 0) {
+    return 0;
+  }
+  if (if_then_else_parse(node) == 0) {
     return 0;
   }
   return argument_in_unnecessary_parens_parse(node);
