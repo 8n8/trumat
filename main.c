@@ -1589,7 +1589,7 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right,
 }
 
 static void whitespace_before_infix_write(int is_multi, int right, int indent) {
-  if (is_multi) {
+  if (is_multi || is_multiline_node(right)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
@@ -3905,6 +3905,9 @@ static int infixed_item_parse(int *node) {
     return 0;
   }
   if (if_then_else_parse(node) == 0) {
+    return 0;
+  }
+  if (in_necessary_parens_parse(node) == 0) {
     return 0;
   }
   return argument_in_unnecessary_parens_parse(node);
