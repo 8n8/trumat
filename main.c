@@ -2361,10 +2361,10 @@ static void case_of_branch_write(int left, int right, int indent) {
   src_write(right);
 }
 
-static void between_case_and_of_write(int pivot, int indent) {
+static void between_case_and_of_write(int node, int pivot, int indent) {
   const int has_left = has_left_comment(pivot);
   const int left_is_multiline = has_multiline_left_comment(pivot);
-  const int is_multiline = is_multiline_node(pivot);
+  const int is_multiline = is_multiline_node(pivot) || is_multiline_node(node);
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
@@ -2387,7 +2387,7 @@ static void between_case_and_of_write(int pivot, int indent) {
 
 static void case_of_write(int node, int pivot, int indent) {
   chunk_write("case");
-  between_case_and_of_write(pivot, indent);
+  between_case_and_of_write(node, pivot, indent);
   chunk_write("of");
   int left;
   int right;
@@ -3978,6 +3978,7 @@ static int if_then_else_parse(int *node) {
 
 static int case_of_pivot_parse(int *node) {
   const int start = I;
+  const int start_row = ROW[I];
   if (keyword_parse("case")) {
     return -1;
   }
@@ -3995,6 +3996,9 @@ static int case_of_pivot_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
+  if (ROW[I] > start_row) {
+    append_src_multiline(*node);
+  }
   append_case_of(*node, expression);
   return 0;
 }
