@@ -1610,12 +1610,7 @@ static void whitespace_after_infix_write(int node, int new_indent) {
   }
 }
 
-static void infix_write_helper(char *infix, int is_multi, int right,
-                               int indent) {
-  whitespace_before_infix_write(is_multi, right, indent);
-  chunk_write(infix);
-  const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
-  whitespace_after_infix_write(right, new_indent);
+static void expression_after_infix_write(int right, int new_indent) {
   int condition;
   int then_branch;
   int else_branch;
@@ -1629,6 +1624,15 @@ static void infix_write_helper(char *infix, int is_multi, int right,
     return;
   }
   not_infixed_write(right, new_indent);
+}
+
+static void infix_write_helper(char *infix, int is_multi, int right,
+                               int indent) {
+  whitespace_before_infix_write(is_multi, right, indent);
+  chunk_write(infix);
+  const int new_indent = floor_to_four(indent) + 4 + string_length(infix) + 1;
+  whitespace_after_infix_write(right, new_indent);
+  expression_after_infix_write(right, new_indent);
 }
 
 static int get_plus(int node, int *right) {
