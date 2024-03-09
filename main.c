@@ -9,6 +9,7 @@ static int get_if_then_else(int node, int *condition, int *then_branch,
 static void if_then_else_write(int is_in_else, int condition, int then_branch,
                                int else_branch, int indent);
 static int dot_function_parse(int *node);
+static int is_double_hyphen_block_comment(int node);
 static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
 static void comment_write(int node, int indent);
@@ -1225,7 +1226,7 @@ static int has_left_comment(int node) {
 
 static int is_multiline_comment(int node) {
   return is_empty_block_comment(node) || is_multiline_block_comment(node) ||
-         is_line_comment(node);
+         is_line_comment(node) || is_double_hyphen_block_comment(node);
 }
 
 static int has_multiline_left_comment(int node) {
