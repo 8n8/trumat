@@ -2374,7 +2374,7 @@ static void between_case_and_of_write(int node, int pivot, int indent) {
   if (!has_left && is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
-  left_comments_with_spaces_write(0, pivot, indent + 4);
+  left_comments_with_spaces_write(0, pivot, floor_to_four(indent + 4));
   if (is_multiline || left_is_multiline) {
     expression_write(pivot, indent + 4);
     indent_write(indent);
