@@ -2402,6 +2402,7 @@ static void between_case_and_of_write(int node, int pivot, int indent) {
   left_comments_with_spaces_write(0, pivot, floor_to_four(indent + 4));
   if (is_multiline || left_is_multiline) {
     expression_write(pivot, indent + 4);
+    right_comments_with_spaces_write(pivot, floor_to_four(indent + 4));
     indent_write(indent);
     return;
   }
@@ -4023,7 +4024,10 @@ static int case_of_pivot_parse(int *node) {
     return -1;
   }
   attach_left_comment(expression, left_comment);
-  char_parse(' ');
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(expression, right_comment);
+  whitespace_parse();
   if (keyword_parse("of")) {
     I = start;
     return -1;
