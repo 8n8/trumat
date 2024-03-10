@@ -4046,12 +4046,19 @@ static int case_of_pivot_parse(int *node) {
   return 0;
 }
 
+static int pattern_parse(int *node) {
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  return upper_name_parse(node);
+}
+
 static int case_of_branch_parse(int *node) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   int pattern;
-  if (lower_name_parse(&pattern)) {
+  if (pattern_parse(&pattern)) {
     I = start;
     return -1;
   }
