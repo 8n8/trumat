@@ -2389,6 +2389,10 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
 
 static void pattern_write(int node, int indent) {
   int in_parens;
+  if (is_empty_tuple(node)) {
+    chunk_write("()");
+    return;
+  }
   if (get_in_parens(node, &in_parens)) {
     in_parens_write(in_parens, indent);
     return;
@@ -4143,6 +4147,9 @@ static int pattern_parse(int *node) {
     return 0;
   }
   if (wildcard_parse(node) == 0) {
+    return 0;
+  }
+  if (empty_tuple_parse(node) == 0) {
     return 0;
   }
   if (pattern_in_unnecessary_parens_parse(node) == 0) {
