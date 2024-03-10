@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int has_multiline_right_comment(int node);
 static int has_multiline_left_comment(int node);
 static int pattern_parse(int *node);
 static int get_if_then_else(int node, int *condition, int *then_branch,
@@ -904,6 +905,9 @@ static int is_multiline_node(int node) {
   }
   if (get_in_parens(node, &item)) {
     if (has_multiline_left_comment(item)) {
+      return 1;
+    }
+    if (has_multiline_right_comment(item)) {
       return 1;
     }
     if (is_multiline_node(item)) {
