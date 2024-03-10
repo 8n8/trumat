@@ -2387,6 +2387,55 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
   return 0;
 }
 
+static int is_multiline_pattern_node(int node) {
+  int start = 0;
+  int item;
+  while (get_tuple_item(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  if (get_in_parens(node, &item)) {
+    if (has_multiline_left_comment(item)) {
+      return 1;
+    }
+    if (has_multiline_right_comment(item)) {
+      return 1;
+    }
+    if (is_multiline_pattern_node(item)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void non_empty_pattern_tuple_write(int node, int indent) {
+  chunk_write("( ");
+  int item;
+  int start = 0;
+  if (get_tuple_item(node, &item, &start) == 0) {
+    tuple_item_write(item, indent);
+  }
+  int left_is_multiline = has_multiline_left_comment(item);
+  int any_is_multiline = left_is_multiline;
+  while (get_tuple_item(node, &item, &start) == 0) {
+    left_is_multiline = has_multiline_left_comment(item);
+    any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
+                       is_multiline_pattern_node(item);
+    if (any_is_multiline || is_multiline_pattern_node(node)) {
+      indent_write(indent);
+    }
+    chunk_write(", ");
+    tuple_item_write(item, indent);
+  }
+  if (any_is_multiline || is_multiline_pattern_node(node)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write(')');
+}
+
 static void pattern_write(int node, int indent) {
   int in_parens;
   if (is_empty_tuple(node)) {
@@ -2394,7 +2443,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   if (is_non_empty_tuple(node)) {
-    non_empty_tuple_write(node, indent);
+    non_empty_pattern_tuple_write(node, indent);
     return;
   }
   if (get_in_parens(node, &in_parens)) {
@@ -2408,7 +2457,7 @@ static void case_of_branch_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
   left_comments_with_spaces_write(1, left, floor_to_four(indent + 4));
   pattern_write(left, floor_to_four(indent + 4));
-  if (is_multiline_node(left)) {
+  if (is_multiline_pattern_node(left)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
