@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int has_multiline_left_comment(int node);
+static int pattern_parse(int *node);
 static int get_if_then_else(int node, int *condition, int *then_branch,
                             int *else_branch);
 static void if_then_else_write(int is_in_else, int condition, int then_branch,
@@ -901,6 +903,9 @@ static int is_multiline_node(int node) {
     }
   }
   if (get_in_parens(node, &item)) {
+    if (has_multiline_left_comment(item)) {
+      return 1;
+    }
     if (is_multiline_node(item)) {
       return 1;
     }
@@ -2378,11 +2383,25 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
   return 0;
 }
 
+static void pattern_write(int node, int indent) {
+  int in_parens;
+  if (get_in_parens(node, &in_parens)) {
+    in_parens_write(in_parens, indent);
+    return;
+  }
+  src_write(node);
+}
+
 static void case_of_branch_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
   left_comments_with_spaces_write(1, left, floor_to_four(indent + 4));
-  src_write(left);
-  chunk_write(" ->");
+  pattern_write(left, indent + 4);
+  if (is_multiline_node(left)) {
+    indent_write(floor_to_four(indent + 4));
+  } else {
+    char_write(' ');
+  }
+  chunk_write("->");
   indent_write(floor_to_four(indent + 8));
   src_write(right);
 }
@@ -4083,6 +4102,37 @@ static int wildcard_parse(int *node) {
   append_has_src(*node, start, 1);
   return 0;
 }
+static int pattern_with_comments_in_parentheses_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  int pattern;
+  if (pattern_parse(&pattern)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  const int num_comments =
+      num_left_comments(left_comment) + num_right_comments(right_comment);
+  if (num_comments == 0) {
+    I = start;
+    return -1;
+  }
+  append_in_parens(*node, pattern);
+  attach_left_comment(pattern, left_comment);
+  attach_right_comment_in_expression(pattern, right_comment);
+  return 0;
+}
 
 static int pattern_parse(int *node) {
   if (lower_name_parse(node) == 0) {
@@ -4092,6 +4142,9 @@ static int pattern_parse(int *node) {
     return 0;
   }
   if (pattern_in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
+  if (pattern_with_comments_in_parentheses_parse(node) == 0) {
     return 0;
   }
   return upper_name_parse(node);
