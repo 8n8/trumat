@@ -3710,6 +3710,31 @@ static int in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
+static int pattern_in_unnecessary_parens_contents_parse(int *node) {
+  if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  return 0;
+}
+
+static int pattern_in_unnecessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  if (pattern_in_unnecessary_parens_contents_parse(node)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int with_comments_in_parentheses_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
@@ -4061,6 +4086,9 @@ static int pattern_parse(int *node) {
     return 0;
   }
   if (wildcard_parse(node) == 0) {
+    return 0;
+  }
+  if (pattern_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return upper_name_parse(node);
