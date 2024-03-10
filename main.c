@@ -2380,6 +2380,7 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
 
 static void case_of_branch_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
+  left_comments_with_spaces_write(0, left, indent+4);
   src_write(left);
   chunk_write(" ->");
   indent_write(floor_to_four(indent + 8));
@@ -4048,11 +4049,13 @@ static int case_of_pivot_parse(int *node) {
 static int case_of_branch_parse(int *node) {
   const int start = I;
   whitespace_parse();
+  const int left_comment = left_comments_parse();
   int pattern;
   if (lower_name_parse(&pattern)) {
     I = start;
     return -1;
   }
+  attach_left_comment(pattern, left_comment);
   char_parse(' ');
   if (chunk_parse("->")) {
     I = start;
