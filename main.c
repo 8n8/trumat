@@ -3120,6 +3120,22 @@ static int list_item_parse(int *node) {
   return 0;
 }
 
+static int tuple_pattern_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (pattern_parse(node)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  attach_left_comment(*node, left_comment);
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(*node, right_comment);
+  return 0;
+}
+
 static int tuple_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
@@ -4146,6 +4162,48 @@ static int pattern_with_comments_in_parentheses_parse(int *node) {
   return 0;
 }
 
+static int non_empty_pattern_tuple_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('(')) {
+    return -1;
+  }
+  int item;
+  if (tuple_pattern_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_tuple_item(*node, item);
+  if (char_parse(',')) {
+    I = start;
+    return -1;
+  }
+  if (tuple_pattern_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  append_tuple_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (tuple_pattern_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_tuple_item(*node, item);
+  }
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  if (ROW[I] - start_row) {
+    append_src_multiline(*node);
+  }
+  return 0;
+}
+
 static int pattern_parse(int *node) {
   if (lower_name_parse(node) == 0) {
     return 0;
@@ -4156,7 +4214,7 @@ static int pattern_parse(int *node) {
   if (empty_tuple_parse(node) == 0) {
     return 0;
   }
-  if (non_empty_tuple_parse(node) == 0) {
+  if (non_empty_pattern_tuple_parse(node) == 0) {
     return 0;
   }
   if (pattern_in_unnecessary_parens_parse(node) == 0) {
