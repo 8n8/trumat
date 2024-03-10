@@ -4236,7 +4236,7 @@ static int case_of_branch_parse(int *node) {
     return -1;
   }
   attach_left_comment(pattern, left_comment);
-  char_parse(' ');
+  whitespace_parse();
   if (chunk_parse("->")) {
     I = start;
     return -1;
