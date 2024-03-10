@@ -2395,7 +2395,7 @@ static void pattern_write(int node, int indent) {
 static void case_of_branch_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
   left_comments_with_spaces_write(1, left, floor_to_four(indent + 4));
-  pattern_write(left, indent + 4);
+  pattern_write(left, floor_to_four(indent + 4));
   if (is_multiline_node(left)) {
     indent_write(floor_to_four(indent + 4));
   } else {
