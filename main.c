@@ -4046,8 +4046,21 @@ static int case_of_pivot_parse(int *node) {
   return 0;
 }
 
+static int wildcard_parse(int *node) {
+  const int start = I;
+  if (char_parse('_')) {
+    return -1;
+  }
+  *node = get_new_node();
+  append_has_src(*node, start, 1);
+  return 0;
+}
+
 static int pattern_parse(int *node) {
   if (lower_name_parse(node) == 0) {
+    return 0;
+  }
+  if (wildcard_parse(node) == 0) {
     return 0;
   }
   return upper_name_parse(node);
