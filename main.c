@@ -2515,6 +2515,10 @@ static void pattern_write(int node, int indent) {
     non_empty_pattern_tuple_write(node, indent);
     return;
   }
+  if (is_non_empty_list(node)) {
+    non_empty_list_write(node, indent);
+    return;
+  }
   if (get_in_parens(node, &in_parens)) {
     in_parens_write(in_parens, indent);
     return;
@@ -4404,6 +4408,9 @@ static int pattern_parse(int *node) {
     return 0;
   }
   if (empty_list_parse(node) == 0) {
+    return 0;
+  }
+  if (non_empty_list_parse(node) == 0) {
     return 0;
   }
   if (non_empty_pattern_tuple_parse(node) == 0) {
