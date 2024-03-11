@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void in_parens_write(int node, int indent);
+static int get_callable(int node, int *callable);
+static int in_necessary_parens_parse(int *node);
 static int is_multiline_pattern_node(int node);
 static int wildcard_parse(int *node);
 static int has_multiline_right_comment(int node);
@@ -357,6 +360,22 @@ int NUM_CASE_BRANCH = 0;
 static uint32_t CASE_OF[MAX_CASE_OF];
 static uint32_t CASE_OF_PIVOT[MAX_CASE_OF];
 int NUM_CASE_OF = 0;
+
+#define MAX_FUNCTION_CALL 10000
+static uint32_t FUNCTION_CALL[MAX_FUNCTION_CALL];
+static uint32_t CALLABLE[MAX_FUNCTION_CALL];
+int NUM_FUNCTION_CALL = 0;
+
+static void append_function_call(int node, int callable) {
+  if (NUM_FUNCTION_CALL == MAX_FUNCTION_CALL) {
+    fprintf(stderr, "%s: too many function calls, maximum is %d\n", PATH,
+            MAX_FUNCTION_CALL);
+    exit(-1);
+  }
+  FUNCTION_CALL[NUM_FUNCTION_CALL] = node;
+  CALLABLE[NUM_FUNCTION_CALL] = callable;
+  ++NUM_FUNCTION_CALL;
+}
 
 static void attach_case_of_branch(int node, int branch) {
   for (int i = 0; i < NUM_CASE_BRANCH; ++i) {
@@ -897,6 +916,12 @@ static int is_multiline_node(int node) {
   start = 0;
   while (get_tuple_item(node, &item, &start) == 0) {
     if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  int callable;
+  if (get_callable(node, &callable) == 0) {
+    if (is_multiline_node(callable)) {
       return 1;
     }
   }
@@ -1520,10 +1545,10 @@ static int is_arg1_line1(int node) {
   return 0;
 }
 
-static void argument_write(int is_multi, int argument, int indent) {
+static void argument_write(int is_all_multi, int is_callable_multi, int argument, int indent) {
   const int left_is_multiline = has_multiline_left_comment(argument);
-  if ((is_multi && !is_arg1_line1(argument)) || left_is_multiline ||
-      is_multiline_node(argument)) {
+  if ((is_all_multi && !is_arg1_line1(argument)) || left_is_multiline ||
+      is_multiline_node(argument) || is_callable_multi) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
@@ -1533,37 +1558,53 @@ static void argument_write(int is_multi, int argument, int indent) {
   expression_write(argument, indent + 4);
 }
 
-static void callable_write(int node) {
+static void callable_write(int node, int indent) {
   int dot_function;
   if (get_dot_function(node, &dot_function)) {
     char_write('.');
     src_write(dot_function);
     return;
   }
+  int in_parens;
+  if (get_in_parens(node, &in_parens)) {
+    in_parens_write(in_parens, indent);
+    return;
+  }
   src_write(node);
 }
 
-static void function_call_write(int node, int indent) {
-  callable_write(node);
+static int get_callable(int node, int *callable) {
+  for (int i = 0; i < NUM_FUNCTION_CALL; ++i) {
+    if (FUNCTION_CALL[i] == (uint32_t)node) {
+      *callable = CALLABLE[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void function_call_write(int node, int callable, int indent) {
+  callable_write(callable, indent);
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
   const int is_multi = is_multiline_node(node);
-  argument_write(is_multi, argument, indent);
+  const int is_callable_multi = is_multiline_node(callable);
+  argument_write(is_multi, is_callable_multi, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
-    argument_write(is_multi, argument, indent);
+    argument_write(is_multi, is_callable_multi, argument, indent);
   }
 }
 
 static void pattern_function_call_write(int node, int indent) {
-  callable_write(node);
+  callable_write(node, indent);
   int argument;
   int start = 0;
   get_argument(node, &argument, &start);
   const int is_multi = is_multiline_pattern_node(node);
-  argument_write(is_multi, argument, indent);
+  argument_write(is_multi, 0, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
-    argument_write(is_multi, argument, indent);
+    argument_write(is_multi, 0, argument, indent);
   }
 }
 
@@ -2597,8 +2638,9 @@ static void not_infixed_write(int node, int indent) {
     non_empty_tuple_write(node, indent);
     return;
   }
-  if (has_arguments(node)) {
-    function_call_write(node, indent);
+  int callable;
+  if (get_callable(node, &callable) == 0) {
+    function_call_write(node, callable, indent);
     return;
   }
   int dot_function;
@@ -2706,6 +2748,7 @@ static void zero_ast() {
   NUM_IF_THEN_ELSE = 0;
   NUM_CASE_OF = 0;
   NUM_CASE_BRANCH = 0;
+  NUM_FUNCTION_CALL = 0;
 }
 
 static int get_new_node() {
@@ -3434,6 +3477,9 @@ static int callable_parse(int *node) {
   if (dot_function_parse(node) == 0) {
     return 0;
   }
+  if (in_necessary_parens_parse(node) == 0) {
+    return 0;
+  }
   return -1;
 }
 
@@ -3466,13 +3512,16 @@ static int after_callable_parse() {
 static int function_call_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
-  if (callable_parse(node)) {
+  int callable;
+  if (callable_parse(&callable)) {
     return -1;
   }
   if (after_callable_parse()) {
     I = start;
     return -1;
   }
+  *node = get_new_node();
+  append_function_call(*node, callable);
   int argument;
   const int first_arg_result = argument_and_comments_parse(&argument);
   if (first_arg_result) {
