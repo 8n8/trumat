@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int is_multiline_pattern_node(int node);
 static int wildcard_parse(int *node);
 static int has_multiline_right_comment(int node);
 static int pattern_argument_parse(int *node);
@@ -1554,6 +1555,18 @@ static void function_call_write(int node, int indent) {
   }
 }
 
+static void pattern_function_call_write(int node, int indent) {
+  callable_write(node);
+  int argument;
+  int start = 0;
+  get_argument(node, &argument, &start);
+  const int is_multi = is_multiline_pattern_node(node);
+  argument_write(is_multi, argument, indent);
+  while (get_argument(node, &argument, &start) == 0) {
+    argument_write(is_multi, argument, indent);
+  }
+}
+
 static int has_arguments(int node) {
   for (int i = 0; i < NUM_ARGUMENT; ++i) {
     if (ARGUMENT_PARENT[i] == (uint32_t)node) {
@@ -2454,7 +2467,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   if (has_arguments(node)) {
-    function_call_write(node, indent);
+    pattern_function_call_write(node, indent);
     return;
   }
   src_write(node);
