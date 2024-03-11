@@ -2391,7 +2391,7 @@ static int is_multiline_pattern_node(int node) {
   int start = 0;
   int item;
   while (get_tuple_item(node, &item, &start) == 0) {
-    if (is_multiline_node(item)) {
+    if (is_multiline_node(item) || has_multiline_left_comment(item)) {
       return 1;
     }
   }
