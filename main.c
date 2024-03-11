@@ -5,6 +5,7 @@
 #include <string.h>
 
 static int has_multiline_right_comment(int node);
+static int pattern_argument_parse(int *node);
 static int has_multiline_left_comment(int node);
 static int pattern_parse(int *node);
 static int get_if_then_else(int node, int *condition, int *then_branch,
@@ -2451,6 +2452,10 @@ static void pattern_write(int node, int indent) {
     in_parens_write(in_parens, indent);
     return;
   }
+  if (has_arguments(node)) {
+    function_call_write(node, indent);
+    return;
+  }
   src_write(node);
 }
 
@@ -3371,6 +3376,18 @@ static int list_parse(int *node) {
   return non_empty_list_parse(node);
 }
 
+static int pattern_argument_and_comments_parse(int *argument) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  if (pattern_argument_parse(argument)) {
+    I = start;
+    return -1;
+  }
+  attach_left_comment(*argument, left_comment);
+  return 0;
+}
+
 static int argument_and_comments_parse(int *argument) {
   const int start = I;
   whitespace_parse();
@@ -3475,6 +3492,8 @@ static int in_necessary_parens_parse(int *node) {
   append_in_parens(*node, expression);
   return 0;
 }
+
+static int pattern_argument_parse(int *node) { return lower_name_parse(node); }
 
 static int argument_parse(int *node) {
   if (simple_expression_parse(node) == 0) {
@@ -4254,7 +4273,44 @@ static int non_empty_pattern_tuple_parse(int *node) {
   return 0;
 }
 
+static int pattern_callable_parse(int *node) { return upper_name_parse(node); }
+
+static int pattern_function_call_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (pattern_callable_parse(node)) {
+    return -1;
+  }
+  if (after_callable_parse()) {
+    I = start;
+    return -1;
+  }
+  int argument;
+  const int first_arg_result = pattern_argument_and_comments_parse(&argument);
+  if (first_arg_result) {
+    I = start;
+    return -1;
+  }
+  append_argument(*node, argument);
+  if (ROW[I] == start_row) {
+    append_is_arg1_line1(argument);
+  }
+  while (1) {
+    if (pattern_argument_and_comments_parse(&argument)) {
+      break;
+    }
+    append_argument(*node, argument);
+  }
+  if (ROW[I] > start_row) {
+    append_src_multiline(*node);
+  }
+  return 0;
+}
+
 static int pattern_parse(int *node) {
+  if (pattern_function_call_parse(node) == 0) {
+    return 0;
+  }
   if (lower_name_parse(node) == 0) {
     return 0;
   }
