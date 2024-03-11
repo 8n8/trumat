@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int wildcard_parse(int *node);
 static int has_multiline_right_comment(int node);
 static int pattern_argument_parse(int *node);
 static int has_multiline_left_comment(int node);
@@ -3493,7 +3494,12 @@ static int in_necessary_parens_parse(int *node) {
   return 0;
 }
 
-static int pattern_argument_parse(int *node) { return lower_name_parse(node); }
+static int pattern_argument_parse(int *node) {
+  if (wildcard_parse(node) == 0) {
+    return 0;
+  }
+  return lower_name_parse(node);
+}
 
 static int argument_parse(int *node) {
   if (simple_expression_parse(node) == 0) {
