@@ -2422,6 +2422,13 @@ static int is_multiline_pattern_node(int node) {
       return 1;
     }
   }
+  start = 0;
+  while (get_argument(node, &item, &start) == 0) {
+    if (is_multiline_pattern_node(item) || has_multiline_left_comment(item) ||
+        has_multiline_right_comment(item)) {
+      return 1;
+    }
+  }
   return 0;
 }
 
