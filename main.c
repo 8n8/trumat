@@ -1545,7 +1545,8 @@ static int is_arg1_line1(int node) {
   return 0;
 }
 
-static void argument_write(int is_all_multi, int is_callable_multi, int argument, int indent) {
+static void argument_write(int is_all_multi, int is_callable_multi,
+                           int argument, int indent) {
   const int left_is_multiline = has_multiline_left_comment(argument);
   if ((is_all_multi && !is_arg1_line1(argument)) || left_is_multiline ||
       is_multiline_node(argument) || is_callable_multi) {
