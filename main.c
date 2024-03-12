@@ -4549,6 +4549,9 @@ static int not_infixed_pattern_parse(int *node) {
   if (pattern_with_comments_in_parentheses_parse(node) == 0) {
     return 0;
   }
+  if (int_parse(node) == 0) {
+    return 0;
+  }
   return upper_name_parse(node);
 }
 
