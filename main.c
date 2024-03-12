@@ -2578,6 +2578,10 @@ static void not_infixed_pattern_write(int node, int indent) {
     pattern_function_call_write(node, indent);
     return;
   }
+  if (is_empty_normal_string(node)) {
+    chunk_write("\"\"");
+    return;
+  }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
     return;
