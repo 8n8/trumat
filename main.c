@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int non_empty_pattern_tuple_parse(int *node);
 static void pattern_write(int node, int indent);
 static void in_parens_write(int node, int indent);
 static int get_callable(int node, int *callable);
@@ -4243,6 +4244,9 @@ static int simple_expression_parse(int *node) {
 }
 
 static int infixed_pattern_item_parse(int *node) {
+  if (non_empty_pattern_tuple_parse(node) == 0) {
+    return 0;
+  }
   return lower_name_parse(node);
 }
 
