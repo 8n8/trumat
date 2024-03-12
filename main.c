@@ -2578,6 +2578,10 @@ static void not_infixed_pattern_write(int node, int indent) {
     pattern_function_call_write(node, indent);
     return;
   }
+  if (is_non_empty_normal_string(node)) {
+    normal_string_write(node);
+    return;
+  }
   src_write(node);
 }
 
@@ -4550,6 +4554,9 @@ static int not_infixed_pattern_parse(int *node) {
     return 0;
   }
   if (int_parse(node) == 0) {
+    return 0;
+  }
+  if (normal_string_parse(node) == 0) {
     return 0;
   }
   return upper_name_parse(node);
