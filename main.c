@@ -1369,6 +1369,32 @@ static void non_empty_tuple_write(int node, int indent) {
   char_write(')');
 }
 
+static void non_empty_pattern_list_write(int node, int indent) {
+  chunk_write("[ ");
+  int item;
+  int start = 0;
+  if (get_list_item(node, &item, &start) == 0) {
+    list_item_write(item, indent);
+  }
+  int left_is_multiline = has_multiline_left_comment(item);
+  int any_is_multiline = left_is_multiline || is_multiline_node(item);
+  while (get_list_item(node, &item, &start) == 0) {
+    any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
+                       is_multiline_node(item);
+    if (any_is_multiline || is_multiline_node(node)) {
+      indent_write(indent);
+    }
+    chunk_write(", ");
+    list_item_write(item, indent);
+  }
+  if (any_is_multiline || is_multiline_pattern_node(node)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write(']');
+}
+
 static void non_empty_list_write(int node, int indent) {
   chunk_write("[ ");
   int item;
@@ -2516,7 +2542,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   if (is_non_empty_list(node)) {
-    non_empty_list_write(node, indent);
+    non_empty_pattern_list_write(node, indent);
     return;
   }
   if (get_in_parens(node, &in_parens)) {
