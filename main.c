@@ -3690,6 +3690,9 @@ static int pattern_argument_parse(int *node) {
   if (qualified_name_parse(node) == 0) {
     return 0;
   }
+  if (upper_name_parse(node) == 0) {
+    return 0;
+  }
   return lower_name_parse(node);
 }
 
