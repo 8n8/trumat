@@ -4247,6 +4247,9 @@ static int infixed_pattern_item_parse(int *node) {
   if (non_empty_pattern_tuple_parse(node) == 0) {
     return 0;
   }
+  if (wildcard_parse(node) == 0) {
+    return 0;
+  }
   return lower_name_parse(node);
 }
 
