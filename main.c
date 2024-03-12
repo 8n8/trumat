@@ -1954,6 +1954,16 @@ static int get_left_pizza(int node, int *right) {
   return -1;
 }
 
+static int infix_pattern_write(int *left, int is_multi, int indent) {
+  int right;
+  if (get_cons(*left, &right) == 0) {
+    infix_write_helper("::", is_multi, right, indent);
+    *left = right;
+    return 0;
+  }
+  return -1;
+}
+
 static int aligned_infix_write(int *left, int is_multi, int indent) {
   int right;
   if (get_cons(*left, &right) == 0) {
@@ -2541,7 +2551,7 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
   char_write(')');
 }
 
-static void pattern_write(int node, int indent) {
+static void not_infixed_pattern_write(int node, int indent) {
   int in_parens;
   if (is_empty_tuple(node)) {
     chunk_write("()");
@@ -2568,6 +2578,14 @@ static void pattern_write(int node, int indent) {
     return;
   }
   src_write(node);
+}
+
+static void pattern_write(int node, int indent) {
+  not_infixed_pattern_write(node, indent);
+  const int is_multi = is_multiline_infix_node(node);
+  int left = node;
+  while (infix_pattern_write(&left, is_multi, indent) == 0) {
+  }
 }
 
 static void case_of_branch_write(int left, int right, int indent) {
@@ -4224,6 +4242,10 @@ static int simple_expression_parse(int *node) {
   return list_parse(node);
 }
 
+static int infixed_pattern_item_parse(int *node) {
+  return lower_name_parse(node);
+}
+
 static int infixed_item_parse(int *node) {
   if (function_call_parse(node) == 0) {
     return 0;
@@ -4483,7 +4505,7 @@ static int pattern_function_call_parse(int *node) {
   return 0;
 }
 
-static int pattern_parse(int *node) {
+static int not_infixed_pattern_parse(int *node) {
   if (pattern_function_call_parse(node) == 0) {
     return 0;
   }
@@ -4512,6 +4534,64 @@ static int pattern_parse(int *node) {
     return 0;
   }
   return upper_name_parse(node);
+}
+
+static int pattern_infix_then_expression_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (chunk_parse("::")) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  whitespace_parse();
+  if (infixed_pattern_item_parse(node)) {
+    I = start;
+    return -1;
+  }
+  attach_left_comment(*node, left_comment);
+  attach_right_comment_in_expression(*node, right_comment);
+  return 0;
+}
+
+static int pattern_infix_parse(int *left) {
+  int right;
+  if (pattern_infix_then_expression_parse(&right) == 0) {
+    append_cons(*left, right);
+    *left = right;
+    return 0;
+  }
+  return -1;
+}
+
+static int infixed_pattern_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (not_infixed_pattern_parse(node)) {
+    I = start;
+    return -1;
+  }
+  int left = *node;
+  if (pattern_infix_parse(&left)) {
+    I = start;
+    return -1;
+  }
+  while (pattern_infix_parse(&left) == 0) {
+  }
+  if (ROW[I] > start_row) {
+    append_multiline_infix(*node);
+  }
+  return 0;
+}
+
+static int pattern_parse(int *node) {
+  if (infixed_pattern_parse(node) == 0) {
+    return 0;
+  }
+  return not_infixed_pattern_parse(node);
 }
 
 static int case_of_branch_parse(int *node) {
