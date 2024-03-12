@@ -3233,6 +3233,21 @@ static int right_comments_with_title_parse() {
   return parent;
 }
 
+static int pattern_list_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (pattern_parse(node)) {
+    I = start;
+    return -1;
+  }
+  attach_left_comment(*node, left_comment);
+  const int right_comment = right_comments_with_title_parse();
+  attach_right_comment(*node, right_comment);
+  return 0;
+}
+
 static int list_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
@@ -3406,6 +3421,39 @@ static int non_empty_record_parse(int *node) {
     return -1;
   }
   return record_items_parse(node, start, start_row);
+}
+
+static int non_empty_pattern_list_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('[')) {
+    return -1;
+  }
+  int item;
+  if (pattern_list_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_list_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (pattern_list_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_list_item(*node, item);
+  }
+  if (char_parse(']')) {
+    I = start;
+    return -1;
+  }
+  if (ROW[I] - start_row) {
+    append_src_multiline(*node);
+  }
+  return 0;
 }
 
 static int non_empty_list_parse(int *node) {
@@ -4410,7 +4458,7 @@ static int pattern_parse(int *node) {
   if (empty_list_parse(node) == 0) {
     return 0;
   }
-  if (non_empty_list_parse(node) == 0) {
+  if (non_empty_pattern_list_parse(node) == 0) {
     return 0;
   }
   if (non_empty_pattern_tuple_parse(node) == 0) {
