@@ -4513,6 +4513,9 @@ static int pattern_function_call_parse(int *node) {
 }
 
 static int not_infixed_pattern_parse(int *node) {
+  if (qualified_name_parse(node) == 0) {
+    return 0;
+  }
   if (pattern_function_call_parse(node) == 0) {
     return 0;
   }
