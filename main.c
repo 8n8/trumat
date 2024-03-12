@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void pattern_write(int node, int indent);
 static void in_parens_write(int node, int indent);
 static int get_callable(int node, int *callable);
 static int in_necessary_parens_parse(int *node);
@@ -1369,12 +1370,18 @@ static void non_empty_tuple_write(int node, int indent) {
   char_write(')');
 }
 
+static void pattern_list_item_write(int item, int indent) {
+  left_comments_with_spaces_write(0, item, indent + 2);
+  pattern_write(item, indent + 2);
+  right_comments_with_spaces_write(item, indent + 2);
+}
+
 static void non_empty_pattern_list_write(int node, int indent) {
   chunk_write("[ ");
   int item;
   int start = 0;
   if (get_list_item(node, &item, &start) == 0) {
-    list_item_write(item, indent);
+    pattern_list_item_write(item, indent);
   }
   int left_is_multiline = has_multiline_left_comment(item);
   int any_is_multiline = left_is_multiline || is_multiline_node(item);
@@ -1385,7 +1392,7 @@ static void non_empty_pattern_list_write(int node, int indent) {
       indent_write(indent);
     }
     chunk_write(", ");
-    list_item_write(item, indent);
+    pattern_list_item_write(item, indent);
   }
   if (any_is_multiline || is_multiline_pattern_node(node)) {
     indent_write(indent);
@@ -3276,8 +3283,9 @@ static int pattern_list_item_parse(int *node) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
-  const int right_comment = right_comments_with_title_parse();
-  attach_right_comment(*node, right_comment);
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(*node, right_comment);
+  whitespace_parse();
   return 0;
 }
 
