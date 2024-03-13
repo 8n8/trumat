@@ -3979,7 +3979,7 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
-static int argument_in_unnecessary_parens_contents_parse(int *node) {
+static int part_in_unnecessary_parens_contents_parse(int *node) {
   if (part_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
@@ -4008,7 +4008,7 @@ static int part_in_unnecessary_parens_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  if (argument_in_unnecessary_parens_contents_parse(node)) {
+  if (part_in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
   }
