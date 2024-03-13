@@ -6,7 +6,8 @@ set -e
 
 rm -rf tests
 mkdir tests
-clang test.c
+clang -c hydrogen.c
+clang -fsanitize=memory -g -Wall -Werror -Wextra -pedantic -O0 -std=c99 hydrogen.o test.c
 ./a.out
 
 rm -rf got expected
