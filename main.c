@@ -39,7 +39,7 @@ static int if_then_else_parse(int *node);
 static int keyword_parse(char *keyword);
 static int record_parse(int *node);
 static int infixed_parse(int *node);
-static int argument_in_unnecessary_parens_parse(int *node);
+static int part_in_unnecessary_parens_parse(int *node);
 static int has_right_comment(int node);
 static int simple_expression_parse(int *node);
 static int get_dot_function(int node, int *dot_function);
@@ -3605,7 +3605,7 @@ static int callable_parse(int *node) {
   if (in_necessary_parens_parse(node) == 0) {
     return 0;
   }
-  if (argument_in_unnecessary_parens_parse(node) == 0) {
+  if (part_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return -1;
@@ -3711,7 +3711,7 @@ static int argument_parse(int *node) {
   if (simple_expression_parse(node) == 0) {
     return 0;
   }
-  if (argument_in_unnecessary_parens_parse(node) == 0) {
+  if (part_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return in_necessary_parens_parse(node);
@@ -3979,8 +3979,8 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
-static int argument_in_unnecessary_parens_contents_parse(int *node) {
-  if (argument_in_unnecessary_parens_parse(node) == 0) {
+static int part_in_unnecessary_parens_contents_parse(int *node) {
+  if (part_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return simple_expression_parse(node);
@@ -4002,13 +4002,13 @@ static int in_unnecessary_parens_contents_parse(int *node) {
   return simple_expression_parse(node);
 }
 
-static int argument_in_unnecessary_parens_parse(int *node) {
+static int part_in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
-  if (argument_in_unnecessary_parens_contents_parse(node)) {
+  if (part_in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
   }
@@ -4283,7 +4283,7 @@ static int infixed_item_parse(int *node) {
   if (in_necessary_parens_parse(node) == 0) {
     return 0;
   }
-  return argument_in_unnecessary_parens_parse(node);
+  return part_in_unnecessary_parens_parse(node);
 }
 
 static int not_newline_parse() {
