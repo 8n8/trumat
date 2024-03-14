@@ -4564,10 +4564,8 @@ static int infixed_pattern_parse(int *node) {
 }
 
 static int pattern_parse(int *node) {
-  if (infixed_pattern_parse(node) == 0) {
-    return 0;
-  }
-  return not_infixed_pattern_parse(node);
+  return infixed_pattern_parse(node) &&
+  not_infixed_pattern_parse(node);
 }
 
 static int case_of_branch_parse(int *node) {
@@ -4608,19 +4606,11 @@ static int case_of_parse(int *node) {
 }
 
 static int not_infixed_parse(int *node) {
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
-  if (simple_expression_parse(node) == 0) {
-    return 0;
-  }
-  if (if_then_else_parse(node) == 0) {
-    return 0;
-  }
-  if (case_of_parse(node) == 0) {
-    return 0;
-  }
-  return in_unnecessary_parens_parse(node);
+  return function_call_parse(node)
+  && simple_expression_parse(node)
+  && if_then_else_parse(node)
+  && case_of_parse(node)
+  && in_unnecessary_parens_parse(node);
 }
 
 static int line_comment_parse(int *node) {
@@ -4760,16 +4750,10 @@ static int double_hyphen_block_comment_parse(int *node) {
 }
 
 static int comment_parse(int *node) {
-  if (line_comment_parse(node) == 0) {
-    return 0;
-  }
-  if (empty_block_comment_parse(node) == 0) {
-    return 0;
-  }
-  if (double_hyphen_block_comment_parse(node) == 0) {
-    return 0;
-  }
-  return non_empty_block_comment_parse(node);
+  return line_comment_parse(node)
+  && empty_block_comment_parse(node)
+  && double_hyphen_block_comment_parse(node)
+  && non_empty_block_comment_parse(node);
 }
 
 static int left_comments_parse() {
