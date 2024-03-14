@@ -4015,19 +4015,11 @@ static int argument_in_unnecessary_parens_contents_parse(int *node) {
 }
 
 static int in_unnecessary_parens_contents_parse(int *node) {
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
-  if (infixed_parse(node) == 0) {
-    return 0;
-  }
-  if (in_unnecessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  if (if_then_else_parse(node) == 0) {
-    return 0;
-  }
-  return simple_expression_parse(node);
+  return function_call_parse(node)
+  && infixed_parse(node)
+  && in_unnecessary_parens_parse(node)
+  && if_then_else_parse(node)
+  && simple_expression_parse(node);
 }
 
 static int callable_in_unnecessary_parens_parse(int *node) {
