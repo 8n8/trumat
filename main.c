@@ -4210,10 +4210,7 @@ static int record_parse(int *node) {
 }
 
 static int tuple_parse(int *node) {
-  if (non_empty_tuple_parse(node) == 0) {
-    return 0;
-  }
-  return empty_tuple_parse(node);
+  return non_empty_tuple_parse(node) && empty_tuple_parse(node);
 }
 
 static int dot_function_parse(int *node) {
