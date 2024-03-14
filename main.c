@@ -944,6 +944,22 @@ static int is_multiline_function_call(int node) {
   return 0;
 }
 
+static int is_multiline_in_parens(int node) {
+  int item;
+  if (get_in_parens(node, &item)) {
+    if (has_multiline_left_comment(item)) {
+      return 1;
+    }
+    if (has_multiline_right_comment(item)) {
+      return 1;
+    }
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   if (is_multiline_src_node(node)) {
     return 1;
@@ -960,17 +976,8 @@ static int is_multiline_node(int node) {
   if (is_multiline_function_call(node)) {
     return 1;
   }
-  int item;
-  if (get_in_parens(node, &item)) {
-    if (has_multiline_left_comment(item)) {
-      return 1;
-    }
-    if (has_multiline_right_comment(item)) {
-      return 1;
-    }
-    if (is_multiline_node(item)) {
-      return 1;
-    }
+  if (is_multiline_in_parens(node)) {
+    return 1;
   }
   return 0;
 }
