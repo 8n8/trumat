@@ -725,7 +725,7 @@ static void char_write(uint8_t c) {
   ++NUM_OUT;
 }
 
-static void chunk_write(char *chunk) {
+static void chunk_write(const char *chunk) {
   for (int i = 0; chunk[i] != '\0'; ++i) {
     char_write(chunk[i]);
   }
