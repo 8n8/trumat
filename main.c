@@ -3740,16 +3740,8 @@ static int in_necessary_parens_parse(int *node) {
 }
 
 static int pattern_argument_parse(int *node) {
-  if (wildcard_parse(node) == 0) {
-    return 0;
-  }
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
-  if (upper_name_parse(node) == 0) {
-    return 0;
-  }
-  return lower_name_parse(node);
+  return wildcard_parse(node) && qualified_name_parse(node) &&
+         upper_name_parse(node) && lower_name_parse(node);
 }
 
 static int argument_parse(int *node) {
