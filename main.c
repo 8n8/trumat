@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int case_of_parse(int *node);
 static int is_multiline_node(int node);
 static void function_call_write(int node, int callable, int indent);
 static int callable_in_unnecessary_parens_parse(int *node);
@@ -4016,7 +4017,7 @@ static int argument_in_unnecessary_parens_contents_parse(int *node) {
 static int in_unnecessary_parens_contents_parse(int *node) {
   return function_call_parse(node) && infixed_parse(node) &&
          in_unnecessary_parens_parse(node) && if_then_else_parse(node) &&
-         simple_expression_parse(node);
+         simple_expression_parse(node) && case_of_parse(node);
 }
 
 static int callable_in_unnecessary_parens_parse(int *node) {
