@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int is_multiline_node(int node);
 static void function_call_write(int node, int callable, int indent);
 static int callable_in_unnecessary_parens_parse(int *node);
 static int callable_in_necessary_parens_parse(int *node);
@@ -904,6 +905,17 @@ static int is_multiline_src_node(int node) {
   return 0;
 }
 
+static int is_multiline_tuple(int node) {
+  int item;
+  int start = 0;
+  while (get_tuple_item(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   if (is_multiline_src_node(node)) {
     return 1;
@@ -918,11 +930,8 @@ static int is_multiline_node(int node) {
       return 1;
     }
   }
-  start = 0;
-  while (get_tuple_item(node, &item, &start) == 0) {
-    if (is_multiline_node(item)) {
-      return 1;
-    }
+  if (is_multiline_tuple(node)) {
+    return 1;
   }
   int callable;
   if (get_callable(node, &callable) == 0) {
