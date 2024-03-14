@@ -961,25 +961,9 @@ static int is_multiline_in_parens(int node) {
 }
 
 static int is_multiline_node(int node) {
-  if (is_multiline_src_node(node)) {
-    return 1;
-  }
-  if (is_if_then_else_node(node)) {
-    return 1;
-  }
-  if (is_multiline_list(node)) {
-    return 1;
-  }
-  if (is_multiline_tuple(node)) {
-    return 1;
-  }
-  if (is_multiline_function_call(node)) {
-    return 1;
-  }
-  if (is_multiline_in_parens(node)) {
-    return 1;
-  }
-  return 0;
+  return is_multiline_src_node(node) || is_if_then_else_node(node) ||
+         is_multiline_list(node) || is_multiline_tuple(node) ||
+         is_multiline_function_call(node) || is_multiline_in_parens(node);
 }
 
 static void append_same_line_comment(int node, int comment) {
