@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void function_call_write(int node, int callable, int indent);
+static int callable_in_unnecessary_parens_parse(int *node);
+static int callable_in_necessary_parens_parse(int *node);
 static int non_empty_pattern_tuple_parse(int *node);
 static void pattern_write(int node, int indent);
 static void in_parens_write(int node, int indent);
@@ -1603,6 +1606,11 @@ static void callable_write(int node, int indent) {
   int in_parens;
   if (get_in_parens(node, &in_parens)) {
     in_parens_write(in_parens, indent);
+    return;
+  }
+  int callable;
+  if (get_callable(node, &callable) == 0) {
+    function_call_write(node, callable, indent);
     return;
   }
   src_write(node);
@@ -3602,10 +3610,10 @@ static int callable_parse(int *node) {
   if (dot_function_parse(node) == 0) {
     return 0;
   }
-  if (in_necessary_parens_parse(node) == 0) {
+  if (callable_in_necessary_parens_parse(node) == 0) {
     return 0;
   }
-  if (part_in_unnecessary_parens_parse(node) == 0) {
+  if (callable_in_unnecessary_parens_parse(node) == 0) {
     return 0;
   }
   return -1;
@@ -3669,6 +3677,27 @@ static int function_call_parse(int *node) {
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
+  return 0;
+}
+
+static int callable_in_necessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  int expression;
+  if (infixed_parse(&expression) && if_then_else_parse(&expression)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_in_parens(*node, expression);
   return 0;
 }
 
@@ -3979,6 +4008,16 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
+static int callable_in_unnecessary_parens_contents_parse(int *node) {
+  if (callable_in_unnecessary_parens_parse(node) == 0) {
+    return 0;
+  }
+  if (function_call_parse(node) == 0) {
+    return 0;
+  }
+  return simple_expression_parse(node);
+}
+
 static int part_in_unnecessary_parens_contents_parse(int *node) {
   if (part_in_unnecessary_parens_parse(node) == 0) {
     return 0;
@@ -4001,6 +4040,25 @@ static int in_unnecessary_parens_contents_parse(int *node) {
   }
   return simple_expression_parse(node);
 }
+
+static int callable_in_unnecessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  if (callable_in_unnecessary_parens_contents_parse(node)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 
 static int part_in_unnecessary_parens_parse(int *node) {
   const int start = I;
