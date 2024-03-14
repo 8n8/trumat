@@ -4077,13 +4077,8 @@ static int in_unnecessary_parens_parse(int *node) {
 }
 
 static int pattern_in_unnecessary_parens_contents_parse(int *node) {
-  if (lower_name_parse(node) == 0) {
-    return 0;
-  }
-  if (upper_name_parse(node) == 0) {
-    return 0;
-  }
-  return 0;
+  return lower_name_parse(node)
+  && upper_name_parse(node);
 }
 
 static int pattern_in_unnecessary_parens_parse(int *node) {
