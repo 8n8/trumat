@@ -927,6 +927,16 @@ static int is_multiline_list(int node) {
   return 0;
 }
 
+static int is_multiline_function_call(int node) {
+  int callable;
+  if (get_callable(node, &callable) == 0) {
+    if (is_multiline_node(callable)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   if (is_multiline_src_node(node)) {
     return 1;
@@ -940,11 +950,8 @@ static int is_multiline_node(int node) {
   if (is_multiline_tuple(node)) {
     return 1;
   }
-  int callable;
-  if (get_callable(node, &callable) == 0) {
-    if (is_multiline_node(callable)) {
-      return 1;
-    }
+  if (is_multiline_function_call(node)) {
+    return 1;
   }
   int item;
   int start = 0;
