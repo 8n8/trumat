@@ -4059,7 +4059,6 @@ static int callable_in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
-
 static int part_in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
