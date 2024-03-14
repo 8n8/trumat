@@ -934,6 +934,13 @@ static int is_multiline_function_call(int node) {
       return 1;
     }
   }
+  int item;
+  int start = 0;
+  while (get_argument(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
   return 0;
 }
 
@@ -954,12 +961,6 @@ static int is_multiline_node(int node) {
     return 1;
   }
   int item;
-  int start = 0;
-  while (get_argument(node, &item, &start) == 0) {
-    if (is_multiline_node(item)) {
-      return 1;
-    }
-  }
   if (get_in_parens(node, &item)) {
     if (has_multiline_left_comment(item)) {
       return 1;
