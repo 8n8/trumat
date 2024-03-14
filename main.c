@@ -916,6 +916,17 @@ static int is_multiline_tuple(int node) {
   return 0;
 }
 
+static int is_multiline_list(int node) {
+  int item;
+  int start = 0;
+  while (get_list_item(node, &item, &start) == 0) {
+    if (is_multiline_node(item)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   if (is_multiline_src_node(node)) {
     return 1;
@@ -923,12 +934,8 @@ static int is_multiline_node(int node) {
   if (is_if_then_else_node(node)) {
     return 1;
   }
-  int item;
-  int start = 0;
-  while (get_list_item(node, &item, &start) == 0) {
-    if (is_multiline_node(item)) {
-      return 1;
-    }
+  if (is_multiline_list(node)) {
+    return 1;
   }
   if (is_multiline_tuple(node)) {
     return 1;
@@ -939,7 +946,8 @@ static int is_multiline_node(int node) {
       return 1;
     }
   }
-  start = 0;
+  int item;
+  int start = 0;
   while (get_argument(node, &item, &start) == 0) {
     if (is_multiline_node(item)) {
       return 1;
