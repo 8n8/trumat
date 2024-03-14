@@ -4248,17 +4248,14 @@ static int simple_expression_parse(int *node) {
 }
 
 static int infixed_pattern_item_parse(int *node) {
-  return non_empty_pattern_tuple_parse(node)
-  && wildcard_parse(node)
-  && lower_name_parse(node);
+  return non_empty_pattern_tuple_parse(node) && wildcard_parse(node) &&
+         lower_name_parse(node);
 }
 
 static int infixed_item_parse(int *node) {
-  return function_call_parse(node)
-  && simple_expression_parse(node)
-  && if_then_else_parse(node)
-  && in_necessary_parens_parse(node)
-  && argument_in_unnecessary_parens_parse(node);
+  return function_call_parse(node) && simple_expression_parse(node) &&
+         if_then_else_parse(node) && in_necessary_parens_parse(node) &&
+         argument_in_unnecessary_parens_parse(node);
 }
 
 static int not_newline_parse() {
@@ -4505,43 +4502,14 @@ static int pattern_function_call_parse(int *node) {
 }
 
 static int not_infixed_pattern_parse(int *node) {
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
-  if (pattern_function_call_parse(node) == 0) {
-    return 0;
-  }
-  if (lower_name_parse(node) == 0) {
-    return 0;
-  }
-  if (wildcard_parse(node) == 0) {
-    return 0;
-  }
-  if (empty_tuple_parse(node) == 0) {
-    return 0;
-  }
-  if (empty_list_parse(node) == 0) {
-    return 0;
-  }
-  if (non_empty_pattern_list_parse(node) == 0) {
-    return 0;
-  }
-  if (non_empty_pattern_tuple_parse(node) == 0) {
-    return 0;
-  }
-  if (pattern_in_unnecessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  if (pattern_with_comments_in_parentheses_parse(node) == 0) {
-    return 0;
-  }
-  if (int_parse(node) == 0) {
-    return 0;
-  }
-  if (normal_string_parse(node) == 0) {
-    return 0;
-  }
-  return upper_name_parse(node);
+  return qualified_name_parse(node) && pattern_function_call_parse(node) &&
+         lower_name_parse(node) && wildcard_parse(node) &&
+         empty_tuple_parse(node) && empty_list_parse(node) &&
+         non_empty_pattern_list_parse(node) &&
+         non_empty_pattern_tuple_parse(node) &&
+         pattern_in_unnecessary_parens_parse(node) &&
+         pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
+         normal_string_parse(node) && upper_name_parse(node);
 }
 
 static int pattern_infix_then_expression_parse(int *node) {
