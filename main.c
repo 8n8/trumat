@@ -3928,10 +3928,7 @@ static int infixed_parse(int *node) {
 }
 
 static int expression_parse(int *node) {
-  if (infixed_parse(node) == 0) {
-    return 0;
-  }
-  return not_infixed_parse(node);
+  return infixed_parse(node) && not_infixed_parse(node);
 }
 
 static int qualified_name_part_parse() {
@@ -3963,13 +3960,7 @@ static int dottable_name_part_parse() {
 }
 
 static int dottable_parse(int *node) {
-  if (lower_name_parse(node) == 0) {
-    return 0;
-  }
-  if (record_parse(node) == 0) {
-    return 0;
-  }
-  return -1;
+  return lower_name_parse(node) && record_parse(node);
 }
 
 static int dotted_parse(int *node) {
