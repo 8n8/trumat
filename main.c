@@ -3615,25 +3615,10 @@ static int argument_and_comments_parse(int *argument) {
 }
 
 static int callable_parse(int *node) {
-  if (qualified_name_parse(node) == 0) {
-    return 0;
-  }
-  if (upper_name_parse(node) == 0) {
-    return 0;
-  }
-  if (lower_name_parse(node) == 0) {
-    return 0;
-  }
-  if (dot_function_parse(node) == 0) {
-    return 0;
-  }
-  if (callable_in_necessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  if (callable_in_unnecessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  return -1;
+  return qualified_name_parse(node) && upper_name_parse(node) &&
+         lower_name_parse(node) && dot_function_parse(node) &&
+         callable_in_necessary_parens_parse(node) &&
+         callable_in_unnecessary_parens_parse(node);
 }
 
 static int after_callable_parse() {
