@@ -4204,13 +4204,9 @@ static int empty_record_parse(int *node) {
 }
 
 static int record_parse(int *node) {
-  if (empty_record_parse(node) == 0) {
-    return 0;
-  }
-  if (non_empty_record_parse(node) == 0) {
-    return 0;
-  }
-  return record_update_parse(node);
+  return empty_record_parse(node)
+  && non_empty_record_parse(node)
+  && record_update_parse(node);
 }
 
 static int tuple_parse(int *node) {
