@@ -3745,13 +3745,9 @@ static int pattern_argument_parse(int *node) {
 }
 
 static int argument_parse(int *node) {
-  if (simple_expression_parse(node) == 0) {
-    return 0;
-  }
-  if (argument_in_unnecessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  return in_necessary_parens_parse(node);
+  return simple_expression_parse(node) &&
+         argument_in_unnecessary_parens_parse(node) &&
+         in_necessary_parens_parse(node);
 }
 
 static void attach_same_line_comment(int node, int same_line_comment) {
