@@ -4248,29 +4248,17 @@ static int simple_expression_parse(int *node) {
 }
 
 static int infixed_pattern_item_parse(int *node) {
-  if (non_empty_pattern_tuple_parse(node) == 0) {
-    return 0;
-  }
-  if (wildcard_parse(node) == 0) {
-    return 0;
-  }
-  return lower_name_parse(node);
+  return non_empty_pattern_tuple_parse(node)
+  && wildcard_parse(node)
+  && lower_name_parse(node);
 }
 
 static int infixed_item_parse(int *node) {
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
-  if (simple_expression_parse(node) == 0) {
-    return 0;
-  }
-  if (if_then_else_parse(node) == 0) {
-    return 0;
-  }
-  if (in_necessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  return argument_in_unnecessary_parens_parse(node);
+  return function_call_parse(node)
+  && simple_expression_parse(node)
+  && if_then_else_parse(node)
+  && in_necessary_parens_parse(node)
+  && argument_in_unnecessary_parens_parse(node);
 }
 
 static int not_newline_parse() {
