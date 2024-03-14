@@ -4004,13 +4004,9 @@ static int qualified_name_parse(int *node) {
 }
 
 static int callable_in_unnecessary_parens_contents_parse(int *node) {
-  if (callable_in_unnecessary_parens_parse(node) == 0) {
-    return 0;
-  }
-  if (function_call_parse(node) == 0) {
-    return 0;
-  }
-  return simple_expression_parse(node);
+  return callable_in_unnecessary_parens_parse(node)
+   && function_call_parse(node)
+   && simple_expression_parse(node);
 }
 
 static int argument_in_unnecessary_parens_contents_parse(int *node) {
