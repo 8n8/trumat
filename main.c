@@ -961,10 +961,20 @@ static int is_multiline_in_parens(int node) {
   return 0;
 }
 
+static int is_case_of_node(int node) {
+  for (int i = 0; i < NUM_CASE_OF; ++i) {
+    if (CASE_OF[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   return is_multiline_src_node(node) || is_if_then_else_node(node) ||
-         is_multiline_list(node) || is_multiline_tuple(node) ||
-         is_multiline_function_call(node) || is_multiline_in_parens(node);
+         is_case_of_node(node) || is_multiline_list(node) ||
+         is_multiline_tuple(node) || is_multiline_function_call(node) ||
+         is_multiline_in_parens(node);
 }
 
 static void append_same_line_comment(int node, int comment) {
@@ -2639,7 +2649,8 @@ static void case_of_branch_write(int left, int right, int indent) {
 static void between_case_and_of_write(int node, int pivot, int indent) {
   const int has_left = has_left_comment(pivot);
   const int left_is_multiline = has_multiline_left_comment(pivot);
-  const int is_multiline = is_multiline_node(pivot) || is_multiline_node(node);
+  const int is_multiline =
+      is_multiline_node(pivot) || is_multiline_src_node(node);
   if (has_left && left_is_multiline) {
     indent_write(floor_to_four(indent + 4));
   }
@@ -3689,7 +3700,8 @@ static int callable_in_necessary_parens_parse(int *node) {
   }
   whitespace_parse();
   int expression;
-  if (infixed_parse(&expression) && if_then_else_parse(&expression)) {
+  if (infixed_parse(&expression) && if_then_else_parse(&expression) &&
+      case_of_parse(&expression)) {
     I = start;
     return -1;
   }
