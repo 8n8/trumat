@@ -2617,6 +2617,10 @@ static void not_infixed_pattern_write(int node, int indent) {
     chunk_write("\"\"");
     return;
   }
+  if (is_empty_triple_string(node)) {
+    chunk_write("\"\"\"\"\"\"");
+    return;
+  }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
     return;
@@ -4507,7 +4511,7 @@ static int not_infixed_pattern_parse(int *node) {
          non_empty_pattern_tuple_parse(node) &&
          pattern_in_unnecessary_parens_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
-         normal_string_parse(node) && upper_name_parse(node);
+         triple_string_parse(node) && normal_string_parse(node) && upper_name_parse(node);
 }
 
 static int pattern_infix_then_expression_parse(int *node) {
