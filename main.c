@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int function_call_pattern_parse(int *node);
 static int pattern_argument_in_unnecessary_parens_parse(int *node);
 static int infixed_pattern_parse(int *node);
 static int pattern_infix_parse(int *left);
@@ -3799,7 +3800,8 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
   }
   whitespace_parse();
   int expression;
-  if (infixed_pattern_parse(&expression)) {
+  if (infixed_pattern_parse(&expression) &&
+      function_call_pattern_parse(&expression)) {
     I = start;
     return -1;
   }
