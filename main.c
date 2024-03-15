@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int infixed_pattern_parse(int *node);
+static int pattern_infix_parse(int *left);
 static int empty_tuple_parse(int *node);
 static int case_of_parse(int *node);
 static int is_multiline_node(int node);
@@ -3760,12 +3762,33 @@ static int in_necessary_parens_parse(int *node) {
   return 0;
 }
 
+static int pattern_argument_in_necessary_parens_parse(int *node) {
+  const int start = I;
+  if (char_parse('(')) {
+    return -1;
+  }
+  whitespace_parse();
+  int expression;
+  if (infixed_pattern_parse(&expression)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(')')) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_in_parens(*node, expression);
+  return 0;
+}
+
 static int pattern_argument_parse(int *node) {
   return wildcard_parse(node) && qualified_name_parse(node) &&
-         list_parse(node) && upper_name_parse(node) && lower_name_parse(node) &&
-         int_parse(node) && triple_string_parse(node) &&
-         normal_string_parse(node) && non_empty_tuple_pattern_parse(node) &&
-         empty_tuple_parse(node);
+         pattern_argument_in_necessary_parens_parse(node) && list_parse(node) &&
+         upper_name_parse(node) && lower_name_parse(node) && int_parse(node) &&
+         triple_string_parse(node) && normal_string_parse(node) &&
+         non_empty_tuple_pattern_parse(node) && empty_tuple_parse(node);
 }
 
 static int argument_parse(int *node) {
