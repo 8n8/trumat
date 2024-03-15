@@ -2651,7 +2651,7 @@ static void not_infixed_pattern_write(int node, int indent) {
 
 static void pattern_write(int node, int indent) {
   not_infixed_pattern_write(node, indent);
-  const int is_multi = is_multiline_infix_node(node);
+  const int is_multi = is_multiline_pattern_node(node);
   int left = node;
   while (infix_pattern_write(&left, is_multi, indent) == 0) {
   }
