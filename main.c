@@ -2632,6 +2632,10 @@ static void not_infixed_pattern_write(int node, int indent) {
     chunk_write("\"\"");
     return;
   }
+  if (is_non_empty_triple_string(node)) {
+    triple_string_write(node);
+    return;
+  }
   if (is_empty_triple_string(node)) {
     chunk_write("\"\"\"\"\"\"");
     return;
