@@ -2254,6 +2254,35 @@ static int get_normal_string_item(int node, int *item, int *start) {
   return -1;
 }
 
+static void pattern_in_parens_write(int node, int indent) {
+  chunk_write("(");
+  const int has_left = has_left_comment(node);
+  const int left_is_multiline = has_multiline_left_comment(node);
+  left_comments_with_spaces_write(0, node, indent + 1);
+  pattern_write(node, indent + 1);
+  const int has_right = has_right_comment(node);
+  const int right_is_multiline = has_multiline_right_comment(node);
+  if (left_is_multiline && !has_right) {
+    indent_write(indent);
+  }
+  if (!left_is_multiline && !has_right && is_multiline_node(node)) {
+    indent_write(indent);
+  }
+  const int is_newline_right =
+      has_right && ((has_left && left_is_multiline) || right_is_multiline);
+  if (is_newline_right) {
+    indent_write(indent + 1);
+  }
+  if (!has_left && has_right && !right_is_multiline) {
+    char_write(' ');
+  }
+  right_comments_in_expression_write(node, indent + 1);
+  if (is_newline_right) {
+    indent_write(indent);
+  }
+  char_write(')');
+}
+
 static void in_parens_write(int node, int indent) {
   chunk_write("(");
   const int has_left = has_left_comment(node);
@@ -2623,7 +2652,7 @@ static void not_infixed_pattern_write(int node, int indent) {
   }
   int in_parens;
   if (get_in_parens(node, &in_parens)) {
-    in_parens_write(in_parens, indent);
+    pattern_in_parens_write(in_parens, indent);
     return;
   }
   if (has_arguments(node)) {
