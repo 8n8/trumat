@@ -2605,7 +2605,6 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
 }
 
 static void not_infixed_pattern_write(int node, int indent) {
-  int in_parens;
   if (is_empty_tuple(node)) {
     chunk_write("()");
     return;
@@ -2622,6 +2621,7 @@ static void not_infixed_pattern_write(int node, int indent) {
     non_empty_pattern_list_write(node, indent);
     return;
   }
+  int in_parens;
   if (get_in_parens(node, &in_parens)) {
     in_parens_write(in_parens, indent);
     return;
