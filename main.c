@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int pattern_with_comments_in_parentheses_parse(int *node);
 static int function_call_pattern_parse(int *node);
 static int pattern_argument_in_unnecessary_parens_parse(int *node);
 static int infixed_pattern_parse(int *node);
@@ -3817,6 +3818,7 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
 
 static int pattern_argument_parse(int *node) {
   return wildcard_parse(node) && qualified_name_parse(node) &&
+         pattern_with_comments_in_parentheses_parse(node) &&
          pattern_argument_in_necessary_parens_parse(node) && list_parse(node) &&
          pattern_argument_in_unnecessary_parens_parse(node) &&
          upper_name_parse(node) && lower_name_parse(node) && int_parse(node) &&
