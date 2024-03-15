@@ -2222,7 +2222,7 @@ static void normal_string_write(int node) {
   char_write('"');
 }
 
-static void triple_string_write(int node) {
+static void non_empty_triple_string_write(int node) {
   chunk_write("\"\"\"");
   int item;
   int start = 0;
@@ -2633,7 +2633,7 @@ static void not_infixed_pattern_write(int node, int indent) {
     return;
   }
   if (is_non_empty_triple_string(node)) {
-    triple_string_write(node);
+    non_empty_triple_string_write(node);
     return;
   }
   if (is_empty_triple_string(node)) {
@@ -2789,7 +2789,7 @@ static void not_infixed_write(int node, int indent) {
     return;
   }
   if (is_non_empty_triple_string(node)) {
-    triple_string_write(node);
+    non_empty_triple_string_write(node);
     return;
   }
   if (is_empty_normal_string(node)) {
