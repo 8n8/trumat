@@ -3758,7 +3758,7 @@ static int in_necessary_parens_parse(int *node) {
 
 static int pattern_argument_parse(int *node) {
   return wildcard_parse(node) && qualified_name_parse(node) &&
-         upper_name_parse(node) && lower_name_parse(node) && int_parse(node) &&
+         upper_name_parse(node) && lower_name_parse(node) && int_parse(node) && triple_string_parse(node) &&
          normal_string_parse(node) && non_empty_tuple_pattern_parse(node) &&
          empty_tuple_parse(node);
 }
