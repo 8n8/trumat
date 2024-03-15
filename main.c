@@ -4115,13 +4115,18 @@ static int callable_in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
+static int pattern_argument_in_unnecessary_parens_contents_parse(int *node) {
+  return pattern_argument_in_unnecessary_parens_parse(node) &&
+         lower_name_parse(node);
+}
+
 static int pattern_argument_in_unnecessary_parens_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
-  if (lower_name_parse(node)) {
+  if (pattern_argument_in_unnecessary_parens_contents_parse(node)) {
     I = start;
     return -1;
   }
