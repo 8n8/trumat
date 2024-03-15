@@ -4490,7 +4490,9 @@ static int non_empty_tuple_pattern_parse(int *node) {
   return 0;
 }
 
-static int pattern_callable_parse(int *node) { return upper_name_parse(node); }
+static int pattern_callable_parse(int *node) {
+  return qualified_name_parse(node) && upper_name_parse(node);
+}
 
 static int pattern_function_call_parse(int *node) {
   const int start = I;
@@ -4525,7 +4527,7 @@ static int pattern_function_call_parse(int *node) {
 }
 
 static int not_infixed_pattern_parse(int *node) {
-  return qualified_name_parse(node) && pattern_function_call_parse(node) &&
+  return pattern_function_call_parse(node) && qualified_name_parse(node) &&
          lower_name_parse(node) && wildcard_parse(node) &&
          empty_tuple_parse(node) && empty_list_parse(node) &&
          non_empty_list_pattern_parse(node) &&
