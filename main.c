@@ -4124,6 +4124,7 @@ static int pattern_argument_in_unnecessary_parens_contents_parse(int *node) {
          non_empty_tuple_pattern_parse(node) && empty_tuple_parse(node) &&
          non_empty_list_pattern_parse(node) && empty_list_parse(node) &&
          qualified_name_parse(node) && upper_name_parse(node) &&
+         pattern_argument_in_necessary_parens_parse(node) &&
          int_parse(node) && lower_name_parse(node);
 }
 
