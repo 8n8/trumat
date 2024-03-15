@@ -9,7 +9,7 @@ static int is_multiline_node(int node);
 static void function_call_write(int node, int callable, int indent);
 static int callable_in_unnecessary_parens_parse(int *node);
 static int callable_in_necessary_parens_parse(int *node);
-static int non_empty_pattern_tuple_parse(int *node);
+static int non_empty_tuple_pattern_parse(int *node);
 static void pattern_write(int node, int indent);
 static void in_parens_write(int node, int indent);
 static int get_callable(int node, int *callable);
@@ -4250,7 +4250,7 @@ static int simple_expression_parse(int *node) {
 }
 
 static int infixed_pattern_item_parse(int *node) {
-  return non_empty_pattern_tuple_parse(node) && wildcard_parse(node) &&
+  return non_empty_tuple_pattern_parse(node) && wildcard_parse(node) &&
          lower_name_parse(node);
 }
 
@@ -4427,7 +4427,7 @@ static int pattern_with_comments_in_parentheses_parse(int *node) {
   return 0;
 }
 
-static int non_empty_pattern_tuple_parse(int *node) {
+static int non_empty_tuple_pattern_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('(')) {
@@ -4508,7 +4508,7 @@ static int not_infixed_pattern_parse(int *node) {
          lower_name_parse(node) && wildcard_parse(node) &&
          empty_tuple_parse(node) && empty_list_parse(node) &&
          non_empty_pattern_list_parse(node) &&
-         non_empty_pattern_tuple_parse(node) &&
+         non_empty_tuple_pattern_parse(node) &&
          pattern_in_unnecessary_parens_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
