@@ -1419,8 +1419,8 @@ static void non_empty_pattern_list_write(int node, int indent) {
   int any_is_multiline = left_is_multiline || is_multiline_node(item);
   while (get_list_item(node, &item, &start) == 0) {
     any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
-                       is_multiline_node(item);
-    if (any_is_multiline || is_multiline_node(node)) {
+                       is_multiline_pattern_node(item);
+    if (any_is_multiline || is_multiline_pattern_node(node)) {
       indent_write(indent);
     }
     chunk_write(", ");
