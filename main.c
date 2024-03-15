@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int empty_tuple_parse(int *node);
 static int case_of_parse(int *node);
 static int is_multiline_node(int node);
 static void function_call_write(int node, int callable, int indent);
@@ -3743,7 +3744,8 @@ static int in_necessary_parens_parse(int *node) {
 
 static int pattern_argument_parse(int *node) {
   return wildcard_parse(node) && qualified_name_parse(node) &&
-         upper_name_parse(node) && lower_name_parse(node) && non_empty_tuple_pattern_parse(node);
+         upper_name_parse(node) && lower_name_parse(node) &&
+         non_empty_tuple_pattern_parse(node) && empty_tuple_parse(node);
 }
 
 static int argument_parse(int *node) {
