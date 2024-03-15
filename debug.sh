@@ -1,6 +1,6 @@
 #!/bin/sh
 
 rm a.out
-cp input/CaseOf/NewlineAfterCase.elm test.elm
+cp input/CaseOfPattern/FunctionCall/MultilineTupleArgument.elm test.elm
 clang -g -O0 -fsanitize=memory main.c
 gdb --args a.out --overwrite test.elm

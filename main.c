@@ -1610,6 +1610,20 @@ static int is_arg1_line1(int node) {
   return 0;
 }
 
+static void argument_pattern_write(int is_all_multi, int is_callable_multi,
+                                   int argument, int indent) {
+  const int left_is_multiline = has_multiline_left_comment(argument);
+  if ((is_all_multi && !is_arg1_line1(argument)) || left_is_multiline ||
+      is_multiline_pattern_node(argument) || is_callable_multi) {
+    indent_write(floor_to_four(indent + 4));
+  } else {
+    char_write(' ');
+  }
+  const int comment_indent = floor_to_four(indent + 4);
+  left_comments_with_spaces_write(0, argument, comment_indent);
+  pattern_write(argument, indent + 4);
+}
+
 static void argument_write(int is_all_multi, int is_callable_multi,
                            int argument, int indent) {
   const int left_is_multiline = has_multiline_left_comment(argument);
@@ -1673,9 +1687,9 @@ static void pattern_function_call_write(int node, int indent) {
   int start = 0;
   get_argument(node, &argument, &start);
   const int is_multi = is_multiline_pattern_node(node);
-  argument_write(is_multi, 0, argument, indent);
+  argument_pattern_write(is_multi, 0, argument, indent);
   while (get_argument(node, &argument, &start) == 0) {
-    argument_write(is_multi, 0, argument, indent);
+    argument_pattern_write(is_multi, 0, argument, indent);
   }
 }
 
