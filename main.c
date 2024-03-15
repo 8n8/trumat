@@ -3531,7 +3531,7 @@ static int non_empty_record_parse(int *node) {
   return record_items_parse(node, start, start_row);
 }
 
-static int non_empty_pattern_list_parse(int *node) {
+static int non_empty_list_pattern_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('[')) {
@@ -4507,7 +4507,7 @@ static int not_infixed_pattern_parse(int *node) {
   return qualified_name_parse(node) && pattern_function_call_parse(node) &&
          lower_name_parse(node) && wildcard_parse(node) &&
          empty_tuple_parse(node) && empty_list_parse(node) &&
-         non_empty_pattern_list_parse(node) &&
+         non_empty_list_pattern_parse(node) &&
          non_empty_tuple_pattern_parse(node) &&
          pattern_in_unnecessary_parens_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
