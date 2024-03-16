@@ -2670,6 +2670,10 @@ static void pattern_write(int node, int indent) {
     chunk_write("()");
     return;
   }
+  if (is_empty_record(node)) {
+    chunk_write("{}");
+    return;
+  }
   if (is_empty_list(node)) {
     chunk_write("[]");
     return;
@@ -4681,7 +4685,7 @@ static int simple_pattern_parse(int *node) {
          non_empty_tuple_pattern_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
-         upper_name_parse(node);
+         empty_record_parse(node) && upper_name_parse(node);
 }
 
 static int pattern_infix_then_expression_parse(int *node) {
