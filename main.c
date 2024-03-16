@@ -2161,15 +2161,6 @@ static void left_pizzas_write(int is_multi, int node, int indent) {
   }
 }
 
-static int is_multiline_infix_node(int node) {
-  for (int i = 0; i < NUM_MULTILINE_INFIX; ++i) {
-    if (MULTILINE_INFIX[i] == (uint32_t)node) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 static void expression_write(int node, int indent) {
   not_infixed_write(node, indent);
 }
@@ -2799,7 +2790,7 @@ static int get_infix_first(int node, int *first) {
 
 static void infix_write(int node, int first, int indent) {
   not_infixed_write(first, indent);
-  const int is_multi = is_multiline_infix_node(node);
+  const int is_multi = is_multiline_src_node(node);
   int left = first;
   while (aligned_infix_write(&left, is_multi, indent) == 0) {
   }
@@ -4063,7 +4054,7 @@ static int infixed_parse(int *node) {
   *node = get_new_node();
   append_infix(*node, first);
   if (ROW[I] > start_row) {
-    append_multiline_infix(*node);
+    append_src_multiline(*node);
   }
   return 0;
 }
