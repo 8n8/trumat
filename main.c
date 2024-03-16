@@ -2611,8 +2611,25 @@ static int is_multiline_function_call_pattern_node(int node) {
   return 0;
 }
 
+static int is_multiline_infix_pattern_node(int node) {
+  int first;
+  if (get_infix_first(node, &first) == 0) {
+    return 0;
+  }
+  int left = first;
+  int right;
+  while (get_cons(left, &right) == 0) {
+    left = right;
+    if (is_multiline_pattern_node(right)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_pattern_node(int node) {
   return is_multiline_tuple_pattern_node(node) ||
+         is_multiline_infix_pattern_node(node) ||
          is_multiline_list_pattern_node(node) ||
          is_multiline_in_parens_pattern_node(node) ||
          is_multiline_function_call_pattern_node(node);
