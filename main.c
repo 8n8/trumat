@@ -2620,6 +2620,9 @@ static int is_multiline_infix_pattern_node(int node) {
   int right;
   while (get_cons(left, &right) == 0) {
     left = right;
+    if (has_multiline_left_comment(right)) {
+      return 1;
+    }
     if (is_multiline_pattern_node(right)) {
       return 1;
     }
