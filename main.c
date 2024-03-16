@@ -3756,15 +3756,10 @@ static int non_empty_list_pattern_parse(int *node) {
 static int record_pattern_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
-  const int left_comment = left_comments_parse();
-  whitespace_parse();
   if (lower_name_parse(node)) {
     I = start;
     return -1;
   }
-  attach_left_comment(*node, left_comment);
-  const int right_comment = right_comments_in_expression_parse();
-  attach_right_comment_in_expression(*node, right_comment);
   whitespace_parse();
   return 0;
 }
