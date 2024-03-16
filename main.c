@@ -4119,11 +4119,8 @@ static int callable_in_unnecessary_parens_parse(int *node) {
 
 static int pattern_argument_in_unnecessary_parens_contents_parse(int *node) {
   return pattern_argument_in_unnecessary_parens_parse(node) &&
-         non_empty_tuple_pattern_parse(node) && empty_tuple_parse(node) &&
-         non_empty_list_pattern_parse(node) && empty_list_parse(node) &&
-         qualified_name_parse(node) && upper_name_parse(node) &&
-         pattern_argument_in_necessary_parens_parse(node) && int_parse(node) &&
-         lower_name_parse(node);
+         pattern_argument_in_necessary_parens_parse(node) &&
+         simple_pattern_parse(node);
 }
 
 static int pattern_argument_in_unnecessary_parens_parse(int *node) {
