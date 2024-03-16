@@ -2622,7 +2622,7 @@ static int is_multiline_pattern_node(int node) {
     return 1;
   }
   if (is_multiline_in_parens_pattern_node(node)) {
-      return 1;
+    return 1;
   }
   int item;
   int start = 0;
