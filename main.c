@@ -10,7 +10,7 @@ static int pattern_with_comments_in_parentheses_parse(int *node);
 static int function_call_pattern_parse(int *node);
 static int pattern_argument_in_unnecessary_parens_parse(int *node);
 static int infixed_pattern_parse(int *node);
-static int pattern_infix_parse(int *left);
+static int pattern_infix_item_parse(int *left);
 static int empty_tuple_parse(int *node);
 static int case_of_parse(int *node);
 static int is_multiline_node(int node);
@@ -3894,7 +3894,7 @@ static int infix_then_expression_parse(int *node, char *infix) {
   return 0;
 }
 
-static int infix_parse(int *left) {
+static int infix_item_parse(int *left) {
   int right;
   if (infix_then_expression_parse(&right, "++") == 0) {
     append_plus_plus(*left, right);
@@ -4017,11 +4017,11 @@ static int infixed_parse(int *node) {
     return -1;
   }
   int left = *node;
-  if (infix_parse(&left)) {
+  if (infix_item_parse(&left)) {
     I = start;
     return -1;
   }
-  while (infix_parse(&left) == 0) {
+  while (infix_item_parse(&left) == 0) {
   }
   if (ROW[I] > start_row) {
     append_multiline_infix(*node);
@@ -4667,7 +4667,7 @@ static int pattern_infix_then_expression_parse(int *node) {
   return 0;
 }
 
-static int pattern_infix_parse(int *left) {
+static int pattern_infix_item_parse(int *left) {
   int right;
   if (pattern_infix_then_expression_parse(&right) == 0) {
     append_cons(*left, right);
@@ -4685,11 +4685,11 @@ static int infixed_pattern_parse(int *node) {
     return -1;
   }
   int left = *node;
-  if (pattern_infix_parse(&left)) {
+  if (pattern_infix_item_parse(&left)) {
     I = start;
     return -1;
   }
-  while (pattern_infix_parse(&left) == 0) {
+  while (pattern_infix_item_parse(&left) == 0) {
   }
   if (ROW[I] > start_row) {
     append_multiline_infix(*node);
