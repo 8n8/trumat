@@ -2614,6 +2614,18 @@ static int is_multiline_in_parens_pattern_node(int node) {
   return 0;
 }
 
+static int is_multiline_function_call_pattern_node(int node) {
+  int item;
+  int start = 0;
+  while (get_argument(node, &item, &start) == 0) {
+    if (is_multiline_pattern_node(item) || has_multiline_left_comment(item) ||
+        has_multiline_right_comment(item)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_pattern_node(int node) {
   if (is_multiline_tuple_pattern_node(node)) {
     return 1;
@@ -2624,13 +2636,8 @@ static int is_multiline_pattern_node(int node) {
   if (is_multiline_in_parens_pattern_node(node)) {
     return 1;
   }
-  int item;
-  int start = 0;
-  while (get_argument(node, &item, &start) == 0) {
-    if (is_multiline_pattern_node(item) || has_multiline_left_comment(item) ||
-        has_multiline_right_comment(item)) {
-      return 1;
-    }
+  if (is_multiline_function_call_pattern_node(node)) {
+    return 1;
   }
   return 0;
 }
