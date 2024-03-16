@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int simple_pattern_parse(int *node);
 static int pattern_in_unnecessary_parens_parse(int *node);
 static int pattern_with_comments_in_parentheses_parse(int *node);
 static int function_call_pattern_parse(int *node);
@@ -4621,12 +4622,15 @@ static int function_call_pattern_parse(int *node) {
 }
 
 static int not_infixed_pattern_parse(int *node) {
-  return function_call_pattern_parse(node) && qualified_name_parse(node) &&
-         lower_name_parse(node) && wildcard_parse(node) &&
-         empty_tuple_parse(node) && empty_list_parse(node) &&
-         non_empty_list_pattern_parse(node) &&
+  return function_call_pattern_parse(node) && simple_pattern_parse(node) &&
+         pattern_in_unnecessary_parens_parse(node);
+}
+
+static int simple_pattern_parse(int *node) {
+  return qualified_name_parse(node) && lower_name_parse(node) &&
+         wildcard_parse(node) && empty_tuple_parse(node) &&
+         empty_list_parse(node) && non_empty_list_pattern_parse(node) &&
          non_empty_tuple_pattern_parse(node) &&
-         pattern_in_unnecessary_parens_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
          upper_name_parse(node);
