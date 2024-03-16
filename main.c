@@ -2690,12 +2690,6 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
   char_write(')');
 }
 
-static void pattern_record_item_write(int item, int indent) {
-  left_comments_with_spaces_write(0, item, indent + 2);
-  src_write(item);
-  right_comments_with_spaces_write(item, indent + 2);
-}
-
 static int get_record_pattern_item(int node, int *item, int *start) {
   for (int i = *start; i < NUM_RECORD_PATTERN_ITEM; ++i) {
     if (RECORD_PATTERN[i] == (uint32_t)node) {
@@ -2707,16 +2701,16 @@ static int get_record_pattern_item(int node, int *item, int *start) {
   return -1;
 }
 
-static void non_empty_record_pattern_write(int node, int indent) {
+static void non_empty_record_pattern_write(int node) {
   chunk_write("{ ");
   int item;
   int start = 0;
   if (get_record_pattern_item(node, &item, &start) == 0) {
-    pattern_record_item_write(item, indent);
+    src_write(item);
   }
   while (get_record_pattern_item(node, &item, &start) == 0) {
     chunk_write(", ");
-    pattern_record_item_write(item, indent);
+    src_write(item);
   }
   chunk_write(" }");
 }
@@ -2731,7 +2725,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   if (is_non_empty_record_pattern(node)) {
-    non_empty_record_pattern_write(node, indent);
+    non_empty_record_pattern_write(node);
     return;
   }
   if (is_empty_list(node)) {
