@@ -2727,7 +2727,8 @@ static void case_of_branch_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
   left_comments_with_spaces_write(1, left, floor_to_four(indent + 4));
   pattern_write(left, floor_to_four(indent + 4));
-  if (is_multiline_pattern_node(left)) {
+  right_comments_with_spaces_write(left, floor_to_four(indent + 4));
+  if (is_multiline_pattern_node(left) || has_multiline_right_comment(left)) {
     indent_write(floor_to_four(indent + 4));
   } else {
     char_write(' ');
@@ -4747,6 +4748,9 @@ static int case_of_branch_parse(int *node) {
     return -1;
   }
   attach_left_comment(pattern, left_comment);
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(pattern, right_comment);
   whitespace_parse();
   if (chunk_parse("->")) {
     I = start;
