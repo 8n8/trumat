@@ -383,6 +383,22 @@ static uint32_t INFIX[MAX_INFIX];
 static uint32_t INFIX_FIRST_ITEM[MAX_INFIX];
 int NUM_INFIX = 0;
 
+#define MAX_RECORD_PATTERN_ITEM 10000
+static uint32_t RECORD_PATTERN[MAX_RECORD_PATTERN_ITEM];
+static uint32_t RECORD_PATTERN_ITEM[MAX_RECORD_PATTERN_ITEM];
+int NUM_RECORD_PATTERN_ITEM = 0;
+
+static void append_record_pattern_item(int node, int item) {
+  if (NUM_RECORD_PATTERN_ITEM == MAX_RECORD_PATTERN_ITEM) {
+    fprintf(stderr, "%s: too many record pattern items, maximum is %d\n", PATH,
+            MAX_RECORD_PATTERN_ITEM);
+    exit(-1);
+  }
+  RECORD_PATTERN[NUM_RECORD_PATTERN_ITEM] = node;
+  RECORD_PATTERN_ITEM[NUM_RECORD_PATTERN_ITEM] = item;
+  ++NUM_RECORD_PATTERN_ITEM;
+}
+
 static void append_infix(int node, int first_item) {
   if (NUM_INFIX == MAX_INFIX) {
     fprintf(stderr, "%s: too many infix nodes, maximum is %d\n", PATH,
@@ -1580,6 +1596,15 @@ static int is_non_empty_tuple(int node) {
   return 0;
 }
 
+static int is_non_empty_record_pattern(int node) {
+  for (int i = 0; i < NUM_RECORD_PATTERN_ITEM; ++i) {
+    if (RECORD_PATTERN[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_non_empty_list(int node) {
   for (int i = 0; i < NUM_LIST_ITEM; ++i) {
     if (LIST[i] == (uint32_t)node) {
@@ -2665,6 +2690,49 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
   char_write(')');
 }
 
+static void pattern_record_item_write(int item, int indent) {
+  left_comments_with_spaces_write(0, item, indent + 2);
+  src_write(item);
+  right_comments_with_spaces_write(item, indent + 2);
+}
+
+static int get_record_pattern_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_RECORD_PATTERN_ITEM; ++i) {
+    if (RECORD_PATTERN[i] == (uint32_t)node) {
+      *item = RECORD_PATTERN_ITEM[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void non_empty_record_pattern_write(int node, int indent) {
+  chunk_write("{ ");
+  int item;
+  int start = 0;
+  if (get_record_pattern_item(node, &item, &start) == 0) {
+    pattern_record_item_write(item, indent);
+  }
+  int left_is_multiline = has_multiline_left_comment(item);
+  int any_is_multiline = left_is_multiline || is_multiline_node(item);
+  while (get_record_pattern_item(node, &item, &start) == 0) {
+    any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
+                       is_multiline_pattern_node(item);
+    if (any_is_multiline || is_multiline_pattern_node(node)) {
+      indent_write(indent);
+    }
+    chunk_write(", ");
+    pattern_record_item_write(item, indent);
+  }
+  if (any_is_multiline || is_multiline_pattern_node(node)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  char_write('}');
+}
+
 static void pattern_write(int node, int indent) {
   if (is_empty_tuple(node)) {
     chunk_write("()");
@@ -2672,6 +2740,10 @@ static void pattern_write(int node, int indent) {
   }
   if (is_empty_record(node)) {
     chunk_write("{}");
+    return;
+  }
+  if (is_non_empty_record_pattern(node)) {
+    non_empty_record_pattern_write(node, indent);
     return;
   }
   if (is_empty_list(node)) {
@@ -2981,6 +3053,7 @@ static void zero_ast() {
   NUM_CASE_BRANCH = 0;
   NUM_FUNCTION_CALL = 0;
   NUM_INFIX = 0;
+  NUM_RECORD_PATTERN_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -3456,7 +3529,7 @@ static int right_comments_with_title_parse() {
   return parent;
 }
 
-static int pattern_list_item_parse(int *node) {
+static int list_item_pattern_parse(int *node) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -3654,7 +3727,7 @@ static int non_empty_list_pattern_parse(int *node) {
     return -1;
   }
   int item;
-  if (pattern_list_item_parse(&item)) {
+  if (list_item_pattern_parse(&item)) {
     I = start;
     return -1;
   }
@@ -3664,13 +3737,62 @@ static int non_empty_list_pattern_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (pattern_list_item_parse(&item)) {
+    if (list_item_pattern_parse(&item)) {
       I = start;
       return -1;
     }
     append_list_item(*node, item);
   }
   if (char_parse(']')) {
+    I = start;
+    return -1;
+  }
+  if (ROW[I] - start_row) {
+    append_src_multiline(*node);
+  }
+  return 0;
+}
+
+static int record_pattern_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
+  if (lower_name_parse(node)) {
+    I = start;
+    return -1;
+  }
+  attach_left_comment(*node, left_comment);
+  const int right_comment = right_comments_in_expression_parse();
+  attach_right_comment_in_expression(*node, right_comment);
+  whitespace_parse();
+  return 0;
+}
+
+static int non_empty_record_pattern_parse(int *node) {
+  const int start = I;
+  const int start_row = ROW[I];
+  if (char_parse('{')) {
+    return -1;
+  }
+  int item;
+  if (record_pattern_item_parse(&item)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_record_pattern_item(*node, item);
+  while (1) {
+    if (char_parse(',')) {
+      break;
+    }
+    if (record_pattern_item_parse(&item)) {
+      I = start;
+      return -1;
+    }
+    append_record_pattern_item(*node, item);
+  }
+  if (char_parse('}')) {
     I = start;
     return -1;
   }
@@ -4685,7 +4807,8 @@ static int simple_pattern_parse(int *node) {
          non_empty_tuple_pattern_parse(node) &&
          pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
-         empty_record_parse(node) && upper_name_parse(node);
+         non_empty_record_pattern_parse(node) && empty_record_parse(node) &&
+         upper_name_parse(node);
 }
 
 static int pattern_infix_then_expression_parse(int *node) {
