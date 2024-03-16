@@ -2645,7 +2645,7 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
   char_write(')');
 }
 
-static void not_infixed_pattern_write(int node, int indent) {
+static void pattern_write(int node, int indent) {
   if (is_empty_tuple(node)) {
     chunk_write("()");
     return;
@@ -2701,10 +2701,6 @@ static void infix_pattern_write(int node, int first, int indent) {
   int left = first;
   while (infix_pattern_item_write(&left, is_multi, indent) == 0) {
   }
-}
-
-static void pattern_write(int node, int indent) {
-  not_infixed_pattern_write(node, indent);
 }
 
 static void case_of_branch_write(int left, int right, int indent) {
