@@ -84,7 +84,6 @@ static void right_comments_with_title_write(int node, int indent);
 static int is_multiline_comment(int node);
 static int argument_parse(int *node);
 static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
-static void not_infixed_write(int node, int indent);
 
 static char *PATH;
 // Twice the size of the largest Elm file I have seen.
@@ -1758,7 +1757,7 @@ static void left_pizza_write(int is_multi, int left_is_multi, int right,
   if (has_right && is_single_right) {
     char_write(' ');
   }
-  not_infixed_write(right, floor_to_four(indent + 4));
+  expression_write(right, floor_to_four(indent + 4));
 }
 
 static void whitespace_before_infix_write(int is_multi, int right, int indent) {
@@ -1796,7 +1795,7 @@ static void expression_after_infix_write(int right, int new_indent) {
     char_write(')');
     return;
   }
-  not_infixed_write(right, new_indent);
+  expression_write(right, new_indent);
 }
 
 static void infix_write_helper(char *infix, int is_multi, int right,
@@ -2159,10 +2158,6 @@ static void left_pizzas_write(int is_multi, int node, int indent) {
     left_is_multi = is_multiline_node(pizza_node);
     pizza_indent += 4;
   }
-}
-
-static void expression_write(int node, int indent) {
-  not_infixed_write(node, indent);
 }
 
 static int is_non_empty_triple_string(int node) {
@@ -2789,7 +2784,7 @@ static int get_infix_first(int node, int *first) {
 }
 
 static void infix_write(int node, int first, int indent) {
-  not_infixed_write(first, indent);
+  expression_write(first, indent);
   const int is_multi = is_multiline_src_node(node);
   int left = first;
   while (aligned_infix_write(&left, is_multi, indent) == 0) {
@@ -2797,7 +2792,7 @@ static void infix_write(int node, int first, int indent) {
   left_pizzas_write(is_multi, first, indent);
 }
 
-static void not_infixed_write(int node, int indent) {
+static void expression_write(int node, int indent) {
   int dotted_tail;
   if (get_dotted(node, &dotted_tail)) {
     dotted_write(node, dotted_tail, indent);
