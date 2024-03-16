@@ -2714,23 +2714,11 @@ static void non_empty_record_pattern_write(int node, int indent) {
   if (get_record_pattern_item(node, &item, &start) == 0) {
     pattern_record_item_write(item, indent);
   }
-  int left_is_multiline = has_multiline_left_comment(item);
-  int any_is_multiline = left_is_multiline || is_multiline_node(item);
   while (get_record_pattern_item(node, &item, &start) == 0) {
-    any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
-                       is_multiline_pattern_node(item);
-    if (any_is_multiline || is_multiline_pattern_node(node)) {
-      indent_write(indent);
-    }
     chunk_write(", ");
     pattern_record_item_write(item, indent);
   }
-  if (any_is_multiline || is_multiline_pattern_node(node)) {
-    indent_write(indent);
-  } else {
-    char_write(' ');
-  }
-  char_write('}');
+  chunk_write(" }");
 }
 
 static void pattern_write(int node, int indent) {
