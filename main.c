@@ -3771,7 +3771,6 @@ static int record_pattern_item_parse(int *node) {
 
 static int non_empty_record_pattern_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
   if (char_parse('{')) {
     return -1;
   }
@@ -3795,9 +3794,6 @@ static int non_empty_record_pattern_parse(int *node) {
   if (char_parse('}')) {
     I = start;
     return -1;
-  }
-  if (ROW[I] - start_row) {
-    append_src_multiline(*node);
   }
   return 0;
 }
