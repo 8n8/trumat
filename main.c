@@ -317,10 +317,6 @@ static uint32_t LEFT_PIZZA_LEFT[MAX_LEFT_PIZZA];
 static uint32_t LEFT_PIZZA_RIGHT[MAX_LEFT_PIZZA];
 int NUM_LEFT_PIZZA = 0;
 
-#define MAX_MULTILINE_INFIX 10000
-static uint32_t MULTILINE_INFIX[MAX_MULTILINE_INFIX];
-int NUM_MULTILINE_INFIX = 0;
-
 #define MAX_RIGHT_PIZZA 10000
 static uint32_t RIGHT_PIZZA_LEFT[MAX_RIGHT_PIZZA];
 static uint32_t RIGHT_PIZZA_RIGHT[MAX_RIGHT_PIZZA];
@@ -548,16 +544,6 @@ static void append_right_pizza(int left, int right) {
   RIGHT_PIZZA_LEFT[NUM_RIGHT_PIZZA] = left;
   RIGHT_PIZZA_RIGHT[NUM_RIGHT_PIZZA] = right;
   ++NUM_RIGHT_PIZZA;
-}
-
-static void append_multiline_infix(int node) {
-  if (NUM_MULTILINE_INFIX == MAX_MULTILINE_INFIX) {
-    fprintf(stderr, "%s: too many multiline infix nodes, maximum is %d\n", PATH,
-            MAX_MULTILINE_INFIX);
-    exit(-1);
-  }
-  MULTILINE_INFIX[NUM_MULTILINE_INFIX] = node;
-  ++NUM_MULTILINE_INFIX;
 }
 
 static void append_left_pizza(int left, int right) {
@@ -2947,7 +2933,6 @@ static void zero_ast() {
   NUM_COMPOSE_LEFT = 0;
   NUM_COMPOSE_RIGHT = 0;
   NUM_LEFT_PIZZA = 0;
-  NUM_MULTILINE_INFIX = 0;
   NUM_RIGHT_PIZZA = 0;
   NUM_IN_PARENS = 0;
   NUM_TUPLE_ITEM = 0;
@@ -4704,7 +4689,6 @@ static int pattern_infix_item_parse(int *left) {
 
 static int infixed_pattern_parse(int *node) {
   const int start = I;
-  const int start_row = ROW[I];
   if (not_infixed_pattern_parse(node)) {
     I = start;
     return -1;
@@ -4715,9 +4699,6 @@ static int infixed_pattern_parse(int *node) {
     return -1;
   }
   while (pattern_infix_item_parse(&left) == 0) {
-  }
-  if (ROW[I] > start_row) {
-    append_multiline_infix(*node);
   }
   return 0;
 }
