@@ -2627,19 +2627,10 @@ static int is_multiline_function_call_pattern_node(int node) {
 }
 
 static int is_multiline_pattern_node(int node) {
-  if (is_multiline_tuple_pattern_node(node)) {
-    return 1;
-  }
-  if (is_multiline_list_pattern_node(node)) {
-    return 1;
-  }
-  if (is_multiline_in_parens_pattern_node(node)) {
-    return 1;
-  }
-  if (is_multiline_function_call_pattern_node(node)) {
-    return 1;
-  }
-  return 0;
+  return is_multiline_tuple_pattern_node(node) ||
+  is_multiline_list_pattern_node(node)
+   || is_multiline_in_parens_pattern_node(node)
+  || is_multiline_function_call_pattern_node(node);
 }
 
 static void non_empty_pattern_tuple_write(int node, int indent) {
