@@ -4364,10 +4364,8 @@ static int simple_expression_parse(int *node) {
 }
 
 static int infixed_pattern_item_parse(int *node) {
-  return non_empty_tuple_pattern_parse(node) && wildcard_parse(node) &&
-         lower_name_parse(node) && empty_list_parse(node) &&
-         pattern_in_unnecessary_parens_parse(node) &&
-         non_empty_list_pattern_parse(node) && empty_tuple_parse(node);
+  return pattern_in_unnecessary_parens_parse(node) &&
+         simple_pattern_parse(node);
 }
 
 static int infixed_item_parse(int *node) {
