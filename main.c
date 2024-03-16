@@ -381,6 +381,22 @@ static uint32_t FUNCTION_CALL[MAX_FUNCTION_CALL];
 static uint32_t CALLABLE[MAX_FUNCTION_CALL];
 int NUM_FUNCTION_CALL = 0;
 
+#define MAX_INFIX 10000
+static uint32_t INFIX[MAX_INFIX];
+static uint32_t INFIX_FIRST_ITEM[MAX_INFIX];
+int NUM_INFIX = 0;
+
+static void append_infix(int node, int first_item) {
+  if (NUM_INFIX == MAX_INFIX) {
+    fprintf(stderr, "%s: too many infix nodes, maximum is %d\n", PATH,
+            MAX_INFIX);
+    exit(-1);
+  }
+  INFIX[NUM_INFIX] = node;
+  INFIX_FIRST_ITEM[NUM_INFIX] = first_item;
+  ++NUM_INFIX;
+}
+
 static void append_function_call(int node, int callable) {
   if (NUM_FUNCTION_CALL == MAX_FUNCTION_CALL) {
     fprintf(stderr, "%s: too many function calls, maximum is %d\n", PATH,
@@ -2156,11 +2172,6 @@ static int is_multiline_infix_node(int node) {
 
 static void expression_write(int node, int indent) {
   not_infixed_write(node, indent);
-  const int is_multi = is_multiline_infix_node(node);
-  int left = node;
-  while (aligned_infix_write(&left, is_multi, indent) == 0) {
-  }
-  left_pizzas_write(is_multi, node, indent);
 }
 
 static int is_non_empty_triple_string(int node) {
@@ -2776,6 +2787,25 @@ static void case_of_write(int node, int pivot, int indent) {
   }
 }
 
+static int get_infix_first(int node, int *first) {
+  for (int i = 0; i < NUM_INFIX; ++i) {
+    if (INFIX[i] == (uint32_t)node) {
+      *first = INFIX_FIRST_ITEM[i];
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void infix_write(int node, int first, int indent) {
+  not_infixed_write(first, indent);
+  const int is_multi = is_multiline_infix_node(node);
+  int left = first;
+  while (aligned_infix_write(&left, is_multi, indent) == 0) {
+  }
+  left_pizzas_write(is_multi, first, indent);
+}
+
 static void not_infixed_write(int node, int indent) {
   int dotted_tail;
   if (get_dotted(node, &dotted_tail)) {
@@ -2863,6 +2893,11 @@ static void not_infixed_write(int node, int indent) {
     in_parens_write(expression, indent);
     return;
   }
+  int infix_first;
+  if (get_infix_first(node, &infix_first)) {
+    infix_write(node, infix_first, indent);
+    return;
+  }
   src_write(node);
 }
 
@@ -2942,6 +2977,7 @@ static void zero_ast() {
   NUM_CASE_OF = 0;
   NUM_CASE_BRANCH = 0;
   NUM_FUNCTION_CALL = 0;
+  NUM_INFIX = 0;
 }
 
 static int get_new_node() {
@@ -4012,17 +4048,20 @@ static int infix_item_parse(int *left) {
 static int infixed_parse(int *node) {
   const int start = I;
   const int start_row = ROW[I];
-  if (not_infixed_parse(node)) {
+  int first;
+  if (not_infixed_parse(&first)) {
     I = start;
     return -1;
   }
-  int left = *node;
+  int left = first;
   if (infix_item_parse(&left)) {
     I = start;
     return -1;
   }
   while (infix_item_parse(&left) == 0) {
   }
+  *node = get_new_node();
+  append_infix(*node, first);
   if (ROW[I] > start_row) {
     append_multiline_infix(*node);
   }
