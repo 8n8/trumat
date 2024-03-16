@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void infix_pattern_write(int node, int first, int indent);
+static int get_infix_first(int node, int *first);
 static int simple_pattern_parse(int *node);
 static int pattern_in_unnecessary_parens_parse(int *node);
 static int pattern_with_comments_in_parentheses_parse(int *node);
@@ -2013,7 +2015,7 @@ static int get_left_pizza(int node, int *right) {
   return -1;
 }
 
-static int infix_pattern_write(int *left, int is_multi, int indent) {
+static int infix_pattern_item_write(int *left, int is_multi, int indent) {
   int right;
   if (get_cons(*left, &right) == 0) {
     infix_write_helper("::", is_multi, right, indent);
@@ -2685,15 +2687,24 @@ static void not_infixed_pattern_write(int node, int indent) {
     normal_string_write(node);
     return;
   }
+  int infix_first;
+  if (get_infix_first(node, &infix_first)) {
+    infix_pattern_write(node, infix_first, indent);
+    return;
+  }
   src_write(node);
+}
+
+static void infix_pattern_write(int node, int first, int indent) {
+  pattern_write(first, indent);
+  const int is_multi = is_multiline_pattern_node(node);
+  int left = first;
+  while (infix_pattern_item_write(&left, is_multi, indent) == 0) {
+  }
 }
 
 static void pattern_write(int node, int indent) {
   not_infixed_pattern_write(node, indent);
-  const int is_multi = is_multiline_pattern_node(node);
-  int left = node;
-  while (infix_pattern_write(&left, is_multi, indent) == 0) {
-  }
 }
 
 static void case_of_branch_write(int left, int right, int indent) {
@@ -4689,17 +4700,20 @@ static int pattern_infix_item_parse(int *left) {
 
 static int infixed_pattern_parse(int *node) {
   const int start = I;
-  if (not_infixed_pattern_parse(node)) {
+  int first;
+  if (not_infixed_pattern_parse(&first)) {
     I = start;
     return -1;
   }
-  int left = *node;
+  int left = first;
   if (pattern_infix_item_parse(&left)) {
     I = start;
     return -1;
   }
   while (pattern_infix_item_parse(&left) == 0) {
   }
+  *node = get_new_node();
+  append_infix(*node, first);
   return 0;
 }
 
