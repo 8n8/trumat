@@ -2687,6 +2687,9 @@ static int is_multiline_alias_pattern_node(int node) {
   if (has_multiline_right_comment(aliased)) {
     return 1;
   }
+  if (has_multiline_left_comment(alias)) {
+    return 1;
+  }
   return 0;
 }
 
@@ -2755,6 +2758,7 @@ static void pattern_alias_write(int aliased_pattern, int alias, int indent) {
   pattern_write(aliased_pattern, indent);
   right_comments_with_spaces_write(aliased_pattern, indent);
   if (has_multiline_right_comment(aliased_pattern) ||
+      has_multiline_left_comment(alias) ||
       is_multiline_pattern_node(aliased_pattern)) {
     indent_write(indent);
   } else {
@@ -2762,11 +2766,13 @@ static void pattern_alias_write(int aliased_pattern, int alias, int indent) {
   }
   chunk_write("as");
   if (has_multiline_right_comment(aliased_pattern) ||
+      has_multiline_left_comment(alias) ||
       is_multiline_pattern_node(aliased_pattern)) {
     indent_write(indent + 4);
   } else {
     char_write(' ');
   }
+  left_comments_with_spaces_write(0, alias, indent + 4);
   src_write(alias);
 }
 
@@ -4909,15 +4915,19 @@ static int alias_pattern_parse(int *node) {
   const int right_comment = right_comments_in_expression_parse();
   whitespace_parse();
   attach_right_comment_in_expression(pattern, right_comment);
-  if (chunk_parse("as ")) {
+  if (chunk_parse("as")) {
     I = start;
     return -1;
   }
+  whitespace_parse();
+  const int left_comment = left_comments_parse();
+  whitespace_parse();
   int alias;
   if (lower_name_parse(&alias)) {
     I = start;
     return -1;
   }
+  attach_left_comment(alias, left_comment);
   *node = get_new_node();
   append_alias_pattern(*node, pattern, alias);
   return 0;
