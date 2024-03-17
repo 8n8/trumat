@@ -10,7 +10,7 @@ static int simple_pattern_parse(int *node);
 static int in_unnecessary_parens_pattern_parse(int *node);
 static int with_comments_in_parentheses_pattern_parse(int *node);
 static int function_call_pattern_parse(int *node);
-static int pattern_argument_in_unnecessary_parens_parse(int *node);
+static int argument_in_unnecessary_parens_pattern_parse(int *node);
 static int infixed_pattern_parse(int *node);
 static int pattern_infix_item_parse(int *left);
 static int empty_tuple_parse(int *node);
@@ -4006,7 +4006,7 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
 
 static int pattern_argument_parse(int *node) {
   return pattern_argument_in_necessary_parens_parse(node) &&
-         pattern_argument_in_unnecessary_parens_parse(node) &&
+         argument_in_unnecessary_parens_pattern_parse(node) &&
          simple_pattern_parse(node);
 }
 
@@ -4307,12 +4307,12 @@ static int callable_in_unnecessary_parens_parse(int *node) {
 }
 
 static int pattern_argument_in_unnecessary_parens_contents_parse(int *node) {
-  return pattern_argument_in_unnecessary_parens_parse(node) &&
+  return argument_in_unnecessary_parens_pattern_parse(node) &&
          pattern_argument_in_necessary_parens_parse(node) &&
          simple_pattern_parse(node);
 }
 
-static int pattern_argument_in_unnecessary_parens_parse(int *node) {
+static int argument_in_unnecessary_parens_pattern_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
