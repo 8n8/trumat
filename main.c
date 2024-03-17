@@ -12,7 +12,7 @@ static int with_comments_in_parentheses_pattern_parse(int *node);
 static int function_call_pattern_parse(int *node);
 static int argument_in_unnecessary_parens_pattern_parse(int *node);
 static int infixed_pattern_parse(int *node);
-static int pattern_infix_item_parse(int *left);
+static int infix_item_pattern_parse(int *left);
 static int empty_tuple_parse(int *node);
 static int case_of_parse(int *node);
 static int is_multiline_node(int node);
@@ -4835,7 +4835,7 @@ static int pattern_infix_then_expression_parse(int *node) {
   return 0;
 }
 
-static int pattern_infix_item_parse(int *left) {
+static int infix_item_pattern_parse(int *left) {
   int right;
   if (pattern_infix_then_expression_parse(&right) == 0) {
     append_cons(*left, right);
@@ -4853,11 +4853,11 @@ static int infixed_pattern_parse(int *node) {
     return -1;
   }
   int left = first;
-  if (pattern_infix_item_parse(&left)) {
+  if (infix_item_pattern_parse(&left)) {
     I = start;
     return -1;
   }
-  while (pattern_infix_item_parse(&left) == 0) {
+  while (infix_item_pattern_parse(&left) == 0) {
   }
   *node = get_new_node();
   append_infix(*node, first);
