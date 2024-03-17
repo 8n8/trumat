@@ -4004,7 +4004,7 @@ static int in_necessary_parens_parse(int *node) {
   whitespace_parse();
   int expression;
   if (function_call_parse(&expression) && infixed_parse(&expression) &&
-      if_then_else_parse(&expression)) {
+      case_of_parse(&expression) && if_then_else_parse(&expression)) {
     I = start;
     return -1;
   }
