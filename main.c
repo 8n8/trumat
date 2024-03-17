@@ -1351,15 +1351,15 @@ static int get_src(int node, int *src_index) {
   for (int i = 0; i < NUM_HAS_SRC; ++i) {
     if (HAS_SRC[i] == (uint32_t)node) {
       *src_index = i;
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static int is_line_comment(int node) {
   int src_index;
-  if (get_src(node, &src_index) == 0) {
+  if (get_src(node, &src_index)) {
     return 0;
   }
   const int start = SRC_START[src_index];
