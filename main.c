@@ -2638,7 +2638,7 @@ static int is_multiline_function_call_pattern_node(int node) {
 
 static int is_multiline_infix_pattern_node(int node) {
   int first;
-  if (get_infix_first(node, &first) == 0) {
+  if (get_infix_first(node, &first)) {
     return 0;
   }
   int left = first;
@@ -2766,7 +2766,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   int infix_first;
-  if (get_infix_first(node, &infix_first)) {
+  if (get_infix_first(node, &infix_first) == 0) {
     infix_pattern_write(node, infix_first, indent);
     return;
   }
@@ -2849,10 +2849,10 @@ static int get_infix_first(int node, int *first) {
   for (int i = 0; i < NUM_INFIX; ++i) {
     if (INFIX[i] == (uint32_t)node) {
       *first = INFIX_FIRST_ITEM[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static void infix_write(int node, int first, int indent) {
@@ -2952,7 +2952,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   int infix_first;
-  if (get_infix_first(node, &infix_first)) {
+  if (get_infix_first(node, &infix_first) == 0) {
     infix_write(node, infix_first, indent);
     return;
   }
