@@ -3425,10 +3425,8 @@ static int subsequent_name_char_parse() {
 }
 
 static int any_keyword_parse() {
-  return keyword_parse("if") && keyword_parse("then")
-  && keyword_parse("else")
-  && keyword_parse("case")
-  && keyword_parse("of");
+  return keyword_parse("if") && keyword_parse("then") &&
+         keyword_parse("else") && keyword_parse("case") && keyword_parse("of");
 }
 
 static int lower_name_parse(int *node) {
