@@ -2579,10 +2579,10 @@ static int get_case_of_branch(int node, int *left, int *right, int *start) {
       *left = CASE_OF_BRANCH_LEFT[i];
       *right = CASE_OF_BRANCH_RIGHT[i];
       *start = i + 1;
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static int is_multiline_tuple_pattern_node(int node) {
@@ -2837,10 +2837,10 @@ static void case_of_write(int node, int pivot, int indent) {
   int left;
   int right;
   int start = 0;
-  if (get_case_of_branch(node, &left, &right, &start)) {
+  if (get_case_of_branch(node, &left, &right, &start) == 0) {
     case_of_branch_write(left, right, indent);
   }
-  while (get_case_of_branch(node, &left, &right, &start)) {
+  while (get_case_of_branch(node, &left, &right, &start) == 0) {
     char_write('\n');
     case_of_branch_write(left, right, indent);
   }
