@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int get_pattern_alias(int node, int *aliased_pattern, int *alias);
 static void infix_pattern_write(int node, int first, int indent);
 static int get_infix_first(int node, int *first);
 static int simple_pattern_parse(int *node);
@@ -2674,10 +2675,23 @@ static int is_multiline_infix_pattern_node(int node) {
   return 0;
 }
 
+static int is_multiline_alias_pattern_node(int node) {
+  int aliased;
+  int alias;
+  if (get_pattern_alias(node, &aliased, &alias)) {
+    return 0;
+  }
+  if (has_multiline_right_comment(aliased)) {
+    return 1;
+  }
+  return 0;
+}
+
 static int is_multiline_pattern_node(int node) {
   return is_multiline_tuple_pattern_node(node) ||
          is_multiline_infix_pattern_node(node) ||
          is_multiline_list_pattern_node(node) ||
+         is_multiline_alias_pattern_node(node) ||
          is_multiline_in_parens_pattern_node(node) ||
          is_multiline_function_call_pattern_node(node);
 }
@@ -2736,7 +2750,18 @@ static void non_empty_record_pattern_write(int node) {
 
 static void pattern_alias_write(int aliased_pattern, int alias, int indent) {
   pattern_write(aliased_pattern, indent);
-  chunk_write(" as ");
+  right_comments_with_spaces_write(aliased_pattern, indent);
+  if (has_multiline_right_comment(aliased_pattern)) {
+    indent_write(indent);
+  } else {
+    char_write(' ');
+  }
+  chunk_write("as");
+  if (has_multiline_right_comment(aliased_pattern)) {
+    indent_write(indent + 4);
+  } else {
+    char_write(' ');
+  }
   src_write(alias);
 }
 
@@ -4875,7 +4900,11 @@ static int alias_pattern_parse(int *node) {
   if (aliased_pattern_parse(&pattern)) {
     return -1;
   }
-  if (chunk_parse(" as ")) {
+  whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  whitespace_parse();
+  attach_right_comment_in_expression(pattern, right_comment);
+  if (chunk_parse("as ")) {
     I = start;
     return -1;
   }
