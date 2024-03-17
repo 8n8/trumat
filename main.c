@@ -3425,22 +3425,10 @@ static int subsequent_name_char_parse() {
 }
 
 static int any_keyword_parse() {
-  if (keyword_parse("if") == 0) {
-    return 0;
-  }
-  if (keyword_parse("then") == 0) {
-    return 0;
-  }
-  if (keyword_parse("else") == 0) {
-    return 0;
-  }
-  if (keyword_parse("case") == 0) {
-    return 0;
-  }
-  if (keyword_parse("of") == 0) {
-    return 0;
-  }
-  return -1;
+  return keyword_parse("if") && keyword_parse("then")
+  && keyword_parse("else")
+  && keyword_parse("case")
+  && keyword_parse("of");
 }
 
 static int lower_name_parse(int *node) {
