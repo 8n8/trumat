@@ -1675,7 +1675,7 @@ static void argument_write(int is_all_multi, int is_callable_multi,
 
 static void callable_write(int node, int indent) {
   int dot_function;
-  if (get_dot_function(node, &dot_function)) {
+  if (get_dot_function(node, &dot_function) == 0) {
     char_write('.');
     src_write(dot_function);
     return;
@@ -2387,10 +2387,10 @@ static int get_dot_function(int node, int *dot_function) {
   for (int i = 0; i < NUM_DOT_FUNCTION; ++i) {
     if (DOT_FUNCTION[i] == (uint32_t)node) {
       *dot_function = DOT_FUNCTION_NAME[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static void dotted_head_write(int dotted_head, int indent) {
@@ -2925,7 +2925,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   int dot_function;
-  if (get_dot_function(node, &dot_function)) {
+  if (get_dot_function(node, &dot_function) == 0) {
     char_write('.');
     src_write(dot_function);
     return;
