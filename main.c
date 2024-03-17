@@ -974,7 +974,7 @@ static int is_multiline_function_call(int node) {
 
 static int is_multiline_in_parens(int node) {
   int item;
-  if (get_in_parens(node, &item)) {
+  if (get_in_parens(node, &item) == 0) {
     if (has_multiline_left_comment(item)) {
       return 1;
     }
@@ -1681,7 +1681,7 @@ static void callable_write(int node, int indent) {
     return;
   }
   int in_parens;
-  if (get_in_parens(node, &in_parens)) {
+  if (get_in_parens(node, &in_parens) == 0) {
     in_parens_write(in_parens, indent);
     return;
   }
@@ -2331,10 +2331,10 @@ static int get_in_parens(int node, int *expression) {
   for (int i = 0; i < NUM_IN_PARENS; ++i) {
     if (IN_PARENS_PARENT[i] == (uint32_t)node) {
       *expression = IN_PARENS[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static int get_record_update_name(int node, int *name) {
@@ -2610,7 +2610,7 @@ static int is_multiline_list_pattern_node(int node) {
 
 static int is_multiline_in_parens_pattern_node(int node) {
   int item;
-  if (get_in_parens(node, &item)) {
+  if (get_in_parens(node, &item) == 0) {
     if (has_multiline_left_comment(item)) {
       return 1;
     }
@@ -2741,7 +2741,7 @@ static void pattern_write(int node, int indent) {
     return;
   }
   int in_parens;
-  if (get_in_parens(node, &in_parens)) {
+  if (get_in_parens(node, &in_parens) == 0) {
     pattern_in_parens_write(in_parens, indent);
     return;
   }
@@ -2947,7 +2947,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   int expression;
-  if (get_in_parens(node, &expression)) {
+  if (get_in_parens(node, &expression) == 0) {
     in_parens_write(expression, indent);
     return;
   }
