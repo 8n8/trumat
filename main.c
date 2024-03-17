@@ -2341,10 +2341,10 @@ static int get_record_update_name(int node, int *name) {
   for (int i = 0; i < NUM_RECORD_UPDATE_NAME; ++i) {
     if (RECORD_UPDATE[i] == (uint32_t)node) {
       *name = RECORD_UPDATE_NAME[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static void record_update_before_pipe_write(int node, int name, int indent) {
@@ -2907,7 +2907,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   int update_name;
-  if (get_record_update_name(node, &update_name)) {
+  if (get_record_update_name(node, &update_name) == 0) {
     record_update_write(node, update_name, indent);
     return;
   }
