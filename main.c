@@ -2567,10 +2567,10 @@ static int get_case_of_pivot(int node, int *pivot) {
   for (int i = 0; i < NUM_CASE_OF; ++i) {
     if (CASE_OF[i] == (uint32_t)node) {
       *pivot = CASE_OF_PIVOT[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static int get_case_of_branch(int node, int *left, int *right, int *start) {
@@ -2880,7 +2880,7 @@ static void expression_write(int node, int indent) {
     return;
   }
   int case_of_pivot;
-  if (get_case_of_pivot(node, &case_of_pivot)) {
+  if (get_case_of_pivot(node, &case_of_pivot) == 0) {
     case_of_write(node, case_of_pivot, indent);
     return;
   }
