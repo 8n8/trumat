@@ -2681,6 +2681,9 @@ static int is_multiline_alias_pattern_node(int node) {
   if (get_pattern_alias(node, &aliased, &alias)) {
     return 0;
   }
+  if (is_multiline_pattern_node(aliased)) {
+    return 1;
+  }
   if (has_multiline_right_comment(aliased)) {
     return 1;
   }
@@ -2751,13 +2754,15 @@ static void non_empty_record_pattern_write(int node) {
 static void pattern_alias_write(int aliased_pattern, int alias, int indent) {
   pattern_write(aliased_pattern, indent);
   right_comments_with_spaces_write(aliased_pattern, indent);
-  if (has_multiline_right_comment(aliased_pattern)) {
+  if (has_multiline_right_comment(aliased_pattern) ||
+      is_multiline_pattern_node(aliased_pattern)) {
     indent_write(indent);
   } else {
     char_write(' ');
   }
   chunk_write("as");
-  if (has_multiline_right_comment(aliased_pattern)) {
+  if (has_multiline_right_comment(aliased_pattern) ||
+      is_multiline_pattern_node(aliased_pattern)) {
     indent_write(indent + 4);
   } else {
     char_write(' ');
