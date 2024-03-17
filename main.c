@@ -1800,7 +1800,7 @@ static void expression_after_infix_write(int right, int new_indent) {
   int then_branch;
   int else_branch;
   const int is_if =
-      get_if_then_else(right, &condition, &then_branch, &else_branch);
+      get_if_then_else(right, &condition, &then_branch, &else_branch) == 0;
   if (is_if) {
     char_write('(');
     if_then_else_write(0, condition, then_branch, else_branch, new_indent + 1);
@@ -2527,8 +2527,9 @@ static void after_else_write(int else_branch, int indent) {
   int condition_nested;
   int then_branch_nested;
   int else_branch_nested;
-  const int is_if = get_if_then_else(else_branch, &condition_nested,
-                                     &then_branch_nested, &else_branch_nested);
+  const int is_if =
+      get_if_then_else(else_branch, &condition_nested, &then_branch_nested,
+                       &else_branch_nested) == 0;
   const int expression_indent = is_if ? indent : indent + 4;
   const int has_multiline_left = has_multiline_left_comment(else_branch);
   if (is_if) {
@@ -2556,10 +2557,10 @@ static int get_if_then_else(int node, int *condition, int *then_branch,
       *condition = IF_THEN_ELSE_CONDITION[i];
       *then_branch = IF_THEN_ELSE_THEN[i];
       *else_branch = IF_THEN_ELSE_ELSE[i];
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return -1;
 }
 
 static int get_case_of_pivot(int node, int *pivot) {
@@ -2873,7 +2874,8 @@ static void expression_write(int node, int indent) {
   int if_condition;
   int if_then_branch;
   int if_else_branch;
-  if (get_if_then_else(node, &if_condition, &if_then_branch, &if_else_branch)) {
+  if (get_if_then_else(node, &if_condition, &if_then_branch, &if_else_branch) ==
+      0) {
     if_then_else_write(0, if_condition, if_then_branch, if_else_branch, indent);
     return;
   }
