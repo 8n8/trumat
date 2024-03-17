@@ -388,6 +388,24 @@ static uint32_t RECORD_PATTERN[MAX_RECORD_PATTERN_ITEM];
 static uint32_t RECORD_PATTERN_ITEM[MAX_RECORD_PATTERN_ITEM];
 int NUM_RECORD_PATTERN_ITEM = 0;
 
+#define MAX_PATTERN_ALIAS 10000
+static uint32_t PATTERN_ALIAS[MAX_PATTERN_ALIAS];
+static uint32_t PATTERN_ALIAS_PATTERN[MAX_PATTERN_ALIAS];
+static uint32_t PATTERN_ALIAS_NAME[MAX_PATTERN_ALIAS];
+int NUM_PATTERN_ALIAS = 0;
+
+static void append_alias_pattern(int node, int pattern, int name) {
+  if (NUM_PATTERN_ALIAS == MAX_PATTERN_ALIAS) {
+    fprintf(stderr, "%s: too many pattern aliases, maximum is %d\n", PATH,
+            MAX_PATTERN_ALIAS);
+    exit(-1);
+  }
+  PATTERN_ALIAS[NUM_PATTERN_ALIAS] = node;
+  PATTERN_ALIAS_PATTERN[NUM_PATTERN_ALIAS] = pattern;
+  PATTERN_ALIAS_NAME[NUM_PATTERN_ALIAS] = name;
+  ++NUM_PATTERN_ALIAS;
+}
+
 static void append_record_pattern_item(int node, int item) {
   if (NUM_RECORD_PATTERN_ITEM == MAX_RECORD_PATTERN_ITEM) {
     fprintf(stderr, "%s: too many record pattern items, maximum is %d\n", PATH,
@@ -2716,6 +2734,23 @@ static void non_empty_record_pattern_write(int node) {
   chunk_write(" }");
 }
 
+static void pattern_alias_write(int aliased_pattern, int alias, int indent) {
+  pattern_write(aliased_pattern, indent);
+  chunk_write(" as ");
+  src_write(alias);
+}
+
+static int get_pattern_alias(int node, int *aliased_pattern, int *alias) {
+  for (int i = 0; i < NUM_PATTERN_ALIAS; ++i) {
+    if (PATTERN_ALIAS[i] == (uint32_t)node) {
+      *aliased_pattern = PATTERN_ALIAS_PATTERN[i];
+      *alias = PATTERN_ALIAS_NAME[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
 static void pattern_write(int node, int indent) {
   if (is_empty_tuple(node)) {
     chunk_write("()");
@@ -2764,6 +2799,12 @@ static void pattern_write(int node, int indent) {
   }
   if (is_non_empty_normal_string(node)) {
     normal_string_write(node);
+    return;
+  }
+  int aliased_pattern;
+  int alias;
+  if (get_pattern_alias(node, &aliased_pattern, &alias) == 0) {
+    pattern_alias_write(aliased_pattern, alias, indent);
     return;
   }
   int infix_first;
@@ -3038,6 +3079,7 @@ static void zero_ast() {
   NUM_FUNCTION_CALL = 0;
   NUM_INFIX = 0;
   NUM_RECORD_PATTERN_ITEM = 0;
+  NUM_PATTERN_ALIAS = 0;
 }
 
 static int get_new_node() {
@@ -4822,8 +4864,29 @@ static int infixed_pattern_parse(int *node) {
   return 0;
 }
 
+static int alias_pattern_parse(int *node) {
+  const int start = I;
+  int pattern;
+  if (simple_pattern_parse(&pattern)) {
+    return -1;
+  }
+  if (chunk_parse(" as ")) {
+    I = start;
+    return -1;
+  }
+  int alias;
+  if (lower_name_parse(&alias)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_alias_pattern(*node, pattern, alias);
+  return 0;
+}
+
 static int pattern_parse(int *node) {
-  return infixed_pattern_parse(node) && not_infixed_pattern_parse(node);
+  return alias_pattern_parse(node) && infixed_pattern_parse(node) &&
+         not_infixed_pattern_parse(node);
 }
 
 static int case_of_branch_parse(int *node) {
