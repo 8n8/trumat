@@ -4864,10 +4864,15 @@ static int infixed_pattern_parse(int *node) {
   return 0;
 }
 
+static int aliased_pattern_parse(int *node) {
+  return pattern_argument_in_necessary_parens_parse(node) &&
+         simple_pattern_parse(node);
+}
+
 static int alias_pattern_parse(int *node) {
   const int start = I;
   int pattern;
-  if (simple_pattern_parse(&pattern)) {
+  if (aliased_pattern_parse(&pattern)) {
     return -1;
   }
   if (chunk_parse(" as ")) {
