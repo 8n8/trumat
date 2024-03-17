@@ -8,7 +8,7 @@ static void infix_pattern_write(int node, int first, int indent);
 static int get_infix_first(int node, int *first);
 static int simple_pattern_parse(int *node);
 static int in_unnecessary_parens_pattern_parse(int *node);
-static int pattern_with_comments_in_parentheses_parse(int *node);
+static int with_comments_in_parentheses_pattern_parse(int *node);
 static int function_call_pattern_parse(int *node);
 static int pattern_argument_in_unnecessary_parens_parse(int *node);
 static int infixed_pattern_parse(int *node);
@@ -4688,7 +4688,7 @@ static int wildcard_parse(int *node) {
   append_has_src(*node, start, 1);
   return 0;
 }
-static int pattern_with_comments_in_parentheses_parse(int *node) {
+static int with_comments_in_parentheses_pattern_parse(int *node) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
@@ -4808,7 +4808,7 @@ static int simple_pattern_parse(int *node) {
          wildcard_parse(node) && empty_tuple_parse(node) &&
          empty_list_parse(node) && non_empty_list_pattern_parse(node) &&
          non_empty_tuple_pattern_parse(node) &&
-         pattern_with_comments_in_parentheses_parse(node) && int_parse(node) &&
+         with_comments_in_parentheses_pattern_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
          non_empty_record_pattern_parse(node) && empty_record_parse(node) &&
          upper_name_parse(node);
