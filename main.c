@@ -27,7 +27,7 @@ static int in_necessary_parens_parse(int *node);
 static int is_multiline_pattern_node(int node);
 static int wildcard_parse(int *node);
 static int has_multiline_right_comment(int node);
-static int pattern_argument_parse(int *node);
+static int argument_pattern_parse(int *node);
 static int has_multiline_left_comment(int node);
 static int pattern_parse(int *node);
 static int get_if_then_else(int node, int *condition, int *then_branch,
@@ -3850,7 +3850,7 @@ static int pattern_argument_and_comments_parse(int *argument) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
-  if (pattern_argument_parse(argument)) {
+  if (argument_pattern_parse(argument)) {
     I = start;
     return -1;
   }
@@ -4004,7 +4004,7 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
   return 0;
 }
 
-static int pattern_argument_parse(int *node) {
+static int argument_pattern_parse(int *node) {
   return pattern_argument_in_necessary_parens_parse(node) &&
          argument_in_unnecessary_parens_pattern_parse(node) &&
          simple_pattern_parse(node);
