@@ -504,15 +504,16 @@ static int append_dot_function(int node, int name) {
   return 0;
 }
 
-static void append_record_update_name(int node, int name) {
+static int append_record_update_name(int node, int name) {
   if (NUM_RECORD_UPDATE_NAME == MAX_RECORD_UPDATE_NAME) {
     fprintf(stderr, "%s: too many record update names, maximum is %d\n", PATH,
             MAX_RECORD_UPDATE_NAME);
-    exit(-1);
+    return -1;
   }
   RECORD_UPDATE_NAME[NUM_RECORD_UPDATE_NAME] = name;
   RECORD_UPDATE[NUM_RECORD_UPDATE_NAME] = node;
   ++NUM_RECORD_UPDATE_NAME;
+  return 0;
 }
 
 static void append_record_item(int node, int item) {
@@ -3752,8 +3753,7 @@ static int record_update_parse(int *node) {
     I = start;
     return -1;
   }
-  append_record_update_name(*node, name);
-  return 0;
+  return append_record_update_name(*node, name);
 }
 
 static int non_empty_record_parse(int *node) {
