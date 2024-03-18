@@ -482,15 +482,14 @@ static int append_if_then_else(int node, int condition, int then_branch,
   return 0;
 }
 
-static void append_dotted(int head, int tail) {
+static int append_dotted(int head, int tail) {
   if (NUM_DOTTED == MAX_DOTTED) {
-    fprintf(stderr, "%s: too many dotted nodes, maximum is %d\n", PATH,
-            MAX_DOTTED);
-    exit(-1);
+    return -1;
   }
   DOTTED_HEAD[NUM_DOTTED] = head;
   DOTTED_TAIL[NUM_DOTTED] = tail;
   ++NUM_DOTTED;
+  return 0;
 }
 
 static void append_dot_function(int node, int name) {
