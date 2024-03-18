@@ -565,15 +565,14 @@ static int append_in_parens(int node, int expression) {
   return 0;
 }
 
-static void append_right_pizza(int left, int right) {
+static int append_right_pizza(int left, int right) {
   if (NUM_RIGHT_PIZZA == MAX_RIGHT_PIZZA) {
-    fprintf(stderr, "%s: too many right pizza nodes, maximum is %d\n", PATH,
-            MAX_RIGHT_PIZZA);
-    exit(-1);
+    return -1;
   }
   RIGHT_PIZZA_LEFT[NUM_RIGHT_PIZZA] = left;
   RIGHT_PIZZA_RIGHT[NUM_RIGHT_PIZZA] = right;
   ++NUM_RIGHT_PIZZA;
+  return 0;
 }
 
 static void append_left_pizza(int left, int right) {
@@ -4200,7 +4199,9 @@ static int infix_item_parse(int *left) {
     return 0;
   }
   if (infix_then_expression_parse(&right, "|>") == 0) {
-    append_right_pizza(*left, right);
+    if (append_right_pizza(*left, right)) {
+      return -1;
+    }
     *left = right;
     return 0;
   }
