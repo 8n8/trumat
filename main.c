@@ -395,45 +395,49 @@ static uint32_t PATTERN_ALIAS_PATTERN[MAX_PATTERN_ALIAS];
 static uint32_t PATTERN_ALIAS_NAME[MAX_PATTERN_ALIAS];
 int NUM_PATTERN_ALIAS = 0;
 
-static int append_alias_pattern(int node, int pattern, int name) {
+static void append_alias_pattern(int node, int pattern, int name) {
   if (NUM_PATTERN_ALIAS == MAX_PATTERN_ALIAS) {
-    return -1;
+    fprintf(stderr, "%s: too many pattern aliases, maximum is %d\n", PATH,
+            MAX_PATTERN_ALIAS);
+    exit(-1);
   }
   PATTERN_ALIAS[NUM_PATTERN_ALIAS] = node;
   PATTERN_ALIAS_PATTERN[NUM_PATTERN_ALIAS] = pattern;
   PATTERN_ALIAS_NAME[NUM_PATTERN_ALIAS] = name;
   ++NUM_PATTERN_ALIAS;
-  return 0;
 }
 
-static int append_record_pattern_item(int node, int item) {
+static void append_record_pattern_item(int node, int item) {
   if (NUM_RECORD_PATTERN_ITEM == MAX_RECORD_PATTERN_ITEM) {
-    return -1;
+    fprintf(stderr, "%s: too many record pattern items, maximum is %d\n", PATH,
+            MAX_RECORD_PATTERN_ITEM);
+    exit(-1);
   }
   RECORD_PATTERN[NUM_RECORD_PATTERN_ITEM] = node;
   RECORD_PATTERN_ITEM[NUM_RECORD_PATTERN_ITEM] = item;
   ++NUM_RECORD_PATTERN_ITEM;
-  return 0;
 }
 
-static int append_infix(int node, int first_item) {
+static void append_infix(int node, int first_item) {
   if (NUM_INFIX == MAX_INFIX) {
-    return -1;
+    fprintf(stderr, "%s: too many infix nodes, maximum is %d\n", PATH,
+            MAX_INFIX);
+    exit(-1);
   }
   INFIX[NUM_INFIX] = node;
   INFIX_FIRST_ITEM[NUM_INFIX] = first_item;
   ++NUM_INFIX;
-  return 0;
 }
 
-static int append_function_call(int node, int callable) {
+static void append_function_call(int node, int callable) {
   if (NUM_FUNCTION_CALL == MAX_FUNCTION_CALL) {
-    return -1;
+    fprintf(stderr, "%s: too many function calls, maximum is %d\n", PATH,
+            MAX_FUNCTION_CALL);
+    exit(-1);
   }
   FUNCTION_CALL[NUM_FUNCTION_CALL] = node;
   CALLABLE[NUM_FUNCTION_CALL] = callable;
   ++NUM_FUNCTION_CALL;
-  return 0;
 }
 
 static void attach_case_of_branch(int node, int branch) {
@@ -444,95 +448,97 @@ static void attach_case_of_branch(int node, int branch) {
   }
 }
 
-static int append_case_of(int node, int pivot) {
+static void append_case_of(int node, int pivot) {
   if (NUM_CASE_OF == MAX_CASE_OF) {
     fprintf(stderr, "%s: too many case of nodes, maximum is %d\n", PATH,
             MAX_CASE_OF);
-    return -1;
+    exit(-1);
   }
   CASE_OF[NUM_CASE_OF] = node;
   CASE_OF_PIVOT[NUM_CASE_OF] = pivot;
   ++NUM_CASE_OF;
-  return 0;
 }
 
-static int append_case_branch(int parent, int left, int right) {
+static void append_case_branch(int parent, int left, int right) {
   if (NUM_CASE_BRANCH == MAX_CASE_BRANCH) {
     fprintf(stderr, "%s: too many case branches, maximum is %d\n", PATH,
             MAX_CASE_BRANCH);
-    return -1;
+    exit(-1);
   }
   CASE_OF_BRANCH_PARENT[NUM_CASE_BRANCH] = parent;
   CASE_OF_BRANCH_LEFT[NUM_CASE_BRANCH] = left;
   CASE_OF_BRANCH_RIGHT[NUM_CASE_BRANCH] = right;
   ++NUM_CASE_BRANCH;
-  return 0;
 }
 
-static int append_if_then_else(int node, int condition, int then_branch,
-                               int else_branch) {
+static void append_if_then_else(int node, int condition, int then_branch,
+                                int else_branch) {
   if (NUM_IF_THEN_ELSE == MAX_IF_THEN_ELSE) {
-    return -1;
+    fprintf(stderr, "%s: too many if then else nodes, maximum is %d\n", PATH,
+            MAX_IF_THEN_ELSE);
+    exit(-1);
   }
   IF_THEN_ELSE[NUM_IF_THEN_ELSE] = node;
   IF_THEN_ELSE_CONDITION[NUM_IF_THEN_ELSE] = condition;
   IF_THEN_ELSE_THEN[NUM_IF_THEN_ELSE] = then_branch;
   IF_THEN_ELSE_ELSE[NUM_IF_THEN_ELSE] = else_branch;
   ++NUM_IF_THEN_ELSE;
-  return 0;
 }
 
-static int append_dotted(int head, int tail) {
+static void append_dotted(int head, int tail) {
   if (NUM_DOTTED == MAX_DOTTED) {
-    return -1;
+    fprintf(stderr, "%s: too many dotted nodes, maximum is %d\n", PATH,
+            MAX_DOTTED);
+    exit(-1);
   }
   DOTTED_HEAD[NUM_DOTTED] = head;
   DOTTED_TAIL[NUM_DOTTED] = tail;
   ++NUM_DOTTED;
-  return 0;
 }
 
-static int append_dot_function(int node, int name) {
+static void append_dot_function(int node, int name) {
   if (NUM_DOT_FUNCTION == MAX_DOT_FUNCTION) {
     fprintf(stderr, "%s: too many dot functions, maximum is %d\n", PATH,
             MAX_DOT_FUNCTION);
-    return -1;
+    exit(-1);
   }
   DOT_FUNCTION_NAME[NUM_DOT_FUNCTION] = name;
   DOT_FUNCTION[NUM_DOT_FUNCTION] = node;
   ++NUM_DOT_FUNCTION;
-  return 0;
 }
 
-static int append_record_update_name(int node, int name) {
+static void append_record_update_name(int node, int name) {
   if (NUM_RECORD_UPDATE_NAME == MAX_RECORD_UPDATE_NAME) {
-    return -1;
+    fprintf(stderr, "%s: too many record update names, maximum is %d\n", PATH,
+            MAX_RECORD_UPDATE_NAME);
+    exit(-1);
   }
   RECORD_UPDATE_NAME[NUM_RECORD_UPDATE_NAME] = name;
   RECORD_UPDATE[NUM_RECORD_UPDATE_NAME] = node;
   ++NUM_RECORD_UPDATE_NAME;
-  return 0;
 }
 
-static int append_record_item(int node, int item) {
+static void append_record_item(int node, int item) {
   if (NUM_RECORD_ITEM == MAX_RECORD_ITEM) {
-    return -1;
+    fprintf(stderr, "%s: too many record items, maximum is %d\n", PATH,
+            MAX_RECORD_ITEM);
+    exit(-1);
   }
   RECORD_ITEM[NUM_RECORD_ITEM] = item;
   RECORD[NUM_RECORD_ITEM] = node;
   ++NUM_RECORD_ITEM;
-  return 0;
 }
 
-static int append_record_field(int node, int name, int value) {
+static void append_record_field(int node, int name, int value) {
   if (NUM_RECORD_FIELD == MAX_RECORD_FIELD) {
-    return -1;
+    fprintf(stderr, "%s: too many record fields, maximum is %d\n", PATH,
+            MAX_RECORD_FIELD);
+    exit(-1);
   }
   RECORD_FIELD[NUM_RECORD_FIELD] = node;
   RECORD_FIELD_NAME[NUM_RECORD_FIELD] = name;
   RECORD_FIELD_VALUE[NUM_RECORD_FIELD] = value;
   ++NUM_RECORD_FIELD;
-  return 0;
 }
 
 static int num_left_comments(int node) {
@@ -555,24 +561,26 @@ static int num_right_comments(int node) {
   return num;
 }
 
-static int append_in_parens(int node, int expression) {
+static void append_in_parens(int node, int expression) {
   if (NUM_IN_PARENS == MAX_IN_PARENS) {
-    return -1;
+    fprintf(stderr, "%s: too many in parens nodes, maximum is %d\n", PATH,
+            MAX_IN_PARENS);
+    exit(-1);
   }
   IN_PARENS[NUM_IN_PARENS] = expression;
   IN_PARENS_PARENT[NUM_IN_PARENS] = node;
   ++NUM_IN_PARENS;
-  return 0;
 }
 
-static int append_right_pizza(int left, int right) {
+static void append_right_pizza(int left, int right) {
   if (NUM_RIGHT_PIZZA == MAX_RIGHT_PIZZA) {
-    return -1;
+    fprintf(stderr, "%s: too many right pizza nodes, maximum is %d\n", PATH,
+            MAX_RIGHT_PIZZA);
+    exit(-1);
   }
   RIGHT_PIZZA_LEFT[NUM_RIGHT_PIZZA] = left;
   RIGHT_PIZZA_RIGHT[NUM_RIGHT_PIZZA] = right;
   ++NUM_RIGHT_PIZZA;
-  return 0;
 }
 
 static void append_left_pizza(int left, int right) {
@@ -3686,7 +3694,8 @@ static int record_item_parse(int *node) {
     append_src_multiline(*node);
   }
   whitespace_parse();
-  return append_record_field(*node, name, value);
+  append_record_field(*node, name, value);
+  return 0;
 }
 
 static int record_items_parse(int *node, int start, int start_row) {
@@ -3696,9 +3705,7 @@ static int record_items_parse(int *node, int start, int start_row) {
     return -1;
   }
   *node = get_new_node();
-  if (append_record_item(*node, item)) {
-    return -1;
-  }
+  append_record_item(*node, item);
   while (1) {
     if (char_parse(',')) {
       break;
@@ -3707,9 +3714,7 @@ static int record_items_parse(int *node, int start, int start_row) {
       I = start;
       return -1;
     }
-    if (append_record_item(*node, item)) {
-      return -1;
-    }
+    append_record_item(*node, item);
   }
   char_parse(' ');
   if (char_parse('}')) {
@@ -3750,7 +3755,8 @@ static int record_update_parse(int *node) {
     I = start;
     return -1;
   }
-  return append_record_update_name(*node, name);
+  append_record_update_name(*node, name);
+  return 0;
 }
 
 static int non_empty_record_parse(int *node) {
@@ -3817,9 +3823,7 @@ static int non_empty_record_pattern_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  if (append_record_pattern_item(*node, item)) {
-    return -1;
-  }
+  append_record_pattern_item(*node, item);
   while (1) {
     if (char_parse(',')) {
       break;
@@ -3828,9 +3832,7 @@ static int non_empty_record_pattern_parse(int *node) {
       I = start;
       return -1;
     }
-    if (append_record_pattern_item(*node, item)) {
-      return -1;
-    }
+    append_record_pattern_item(*node, item);
   }
   if (char_parse('}')) {
     I = start;
@@ -3949,9 +3951,7 @@ static int function_call_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  if (append_function_call(*node, callable)) {
-    return -1;
-  }
+  append_function_call(*node, callable);
   int argument;
   const int first_arg_result = argument_and_comments_parse(&argument);
   if (first_arg_result) {
@@ -3992,7 +3992,8 @@ static int callable_in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  return append_in_parens(*node, expression);
+  append_in_parens(*node, expression);
+  return 0;
 }
 
 static int in_necessary_parens_parse(int *node) {
@@ -4013,7 +4014,8 @@ static int in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  return append_in_parens(*node, expression);
+  append_in_parens(*node, expression);
+  return 0;
 }
 
 static int pattern_argument_in_necessary_parens_parse(int *node) {
@@ -4034,7 +4036,8 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  return append_in_parens(*node, expression);
+  append_in_parens(*node, expression);
+  return 0;
 }
 
 static int argument_pattern_parse(int *node) {
@@ -4199,9 +4202,7 @@ static int infix_item_parse(int *left) {
     return 0;
   }
   if (infix_then_expression_parse(&right, "|>") == 0) {
-    if (append_right_pizza(*left, right)) {
-      return -1;
-    }
+    append_right_pizza(*left, right);
     *left = right;
     return 0;
   }
@@ -4224,9 +4225,7 @@ static int infixed_parse(int *node) {
   while (infix_item_parse(&left) == 0) {
   }
   *node = get_new_node();
-  if (append_infix(*node, first)) {
-    return -1;
-  }
+  append_infix(*node, first);
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
@@ -4551,7 +4550,8 @@ static int dot_function_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  return append_dot_function(*node, name);
+  append_dot_function(*node, name);
+  return 0;
 }
 
 static int negative_lower_name_parse(int *node) {
@@ -4711,7 +4711,8 @@ static int case_of_pivot_parse(int *node) {
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
-  return append_case_of(*node, expression);
+  append_case_of(*node, expression);
+  return 0;
 }
 
 static int wildcard_parse(int *node) {
@@ -4895,7 +4896,8 @@ static int infixed_pattern_parse(int *node) {
   while (infix_item_pattern_parse(&left) == 0) {
   }
   *node = get_new_node();
-  return append_infix(*node, first);
+  append_infix(*node, first);
+  return 0;
 }
 
 static int aliased_pattern_parse(int *node) {
@@ -4927,7 +4929,8 @@ static int alias_pattern_parse(int *node) {
   }
   attach_left_comment(alias, left_comment);
   *node = get_new_node();
-  return append_alias_pattern(*node, pattern, alias);
+  append_alias_pattern(*node, pattern, alias);
+  return 0;
 }
 
 static int pattern_parse(int *node) {
@@ -4960,7 +4963,8 @@ static int case_of_branch_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  return append_case_branch(*node, pattern, result);
+  append_case_branch(*node, pattern, result);
+  return 0;
 }
 
 static int case_of_parse(int *node) {
