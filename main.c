@@ -426,15 +426,14 @@ static int append_infix(int node, int first_item) {
   return 0;
 }
 
-static void append_function_call(int node, int callable) {
+static int append_function_call(int node, int callable) {
   if (NUM_FUNCTION_CALL == MAX_FUNCTION_CALL) {
-    fprintf(stderr, "%s: too many function calls, maximum is %d\n", PATH,
-            MAX_FUNCTION_CALL);
-    exit(-1);
+    return -1;
   }
   FUNCTION_CALL[NUM_FUNCTION_CALL] = node;
   CALLABLE[NUM_FUNCTION_CALL] = callable;
   ++NUM_FUNCTION_CALL;
+  return 0;
 }
 
 static void attach_case_of_branch(int node, int branch) {
@@ -3952,7 +3951,9 @@ static int function_call_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_function_call(*node, callable);
+  if (append_function_call(*node, callable)) {
+    return -1;
+  }
   int argument;
   const int first_arg_result = argument_and_comments_parse(&argument);
   if (first_arg_result) {
