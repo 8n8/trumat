@@ -469,18 +469,17 @@ static int append_case_branch(int parent, int left, int right) {
   return 0;
 }
 
-static void append_if_then_else(int node, int condition, int then_branch,
-                                int else_branch) {
+static int append_if_then_else(int node, int condition, int then_branch,
+                               int else_branch) {
   if (NUM_IF_THEN_ELSE == MAX_IF_THEN_ELSE) {
-    fprintf(stderr, "%s: too many if then else nodes, maximum is %d\n", PATH,
-            MAX_IF_THEN_ELSE);
-    exit(-1);
+    return -1;
   }
   IF_THEN_ELSE[NUM_IF_THEN_ELSE] = node;
   IF_THEN_ELSE_CONDITION[NUM_IF_THEN_ELSE] = condition;
   IF_THEN_ELSE_THEN[NUM_IF_THEN_ELSE] = then_branch;
   IF_THEN_ELSE_ELSE[NUM_IF_THEN_ELSE] = else_branch;
   ++NUM_IF_THEN_ELSE;
+  return 0;
 }
 
 static void append_dotted(int head, int tail) {
