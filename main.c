@@ -555,15 +555,14 @@ static int num_right_comments(int node) {
   return num;
 }
 
-static void append_in_parens(int node, int expression) {
+static int append_in_parens(int node, int expression) {
   if (NUM_IN_PARENS == MAX_IN_PARENS) {
-    fprintf(stderr, "%s: too many in parens nodes, maximum is %d\n", PATH,
-            MAX_IN_PARENS);
-    exit(-1);
+    return -1;
   }
   IN_PARENS[NUM_IN_PARENS] = expression;
   IN_PARENS_PARENT[NUM_IN_PARENS] = node;
   ++NUM_IN_PARENS;
+  return 0;
 }
 
 static void append_right_pizza(int left, int right) {
@@ -3994,8 +3993,7 @@ static int callable_in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_in_parens(*node, expression);
-  return 0;
+  return append_in_parens(*node, expression);
 }
 
 static int in_necessary_parens_parse(int *node) {
@@ -4016,8 +4014,7 @@ static int in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_in_parens(*node, expression);
-  return 0;
+  return append_in_parens(*node, expression);
 }
 
 static int pattern_argument_in_necessary_parens_parse(int *node) {
@@ -4038,8 +4035,7 @@ static int pattern_argument_in_necessary_parens_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_in_parens(*node, expression);
-  return 0;
+  return append_in_parens(*node, expression);
 }
 
 static int argument_pattern_parse(int *node) {
