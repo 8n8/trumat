@@ -492,15 +492,16 @@ static int append_dotted(int head, int tail) {
   return 0;
 }
 
-static void append_dot_function(int node, int name) {
+static int append_dot_function(int node, int name) {
   if (NUM_DOT_FUNCTION == MAX_DOT_FUNCTION) {
     fprintf(stderr, "%s: too many dot functions, maximum is %d\n", PATH,
             MAX_DOT_FUNCTION);
-    exit(-1);
+    return -1;
   }
   DOT_FUNCTION_NAME[NUM_DOT_FUNCTION] = name;
   DOT_FUNCTION[NUM_DOT_FUNCTION] = node;
   ++NUM_DOT_FUNCTION;
+  return 0;
 }
 
 static void append_record_update_name(int node, int name) {
@@ -4554,8 +4555,7 @@ static int dot_function_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  append_dot_function(*node, name);
-  return 0;
+  return append_dot_function(*node, name);
 }
 
 static int negative_lower_name_parse(int *node) {
