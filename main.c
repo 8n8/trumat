@@ -416,15 +416,14 @@ static int append_record_pattern_item(int node, int item) {
   return 0;
 }
 
-static void append_infix(int node, int first_item) {
+static int append_infix(int node, int first_item) {
   if (NUM_INFIX == MAX_INFIX) {
-    fprintf(stderr, "%s: too many infix nodes, maximum is %d\n", PATH,
-            MAX_INFIX);
-    exit(-1);
+    return -1;
   }
   INFIX[NUM_INFIX] = node;
   INFIX_FIRST_ITEM[NUM_INFIX] = first_item;
   ++NUM_INFIX;
+  return 0;
 }
 
 static void append_function_call(int node, int callable) {
@@ -4227,7 +4226,9 @@ static int infixed_parse(int *node) {
   while (infix_item_parse(&left) == 0) {
   }
   *node = get_new_node();
-  append_infix(*node, first);
+  if (append_infix(*node, first)) {
+    return -1;
+  }
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
@@ -4898,8 +4899,7 @@ static int infixed_pattern_parse(int *node) {
   while (infix_item_pattern_parse(&left) == 0) {
   }
   *node = get_new_node();
-  append_infix(*node, first);
-  return 0;
+  return append_infix(*node, first);
 }
 
 static int aliased_pattern_parse(int *node) {
