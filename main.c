@@ -444,15 +444,16 @@ static void attach_case_of_branch(int node, int branch) {
   }
 }
 
-static void append_case_of(int node, int pivot) {
+static int append_case_of(int node, int pivot) {
   if (NUM_CASE_OF == MAX_CASE_OF) {
     fprintf(stderr, "%s: too many case of nodes, maximum is %d\n", PATH,
             MAX_CASE_OF);
-    exit(-1);
+    return -1;
   }
   CASE_OF[NUM_CASE_OF] = node;
   CASE_OF_PIVOT[NUM_CASE_OF] = pivot;
   ++NUM_CASE_OF;
+  return 0;
 }
 
 static void append_case_branch(int parent, int left, int right) {
@@ -4715,8 +4716,7 @@ static int case_of_pivot_parse(int *node) {
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
-  append_case_of(*node, expression);
-  return 0;
+  return append_case_of(*node, expression);
 }
 
 static int wildcard_parse(int *node) {
