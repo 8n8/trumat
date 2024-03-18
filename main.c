@@ -524,16 +524,15 @@ static int append_record_item(int node, int item) {
   return 0;
 }
 
-static void append_record_field(int node, int name, int value) {
+static int append_record_field(int node, int name, int value) {
   if (NUM_RECORD_FIELD == MAX_RECORD_FIELD) {
-    fprintf(stderr, "%s: too many record fields, maximum is %d\n", PATH,
-            MAX_RECORD_FIELD);
-    exit(-1);
+    return -1;
   }
   RECORD_FIELD[NUM_RECORD_FIELD] = node;
   RECORD_FIELD_NAME[NUM_RECORD_FIELD] = name;
   RECORD_FIELD_VALUE[NUM_RECORD_FIELD] = value;
   ++NUM_RECORD_FIELD;
+  return 0;
 }
 
 static int num_left_comments(int node) {
@@ -3689,8 +3688,7 @@ static int record_item_parse(int *node) {
     append_src_multiline(*node);
   }
   whitespace_parse();
-  append_record_field(*node, name, value);
-  return 0;
+  return append_record_field(*node, name, value);
 }
 
 static int record_items_parse(int *node, int start, int start_row) {
