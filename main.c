@@ -516,15 +516,16 @@ static int append_record_update_name(int node, int name) {
   return 0;
 }
 
-static void append_record_item(int node, int item) {
+static int append_record_item(int node, int item) {
   if (NUM_RECORD_ITEM == MAX_RECORD_ITEM) {
     fprintf(stderr, "%s: too many record items, maximum is %d\n", PATH,
             MAX_RECORD_ITEM);
-    exit(-1);
+    return -1;
   }
   RECORD_ITEM[NUM_RECORD_ITEM] = item;
   RECORD[NUM_RECORD_ITEM] = node;
   ++NUM_RECORD_ITEM;
+  return 0;
 }
 
 static void append_record_field(int node, int name, int value) {
@@ -3703,7 +3704,9 @@ static int record_items_parse(int *node, int start, int start_row) {
     return -1;
   }
   *node = get_new_node();
-  append_record_item(*node, item);
+  if (append_record_item(*node, item)) {
+    return -1;
+  }
   while (1) {
     if (char_parse(',')) {
       break;
@@ -3712,7 +3715,9 @@ static int record_items_parse(int *node, int start, int start_row) {
       I = start;
       return -1;
     }
-    append_record_item(*node, item);
+    if (append_record_item(*node, item)) {
+      return -1;
+    }
   }
   char_parse(' ');
   if (char_parse('}')) {
