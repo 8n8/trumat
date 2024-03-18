@@ -395,16 +395,15 @@ static uint32_t PATTERN_ALIAS_PATTERN[MAX_PATTERN_ALIAS];
 static uint32_t PATTERN_ALIAS_NAME[MAX_PATTERN_ALIAS];
 int NUM_PATTERN_ALIAS = 0;
 
-static void append_alias_pattern(int node, int pattern, int name) {
+static int append_alias_pattern(int node, int pattern, int name) {
   if (NUM_PATTERN_ALIAS == MAX_PATTERN_ALIAS) {
-    fprintf(stderr, "%s: too many pattern aliases, maximum is %d\n", PATH,
-            MAX_PATTERN_ALIAS);
-    exit(-1);
+    return -1;
   }
   PATTERN_ALIAS[NUM_PATTERN_ALIAS] = node;
   PATTERN_ALIAS_PATTERN[NUM_PATTERN_ALIAS] = pattern;
   PATTERN_ALIAS_NAME[NUM_PATTERN_ALIAS] = name;
   ++NUM_PATTERN_ALIAS;
+  return 0;
 }
 
 static void append_record_pattern_item(int node, int item) {
@@ -4929,8 +4928,7 @@ static int alias_pattern_parse(int *node) {
   }
   attach_left_comment(alias, left_comment);
   *node = get_new_node();
-  append_alias_pattern(*node, pattern, alias);
-  return 0;
+  return append_alias_pattern(*node, pattern, alias);
 }
 
 static int pattern_parse(int *node) {
