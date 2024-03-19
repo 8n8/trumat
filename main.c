@@ -1595,7 +1595,7 @@ static void record_items_write(int node, int indent, int *any_is_multiline,
 
 static void non_empty_record_write(int node, int indent) {
   chunk_write("{ ");
-  int any_is_multiline;
+  int any_is_multiline = 0;
   const int is_multi = is_multiline_node(node);
   record_items_write(node, indent, &any_is_multiline, is_multi);
   if (any_is_multiline || is_multi) {
