@@ -4950,36 +4950,54 @@ static int pattern_parse(int *node) {
          not_infixed_pattern_parse(node);
 }
 
-static int case_of_branch_parse(int *node) {
+static int case_of_branch_before_arrow_parse(int *pattern, int *floor) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
-  int pattern;
-  const int floor = COLUMN[I];
-  if (pattern_parse(&pattern)) {
+  *floor = COLUMN[I];
+  if (pattern_parse(pattern)) {
     I = start;
     return -1;
   }
-  attach_left_comment(pattern, left_comment);
+  attach_left_comment(*pattern, left_comment);
   whitespace_parse();
   const int right_comment = right_comments_in_expression_parse();
-  attach_right_comment_in_expression(pattern, right_comment);
+  attach_right_comment_in_expression(*pattern, right_comment);
   whitespace_parse();
+  return 0;
+}
+
+static int case_of_branch_after_arrow_parse(int *expression, int floor) {
+  const int start = I;
+  whitespace_parse();
+  const int value_left_comment = left_comments_parse();
+  whitespace_parse();
+  if (expression_parse(expression, floor)) {
+    I = start;
+    return -1;
+  }
+  attach_left_comment(*expression, value_left_comment);
+  return 0;
+}
+
+static int case_of_branch_parse(int *node) {
+  const int start = I;
+  int pattern;
+  int floor;
+  if (case_of_branch_before_arrow_parse(&pattern, &floor)) {
+    return -1;
+  }
   if (chunk_parse("->")) {
     I = start;
     return -1;
   }
-  whitespace_parse();
-  const int value_left_comment = left_comments_parse();
-  whitespace_parse();
-  int value;
-  if (expression_parse(&value, floor)) {
+  int expression;
+  if (case_of_branch_after_arrow_parse(&expression, floor)) {
     I = start;
     return -1;
   }
-  attach_left_comment(value, value_left_comment);
   *node = get_new_node();
-  append_case_branch(*node, pattern, value);
+  append_case_branch(*node, pattern, expression);
   return 0;
 }
 
