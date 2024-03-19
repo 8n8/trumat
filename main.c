@@ -15,16 +15,16 @@ static int argument_in_unnecessary_parens_pattern_parse(int *node);
 static int infixed_pattern_parse(int *node);
 static int infix_item_pattern_parse(int *left);
 static int empty_tuple_parse(int *node);
-static int case_of_parse(int *node);
+static int case_of_parse(int *node, int floor);
 static int is_multiline_node(int node);
 static void function_call_write(int node, int callable, int indent);
-static int callable_in_unnecessary_parens_parse(int *node);
-static int callable_in_necessary_parens_parse(int *node);
+static int callable_in_unnecessary_parens_parse(int *node, int floor);
+static int callable_in_necessary_parens_parse(int *node, int floor);
 static int non_empty_tuple_pattern_parse(int *node);
 static void pattern_write(int node, int indent);
 static void in_parens_write(int node, int indent);
 static int get_callable(int node, int *callable);
-static int in_necessary_parens_parse(int *node);
+static int in_necessary_parens_parse(int *node, int floor);
 static int is_multiline_pattern_node(int node);
 static int wildcard_parse(int *node);
 static int has_multiline_right_comment(int node);
@@ -41,7 +41,7 @@ static int get_argument(int node, int *argument, int *start);
 static int get_list_item(int node, int *item, int *start);
 static void comment_write(int node, int indent);
 static int is_single_line_left_comments(int node);
-static int expression_parse(int *node);
+static int expression_parse(int *node, int floor);
 static void left_comments_after_then_write(int node, int indent);
 static int get_in_parens(int node, int *expression);
 static int qualified_name_parse(int *node);
@@ -51,18 +51,18 @@ static int backwards_char_parse(uint8_t c, int *i);
 static int is_if_then_else_node(int node);
 static void left_comments_with_spaces_write(int is_multi_context, int node,
                                             int indent);
-static int if_then_else_parse(int *node);
+static int if_then_else_parse(int *node, int floor);
 static int keyword_parse(char *keyword);
-static int record_parse(int *node);
-static int infixed_parse(int *node);
-static int argument_in_unnecessary_parens_parse(int *node);
+static int record_parse(int *node, int floor);
+static int infixed_parse(int *node, int floor);
+static int argument_in_unnecessary_parens_parse(int *node, int floor);
 static int has_right_comment(int node);
-static int simple_expression_parse(int *node);
+static int simple_expression_parse(int *node, int floor);
 static int get_dot_function(int node, int *dot_function);
-static int infixed_item_parse(int *node);
+static int infixed_item_parse(int *node, int floor);
 static int floor_to_four(int x);
 static int line_comment_parse(int *node);
-static int in_unnecessary_parens_parse(int *node);
+static int in_unnecessary_parens_parse(int *node, int floor);
 static int comment_parse(int *node);
 static int has_title_comment(int node);
 static int string_hex_parse(int *node);
@@ -78,14 +78,14 @@ static int get_same_line_comment(int node, int *same_line_comment);
 static int right_comments_in_expression_parse();
 static void attach_right_comment(int node, int right_comment);
 static int left_comments_parse();
-static int not_infixed_parse(int *node);
+static int not_infixed_parse(int *node, int floor);
 static int get_left_comment(int node, int *left_comment, int *i);
 static int is_multiline_block_comment(int node);
 static int is_empty_block_comment(int node);
 static int is_line_comment(int node);
 static void right_comments_with_title_write(int node, int indent);
 static int is_multiline_comment(int node);
-static int argument_parse(int *node);
+static int argument_parse(int *node, int floor);
 static int triple_string_mask_any_char_parse(uint8_t *c, int *i);
 
 static char *PATH;
@@ -2871,7 +2871,7 @@ static void case_of_branch_write(int left, int right, int indent) {
   }
   chunk_write("->");
   indent_write(floor_to_four(indent + 8));
-  src_write(right);
+  expression_write(right, indent);
 }
 
 static void between_case_and_of_write(int node, int pivot, int indent) {
@@ -3593,12 +3593,12 @@ static int list_item_pattern_parse(int *node) {
   return 0;
 }
 
-static int list_item_parse(int *node) {
+static int list_item_parse(int *node, int floor) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (expression_parse(node)) {
+  if (expression_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -3624,12 +3624,12 @@ static int tuple_pattern_item_parse(int *node) {
   return 0;
 }
 
-static int tuple_item_parse(int *node) {
+static int tuple_item_parse(int *node, int floor) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (expression_parse(node)) {
+  if (expression_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -3654,11 +3654,11 @@ static int record_item_name_parse(int *name, int *start_row) {
   return 0;
 }
 
-static int record_item_value_parse(int *value, int *end_row) {
+static int record_item_value_parse(int *value, int *end_row, int floor) {
   const int left_comment_on_value = left_comments_parse();
   const int start = I;
   whitespace_parse();
-  if (expression_parse(value)) {
+  if (expression_parse(value, floor)) {
     I = start;
     return -1;
   }
@@ -3669,7 +3669,7 @@ static int record_item_value_parse(int *value, int *end_row) {
   return 0;
 }
 
-static int record_item_parse(int *node) {
+static int record_item_parse(int *node, int floor) {
   const int start = I;
   whitespace_parse();
   *node = get_new_node();
@@ -3689,7 +3689,7 @@ static int record_item_parse(int *node) {
   whitespace_parse();
   int value;
   int end_row;
-  record_item_value_parse(&value, &end_row);
+  record_item_value_parse(&value, &end_row, floor);
   if (end_row > start_row) {
     append_src_multiline(*node);
   }
@@ -3698,9 +3698,9 @@ static int record_item_parse(int *node) {
   return 0;
 }
 
-static int record_items_parse(int *node, int start, int start_row) {
+static int record_items_parse(int *node, int start, int start_row, int floor) {
   int item;
-  if (record_item_parse(&item)) {
+  if (record_item_parse(&item, floor)) {
     I = start;
     return -1;
   }
@@ -3710,7 +3710,7 @@ static int record_items_parse(int *node, int start, int start_row) {
     if (char_parse(',')) {
       break;
     }
-    if (record_item_parse(&item)) {
+    if (record_item_parse(&item, floor)) {
       I = start;
       return -1;
     }
@@ -3727,7 +3727,7 @@ static int record_items_parse(int *node, int start, int start_row) {
   return 0;
 }
 
-static int record_update_parse(int *node) {
+static int record_update_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('{')) {
@@ -3751,7 +3751,7 @@ static int record_update_parse(int *node) {
     return -1;
   }
   *node = get_new_node();
-  if (record_items_parse(node, start, start_row)) {
+  if (record_items_parse(node, start, start_row, floor)) {
     I = start;
     return -1;
   }
@@ -3759,13 +3759,13 @@ static int record_update_parse(int *node) {
   return 0;
 }
 
-static int non_empty_record_parse(int *node) {
+static int non_empty_record_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('{')) {
     return -1;
   }
-  return record_items_parse(node, start, start_row);
+  return record_items_parse(node, start, start_row, floor);
 }
 
 static int non_empty_list_pattern_parse(int *node) {
@@ -3841,14 +3841,14 @@ static int non_empty_record_pattern_parse(int *node) {
   return 0;
 }
 
-static int non_empty_list_parse(int *node) {
+static int non_empty_list_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('[')) {
     return -1;
   }
   int item;
-  if (list_item_parse(&item)) {
+  if (list_item_parse(&item, floor)) {
     I = start;
     return -1;
   }
@@ -3858,7 +3858,7 @@ static int non_empty_list_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (list_item_parse(&item)) {
+    if (list_item_parse(&item, floor)) {
       I = start;
       return -1;
     }
@@ -3874,12 +3874,12 @@ static int non_empty_list_parse(int *node) {
   return 0;
 }
 
-static int list_parse(int *node) {
+static int list_parse(int *node, int floor) {
   if (empty_list_parse(node) == 0) {
     return 0;
   }
 
-  return non_empty_list_parse(node);
+  return non_empty_list_parse(node, floor);
 }
 
 static int pattern_argument_and_comments_parse(int *argument) {
@@ -3894,11 +3894,11 @@ static int pattern_argument_and_comments_parse(int *argument) {
   return 0;
 }
 
-static int argument_and_comments_parse(int *argument) {
+static int argument_and_comments_parse(int *argument, int floor) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
-  if (argument_parse(argument)) {
+  if (argument_parse(argument, floor)) {
     I = start;
     return -1;
   }
@@ -3906,11 +3906,11 @@ static int argument_and_comments_parse(int *argument) {
   return 0;
 }
 
-static int callable_parse(int *node) {
+static int callable_parse(int *node, int floor) {
   return qualified_name_parse(node) && upper_name_parse(node) &&
          lower_name_parse(node) && dot_function_parse(node) &&
-         callable_in_necessary_parens_parse(node) &&
-         callable_in_unnecessary_parens_parse(node);
+         callable_in_necessary_parens_parse(node, floor) &&
+         callable_in_unnecessary_parens_parse(node, floor);
 }
 
 static int after_callable_parse() {
@@ -3939,11 +3939,11 @@ static int after_callable_parse() {
   return -1;
 }
 
-static int function_call_parse(int *node) {
+static int function_call_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   int callable;
-  if (callable_parse(&callable)) {
+  if (callable_parse(&callable, floor)) {
     return -1;
   }
   if (after_callable_parse()) {
@@ -3953,7 +3953,7 @@ static int function_call_parse(int *node) {
   *node = get_new_node();
   append_function_call(*node, callable);
   int argument;
-  const int first_arg_result = argument_and_comments_parse(&argument);
+  const int first_arg_result = argument_and_comments_parse(&argument, floor);
   if (first_arg_result) {
     I = start;
     return -1;
@@ -3963,7 +3963,7 @@ static int function_call_parse(int *node) {
     append_is_arg1_line1(argument);
   }
   while (1) {
-    if (argument_and_comments_parse(&argument)) {
+    if (argument_and_comments_parse(&argument, floor)) {
       break;
     }
     append_argument(*node, argument);
@@ -3974,15 +3974,16 @@ static int function_call_parse(int *node) {
   return 0;
 }
 
-static int callable_in_necessary_parens_parse(int *node) {
+static int callable_in_necessary_parens_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
   int expression;
-  if (infixed_parse(&expression) && if_then_else_parse(&expression) &&
-      case_of_parse(&expression)) {
+  if (infixed_parse(&expression, floor) &&
+      if_then_else_parse(&expression, floor) &&
+      case_of_parse(&expression, floor)) {
     I = start;
     return -1;
   }
@@ -3996,15 +3997,16 @@ static int callable_in_necessary_parens_parse(int *node) {
   return 0;
 }
 
-static int in_necessary_parens_parse(int *node) {
+static int in_necessary_parens_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
   int expression;
-  if (function_call_parse(&expression) && infixed_parse(&expression) &&
-      case_of_parse(&expression) && if_then_else_parse(&expression)) {
+  if (function_call_parse(&expression, floor) &&
+      infixed_parse(&expression, floor) && case_of_parse(&expression, floor) &&
+      if_then_else_parse(&expression, floor)) {
     I = start;
     return -1;
   }
@@ -4046,10 +4048,13 @@ static int argument_pattern_parse(int *node) {
          simple_pattern_parse(node);
 }
 
-static int argument_parse(int *node) {
-  return simple_expression_parse(node) &&
-         argument_in_unnecessary_parens_parse(node) &&
-         in_necessary_parens_parse(node);
+static int argument_parse(int *node, int floor) {
+  if (COLUMN[I] <= floor) {
+    return -1;
+  }
+  return simple_expression_parse(node, floor) &&
+         argument_in_unnecessary_parens_parse(node, floor) &&
+         in_necessary_parens_parse(node, floor);
 }
 
 static void attach_same_line_comment(int node, int same_line_comment) {
@@ -4073,7 +4078,7 @@ static void attach_right_comment(int node, int right_comment) {
   attach_title_comments(node, right_comment);
 }
 
-static int infix_then_expression_parse(int *node, char *infix) {
+static int infix_then_expression_parse(int *node, char *infix, int floor) {
   const int start = I;
   whitespace_parse();
   const int left_comment = left_comments_parse();
@@ -4085,7 +4090,7 @@ static int infix_then_expression_parse(int *node, char *infix) {
   whitespace_parse();
   const int right_comment = right_comments_in_expression_parse();
   whitespace_parse();
-  if (infixed_item_parse(node)) {
+  if (infixed_item_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -4094,114 +4099,114 @@ static int infix_then_expression_parse(int *node, char *infix) {
   return 0;
 }
 
-static int infix_item_parse(int *left) {
+static int infix_item_parse(int *left, int floor) {
   int right;
-  if (infix_then_expression_parse(&right, "++") == 0) {
+  if (infix_then_expression_parse(&right, "++", floor) == 0) {
     append_plus_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "::") == 0) {
+  if (infix_then_expression_parse(&right, "::", floor) == 0) {
     append_cons(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "+") == 0) {
+  if (infix_then_expression_parse(&right, "+", floor) == 0) {
     append_plus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "-") == 0) {
+  if (infix_then_expression_parse(&right, "-", floor) == 0) {
     append_minus(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "*") == 0) {
+  if (infix_then_expression_parse(&right, "*", floor) == 0) {
     append_asterisk(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "//") == 0) {
+  if (infix_then_expression_parse(&right, "//", floor) == 0) {
     append_int_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "/") == 0) {
+  if (infix_then_expression_parse(&right, "/", floor) == 0) {
     append_divide(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "^") == 0) {
+  if (infix_then_expression_parse(&right, "^", floor) == 0) {
     append_power(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, ">=") == 0) {
+  if (infix_then_expression_parse(&right, ">=", floor) == 0) {
     append_greater_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, ">") == 0) {
+  if (infix_then_expression_parse(&right, ">", floor) == 0) {
     append_greater_than(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "<=") == 0) {
+  if (infix_then_expression_parse(&right, "<=", floor) == 0) {
     append_less_than_or_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "<") == 0) {
+  if (infix_then_expression_parse(&right, "<", floor) == 0) {
     append_less_than(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "==") == 0) {
+  if (infix_then_expression_parse(&right, "==", floor) == 0) {
     append_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "||") == 0) {
+  if (infix_then_expression_parse(&right, "||", floor) == 0) {
     append_or(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "&&") == 0) {
+  if (infix_then_expression_parse(&right, "&&", floor) == 0) {
     append_and(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "/=") == 0) {
+  if (infix_then_expression_parse(&right, "/=", floor) == 0) {
     append_not_equal(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "|.") == 0) {
+  if (infix_then_expression_parse(&right, "|.", floor) == 0) {
     append_parse_dot(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "|=") == 0) {
+  if (infix_then_expression_parse(&right, "|=", floor) == 0) {
     append_parse_equals(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "<<") == 0) {
+  if (infix_then_expression_parse(&right, "<<", floor) == 0) {
     append_compose_left(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, ">>") == 0) {
+  if (infix_then_expression_parse(&right, ">>", floor) == 0) {
     append_compose_right(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "<|") == 0) {
+  if (infix_then_expression_parse(&right, "<|", floor) == 0) {
     append_left_pizza(*left, right);
     *left = right;
     return 0;
   }
-  if (infix_then_expression_parse(&right, "|>") == 0) {
+  if (infix_then_expression_parse(&right, "|>", floor) == 0) {
     append_right_pizza(*left, right);
     *left = right;
     return 0;
@@ -4209,20 +4214,20 @@ static int infix_item_parse(int *left) {
   return -1;
 }
 
-static int infixed_parse(int *node) {
+static int infixed_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   int first;
-  if (not_infixed_parse(&first)) {
+  if (not_infixed_parse(&first, floor)) {
     I = start;
     return -1;
   }
   int left = first;
-  if (infix_item_parse(&left)) {
+  if (infix_item_parse(&left, floor)) {
     I = start;
     return -1;
   }
-  while (infix_item_parse(&left) == 0) {
+  while (infix_item_parse(&left, floor) == 0) {
   }
   *node = get_new_node();
   append_infix(*node, first);
@@ -4232,8 +4237,8 @@ static int infixed_parse(int *node) {
   return 0;
 }
 
-static int expression_parse(int *node) {
-  return infixed_parse(node) && not_infixed_parse(node);
+static int expression_parse(int *node, int floor) {
+  return infixed_parse(node, floor) && not_infixed_parse(node, floor);
 }
 
 static int qualified_name_part_parse() {
@@ -4264,14 +4269,14 @@ static int dottable_name_part_parse() {
   return 0;
 }
 
-static int dottable_parse(int *node) {
-  return lower_name_parse(node) && record_parse(node);
+static int dottable_parse(int *node, int floor) {
+  return lower_name_parse(node) && record_parse(node, floor);
 }
 
-static int dotted_parse(int *node) {
+static int dotted_parse(int *node, int floor) {
   const int start = I;
   const int is_negative = char_parse('-') == 0;
-  if (dottable_parse(node)) {
+  if (dottable_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -4308,29 +4313,31 @@ static int qualified_name_parse(int *node) {
   return 0;
 }
 
-static int callable_in_unnecessary_parens_contents_parse(int *node) {
-  return callable_in_unnecessary_parens_parse(node) &&
-         function_call_parse(node) && simple_expression_parse(node);
+static int callable_in_unnecessary_parens_contents_parse(int *node, int floor) {
+  return callable_in_unnecessary_parens_parse(node, floor) &&
+         function_call_parse(node, floor) &&
+         simple_expression_parse(node, floor);
 }
 
-static int argument_in_unnecessary_parens_contents_parse(int *node) {
-  return argument_in_unnecessary_parens_parse(node) &&
-         simple_expression_parse(node);
+static int argument_in_unnecessary_parens_contents_parse(int *node, int floor) {
+  return argument_in_unnecessary_parens_parse(node, floor) &&
+         simple_expression_parse(node, floor);
 }
 
-static int in_unnecessary_parens_contents_parse(int *node) {
-  return function_call_parse(node) && infixed_parse(node) &&
-         in_unnecessary_parens_parse(node) && if_then_else_parse(node) &&
-         simple_expression_parse(node) && case_of_parse(node);
+static int in_unnecessary_parens_contents_parse(int *node, int floor) {
+  return function_call_parse(node, floor) && infixed_parse(node, floor) &&
+         in_unnecessary_parens_parse(node, floor) &&
+         if_then_else_parse(node, floor) &&
+         simple_expression_parse(node, floor) && case_of_parse(node, floor);
 }
 
-static int callable_in_unnecessary_parens_parse(int *node) {
+static int callable_in_unnecessary_parens_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
-  if (callable_in_unnecessary_parens_contents_parse(node)) {
+  if (callable_in_unnecessary_parens_contents_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -4366,13 +4373,13 @@ static int argument_in_unnecessary_parens_pattern_parse(int *node) {
   return 0;
 }
 
-static int argument_in_unnecessary_parens_parse(int *node) {
+static int argument_in_unnecessary_parens_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
-  if (argument_in_unnecessary_parens_contents_parse(node)) {
+  if (argument_in_unnecessary_parens_contents_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -4384,13 +4391,13 @@ static int argument_in_unnecessary_parens_parse(int *node) {
   return 0;
 }
 
-static int in_unnecessary_parens_parse(int *node) {
+static int in_unnecessary_parens_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
   }
   whitespace_parse();
-  if (in_unnecessary_parens_contents_parse(node)) {
+  if (in_unnecessary_parens_contents_parse(node, floor)) {
     I = start;
     return -1;
   }
@@ -4426,7 +4433,7 @@ static int in_unnecessary_parens_pattern_parse(int *node) {
   return 0;
 }
 
-static int with_comments_in_parentheses_parse(int *node) {
+static int with_comments_in_parentheses_parse(int *node, int floor) {
   const int start = I;
   if (char_parse('(')) {
     return -1;
@@ -4435,7 +4442,7 @@ static int with_comments_in_parentheses_parse(int *node) {
   const int left_comment = left_comments_parse();
   whitespace_parse();
   int expression;
-  if (expression_parse(&expression)) {
+  if (expression_parse(&expression, floor)) {
     I = start;
     return -1;
   }
@@ -4458,14 +4465,14 @@ static int with_comments_in_parentheses_parse(int *node) {
   return 0;
 }
 
-static int non_empty_tuple_parse(int *node) {
+static int non_empty_tuple_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   if (char_parse('(')) {
     return -1;
   }
   int item;
-  if (tuple_item_parse(&item)) {
+  if (tuple_item_parse(&item, floor)) {
     I = start;
     return -1;
   }
@@ -4475,7 +4482,7 @@ static int non_empty_tuple_parse(int *node) {
     I = start;
     return -1;
   }
-  if (tuple_item_parse(&item)) {
+  if (tuple_item_parse(&item, floor)) {
     I = start;
     return -1;
   }
@@ -4484,7 +4491,7 @@ static int non_empty_tuple_parse(int *node) {
     if (char_parse(',')) {
       break;
     }
-    if (tuple_item_parse(&item)) {
+    if (tuple_item_parse(&item, floor)) {
       I = start;
       return -1;
     }
@@ -4530,13 +4537,13 @@ static int empty_record_parse(int *node) {
   return 0;
 }
 
-static int record_parse(int *node) {
-  return empty_record_parse(node) && non_empty_record_parse(node) &&
-         record_update_parse(node);
+static int record_parse(int *node, int floor) {
+  return empty_record_parse(node) && non_empty_record_parse(node, floor) &&
+         record_update_parse(node, floor);
 }
 
-static int tuple_parse(int *node) {
-  return non_empty_tuple_parse(node) && empty_tuple_parse(node);
+static int tuple_parse(int *node, int floor) {
+  return non_empty_tuple_parse(node, floor) && empty_tuple_parse(node);
 }
 
 static int dot_function_parse(int *node) {
@@ -4569,13 +4576,15 @@ static int negative_lower_name_parse(int *node) {
   return 0;
 }
 
-static int simple_expression_parse(int *node) {
-  return dotted_parse(node) && float_parse(node) && int_parse(node) &&
+static int simple_expression_parse(int *node, int floor) {
+  return dotted_parse(node, floor) && float_parse(node) && int_parse(node) &&
          triple_string_parse(node) && normal_string_parse(node) &&
          qualified_name_parse(node) && upper_name_parse(node) &&
          negative_lower_name_parse(node) && lower_name_parse(node) &&
-         dot_function_parse(node) && with_comments_in_parentheses_parse(node) &&
-         tuple_parse(node) && record_parse(node) && list_parse(node);
+         dot_function_parse(node) &&
+         with_comments_in_parentheses_parse(node, floor) &&
+         tuple_parse(node, floor) && record_parse(node, floor) &&
+         list_parse(node, floor);
 }
 
 static int infixed_pattern_item_parse(int *node) {
@@ -4583,10 +4592,12 @@ static int infixed_pattern_item_parse(int *node) {
          simple_pattern_parse(node);
 }
 
-static int infixed_item_parse(int *node) {
-  return function_call_parse(node) && simple_expression_parse(node) &&
-         if_then_else_parse(node) && in_necessary_parens_parse(node) &&
-         argument_in_unnecessary_parens_parse(node);
+static int infixed_item_parse(int *node, int floor) {
+  return function_call_parse(node, floor) &&
+         simple_expression_parse(node, floor) &&
+         if_then_else_parse(node, floor) &&
+         in_necessary_parens_parse(node, floor) &&
+         argument_in_unnecessary_parens_parse(node, floor);
 }
 
 static int not_newline_parse() {
@@ -4632,11 +4643,11 @@ static int keyword_parse(char *keyword) {
   return 0;
 }
 
-static int if_then_else_part_parse(int *node) {
+static int if_then_else_part_parse(int *node, int floor) {
   whitespace_parse();
   const int left_comment = left_comments_parse();
   whitespace_parse();
-  if (expression_parse(node)) {
+  if (expression_parse(node, floor)) {
     return -1;
   }
   whitespace_parse();
@@ -4647,12 +4658,12 @@ static int if_then_else_part_parse(int *node) {
   return 0;
 }
 
-static int if_then_else_helper_parse(int *node) {
+static int if_then_else_helper_parse(int *node, int floor) {
   if (keyword_parse("if")) {
     return -1;
   }
   int condition;
-  if (if_then_else_part_parse(&condition)) {
+  if (if_then_else_part_parse(&condition, floor)) {
     return -1;
   }
   if (keyword_parse("then")) {
@@ -4660,7 +4671,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int then_branch;
-  if (if_then_else_part_parse(&then_branch)) {
+  if (if_then_else_part_parse(&then_branch, floor)) {
     return -1;
   }
   if (keyword_parse("else")) {
@@ -4668,7 +4679,7 @@ static int if_then_else_helper_parse(int *node) {
   }
   whitespace_parse();
   int else_branch;
-  if (if_then_else_part_parse(&else_branch)) {
+  if (if_then_else_part_parse(&else_branch, floor)) {
     return -1;
   }
   *node = get_new_node();
@@ -4676,16 +4687,16 @@ static int if_then_else_helper_parse(int *node) {
   return 0;
 }
 
-static int if_then_else_parse(int *node) {
+static int if_then_else_parse(int *node, int floor) {
   const int start = I;
-  if (if_then_else_helper_parse(node)) {
+  if (if_then_else_helper_parse(node, floor)) {
     I = start;
     return -1;
   }
   return 0;
 }
 
-static int case_of_pivot_parse(int *node) {
+static int case_of_pivot_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   if (keyword_parse("case")) {
@@ -4694,7 +4705,7 @@ static int case_of_pivot_parse(int *node) {
   whitespace_parse();
   const int left_comment = left_comments_parse();
   int expression;
-  if (expression_parse(&expression)) {
+  if (expression_parse(&expression, floor)) {
     I = start;
     return -1;
   }
@@ -4943,6 +4954,7 @@ static int case_of_branch_parse(int *node) {
   whitespace_parse();
   const int left_comment = left_comments_parse();
   int pattern;
+  const int floor = COLUMN[I];
   if (pattern_parse(&pattern)) {
     I = start;
     return -1;
@@ -4958,7 +4970,7 @@ static int case_of_branch_parse(int *node) {
   }
   whitespace_parse();
   int result;
-  if (lower_name_parse(&result)) {
+  if (expression_parse(&result, floor)) {
     I = start;
     return -1;
   }
@@ -4967,8 +4979,8 @@ static int case_of_branch_parse(int *node) {
   return 0;
 }
 
-static int case_of_parse(int *node) {
-  if (case_of_pivot_parse(node)) {
+static int case_of_parse(int *node, int floor) {
+  if (case_of_pivot_parse(node, floor)) {
     return -1;
   }
   int branch;
@@ -4978,10 +4990,11 @@ static int case_of_parse(int *node) {
   return 0;
 }
 
-static int not_infixed_parse(int *node) {
-  return function_call_parse(node) && simple_expression_parse(node) &&
-         if_then_else_parse(node) && case_of_parse(node) &&
-         in_unnecessary_parens_parse(node);
+static int not_infixed_parse(int *node, int floor) {
+  return function_call_parse(node, floor) &&
+         simple_expression_parse(node, floor) &&
+         if_then_else_parse(node, floor) && case_of_parse(node, floor) &&
+         in_unnecessary_parens_parse(node, floor);
 }
 
 static int line_comment_parse(int *node) {
@@ -5165,7 +5178,7 @@ static int module_parse(int *node) {
   }
   const int left_comment = left_comments_parse();
   spaces_parse();
-  if (expression_parse(node)) {
+  if (expression_parse(node, 0)) {
     return -1;
   }
   attach_left_comment(*node, left_comment);
