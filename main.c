@@ -5779,13 +5779,11 @@ static void make_sub_path(char *left, char *right, char *result) {
 
 static void format_src(char *path) {
   DIR *directory_handle = opendir(path);
-  if (directory_handle == NULL && !is_elm_path(path)) {
-    return;
-  }
-
-  if (directory_handle == NULL && is_elm_path(path)) {
-    PATH = path;
-    format_file();
+  if (directory_handle == NULL) {
+    if (is_elm_path(path)) {
+      PATH = path;
+      format_file();
+    }
     return;
   }
 
