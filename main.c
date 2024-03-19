@@ -2390,7 +2390,7 @@ static void record_update_before_pipe_write(int node, int name, int indent) {
 static void record_update_write(int node, int name, int indent) {
   record_update_before_pipe_write(node, name, indent);
   chunk_write("| ");
-  int any_comment_is_multiline;
+  int any_comment_is_multiline = 0;
   const int is_multi = is_multiline_node(node);
   record_items_write(node, floor_to_four(indent + 4), &any_comment_is_multiline,
                      is_multi);
