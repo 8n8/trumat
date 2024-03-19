@@ -2871,6 +2871,7 @@ static void case_of_branch_write(int left, int right, int indent) {
   }
   chunk_write("->");
   indent_write(floor_to_four(indent + 8));
+  left_comments_with_spaces_write(1, right, floor_to_four(indent + 8));
   expression_write(right, indent);
 }
 
@@ -4969,13 +4970,16 @@ static int case_of_branch_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  int result;
-  if (expression_parse(&result, floor)) {
+  const int value_left_comment = left_comments_parse();
+  whitespace_parse();
+  int value;
+  if (expression_parse(&value, floor)) {
     I = start;
     return -1;
   }
+  attach_left_comment(value, value_left_comment);
   *node = get_new_node();
-  append_case_branch(*node, pattern, result);
+  append_case_branch(*node, pattern, value);
   return 0;
 }
 
