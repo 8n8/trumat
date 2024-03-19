@@ -1422,15 +1422,13 @@ static void tuple_item_write(int item, int indent) {
 
 static void non_empty_tuple_write(int node, int indent) {
   chunk_write("( ");
-  int item;
+  int item = 0;
   int start = 0;
   if (get_tuple_item(node, &item, &start) == 0) {
     tuple_item_write(item, indent);
   }
-  int left_is_multiline = has_multiline_left_comment(item);
-  int any_is_multiline = left_is_multiline;
+  int any_is_multiline = has_multiline_left_comment(item);
   while (get_tuple_item(node, &item, &start) == 0) {
-    left_is_multiline = has_multiline_left_comment(item);
     any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
                        is_multiline_node(item);
     if (any_is_multiline || is_multiline_node(node)) {
@@ -1481,7 +1479,7 @@ static void non_empty_pattern_list_write(int node, int indent) {
 
 static void non_empty_list_write(int node, int indent) {
   chunk_write("[ ");
-  int item;
+  int item = 0;
   int start = 0;
   if (get_list_item(node, &item, &start) == 0) {
     list_item_write(item, indent);
@@ -1724,7 +1722,7 @@ static int get_callable(int node, int *callable) {
 
 static void function_call_write(int node, int callable, int indent) {
   callable_write(callable, indent);
-  int argument;
+  int argument = 0;
   int start = 0;
   get_argument(node, &argument, &start);
   const int is_multi = is_multiline_node(node);
