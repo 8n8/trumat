@@ -2709,10 +2709,8 @@ static void non_empty_pattern_tuple_write(int node, int indent) {
   if (get_tuple_item(node, &item, &start) == 0) {
     tuple_item_write(item, indent);
   }
-  int left_is_multiline = has_multiline_left_comment(item);
-  int any_is_multiline = left_is_multiline;
+  int any_is_multiline = 0;
   while (get_tuple_item(node, &item, &start) == 0) {
-    left_is_multiline = has_multiline_left_comment(item);
     any_is_multiline = any_is_multiline || has_multiline_left_comment(item) ||
                        is_multiline_pattern_node(item);
     if (any_is_multiline || is_multiline_pattern_node(node)) {
