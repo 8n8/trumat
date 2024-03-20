@@ -3004,6 +3004,12 @@ static void let_in_write(int node, int result) {
   src_write(left);
   chunk_write(" =\n            ");
   src_write(right);
+  while (get_let_in_bind(node, &left, &right, &start) == 0) {
+    chunk_write("\n\n        ");
+    src_write(left);
+    chunk_write(" =\n            ");
+    src_write(right);
+  }
   chunk_write("\n    in\n    ");
   src_write(result);
 }
@@ -5085,14 +5091,10 @@ static int case_of_parse(int *node, int floor) {
   return 0;
 }
 
-static int let_in_parse(int *node) {
+static int let_in_bind_parse(int *left, int *right) {
   const int start = I;
-  if (keyword_parse("let")) {
-    return -1;
-  }
-  whitespace_parse();
-  int left;
-  if (lower_name_parse(&left)) {
+  const int floor = COLUMN[I];
+  if (lower_name_parse(left)) {
     I = start;
     return -1;
   }
@@ -5102,13 +5104,30 @@ static int let_in_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  int right;
-  if (int_parse(&right)) {
+  if (COLUMN[I] <= floor) {
     I = start;
     return -1;
   }
+  if (expression_parse(right, floor)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  return 0;
+}
+
+static int let_in_parse(int *node) {
+  const int start = I;
+  if (keyword_parse("let")) {
+    return -1;
+  }
+  whitespace_parse();
   *node = get_new_node();
-  append_let_in_bind(*node, left, right);
+  int left;
+  int right;
+  while (let_in_bind_parse(&left, &right) == 0) {
+    append_let_in_bind(*node, left, right);
+  }
   whitespace_parse();
   if (keyword_parse("in")) {
     I = start;
