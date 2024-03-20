@@ -395,6 +395,39 @@ static uint32_t PATTERN_ALIAS_PATTERN[MAX_PATTERN_ALIAS];
 static uint32_t PATTERN_ALIAS_NAME[MAX_PATTERN_ALIAS];
 int NUM_PATTERN_ALIAS = 0;
 
+#define MAX_LET_IN_BIND 10000
+static uint32_t LET_IN_BIND_PARENT[MAX_LET_IN_BIND];
+static uint32_t LET_IN_BIND_LEFT[MAX_LET_IN_BIND];
+static uint32_t LET_IN_BIND_RIGHT[MAX_LET_IN_BIND];
+int NUM_LET_IN_BIND = 0;
+
+#define MAX_LET_IN 10000
+static uint32_t LET_IN[MAX_LET_IN];
+static uint32_t LET_IN_RESULT[MAX_LET_IN];
+int NUM_LET_IN = 0;
+
+static void append_let_in_result(int node, int result) {
+  if (NUM_LET_IN == MAX_LET_IN) {
+    fprintf(stderr, "%s: too many let ins, maximum is %d\n", PATH, MAX_LET_IN);
+    exit(-1);
+  }
+  LET_IN[NUM_LET_IN] = node;
+  LET_IN_RESULT[NUM_LET_IN] = result;
+  ++NUM_LET_IN;
+}
+
+static void append_let_in_bind(int parent, int left, int right) {
+  if (NUM_LET_IN_BIND == MAX_LET_IN_BIND) {
+    fprintf(stderr, "%s: too many let in binds, maximum is %d\n", PATH,
+            MAX_LET_IN_BIND);
+    exit(-1);
+  }
+  LET_IN_BIND_PARENT[NUM_LET_IN_BIND] = parent;
+  LET_IN_BIND_LEFT[NUM_LET_IN_BIND] = left;
+  LET_IN_BIND_RIGHT[NUM_LET_IN_BIND] = right;
+  ++NUM_LET_IN_BIND;
+}
+
 static void append_alias_pattern(int node, int pattern, int name) {
   if (NUM_PATTERN_ALIAS == MAX_PATTERN_ALIAS) {
     fprintf(stderr, "%s: too many pattern aliases, maximum is %d\n", PATH,
@@ -2939,6 +2972,42 @@ static void infix_write(int node, int first, int indent) {
   left_pizzas_write(is_multi, first, indent);
 }
 
+static int get_let_in_result(int node, int *result) {
+  for (int i = 0; i < NUM_LET_IN; ++i) {
+    if (LET_IN[i] == (uint32_t)node) {
+      *result = LET_IN_RESULT[i];
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static int get_let_in_bind(int node, int *left, int *right, int *start) {
+  for (int i = *start; i < NUM_LET_IN_BIND; ++i) {
+    if (LET_IN_BIND_PARENT[i] == (uint32_t)node) {
+      *left = LET_IN_BIND_LEFT[i];
+      *right = LET_IN_BIND_RIGHT[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void let_in_write(int node, int result) {
+  chunk_write("let");
+  int left;
+  int right;
+  int start = 0;
+  get_let_in_bind(node, &left, &right, &start);
+  chunk_write("\n        ");
+  src_write(left);
+  chunk_write(" =\n            ");
+  src_write(right);
+  chunk_write("\n    in\n    ");
+  src_write(result);
+}
+
 static void expression_write(int node, int indent) {
   int dotted_tail;
   if (get_dotted(node, &dotted_tail)) {
@@ -2956,6 +3025,11 @@ static void expression_write(int node, int indent) {
   int case_of_pivot;
   if (get_case_of_pivot(node, &case_of_pivot) == 0) {
     case_of_write(node, case_of_pivot, indent);
+    return;
+  }
+  int let_in_result;
+  if (get_let_in_result(node, &let_in_result) == 0) {
+    let_in_write(node, let_in_result);
     return;
   }
   if (is_hex(node)) {
@@ -3113,6 +3187,8 @@ static void zero_ast() {
   NUM_INFIX = 0;
   NUM_RECORD_PATTERN_ITEM = 0;
   NUM_PATTERN_ALIAS = 0;
+  NUM_LET_IN_BIND = 0;
+  NUM_LET_IN = 0;
 }
 
 static int get_new_node() {
@@ -3501,7 +3577,8 @@ static int subsequent_name_char_parse() {
 
 static int any_keyword_parse() {
   return keyword_parse("if") && keyword_parse("then") &&
-         keyword_parse("else") && keyword_parse("case") && keyword_parse("of");
+         keyword_parse("else") && keyword_parse("case") &&
+         keyword_parse("of") && keyword_parse("let") && keyword_parse("in");
 }
 
 static int lower_name_parse(int *node) {
@@ -5008,11 +5085,50 @@ static int case_of_parse(int *node, int floor) {
   return 0;
 }
 
+static int let_in_parse(int *node) {
+  const int start = I;
+  if (keyword_parse("let")) {
+    return -1;
+  }
+  whitespace_parse();
+  int left;
+  if (lower_name_parse(&left)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse('=')) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int right;
+  if (int_parse(&right)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_let_in_bind(*node, left, right);
+  whitespace_parse();
+  if (keyword_parse("in")) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int in;
+  if (lower_name_parse(&in)) {
+    I = start;
+    return -1;
+  }
+  append_let_in_result(*node, in);
+  return 0;
+}
+
 static int not_infixed_parse(int *node, int floor) {
   return function_call_parse(node, floor) &&
          simple_expression_parse(node, floor) &&
          if_then_else_parse(node, floor) && case_of_parse(node, floor) &&
-         in_unnecessary_parens_parse(node, floor);
+         let_in_parse(node) && in_unnecessary_parens_parse(node, floor);
 }
 
 static int line_comment_parse(int *node) {
