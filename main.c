@@ -3003,6 +3003,7 @@ static void let_in_write(int node, int result) {
   chunk_write("\n        ");
   src_write(left);
   chunk_write(" =\n            ");
+  left_comments_with_spaces_write(0, right, 12);
   src_write(right);
   while (get_let_in_bind(node, &left, &right, &start) == 0) {
     chunk_write("\n\n        ");
@@ -5099,6 +5100,7 @@ static int let_in_bind_parse(int *left, int *right) {
     return -1;
   }
   whitespace_parse();
+  const int before_equals = left_comments_parse();
   if (char_parse('=')) {
     I = start;
     return -1;
@@ -5112,6 +5114,7 @@ static int let_in_bind_parse(int *left, int *right) {
     I = start;
     return -1;
   }
+  attach_left_comment(*right, before_equals);
   whitespace_parse();
   return 0;
 }
