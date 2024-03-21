@@ -3005,7 +3005,7 @@ static int get_let_in_bind(int node, int *left, int *right, int *start) {
 
 static void let_in_bind_write(int indent, int left, int right) {
   indent_write(floor_to_four(indent + 4));
-  src_write(left);
+  pattern_write(left, indent);
   chunk_write(" =");
   indent_write(floor_to_four(indent + 8));
   left_comments_with_spaces_write(1, right, floor_to_four(indent + 8));
@@ -5109,7 +5109,7 @@ static int case_of_parse(int *node, int floor) {
 static int let_in_bind_parse(int *left, int *right) {
   const int start = I;
   const int floor = COLUMN[I];
-  if (lower_name_parse(left)) {
+  if (pattern_parse(left)) {
     I = start;
     return -1;
   }
