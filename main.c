@@ -5120,6 +5120,8 @@ static int let_in_bind_parse(int *left, int *right) {
     return -1;
   }
   whitespace_parse();
+  const int after_equals = left_comments_parse();
+  whitespace_parse();
   if (COLUMN[I] <= floor) {
     I = start;
     return -1;
@@ -5129,6 +5131,7 @@ static int let_in_bind_parse(int *left, int *right) {
     return -1;
   }
   attach_left_comment(*right, before_equals);
+  attach_left_comment(*right, after_equals);
   whitespace_parse();
   return 0;
 }
