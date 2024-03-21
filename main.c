@@ -3003,25 +3003,25 @@ static int get_let_in_bind(int node, int *left, int *right, int *start) {
   return -1;
 }
 
-static void let_in_write(int node, int result, int indent) {
-  chunk_write("let");
-  int left;
-  int right;
-  int start = 0;
-  get_let_in_bind(node, &left, &right, &start);
+static void let_in_bind_write(int indent, int left, int right) {
   indent_write(floor_to_four(indent + 4));
   src_write(left);
   chunk_write(" =");
   indent_write(floor_to_four(indent + 8));
   left_comments_with_spaces_write(0, right, floor_to_four(indent + 8));
   src_write(right);
+}
+
+static void let_in_write(int node, int result, int indent) {
+  chunk_write("let");
+  int left;
+  int right;
+  int start = 0;
+  get_let_in_bind(node, &left, &right, &start);
+  let_in_bind_write(indent, left, right);
   while (get_let_in_bind(node, &left, &right, &start) == 0) {
     char_write('\n');
-    indent_write(floor_to_four(indent + 4));
-    src_write(left);
-    chunk_write(" =");
-    indent_write(floor_to_four(indent + 8));
-    src_write(right);
+    let_in_bind_write(indent, left, right);
   }
   indent_write(indent);
   chunk_write("in");
