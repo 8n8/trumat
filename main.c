@@ -3008,7 +3008,7 @@ static void let_in_bind_write(int indent, int left, int right) {
   src_write(left);
   chunk_write(" =");
   indent_write(floor_to_four(indent + 8));
-  left_comments_with_spaces_write(0, right, floor_to_four(indent + 8));
+  left_comments_with_spaces_write(1, right, floor_to_four(indent + 8));
   src_write(right);
 }
 
