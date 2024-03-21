@@ -1049,11 +1049,20 @@ static int is_case_of_node(int node) {
   return 0;
 }
 
+static int is_let_in_node(int node) {
+  for (int i = 0; i < NUM_LET_IN; ++i) {
+    if (LET_IN[i] == (uint32_t)node) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int is_multiline_node(int node) {
   return is_multiline_src_node(node) || is_if_then_else_node(node) ||
-         is_case_of_node(node) || is_multiline_list(node) ||
-         is_multiline_tuple(node) || is_multiline_function_call(node) ||
-         is_multiline_in_parens(node);
+         is_let_in_node(node) || is_case_of_node(node) ||
+         is_multiline_list(node) || is_multiline_tuple(node) ||
+         is_multiline_function_call(node) || is_multiline_in_parens(node);
 }
 
 static void append_same_line_comment(int node, int comment) {
@@ -2994,16 +3003,17 @@ static int get_let_in_bind(int node, int *left, int *right, int *start) {
   return -1;
 }
 
-static void let_in_write(int node, int result) {
+static void let_in_write(int node, int result, int indent) {
   chunk_write("let");
   int left;
   int right;
   int start = 0;
   get_let_in_bind(node, &left, &right, &start);
-  chunk_write("\n        ");
+  indent_write(floor_to_four(indent + 4));
   src_write(left);
-  chunk_write(" =\n            ");
-  left_comments_with_spaces_write(0, right, 12);
+  chunk_write(" =");
+  indent_write(floor_to_four(indent + 8));
+  left_comments_with_spaces_write(0, right, indent + 8);
   src_write(right);
   while (get_let_in_bind(node, &left, &right, &start) == 0) {
     chunk_write("\n\n        ");
@@ -3011,7 +3021,9 @@ static void let_in_write(int node, int result) {
     chunk_write(" =\n            ");
     src_write(right);
   }
-  chunk_write("\n    in\n    ");
+  indent_write(indent);
+  chunk_write("in");
+  indent_write(indent);
   src_write(result);
 }
 
@@ -3036,7 +3048,7 @@ static void expression_write(int node, int indent) {
   }
   int let_in_result;
   if (get_let_in_result(node, &let_in_result) == 0) {
-    let_in_write(node, let_in_result);
+    let_in_write(node, let_in_result, indent);
     return;
   }
   if (is_hex(node)) {
