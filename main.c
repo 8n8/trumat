@@ -3009,7 +3009,7 @@ static void let_in_bind_write(int indent, int left, int right) {
   chunk_write(" =");
   indent_write(floor_to_four(indent + 8));
   left_comments_with_spaces_write(1, right, floor_to_four(indent + 8));
-  expression_write(right, indent + 8);
+  expression_write(right, floor_to_four(indent + 8));
 }
 
 static void let_in_write(int node, int result, int indent) {
