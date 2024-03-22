@@ -406,6 +406,30 @@ static uint32_t LET_IN[MAX_LET_IN];
 static uint32_t LET_IN_RESULT[MAX_LET_IN];
 int NUM_LET_IN = 0;
 
+#define MAX_TYPE_SIGNATURE_ITEM 10000
+static uint32_t TYPE_SIGNATURE_ITEM_PARENT[MAX_TYPE_SIGNATURE_ITEM];
+static uint32_t TYPE_SIGNATURE_ITEM[MAX_TYPE_SIGNATURE_ITEM];
+int NUM_TYPE_SIGNATURE_ITEM = 0;
+
+static void append_type_signature_item(int node, int item) {
+  if (NUM_TYPE_SIGNATURE_ITEM == MAX_TYPE_SIGNATURE_ITEM) {
+    fprintf(stderr, "%s: too many type signature items, maximum is %d\n", PATH,
+            MAX_TYPE_SIGNATURE_ITEM);
+    exit(-1);
+  }
+  TYPE_SIGNATURE_ITEM[NUM_TYPE_SIGNATURE_ITEM] = item;
+  TYPE_SIGNATURE_ITEM_PARENT[NUM_TYPE_SIGNATURE_ITEM] = node;
+  ++NUM_TYPE_SIGNATURE_ITEM;
+}
+
+static void attach_type_signature(int node, int signature) {
+  for (int i = 0; i < NUM_TYPE_SIGNATURE_ITEM; ++i) {
+    if (TYPE_SIGNATURE_ITEM_PARENT[i] == (uint32_t)signature) {
+      TYPE_SIGNATURE_ITEM_PARENT[i] = (uint32_t)node;
+    }
+  }
+}
+
 static void append_let_in_result(int node, int result) {
   if (NUM_LET_IN == MAX_LET_IN) {
     fprintf(stderr, "%s: too many let ins, maximum is %d\n", PATH, MAX_LET_IN);
@@ -3003,8 +3027,31 @@ static int get_let_in_bind(int node, int *left, int *right, int *start) {
   return -1;
 }
 
-static void let_in_bind_write(int indent, int left, int right) {
+static void signature_write(int node, int first_item) {
+  src_write(node);
+  chunk_write(" : ");
+  src_write(first_item);
+}
+
+static int get_signature_item(int node, int *item, int *start) {
+  for (int i = *start; i < NUM_TYPE_SIGNATURE_ITEM; ++i) {
+    if (TYPE_SIGNATURE_ITEM_PARENT[i] == (uint32_t)node) {
+      *item = TYPE_SIGNATURE_ITEM[i];
+      *start = i + 1;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static void let_in_bind_write(int left, int right, int indent) {
+  int signature_item;
+  int start = 0;
   indent_write(floor_to_four(indent + 4));
+  if (get_signature_item(left, &signature_item, &start) == 0) {
+    signature_write(left, signature_item);
+    indent_write(floor_to_four(indent + 4));
+  }
   pattern_write(left, indent);
   chunk_write(" =");
   indent_write(floor_to_four(indent + 8));
@@ -3018,10 +3065,11 @@ static void let_in_write(int node, int result, int indent) {
   int right;
   int start = 0;
   get_let_in_bind(node, &left, &right, &start);
-  let_in_bind_write(indent, left, right);
+
+  let_in_bind_write(left, right, indent);
   while (get_let_in_bind(node, &left, &right, &start) == 0) {
     char_write('\n');
-    let_in_bind_write(indent, left, right);
+    let_in_bind_write(left, right, indent);
   }
   indent_write(indent);
   chunk_write("in");
@@ -3210,6 +3258,7 @@ static void zero_ast() {
   NUM_PATTERN_ALIAS = 0;
   NUM_LET_IN_BIND = 0;
   NUM_LET_IN = 0;
+  NUM_TYPE_SIGNATURE_ITEM = 0;
 }
 
 static int get_new_node() {
@@ -4313,7 +4362,7 @@ static int infixed_parse(int *node, int floor) {
   const int start = I;
   const int start_row = ROW[I];
   int first;
-  if (not_infixed_parse(&first, floor)) {
+  if (infixed_item_parse(&first, floor)) {
     I = start;
     return -1;
   }
@@ -5136,6 +5185,46 @@ static int let_in_bind_parse(int *left, int *right) {
   return 0;
 }
 
+static int signature_parse(int *node) {
+  const int start = I;
+  int name_dont_care;
+  if (lower_name_parse(&name_dont_care)) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  if (char_parse(':')) {
+    I = start;
+    return -1;
+  }
+  whitespace_parse();
+  int type;
+  if (upper_name_parse(&type)) {
+    I = start;
+    return -1;
+  }
+  *node = get_new_node();
+  append_type_signature_item(*node, type);
+  return 0;
+}
+
+static int let_in_item_parse(int *left, int *right) {
+  const int start = I;
+
+  int signature;
+  const int has_signature = signature_parse(&signature) == 0;
+  whitespace_parse();
+
+  if (let_in_bind_parse(left, right)) {
+    I = start;
+    return -1;
+  }
+  if (has_signature) {
+    attach_type_signature(*left, signature);
+  }
+  return 0;
+}
+
 static int let_in_parse(int *node) {
   const int start = I;
   if (keyword_parse("let")) {
@@ -5145,7 +5234,7 @@ static int let_in_parse(int *node) {
   *node = get_new_node();
   int left;
   int right;
-  while (let_in_bind_parse(&left, &right) == 0) {
+  while (let_in_item_parse(&left, &right) == 0) {
     append_let_in_bind(*node, left, right);
   }
   whitespace_parse();
