@@ -411,6 +411,22 @@ static uint32_t TYPE_SIGNATURE_ITEM_PARENT[MAX_TYPE_SIGNATURE_ITEM];
 static uint32_t TYPE_SIGNATURE_ITEM[MAX_TYPE_SIGNATURE_ITEM];
 int NUM_TYPE_SIGNATURE_ITEM = 0;
 
+#define MAX_HAS_TYPE_SIGNATURE 10000
+static uint32_t HAS_TYPE_SIGNATURE_PARENT[MAX_HAS_TYPE_SIGNATURE];
+static uint32_t HAS_TYPE_SIGNATURE[MAX_HAS_TYPE_SIGNATURE];
+int NUM_HAS_TYPE_SIGNATURE = 0;
+
+static void append_has_type_signature(int parent, int signature) {
+  if (NUM_HAS_TYPE_SIGNATURE == MAX_HAS_TYPE_SIGNATURE) {
+    fprintf(stderr, "%s: too many has type signatures, maximum is %d\n", PATH,
+            MAX_HAS_TYPE_SIGNATURE);
+    exit(-1);
+  }
+  HAS_TYPE_SIGNATURE_PARENT[NUM_HAS_TYPE_SIGNATURE] = parent;
+  HAS_TYPE_SIGNATURE[NUM_HAS_TYPE_SIGNATURE] = signature;
+  ++NUM_HAS_TYPE_SIGNATURE;
+}
+
 static void append_type_signature_item(int node, int item) {
   if (NUM_TYPE_SIGNATURE_ITEM == MAX_TYPE_SIGNATURE_ITEM) {
     fprintf(stderr, "%s: too many type signature items, maximum is %d\n", PATH,
@@ -3039,24 +3055,52 @@ static int get_signature_item(int node, int *item, int *start) {
   return -1;
 }
 
-static void signature_write(int node, int first_item) {
-  src_write(node);
-  chunk_write(" : ");
-  src_write(first_item);
+static void signature_item_write(int is_multi, int signature_item) {
+  if (is_multi) {
+    chunk_write("\n            ");
+  } else {
+    char_write(' ');
+  }
+  chunk_write("-> ");
+  src_write(signature_item);
+}
+
+static void signature_write(int left, int signature) {
+  src_write(left);
+  chunk_write(" :");
   int signature_item;
-  int start = 1;
-  while (get_signature_item(node, &signature_item, &start) == 0) {
-    chunk_write(" -> ");
+  int start = 0;
+  const int is_multi = is_multiline_src_node(signature);
+  if (get_signature_item(signature, &signature_item, &start) == 0) {
+    if (is_multi) {
+      chunk_write("\n            ");
+    } else {
+      char_write(' ');
+    }
     src_write(signature_item);
   }
+  while (get_signature_item(signature, &signature_item, &start) == 0) {
+    signature_item_write(is_multi, signature_item);
+  }
+}
+
+static int get_has_type_signature(int node, int *signature) {
+  for (int i = 0; i < NUM_HAS_TYPE_SIGNATURE; ++i) {
+    if (HAS_TYPE_SIGNATURE_PARENT[i] == (uint32_t)node) {
+      *signature = HAS_TYPE_SIGNATURE[i];
+      return 0;
+    }
+  }
+  return -1;
 }
 
 static void let_in_bind_write(int left, int right, int indent) {
   int signature_item;
   int start = 0;
   indent_write(floor_to_four(indent + 4));
-  if (get_signature_item(left, &signature_item, &start) == 0) {
-    signature_write(left, signature_item);
+  int signature;
+  if (get_has_type_signature(left, &signature) == 0) {
+    signature_write(left, signature);
     indent_write(floor_to_four(indent + 4));
   }
   pattern_write(left, indent);
@@ -3266,6 +3310,7 @@ static void zero_ast() {
   NUM_LET_IN_BIND = 0;
   NUM_LET_IN = 0;
   NUM_TYPE_SIGNATURE_ITEM = 0;
+  NUM_HAS_TYPE_SIGNATURE = 0;
 }
 
 static int get_new_node() {
@@ -5228,6 +5273,8 @@ static int signature_parse(int *node) {
     I = start;
     return -1;
   }
+  whitespace_parse();
+  const int start_row = ROW[I];
   *node = get_new_node();
   int type;
   if (type_signature_item_parse(&type)) {
@@ -5237,6 +5284,9 @@ static int signature_parse(int *node) {
   append_type_signature_item(*node, type);
   while (subsequent_type_signature_item_parse(&type) == 0) {
     append_type_signature_item(*node, type);
+  }
+  if (ROW[I] > start_row) {
+    append_src_multiline(*node);
   }
   return 0;
 }
@@ -5253,7 +5303,7 @@ static int let_in_item_parse(int *left, int *right) {
     return -1;
   }
   if (has_signature) {
-    attach_type_signature(*left, signature);
+    append_has_type_signature(*left, signature);
   }
   return 0;
 }
