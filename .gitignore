@@ -2,7 +2,6 @@ a.out
 elm-stuff/
 elm.json
 test.elm
-expected/
 got/
 tmp/
 gmon.out
