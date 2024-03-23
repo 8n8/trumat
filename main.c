@@ -3057,7 +3057,7 @@ static void signature_item_write(int is_multi, int signature_item) {
   src_write(signature_item);
 }
 
-static void signature_write(int left, int signature) {
+static void signature_write(int left, int signature, int indent) {
   src_write(left);
   int signature_item;
   int start = 0;
@@ -3066,17 +3066,16 @@ static void signature_write(int left, int signature) {
     fprintf(stderr, "signature with no items\n");
     exit(-1);
   }
-  right_comments_with_spaces_write(signature, 8);
-  const int has_right = has_right_comment(signature);
+  right_comments_with_spaces_write(signature, floor_to_four(indent + 4));
   const int has_multi_right = has_multiline_right_comment(signature);
   if (has_multi_right) {
-    indent_write(12);
+    indent_write(floor_to_four(indent + 8));
   } else {
     char_write(' ');
   }
   chunk_write(":");
   if (is_multi || has_multi_right) {
-    chunk_write("\n            ");
+    indent_write(floor_to_four(indent + 8));
   } else {
     char_write(' ');
   }
@@ -3100,7 +3099,7 @@ static void let_in_bind_write(int left, int right, int indent) {
   indent_write(floor_to_four(indent + 4));
   int signature;
   if (get_has_type_signature(left, &signature) == 0) {
-    signature_write(left, signature);
+    signature_write(left, signature, indent);
     indent_write(floor_to_four(indent + 4));
   }
   pattern_write(left, indent);
