@@ -438,14 +438,6 @@ static void append_type_signature_item(int node, int item) {
   ++NUM_TYPE_SIGNATURE_ITEM;
 }
 
-static void attach_type_signature(int node, int signature) {
-  for (int i = 0; i < NUM_TYPE_SIGNATURE_ITEM; ++i) {
-    if (TYPE_SIGNATURE_ITEM_PARENT[i] == (uint32_t)signature) {
-      TYPE_SIGNATURE_ITEM_PARENT[i] = (uint32_t)node;
-    }
-  }
-}
-
 static void append_let_in_result(int node, int result) {
   if (NUM_LET_IN == MAX_LET_IN) {
     fprintf(stderr, "%s: too many let ins, maximum is %d\n", PATH, MAX_LET_IN);
@@ -3095,8 +3087,6 @@ static int get_has_type_signature(int node, int *signature) {
 }
 
 static void let_in_bind_write(int left, int right, int indent) {
-  int signature_item;
-  int start = 0;
   indent_write(floor_to_four(indent + 4));
   int signature;
   if (get_has_type_signature(left, &signature) == 0) {
