@@ -4,5 +4,4 @@ set -e
 
 rm -rf expected
 cp -r input expected
-elm-format expected --yes > /dev/null
-
+elm-format expected --yes | grep -v "Processing"
