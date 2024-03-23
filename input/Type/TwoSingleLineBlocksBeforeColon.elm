@@ -3,4 +3,5 @@ module X exposing (x)
 
 x =
     let
-        a{-b-}{-c-}=0 in a
+        a{-b-}{-c-}:Int
+        a=0 in a
