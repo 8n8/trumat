@@ -3059,18 +3059,27 @@ static void signature_item_write(int is_multi, int signature_item) {
 
 static void signature_write(int left, int signature) {
   src_write(left);
-  chunk_write(" :");
   int signature_item;
   int start = 0;
   const int is_multi = is_multiline_src_node(signature);
-  if (get_signature_item(signature, &signature_item, &start) == 0) {
-    if (is_multi) {
-      chunk_write("\n            ");
-    } else {
-      char_write(' ');
-    }
-    src_write(signature_item);
+  if (get_signature_item(signature, &signature_item, &start)) {
+    fprintf(stderr, "signature with no items\n");
+    exit(-1);
   }
+  right_comments_with_spaces_write(signature, 8);
+  const int has_right = has_right_comment(signature);
+  if (has_right) {
+    indent_write(12);
+  } else {
+    char_write(' ');
+  }
+  chunk_write(":");
+  if (is_multi || has_right) {
+    chunk_write("\n            ");
+  } else {
+    char_write(' ');
+  }
+  src_write(signature_item);
   while (get_signature_item(signature, &signature_item, &start) == 0) {
     signature_item_write(is_multi, signature_item);
   }
@@ -5259,6 +5268,8 @@ static int signature_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+  const int right_comment = right_comments_in_expression_parse();
+  whitespace_parse();
   if (char_parse(':')) {
     I = start;
     return -1;
@@ -5278,6 +5289,7 @@ static int signature_parse(int *node) {
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
   }
+  attach_right_comment_in_expression(*node, right_comment);
   return 0;
 }
 
