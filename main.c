@@ -3027,12 +3027,6 @@ static int get_let_in_bind(int node, int *left, int *right, int *start) {
   return -1;
 }
 
-static void signature_write(int node, int first_item) {
-  src_write(node);
-  chunk_write(" : ");
-  src_write(first_item);
-}
-
 static int get_signature_item(int node, int *item, int *start) {
   for (int i = *start; i < NUM_TYPE_SIGNATURE_ITEM; ++i) {
     if (TYPE_SIGNATURE_ITEM_PARENT[i] == (uint32_t)node) {
@@ -3042,6 +3036,18 @@ static int get_signature_item(int node, int *item, int *start) {
     }
   }
   return -1;
+}
+
+static void signature_write(int node, int first_item) {
+  src_write(node);
+  chunk_write(" : ");
+  src_write(first_item);
+  int signature_item;
+  int start = 1;
+  while (get_signature_item(node, &signature_item, &start) == 0) {
+    chunk_write(" -> ");
+    src_write(signature_item);
+  }
 }
 
 static void let_in_bind_write(int left, int right, int indent) {
@@ -5185,6 +5191,30 @@ static int let_in_bind_parse(int *left, int *right) {
   return 0;
 }
 
+static int type_signature_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  if (upper_name_parse(node)) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
+static int subsequent_type_signature_item_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  if (chunk_parse("->")) {
+    I = start;
+    return -1;
+  }
+  if (type_signature_item_parse(node)) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int signature_parse(int *node) {
   const int start = I;
   int name_dont_care;
@@ -5197,14 +5227,16 @@ static int signature_parse(int *node) {
     I = start;
     return -1;
   }
-  whitespace_parse();
+  *node = get_new_node();
   int type;
-  if (upper_name_parse(&type)) {
+  if (type_signature_item_parse(&type)) {
     I = start;
     return -1;
   }
-  *node = get_new_node();
   append_type_signature_item(*node, type);
+  while (subsequent_type_signature_item_parse(&type) == 0) {
+    append_type_signature_item(*node, type);
+  }
   return 0;
 }
 
