@@ -37,6 +37,7 @@ $ trumat --overwrite .
 
 Developer dependencies are:
 
+- TinyCC, available from https://repo.or.cz/tinycc.git, because it's fast for running the tests
 - `clang` because it has the best address and memory sanitisers
 - `elm-format` for generating test cases
 - `gdb` for debugging
@@ -46,4 +47,4 @@ I tried using Valgrind for detecting memory issues but it was too slow. It took 
 
 All the code is in the file `main.c`. The test files are in `input`. To create a new test just add an Elm module to the `input` directory. The test runner will make two copies, format one with `elm-format` and the other with `trumat`, and compare the results.
 
-You can run the tests with `./test.sh` and run the debugger with `./debug.sh`. You need to edit the debug file to tell it which Elm file to use.
+You can run the tests with `./test.sh` and run the debugger with `./debug.sh`. You need to edit the debug file to tell it which Elm file to use. You can run the profiler with `./profile.sh` and the memory and address sanitisers with `./sanitise.sh`.

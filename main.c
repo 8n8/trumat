@@ -1271,6 +1271,7 @@ static int get_has_src_index(int node) {
   }
   fprintf(stderr, "%s: could not find node %d\n", PATH, node);
   exit(-1);
+  return -1;
 }
 
 static void out_write(uint8_t *src, int size) {
