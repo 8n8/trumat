@@ -3068,13 +3068,14 @@ static void signature_write(int left, int signature) {
   }
   right_comments_with_spaces_write(signature, 8);
   const int has_right = has_right_comment(signature);
-  if (has_right) {
+  const int has_multi_right = has_multiline_right_comment(signature);
+  if (has_multi_right) {
     indent_write(12);
   } else {
     char_write(' ');
   }
   chunk_write(":");
-  if (is_multi || has_right) {
+  if (is_multi || has_multi_right) {
     chunk_write("\n            ");
   } else {
     char_write(' ');
