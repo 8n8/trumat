@@ -3068,9 +3068,8 @@ static void signature_up_to_colon_write(int signature, int indent) {
   chunk_write(":");
 }
 
-static void signature_write(int left, int signature, int indent) {
-  src_write(left);
-  signature_up_to_colon_write(signature, indent);
+static void signature_after_colon_write(int signature, int indent) {
+  const int is_multi = is_multiline_src_node(signature);
   int signature_item;
   int start = 0;
   if (get_signature_item(signature, &signature_item, &start)) {
@@ -3079,7 +3078,6 @@ static void signature_write(int left, int signature, int indent) {
   }
   const int has_multi_right = has_multiline_right_comment(signature);
   const int has_multi_left = has_multiline_left_comment(signature_item);
-  const int is_multi = is_multiline_src_node(signature);
   if (is_multi || has_multi_right || has_multi_left) {
     indent_write(floor_to_four(indent + 8));
   } else {
@@ -3094,6 +3092,12 @@ static void signature_write(int left, int signature, int indent) {
   while (get_signature_item(signature, &signature_item, &start) == 0) {
     signature_item_write(is_multi, signature_item);
   }
+}
+
+static void signature_write(int left, int signature, int indent) {
+  src_write(left);
+  signature_up_to_colon_write(signature, indent);
+  signature_after_colon_write(signature, indent);
 }
 
 static int get_has_type_signature(int node, int *signature) {
