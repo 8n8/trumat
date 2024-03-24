@@ -3082,6 +3082,10 @@ static void signature_write(int left, int signature, int indent) {
   }
   left_comments_with_spaces_write(0, signature_item, floor_to_four(indent + 8));
   src_write(signature_item);
+  if (has_right_comment(signature_item)) {
+    char_write(' ');
+  }
+  right_comments_in_expression_write(signature_item, floor_to_four(indent + 8));
   while (get_signature_item(signature, &signature_item, &start) == 0) {
     signature_item_write(is_multi, signature_item);
   }
@@ -5264,6 +5268,16 @@ static int subsequent_type_signature_item_parse(int *node) {
   return 0;
 }
 
+static int whitespace_and_comment_parse(int *node) {
+  const int start = I;
+  whitespace_parse();
+  if (comment_parse(node)) {
+    I = start;
+    return -1;
+  }
+  return 0;
+}
+
 static int signature_parse(int *node) {
   const int start = I;
   int name_dont_care;
@@ -5292,6 +5306,10 @@ static int signature_parse(int *node) {
     return -1;
   }
   append_type_signature_item(*node, type);
+  int type_right_comment;
+  if (whitespace_and_comment_parse(&type_right_comment) == 0) {
+    append_right_comment(type, type_right_comment);
+  }
   while (subsequent_type_signature_item_parse(&type) == 0) {
     append_type_signature_item(*node, type);
   }
