@@ -3074,7 +3074,8 @@ static void signature_write(int left, int signature, int indent) {
     char_write(' ');
   }
   chunk_write(":");
-  if (is_multi || has_multi_right) {
+  const int has_multi_left = has_multiline_left_comment(signature_item);
+  if (is_multi || has_multi_right || has_multi_left) {
     indent_write(floor_to_four(indent + 8));
   } else {
     char_write(' ');
@@ -5278,7 +5279,12 @@ static int signature_parse(int *node) {
     return -1;
   }
   whitespace_parse();
+
+  const int before_comment = I;
+  left_comments_parse();
   const int start_row = ROW[I];
+  I = before_comment;
+
   *node = get_new_node();
   int type;
   if (type_signature_item_parse(&type)) {
