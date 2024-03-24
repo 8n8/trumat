@@ -3079,6 +3079,7 @@ static void signature_write(int left, int signature, int indent) {
   } else {
     char_write(' ');
   }
+  left_comments_with_spaces_write(1, signature_item, floor_to_four(indent + 8));
   src_write(signature_item);
   while (get_signature_item(signature, &signature_item, &start) == 0) {
     signature_item_write(is_multi, signature_item);
@@ -5239,10 +5240,12 @@ static int let_in_bind_parse(int *left, int *right) {
 static int type_signature_item_parse(int *node) {
   const int start = I;
   whitespace_parse();
+  const int left_comment = left_comments_parse();
   if (upper_name_parse(node)) {
     I = start;
     return -1;
   }
+  attach_left_comment(*node, left_comment);
   return 0;
 }
 
