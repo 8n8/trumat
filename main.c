@@ -3068,11 +3068,10 @@ static void signature_up_to_colon_write(int signature, int indent) {
   chunk_write(":");
 }
 
-static void signature_after_colon_write(int signature, int indent) {
+static void first_signature_item_write(int signature, int *start, int indent) {
   const int is_multi = is_multiline_src_node(signature);
   int signature_item;
-  int start = 0;
-  if (get_signature_item(signature, &signature_item, &start)) {
+  if (get_signature_item(signature, &signature_item, start)) {
     fprintf(stderr, "signature with no items\n");
     exit(-1);
   }
@@ -3089,6 +3088,13 @@ static void signature_after_colon_write(int signature, int indent) {
     char_write(' ');
   }
   right_comments_in_expression_write(signature_item, floor_to_four(indent + 8));
+}
+
+static void signature_after_colon_write(int signature, int indent) {
+  const int is_multi = is_multiline_src_node(signature);
+  int start = 0;
+  int signature_item;
+  first_signature_item_write(signature, &start, indent);
   while (get_signature_item(signature, &signature_item, &start) == 0) {
     signature_item_write(is_multi, signature_item);
   }
