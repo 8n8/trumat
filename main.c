@@ -3061,7 +3061,6 @@ static void signature_write(int left, int signature, int indent) {
   src_write(left);
   int signature_item;
   int start = 0;
-  const int is_multi = is_multiline_src_node(signature);
   if (get_signature_item(signature, &signature_item, &start)) {
     fprintf(stderr, "signature with no items\n");
     exit(-1);
@@ -3075,6 +3074,7 @@ static void signature_write(int left, int signature, int indent) {
   }
   chunk_write(":");
   const int has_multi_left = has_multiline_left_comment(signature_item);
+  const int is_multi = is_multiline_src_node(signature);
   if (is_multi || has_multi_right || has_multi_left) {
     indent_write(floor_to_four(indent + 8));
   } else {
