@@ -3057,14 +3057,7 @@ static void signature_item_write(int is_multi, int signature_item) {
   src_write(signature_item);
 }
 
-static void signature_write(int left, int signature, int indent) {
-  src_write(left);
-  int signature_item;
-  int start = 0;
-  if (get_signature_item(signature, &signature_item, &start)) {
-    fprintf(stderr, "signature with no items\n");
-    exit(-1);
-  }
+static void signature_up_to_colon_write(int signature, int indent) {
   right_comments_with_spaces_write(signature, floor_to_four(indent + 4));
   const int has_multi_right = has_multiline_right_comment(signature);
   if (has_multi_right) {
@@ -3073,6 +3066,18 @@ static void signature_write(int left, int signature, int indent) {
     char_write(' ');
   }
   chunk_write(":");
+}
+
+static void signature_write(int left, int signature, int indent) {
+  src_write(left);
+  signature_up_to_colon_write(signature, indent);
+  int signature_item;
+  int start = 0;
+  if (get_signature_item(signature, &signature_item, &start)) {
+    fprintf(stderr, "signature with no items\n");
+    exit(-1);
+  }
+  const int has_multi_right = has_multiline_right_comment(signature);
   const int has_multi_left = has_multiline_left_comment(signature_item);
   const int is_multi = is_multiline_src_node(signature);
   if (is_multi || has_multi_right || has_multi_left) {
