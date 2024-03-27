@@ -5306,19 +5306,9 @@ static int signature_before_colon_parse(int *comment) {
   return 0;
 }
 
-static int signature_parse(int *node) {
+static int signature_after_colon_parse(int *node) {
   const int start = I;
-  int right_comment;
-  if (signature_before_colon_parse(&right_comment)) {
-    I = start;
-    return -1;
-  }
-  if (char_parse(':')) {
-    I = start;
-    return -1;
-  }
   whitespace_parse();
-
   const int before_comment = I;
   left_comments_parse();
   const int start_row = ROW[I];
@@ -5340,6 +5330,24 @@ static int signature_parse(int *node) {
   }
   if (ROW[I] > start_row) {
     append_src_multiline(*node);
+  }
+  return 0;
+}
+
+static int signature_parse(int *node) {
+  const int start = I;
+  int right_comment;
+  if (signature_before_colon_parse(&right_comment)) {
+    I = start;
+    return -1;
+  }
+  if (char_parse(':')) {
+    I = start;
+    return -1;
+  }
+  if (signature_after_colon_parse(node)) {
+    I = start;
+    return -1;
   }
   attach_right_comment_in_expression(*node, right_comment);
   return 0;
