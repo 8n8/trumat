@@ -5293,7 +5293,7 @@ static int whitespace_and_comment_parse(int *node) {
   return 0;
 }
 
-static int signature_parse(int *node) {
+static int signature_before_colon_parse(int *comment) {
   const int start = I;
   int name_dont_care;
   if (lower_name_parse(&name_dont_care)) {
@@ -5301,8 +5301,18 @@ static int signature_parse(int *node) {
     return -1;
   }
   whitespace_parse();
-  const int right_comment = right_comments_in_expression_parse();
+  *comment = right_comments_in_expression_parse();
   whitespace_parse();
+  return 0;
+}
+
+static int signature_parse(int *node) {
+  const int start = I;
+  int right_comment;
+  if (signature_before_colon_parse(&right_comment)) {
+    I = start;
+    return -1;
+  }
   if (char_parse(':')) {
     I = start;
     return -1;
